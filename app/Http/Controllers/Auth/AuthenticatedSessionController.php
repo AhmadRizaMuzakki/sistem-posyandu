@@ -26,9 +26,30 @@ class AuthenticatedSessionController extends Controller
     {
         $request->authenticate();
 
+        // 1. Regenerate session HARUS dilakukan paling awal setelah auth berhasil
         $request->session()->regenerate();
 
-        return redirect()->intended(route('dashboard', absolute: false));
+        /** @var \App\Models\User|null $user */
+        $user = Auth::user();
+        
+        // 2. Gunakan redirect()->route() agar user DIPAKSA ke dashboard role-nya
+        // Jangan gunakan intended() jika Anda ingin strict redirection berdasarkan role
+        if ($user) {
+            if ($user->hasRole('superadmin')) {
+                return redirect()->route('admin.dashboard');
+            } 
+            
+            if ($user->hasRole('adminPosyandu')) {
+                return redirect()->route('adminPosyandu.dashboard');
+            } 
+            
+            if ($user->hasRole('orangtua')) {
+                return redirect()->route('orangtua.dashboard');
+            }
+        }
+
+        // Default jika tidak punya role atau role tidak dikenali
+        return redirect('/');
     }
 
     /**

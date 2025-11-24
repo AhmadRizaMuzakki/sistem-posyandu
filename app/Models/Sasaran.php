@@ -6,5 +6,32 @@ use Illuminate\Database\Eloquent\Model;
 
 class Sasaran extends Model
 {
-    //
+    protected $primaryKey = 'id_sasaran';
+
+    protected $fillable = [
+        'id_posyandu',
+        'id_users',
+        'nama_sasaran',
+        'nik_sasaran',
+        'no_kk_sasaran',
+        'tempat_lahir',
+        'tanggal_lahir',
+        'jenis_kelamin',
+        'umur_sasaran',
+        'nik_orangtua',
+        'alamat_sasaran',
+        'kepersertaan_bpjs',
+        'nomor_bpjs',
+        'nomor_telepon',
+    ];
+
+    public function posyandu()
+    {
+        return $this->belongsTo(Posyandu::class, 'id_posyandu');
+    }
+
+    public function user()
+    {
+        return $this->belongsTo(User::class, 'id_users');
+    }
 }

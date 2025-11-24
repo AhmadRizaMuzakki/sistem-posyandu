@@ -3,33 +3,31 @@
 namespace Database\Seeders;
 
 use App\Models\User;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
-use Spatie\Permission\Models\Role;
 
 class DatabaseSeeder extends Seeder
 {
-    use WithoutModelEvents;
-
-    /**
-     * Seed the application's database.
-     */
     public function run(): void
     {
-        // User::factory(10)->create();
-        
-
+        // 1. Panggil RolePermissionSeeder dulu (Wajib)
         $this->call(RolePermissionSeeder::class);
+
         /*
         |--------------------------------------------------------------------------
         | Superadmin
         |--------------------------------------------------------------------------
         */
-        $superadmin = User::create([
-            'name' => 'riza',
-            'email' => 'admin@gmail.com',
-            'password' => bcrypt('root'),
-        ]);
+        // GUNAKAN firstOrCreate JANGAN create
+        $superadmin = User::firstOrCreate(
+            ['email' => 'admin@gmail.com'], // Cek email
+            [
+                'name' => 'riza',
+                'password' => bcrypt('root'),
+                'email_verified_at' => now(),
+            ]
+        );
+        
+        // Paksa pasang role (ini intinya)
         $superadmin->assignRole('superadmin');
 
 
@@ -38,12 +36,15 @@ class DatabaseSeeder extends Seeder
         | Admin Puskesmas
         |--------------------------------------------------------------------------
         */
-        $adminPuskesmas = User::create([
-            'name' => 'Admin Puskesmas',
-            'email' => 'puskesmas@gmail.com',
-            'password' => bcrypt('root'),
-        ]);
-        $adminPuskesmas->assignRole('adminPuskesmas');
+        $adminPuskesmas = User::firstOrCreate(
+            ['email' => 'puskesmas@gmail.com'],
+            [
+                'name' => 'Admin Puskesmas',
+                'password' => bcrypt('root'),
+                'email_verified_at' => now(),
+            ]
+        );
+        $adminPuskesmas->assignRole('adminPosyandu');
 
 
         /*
@@ -51,13 +52,14 @@ class DatabaseSeeder extends Seeder
         | Orangtua
         |--------------------------------------------------------------------------
         */
-        $orangtua = User::create([
-            'name' => 'Orang Tua',
-            'email' => 'orangtua@gmail.com',
-            'password' => bcrypt('root'),
-        ]);
+        $orangtua = User::firstOrCreate(
+            ['email' => 'orangtua@gmail.com'],
+            [
+                'name' => 'Orang Tua',
+                'password' => bcrypt('root'),
+                'email_verified_at' => now(),
+            ]
+        );
         $orangtua->assignRole('orangtua');
-    
     }
-    
 }

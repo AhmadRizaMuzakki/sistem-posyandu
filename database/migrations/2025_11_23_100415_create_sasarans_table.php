@@ -28,7 +28,7 @@ return new class extends Migration
             $table->timestamps();
 
             $table->foreign('id_posyandu')->references('id_posyandu')->on('posyandu')->cascadeOnDelete();
-            $table->foreign('id_users')->references('id_users')->on('users')->cascadeOnDelete();
+            $table->foreign('id_users')->references('id')->on('users')->cascadeOnDelete();
         });
     }
 

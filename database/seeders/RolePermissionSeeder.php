@@ -11,57 +11,39 @@ class RolePermissionSeeder extends Seeder
 {
     public function run(): void
     {
-        // Reset cache permission Spatie
+        // 1. Reset Cache (Wajib)
         app()[PermissionRegistrar::class]->forgetCachedPermissions();
 
-        /*
-        |--------------------------------------------------------------------------
-        | List Permission
-        |--------------------------------------------------------------------------
-        */
+        // 2. Buat Permission (Menggunakan firstOrCreate agar aman di-run berkali-kali)
+        Permission::firstOrCreate(['name' => 'view dashboard']);
+        Permission::firstOrCreate(['name' => 'manage users']);
+        Permission::firstOrCreate(['name' => 'manage anak']);
+        Permission::firstOrCreate(['name' => 'manage imunisasi']);
+        Permission::firstOrCreate(['name' => 'manage Posyandu']);
 
-        $permissions = [
-            'view dashboard',
-            'manage users',
-            'manage anak',
-            'manage imunisasi',
-            'manage puskesmas',
-        ];
+        // 3. Buat Role
+        Role::firstOrCreate(['name' => 'superadmin']);
+        Role::firstOrCreate(['name' => 'adminPosyandu']);
+        Role::firstOrCreate(['name' => 'orangtua']);
 
-        foreach ($permissions as $permission) {
-            Permission::firstOrCreate(['name' => $permission]);
-        }
+        // =========================================================
+        // SETTING PERMISSION (GAYA SESUAI SCREENSHOT)
+        // =========================================================
 
-        /*
-        |--------------------------------------------------------------------------
-        | Roles
-        |--------------------------------------------------------------------------
-        */
-        $superadmin = Role::firstOrCreate(['name' => 'superadmin']);
-        $adminPuskesmas = Role::firstOrCreate(['name' => 'adminPuskesmas']);
-        $orangtua = Role::firstOrCreate(['name' => 'orangtua']);
+        // --- A. Admin Posyandu ---
+        $roleAdmin = Role::findByName('adminPosyandu');
+        $roleAdmin->givePermissionTo('view dashboard');
+        $roleAdmin->givePermissionTo('manage imunisasi');
+        $roleAdmin->givePermissionTo('manage anak');
 
-        /*
-        |--------------------------------------------------------------------------
-        | Give Permission to Roles
-        |--------------------------------------------------------------------------
-        */
+        // --- B. Orang Tua ---
+        $roleOrangtua = Role::findByName('orangtua');
+        $roleOrangtua->givePermissionTo('view dashboard');
 
-        // Superadmin punya semua permission
-        $superadmin->syncPermissions(Permission::all());
+        // --- C. Superadmin (Beri Semua) ---
+        $roleSuperadmin = Role::findByName('superadmin');
+        $roleSuperadmin->givePermissionTo(Permission::all());
 
-        // Admin puskesmas
-        $adminPuskesmas->syncPermissions([
-            'view dashboard',
-            'manage imunisasi',
-            'manage anak',
-        ]);
-
-        // Orangtua (hanya akses dasar)
-        $orangtua->syncPermissions([
-            'view dashboard',
-        ]);
-        
-        echo "Roles & Permissions berhasil dibuat.\n";
+        echo "✅ Role & Permission berhasil di-setup sesuai screenshot.\n";
     }
 }
