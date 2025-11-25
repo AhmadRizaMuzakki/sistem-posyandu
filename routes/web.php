@@ -1,28 +1,36 @@
 <?php
 
 
-use App\Http\Controllers\orangtua;
-use App\Http\Controllers\Supervisor;
-use App\Http\Controllers\Posyandu;
+
+use App\Livewire\Posyandu\Kader;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ProfileController;
+use App\Livewire\Orangtua\OrangtuaDashboard;
+use App\Livewire\Posyandu\Kaders;
+use App\Livewire\Posyandu\PosyanduDashboard;
+use App\Livewire\SuperAdmin\PosyanduDetail;
+use App\Livewire\SuperAdmin\SuperAdminDashboard;
+use App\Models\Posyandu;
 
 Route::get('/', function () {
     return view('welcome');
 });
 
 Route::prefix('supervisor')->middleware(['auth', 'verified', 'role:superadmin'])->group(function () {
-    Route::get('/', [Supervisor::class, 'index'])->name('admin.dashboard');
+    Route::get('/', SuperAdminDashboard::class)->name('admin.dashboard');
+
+    // Tambah route detail posyandu khusus superadmin dashboard
+    Route::get('/posyandu/{id}', PosyanduDetail::class)->name('posyandu.detail');
 });
 
 
 Route::prefix('posyandu')->middleware(['auth', 'verified', 'role:adminPosyandu|superadmin'])->group(function () {
-    Route::get('/', [Posyandu::class, 'index'])->name('adminPosyandu.dashboard');
+    Route::get('/', PosyanduDashboard::class)->name('adminPosyandu.dashboard');
 });
 
 
 Route::prefix('orangtua')->middleware(['auth', 'verified', 'role:orangtua|superadmin'])->group(function () {
-    Route::get('/', [orangtua::class, 'index'])->name('orangtua.dashboard');
+    Route::get('/', OrangtuaDashboard::class)->name('orangtua.dashboard');
 });
 
 Route::get('/dashboard', function () {

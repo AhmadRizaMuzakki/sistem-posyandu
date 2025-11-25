@@ -2,15 +2,17 @@
 
 namespace Database\Seeders;
 
+use App\Models\Kader;
 use App\Models\User;
 use Illuminate\Database\Seeder;
+use Nette\Utils\Random;
 
 class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
         // 1. Panggil RolePermissionSeeder dulu (Wajib)
-        $this->call(RolePermissionSeeder::class);
+        $this->call([RolePermissionSeeder::class, PosyanduSeeder::class]);
 
         /*
         |--------------------------------------------------------------------------
@@ -26,7 +28,7 @@ class DatabaseSeeder extends Seeder
                 'email_verified_at' => now(),
             ]
         );
-        
+
         // Paksa pasang role (ini intinya)
         $superadmin->assignRole('superadmin');
 
@@ -61,5 +63,7 @@ class DatabaseSeeder extends Seeder
             ]
         );
         $orangtua->assignRole('orangtua');
+
+
     }
 }
