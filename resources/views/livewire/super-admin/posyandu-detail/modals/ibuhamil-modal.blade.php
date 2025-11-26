@@ -79,14 +79,73 @@
                             <input type="text" wire:model="nomor_telepon_ibuhamil" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-primary focus:border-primary" placeholder="Nomor WA/Telp">
                             @error('nomor_telepon_ibuhamil') <span class="text-red-500 text-xs">{{ $message }}</span>@enderror
                         </div>
-                        <div>
+                        <div class="md:col-span-2">
                             <label class="block text-gray-700 text-sm font-bold mb-2">Akun User (Opsional)</label>
-                            <select wire:model="id_users_sasaran_ibuhamil" class="shadow border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-primary focus:border-primary">
-                                <option value="">Pilih User...</option>
-                                @foreach($users as $user)
-                                    <option value="{{ $user->id }}">{{ $user->name }} ({{ $user->email }})</option>
-                                @endforeach
-                            </select>
+                            <div class="relative" x-data="{ 
+                                open: false, 
+                                searchText: '',
+                                selectedId: @entangle('id_users_sasaran_ibuhamil'),
+                                selectedName: ''
+                            }" x-init="
+                                $watch('selectedId', value => {
+                                    if (value) {
+                                        const user = @js($users->toArray()).find(u => u.id == value);
+                                        if (user) {
+                                            selectedName = user.name + ' (' + user.email + ')';
+                                            searchText = selectedName;
+                                        }
+                                    } else {
+                                        selectedName = '';
+                                        searchText = '';
+                                    }
+                                });
+                                if (selectedId) {
+                                    const user = @js($users->toArray()).find(u => u.id == selectedId);
+                                    if (user) {
+                                        selectedName = user.name + ' (' + user.email + ')';
+                                        searchText = selectedName;
+                                    }
+                                }
+                            ">
+                                <input 
+                                    type="text" 
+                                    x-model="searchText"
+                                    @focus="open = true"
+                                    @input="open = true; $wire.set('searchUser', searchText)"
+                                    @keydown.escape="open = false"
+                                    class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-primary focus:border-primary" 
+                                    placeholder="Ketik untuk mencari user..."
+                                    autocomplete="off">
+                                <div x-show="open" 
+                                     @click.outside="open = false"
+                                     x-transition:enter="transition ease-out duration-100"
+                                     x-transition:enter-start="opacity-0 scale-95"
+                                     x-transition:enter-end="opacity-100 scale-100"
+                                     x-transition:leave="transition ease-in duration-75"
+                                     x-transition:leave-start="opacity-100 scale-100"
+                                     x-transition:leave-end="opacity-0 scale-95"
+                                     class="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-auto"
+                                     style="display: none;">
+                                    <ul class="py-1">
+                                        <li @click="selectedId = ''; searchText = ''; open = false; $wire.set('id_users_sasaran_ibuhamil', '')" 
+                                            class="px-4 py-2 text-sm text-gray-500 hover:bg-gray-100 cursor-pointer">
+                                            -- Pilih User --
+                                        </li>
+                                        @if($users->count() > 0)
+                                            @foreach($users as $user)
+                                                <li @click="selectedId = '{{ $user->id }}'; selectedName = '{{ $user->name }} ({{ $user->email }})'; searchText = selectedName; open = false; $wire.set('id_users_sasaran_ibuhamil', '{{ $user->id }}')" 
+                                                    x-show="!searchText || '{{ strtolower($user->name . ' (' . $user->email . ')') }}'.includes(searchText.toLowerCase())"
+                                                    class="px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer"
+                                                    :class="selectedId == '{{ $user->id }}' ? 'bg-blue-50 font-medium' : ''">
+                                                    {{ $user->name }} ({{ $user->email }})
+                                                </li>
+                                            @endforeach
+                                        @else
+                                            <li class="px-4 py-2 text-sm text-gray-500">Tidak ada user ditemukan</li>
+                                        @endif
+                                    </ul>
+                                </div>
+                            </div>
                             @error('id_users_sasaran_ibuhamil') <span class="text-red-500 text-xs">{{ $message }}</span>@enderror
                         </div>
                     </div>

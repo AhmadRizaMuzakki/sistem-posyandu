@@ -31,6 +31,7 @@ trait BalitaCrud
      */
     public function openBalitaModal($id = null)
     {
+        $this->searchUser = ''; // Reset search user
         if ($id) {
             $this->editBalita($id);
         } else {
@@ -45,6 +46,7 @@ trait BalitaCrud
     public function closeBalitaModal()
     {
         $this->resetBalitaFields();
+        $this->searchUser = ''; // Reset search user
         $this->isSasaranBalitaModalOpen = false;
     }
 
@@ -135,6 +137,7 @@ trait BalitaCrud
      */
     public function editBalita($id)
     {
+        $this->searchUser = ''; // Reset search user
         $balita = Sasaran_Bayibalita::findOrFail($id);
 
         $this->id_sasaran_bayi_balita = $balita->id_sasaran;

@@ -31,6 +31,7 @@ trait PralansiaCrud
      */
     public function openPralansiaModal($id = null)
     {
+        $this->searchUser = ''; // Reset search user
         if ($id) {
             $this->editPralansia($id);
         } else {
@@ -45,6 +46,7 @@ trait PralansiaCrud
     public function closePralansiaModal()
     {
         $this->resetPralansiaFields();
+        $this->searchUser = ''; // Reset search user
         $this->isSasaranPralansiaModalOpen = false;
     }
 
@@ -135,6 +137,7 @@ trait PralansiaCrud
      */
     public function editPralansia($id)
     {
+        $this->searchUser = ''; // Reset search user
         $pralansia = sasaran_pralansia::findOrFail($id);
 
         $this->id_sasaran_pralansia = $pralansia->id_sasaran;

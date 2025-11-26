@@ -31,6 +31,7 @@ trait IbuHamilCrud
      */
     public function openIbuHamilModal($id = null)
     {
+        $this->searchUser = ''; // Reset search user
         if ($id) {
             $this->editIbuHamil($id);
         } else {
@@ -45,6 +46,7 @@ trait IbuHamilCrud
     public function closeIbuHamilModal()
     {
         $this->resetIbuHamilFields();
+        $this->searchUser = ''; // Reset search user
         $this->isSasaranIbuHamilModalOpen = false;
     }
 
@@ -135,6 +137,7 @@ trait IbuHamilCrud
      */
     public function editIbuHamil($id)
     {
+        $this->searchUser = ''; // Reset search user
         $ibuhamil = sasaran_ibuhamil::findOrFail($id);
 
         $this->id_sasaran_ibuhamil = $ibuhamil->id_sasaran;

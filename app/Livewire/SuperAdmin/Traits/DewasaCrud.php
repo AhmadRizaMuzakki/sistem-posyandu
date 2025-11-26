@@ -31,6 +31,7 @@ trait DewasaCrud
      */
     public function openDewasaModal($id = null)
     {
+        $this->searchUser = ''; // Reset search user
         if ($id) {
             $this->editDewasa($id);
         } else {
@@ -45,6 +46,7 @@ trait DewasaCrud
     public function closeDewasaModal()
     {
         $this->resetDewasaFields();
+        $this->searchUser = ''; // Reset search user
         $this->isSasaranDewasaModalOpen = false;
     }
 
@@ -135,6 +137,7 @@ trait DewasaCrud
      */
     public function editDewasa($id)
     {
+        $this->searchUser = ''; // Reset search user
         $dewasa = sasaran_dewasa::findOrFail($id);
 
         $this->id_sasaran_dewasa = $dewasa->id_sasaran;

@@ -28,6 +28,9 @@ class PosyanduDetail extends Component
     public $search_pralansia = '';
     public $search_lansia = '';
     public $search_ibuhamil = '';
+    
+    // Search property for user dropdown
+    public $searchUser = '';
 
     // Pagination properties for each sasaran type
     public $page_bayibalita = 1;
@@ -151,7 +154,20 @@ class PosyanduDetail extends Component
     public function render()
     {
         $daftarPosyandu = Posyandu::select('id_posyandu', 'nama_posyandu');
-        $users = User::all();
+        // Hanya ambil user dengan role orangtua untuk dropdown di modal sasaran
+        $usersQuery = User::whereHas('roles', function ($query) {
+            $query->where('name', 'orangtua');
+        });
+        
+        // Filter users berdasarkan search
+        if (!empty($this->searchUser)) {
+            $usersQuery->where(function($q) {
+                $q->where('name', 'like', '%' . $this->searchUser . '%')
+                  ->orWhere('email', 'like', '%' . $this->searchUser . '%');
+            });
+        }
+        
+        $users = $usersQuery->orderBy('name')->get();
         $orangtua = User::whereHas('roles', function ($query) {
             $query->where('name', 'orangtua');
         })->get();

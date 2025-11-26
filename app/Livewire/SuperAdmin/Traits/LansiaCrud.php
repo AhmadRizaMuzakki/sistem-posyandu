@@ -31,6 +31,7 @@ trait LansiaCrud
      */
     public function openLansiaModal($id = null)
     {
+        $this->searchUser = ''; // Reset search user
         if ($id) {
             $this->editLansia($id);
         } else {
@@ -45,6 +46,7 @@ trait LansiaCrud
     public function closeLansiaModal()
     {
         $this->resetLansiaFields();
+        $this->searchUser = ''; // Reset search user
         $this->isSasaranLansiaModalOpen = false;
     }
 
@@ -135,6 +137,7 @@ trait LansiaCrud
      */
     public function editLansia($id)
     {
+        $this->searchUser = ''; // Reset search user
         $lansia = sasaran_lansia::findOrFail($id);
 
         $this->id_sasaran_lansia = $lansia->id_sasaran;

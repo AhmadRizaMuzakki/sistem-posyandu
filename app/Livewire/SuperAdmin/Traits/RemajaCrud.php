@@ -31,6 +31,7 @@ trait RemajaCrud
      */
     public function openRemajaModal($id = null)
     {
+        $this->searchUser = ''; // Reset search user
         if ($id) {
             $this->editRemaja($id);
         } else {
@@ -45,6 +46,7 @@ trait RemajaCrud
     public function closeRemajaModal()
     {
         $this->resetRemajaFields();
+        $this->searchUser = ''; // Reset search user
         $this->isSasaranRemajaModalOpen = false;
     }
 
@@ -135,6 +137,7 @@ trait RemajaCrud
      */
     public function editRemaja($id)
     {
+        $this->searchUser = ''; // Reset search user
         $remaja = sasaran_remaja::findOrFail($id);
 
         $this->id_sasaran_remaja = $remaja->id_sasaran;
