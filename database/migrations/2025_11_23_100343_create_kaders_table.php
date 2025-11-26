@@ -14,7 +14,7 @@ return new class extends Migration
             $table->unsignedBigInteger('id_users')->nullable();
             $table->date('tanggal_lahir')->nullable();
             $table->text('alamat_kader')->nullable();
-            $table->string('jabatan_kader')->nullable();
+            $table->enum('jabatan_kader', ['Ketua', 'Sekretaris', 'Bendahara', 'Anggota'])->nullable();
             $table->unsignedBigInteger('id_posyandu')->nullable();
             $table->timestamps();
 

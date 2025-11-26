@@ -21,6 +21,25 @@ class PosyanduDetail extends Component
     public $posyandu;
     public $posyanduId;
 
+    // Search properties for each sasaran type
+    public $search_bayibalita = '';
+    public $search_remaja = '';
+    public $search_dewasa = '';
+    public $search_pralansia = '';
+    public $search_lansia = '';
+    public $search_ibuhamil = '';
+
+    // Pagination properties for each sasaran type
+    public $page_bayibalita = 1;
+    public $page_remaja = 1;
+    public $page_dewasa = 1;
+    public $page_pralansia = 1;
+    public $page_lansia = 1;
+    public $page_ibuhamil = 1;
+
+    // Items per page
+    public $perPage = 10;
+
     #[Layout('layouts.superadmindashboard')]
 
     public function mount($id)
@@ -42,12 +61,12 @@ class PosyanduDetail extends Component
     {
         $relations = [
             'kader.user',
-            'sasaran_bayibalita',
-            'sasaran_remaja',
-            'sasaran_dewasa',
-            'sasaran_pralansia',
-            'sasaran_lansia',
-            'sasaran_ibuhamil',
+            'sasaran_bayibalita.user',
+            'sasaran_remaja.user',
+            'sasaran_dewasa.user',
+            'sasaran_pralansia.user',
+            'sasaran_lansia.user',
+            'sasaran_ibuhamil.user',
         ];
 
         $posyandu = Posyandu::with($relations)->find($this->posyanduId);
@@ -67,16 +86,82 @@ class PosyanduDetail extends Component
         $this->loadPosyandu();
     }
 
+    /**
+     * Reset pagination when search changes
+     */
+    public function updatedSearchBayibalita()
+    {
+        $this->page_bayibalita = 1;
+    }
+
+    public function updatedSearchRemaja()
+    {
+        $this->page_remaja = 1;
+    }
+
+    public function updatedSearchDewasa()
+    {
+        $this->page_dewasa = 1;
+    }
+
+    public function updatedSearchPralansia()
+    {
+        $this->page_pralansia = 1;
+    }
+
+    public function updatedSearchLansia()
+    {
+        $this->page_lansia = 1;
+    }
+
+    public function updatedSearchIbuhamil()
+    {
+        $this->page_ibuhamil = 1;
+    }
+
+    /**
+     * Get filtered and paginated sasaran data
+     */
+    public function getFilteredSasaran($sasaranCollection, $search, $page)
+    {
+        $query = $sasaranCollection;
+
+        if (!empty($search)) {
+            $query = $query->filter(function ($item) use ($search) {
+                return stripos($item->nama_sasaran ?? '', $search) !== false;
+            })->values();
+        } else {
+            $query = $query->values();
+        }
+
+        $total = $query->count();
+        $totalPages = $total > 0 ? ceil($total / $this->perPage) : 1;
+        
+        $paginated = $query->slice(($page - 1) * $this->perPage, $this->perPage);
+
+        return [
+            'data' => $paginated,
+            'total' => $total,
+            'current_page' => $page,
+            'total_pages' => $totalPages,
+            'per_page' => $this->perPage,
+        ];
+    }
+
     public function render()
     {
-        $daftarPosyandu = Posyandu::all(['id_posyandu', 'nama_posyandu']);
+        $daftarPosyandu = Posyandu::select('id_posyandu', 'nama_posyandu');
         $users = User::all();
+        $orangtua = User::whereHas('roles', function ($query) {
+            $query->where('name', 'orangtua');
+        })->get();
 
         return view('livewire.super-admin.posyandu-detail', [
             'title' => 'Detail Posyandu - ' . $this->posyandu->nama_posyandu,
             'daftarPosyandu' => $daftarPosyandu,
             'dataPosyandu' => $daftarPosyandu,
             'users' => $users,
+            'orangtua' => $orangtua,
             'isSasaranBalitaModalOpen' => $this->isSasaranBalitaModalOpen,
             'isKaderModalOpen' => $this->isKaderModalOpen,
             'isSasaranRemajaModalOpen' => $this->isSasaranRemajaModalOpen,

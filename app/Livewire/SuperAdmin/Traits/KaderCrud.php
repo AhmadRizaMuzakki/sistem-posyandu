@@ -17,7 +17,12 @@ trait KaderCrud
     public $email_kader;
     public $password_kader;
     public $posyandu_id_kader;
-    public $no_hp_kader;
+    // Tambahan sesuai field Kader.php (kecuali no_hp_kader)
+    public $nik_kader;
+    public $id_users; // Biasanya diisi oleh sistem/database
+    public $tanggal_lahir;
+    public $alamat_kader;
+    public $jabatan_kader;
 
     /**
      * Buka modal tambah/edit Kader
@@ -53,7 +58,10 @@ trait KaderCrud
         $this->email_kader = '';
         $this->password_kader = '';
         $this->posyandu_id_kader = '';
-        $this->no_hp_kader = '';
+        $this->nik_kader = '';
+        $this->tanggal_lahir = '';
+        $this->alamat_kader = '';
+        $this->jabatan_kader = ''; 
     }
 
     /**
@@ -73,6 +81,10 @@ trait KaderCrud
             'email_kader' => 'required|string|email|max:255|unique:users,email' . ($userId ? ',' . $userId : ''),
             'password_kader' => $this->id_kader ? 'nullable|min:8' : 'required|min:8',
             'posyandu_id_kader' => 'required|exists:posyandu,id_posyandu',
+            'nik_kader' => 'required|string|max:50',
+            'tanggal_lahir' => 'required|date',
+            'alamat_kader' => 'required|string|max:255',
+            'jabatan_kader' => 'required|string|max:100',
         ], [
             'nama_kader.required' => 'Nama kader wajib diisi.',
             'email_kader.required' => 'Email wajib diisi.',
@@ -82,6 +94,11 @@ trait KaderCrud
             'password_kader.min' => 'Password minimal 8 karakter.',
             'posyandu_id_kader.required' => 'Posyandu wajib dipilih.',
             'posyandu_id_kader.exists' => 'Posyandu yang dipilih tidak valid.',
+            'nik_kader.required' => 'NIK kader wajib diisi.',
+            'tanggal_lahir.required' => 'Tanggal lahir wajib diisi.',
+            'tanggal_lahir.date' => 'Tanggal lahir tidak valid.',
+            'alamat_kader.required' => 'Alamat kader wajib diisi.',
+            'jabatan_kader.required' => 'Jabatan kader wajib diisi.',
         ]);
 
         if ($this->id_kader) {
@@ -97,6 +114,10 @@ trait KaderCrud
             $user->save();
 
             $kader->id_posyandu = $this->posyandu_id_kader;
+            $kader->nik_kader = $this->nik_kader;
+            $kader->tanggal_lahir = $this->tanggal_lahir;
+            $kader->alamat_kader = $this->alamat_kader;
+            $kader->jabatan_kader = $this->jabatan_kader;
             $kader->save();
 
             session()->flash('message', 'Data Kader berhasil diperbarui.');
@@ -109,16 +130,16 @@ trait KaderCrud
             ]);
 
             // Assign role kader
-            $user->assignRole('kader');
+            $user->assignRole('adminPosyandu');
 
             // Buat record Kader
             Kader::create([
                 'id_users' => $user->id,
                 'id_posyandu' => $this->posyandu_id_kader,
-                'nik_kader' => null,
-                'tanggal_lahir' => null,
-                'alamat_kader' => null,
-                'jabatan_kader' => 'Kader',
+                'nik_kader' => $this->nik_kader,
+                'tanggal_lahir' => $this->tanggal_lahir,
+                'alamat_kader' => $this->alamat_kader,
+                'jabatan_kader' => $this->jabatan_kader,
             ]);
 
             session()->flash('message', 'Data Kader berhasil ditambahkan.');
@@ -139,8 +160,11 @@ trait KaderCrud
         $this->nama_kader = $kader->user->name ?? '';
         $this->email_kader = $kader->user->email ?? '';
         $this->posyandu_id_kader = $kader->id_posyandu;
+        $this->nik_kader = $kader->nik_kader ?? '';
+        $this->tanggal_lahir = $kader->tanggal_lahir ?? '';
+        $this->alamat_kader = $kader->alamat_kader ?? '';
+        $this->jabatan_kader = $kader->jabatan_kader ?? '';
         $this->password_kader = '';
-        $this->no_hp_kader = '';
 
         $this->isKaderModalOpen = true;
     }
@@ -151,10 +175,17 @@ trait KaderCrud
     public function deleteKader($id)
     {
         $kader = Kader::findOrFail($id);
+
+        // Hapus user hanya jika tidak digunakan kader lain
+        $user = $kader->user;
         $kader->delete();
+
+        // Pastikan user hanya satu kali dipakai (jaga2 penghapusan)
+        if ($user && Kader::where('id_users', $user->id)->count() === 0) {
+            $user->delete();
+        }
 
         $this->refreshPosyandu();
         session()->flash('message', 'Data Kader berhasil dihapus.');
     }
 }
-

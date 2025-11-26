@@ -142,7 +142,7 @@
                         <img class="w-8 h-8 rounded-full"
                             src="https://ui-avatars.com/api/?name=Admin+User&background=0D8ABC&color=fff"
                             alt="Admin">
-                        <span class="hidden md:block text-sm font-medium text-gray-700">Admin User</span>
+                        <span class="hidden md:block text-sm font-medium text-gray-700">{{ Auth::user()->name }}</span>
                         <!-- Dropdown -->
                         <div class="relative group">
                             <button id="userDropdownBtn" class="ml-2 p-1 rounded-full text-gray-400 hover:text-gray-700 focus:outline-none focus:ring-2 focus:ring-primary">
