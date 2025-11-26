@@ -70,7 +70,7 @@
                     <div class="flex items-center justify-between p-4 bg-green-50 rounded-lg">
                         <div>
                             <p class="text-sm text-gray-600">Total Sasaran</p>
-                            <p class="text-2xl font-bold text-green-600 mt-1">{{ $posyandu->sasaran->count() }}</p>
+                            <p class="text-2xl font-bold text-green-600 mt-1">{{ $posyandu->sasaran_bayibalita->count() }}</p>
                         </div>
                         <i class="ph ph-baby text-4xl text-green-300"></i>
                     </div>
@@ -155,7 +155,7 @@
                     Daftar Sasaran
                 </h2>
                 <div class="flex items-center gap-4">
-                    <span class="text-sm text-gray-500">{{ $posyandu->sasaran->count() }} sasaran</span>
+                    <span class="text-sm text-gray-500">{{ $posyandu->sasaran_bayibalita->count() }} sasaran</span>
                     <button wire:click="openSasaranModal()"
                             class="flex items-center px-4 py-2 text-sm font-medium text-white bg-primary rounded-lg hover:bg-indigo-700 transition-colors">
                         <i class="ph ph-plus-circle text-lg mr-2"></i>
@@ -163,7 +163,7 @@
                     </button>
                 </div>
             </div>
-            @if($posyandu->sasaran->count() > 0)
+            @if($posyandu->sasaran_bayibalita->count() > 0)
                 <div class="overflow-x-auto">
                     <table class="w-full text-sm text-left text-gray-500">
                         <thead class="text-xs text-gray-700 uppercase bg-gray-50">
@@ -178,7 +178,7 @@
                             </tr>
                         </thead>
                         <tbody>
-                            @foreach($posyandu->sasaran as $sasaran)
+                            @foreach($posyandu->sasaran_bayibalita as $sasaran)
                             <tr class="bg-white border-b hover:bg-gray-50">
                                 <td class="px-6 py-4 font-medium text-gray-900">{{ $sasaran->nik_sasaran ?? '-' }}</td>
                                 <td class="px-6 py-4">{{ $sasaran->nama_sasaran ?? '-' }}</td>
@@ -319,7 +319,7 @@
                     <form wire:submit.prevent="storeSasaran">
                         <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
                             <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4" id="modal-title">
-                                {{ $id_sasaran ? 'Edit Data Sasaran' : 'Tambah Sasaran Baru' }}
+                                {{ $id_sasaran_bayi_balita ? 'Edit Data Sasaran' : 'Tambah Sasaran Baru' }}
                             </h3>
 
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">

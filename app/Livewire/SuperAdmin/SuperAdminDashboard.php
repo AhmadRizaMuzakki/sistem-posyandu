@@ -7,7 +7,7 @@ use Livewire\Component;
 use Livewire\Attributes\Layout;
 use App\Models\Posyandu;
 use App\Models\User;
-use App\Models\Sasaran;
+use App\Models\Sasaran_Bayibalita;
 
 class SuperAdminDashboard extends Component
 {
@@ -20,8 +20,8 @@ class SuperAdminDashboard extends Component
         // Hitung jumlah kader (role = 'kader')
         $totalKader = Kader::count();
 
-        // Hitung jumlah sasaran (asumsi ada model Sasaran, ganti dengan nama model/table sesuai DB Anda)
-        $totalSasaran = Sasaran::count();
+        // Hitung jumlah sa saran (asumsi ada model Sasaran, ganti dengan nama model/table sesuai DB Anda)
+        $totalSasaran = Sasaran_Bayibalita::count();
 
         return view('livewire.super-admin.super-admin', [
             'totalPosyandu' => $totalPosyandu,

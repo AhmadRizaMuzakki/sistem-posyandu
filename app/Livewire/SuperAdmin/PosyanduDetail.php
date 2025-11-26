@@ -4,7 +4,7 @@ namespace App\Livewire\SuperAdmin;
 
 use App\Models\Posyandu;
 use App\Models\Kader;
-use App\Models\Sasaran;
+use App\Models\Sasaran_Bayibalita;
 use App\Models\User;
 use Livewire\Component;
 use Livewire\Attributes\Layout;
@@ -22,8 +22,20 @@ class PosyanduDetail extends Component
     public $nik_kader, $id_users, $tanggal_lahir, $alamat_kader, $jabatan_kader;
 
     // Properties untuk form Sasaran
-    public $isSasaranModalOpen = false;
-    public $id_sasaran = null; // Untuk mode edit
+    public $isSasaranModalOpen = false; // Aliased/modal flag for Sasaran (legacy/root, not used for balita modal anymore)
+
+    public $isSasaranBalitaModalOpen = false; // Renamed property for modal Sasaran Bayi Balita (see instructions)
+    public $isModalSasaranRemajaOpen = false;
+    public $isModalSasaranDewasaOpen = false;
+    public $isModalSasaranPralansiaOpen = false;
+    public $isSasaranLansiaModalOpen = false; // >>> Renamed property as requested
+    public $isModalSasaranIbuHamilOpen = false;
+    public $isSasaranIbuHamilModalOpen = false; // <--- Added property to fix undefined variable
+
+    // Fix: add id_sasaran_bayi_balita for compatibility with form/edit (avoid undefined var)
+    public $sasaran_bayi_balita_id = null; // Untuk mode edit, renamed from id_sasaran
+    public $id_sasaran_bayi_balita = null; // Ensure this matches the expected variable name in view/form
+
     public $nama_sasaran, $nik_sasaran, $no_kk_sasaran, $tempat_lahir, $tanggal_lahir_sasaran,
            $jenis_kelamin, $umur_sasaran, $nik_orangtua, $alamat_sasaran,
            $kepersertaan_bpjs, $nomor_bpjs, $nomor_telepon, $id_users_sasaran;
@@ -32,7 +44,6 @@ class PosyanduDetail extends Component
 
     public function mount($id)
     {
-        // Cek jika tabel sasaran ada, agar tidak error jika belum migrate atau belum dibuat
         $sasaranTableExists = Schema::hasTable('sasaran') || Schema::hasTable('sasarans'); // cek kedua kemungkinan nama tabel
 
         try {
@@ -43,9 +54,7 @@ class PosyanduDetail extends Component
 
         $this->posyanduId = $decryptedId;
 
-        // Query relasi hanya jika tabel ada, jika tidak hanya relasi kader.user saja
         $relations = ['kader.user'];
-        // Laravel pluralisasi default: model Sasaran -> table sasarans
         if ($sasaranTableExists) {
             $relations[] = 'sasaran';
         }
@@ -55,9 +64,7 @@ class PosyanduDetail extends Component
             abort(404, 'Posyandu tidak ditemukan');
         }
 
-        // Jika tabel sasaran tidak ada, tambahkan properti kosong agar blade tidak error
         if (!$sasaranTableExists) {
-            // pastikan properti 'sasaran' ada (Collection kosong)
             $posyandu->setRelation('sasaran', collect());
         }
 
@@ -121,7 +128,7 @@ class PosyanduDetail extends Component
 
             $user = User::find($this->id_users);
             if ($user) {
-                $user->assignRole('kader');
+                $user->assignRole('adminPosyandu');
             }
             $message = 'Data Kader berhasil ditambahkan.';
         }
@@ -152,21 +159,63 @@ class PosyanduDetail extends Component
     }
 
     // Methods untuk Sasaran
+
+    /**
+     * Open modal for Sasaran Bayi Balita specifically.
+     */
+    public function openModalSasaranBayiBalita()
+    {
+        $this->resetSasaranFields();
+        $this->isSasaranModalOpen = true;
+        $this->isSasaranBalitaModalOpen = true;
+        $this->isModalSasaranRemajaOpen = false;
+        $this->isModalSasaranDewasaOpen = false;
+        $this->isModalSasaranPralansiaOpen = false;
+        $this->isSasaranLansiaModalOpen = false;
+        $this->isModalSasaranIbuHamilOpen = false;
+        $this->isSasaranIbuHamilModalOpen = false;
+    }
+
+    /**
+     * Close modal for Sasaran Bayi Balita specifically.
+     */
+    public function closeModalSasaranBayiBalita()
+    {
+        $this->isSasaranModalOpen = false;
+        $this->isSasaranBalitaModalOpen = false;
+        $this->resetSasaranFields();
+    }
+
     public function openSasaranModal()
     {
         $this->resetSasaranFields();
         $this->isSasaranModalOpen = true;
+        $this->isSasaranBalitaModalOpen = true;
+        $this->isModalSasaranRemajaOpen = true;
+        $this->isModalSasaranDewasaOpen = true;
+        $this->isModalSasaranPralansiaOpen = true;
+        $this->isSasaranLansiaModalOpen = true;
+        $this->isModalSasaranIbuHamilOpen = true;
+        $this->isSasaranIbuHamilModalOpen = true;
     }
 
     public function closeSasaranModal()
     {
         $this->isSasaranModalOpen = false;
+        $this->isSasaranBalitaModalOpen = false;
+        $this->isModalSasaranRemajaOpen = false;
+        $this->isModalSasaranDewasaOpen = false;
+        $this->isModalSasaranPralansiaOpen = false;
+        $this->isSasaranLansiaModalOpen = false;
+        $this->isModalSasaranIbuHamilOpen = false;
+        $this->isSasaranIbuHamilModalOpen = false;
         $this->resetSasaranFields();
     }
 
     private function resetSasaranFields()
     {
-        $this->id_sasaran = null;
+        $this->sasaran_bayi_balita_id = null; // was $this->id_sasaran
+        $this->id_sasaran_bayi_balita = null; // also reset compat variable
         $this->nama_sasaran = '';
         $this->nik_sasaran = '';
         $this->no_kk_sasaran = '';
@@ -182,7 +231,10 @@ class PosyanduDetail extends Component
         $this->id_users_sasaran = '';
     }
 
-    public function storeSasaran()
+    /**
+     * Public method for Bayi Balita (for Livewire compatibility).
+     */
+    public function storeSasaranBayiBalita()
     {
         $this->validate([
             'nama_sasaran' => 'required',
@@ -192,7 +244,6 @@ class PosyanduDetail extends Component
             'alamat_sasaran' => 'required',
         ]);
 
-        // Hitung umur dari tanggal lahir jika tersedia
         $umur = null;
         if ($this->tanggal_lahir_sasaran) {
             $umur = Carbon::parse($this->tanggal_lahir_sasaran)->age;
@@ -218,15 +269,15 @@ class PosyanduDetail extends Component
             'nomor_telepon' => $this->nomor_telepon !== '' ? $this->nomor_telepon : null,
         ];
 
-        if ($this->id_sasaran) {
-            // Update mode
-            $sasaran = Sasaran::findOrFail($this->id_sasaran);
+        // Use either sasaran_bayi_balita_id or id_sasaran_bayi_balita as the edit identifier
+        $editId = $this->sasaran_bayi_balita_id ?: $this->id_sasaran_bayi_balita;
+        if ($editId) {
+            $sasaran = Sasaran_Bayibalita::findOrFail($editId);
             $sasaran->update($data);
             $message = 'Data Sasaran berhasil diperbarui.';
         } else {
-            // Create mode
             $data['id_posyandu'] = $this->posyanduId;
-            Sasaran::create($data);
+            Sasaran_Bayibalita::create($data);
             $message = 'Data Sasaran berhasil ditambahkan.';
         }
 
@@ -235,10 +286,16 @@ class PosyanduDetail extends Component
         session()->flash('message', $message);
     }
 
+    public function storeSasaran()
+    {
+        return $this->storeSasaranBayiBalita();
+    }
+
     public function editSasaran($id)
     {
-        $sasaran = Sasaran::findOrFail($id);
-        $this->id_sasaran = $sasaran->id_sasaran;
+        $sasaran = Sasaran_Bayibalita::findOrFail($id);
+        $this->sasaran_bayi_balita_id = $sasaran->id_sasaran; // was $this->id_sasaran
+        $this->id_sasaran_bayi_balita = $sasaran->id_sasaran; // set compat property
         $this->nama_sasaran = $sasaran->nama_sasaran;
         $this->nik_sasaran = $sasaran->nik_sasaran;
         $this->no_kk_sasaran = $sasaran->no_kk_sasaran ?? '';
@@ -246,7 +303,6 @@ class PosyanduDetail extends Component
         $this->tanggal_lahir_sasaran = $sasaran->tanggal_lahir;
         $this->jenis_kelamin = $sasaran->jenis_kelamin;
 
-        // Hitung umur dari tanggal lahir
         if ($sasaran->tanggal_lahir) {
             $this->umur_sasaran = Carbon::parse($sasaran->tanggal_lahir)->age;
         } else {
@@ -264,7 +320,7 @@ class PosyanduDetail extends Component
 
     public function deleteSasaran($id)
     {
-        $sasaran = Sasaran::findOrFail($id);
+        $sasaran = Sasaran_Bayibalita::findOrFail($id);
         $sasaran->delete();
         $this->refreshPosyandu();
         session()->flash('message', 'Data Sasaran berhasil dihapus.');
@@ -294,6 +350,15 @@ class PosyanduDetail extends Component
             'title' => 'Detail Posyandu - ' . $this->posyandu->nama_posyandu,
             'daftarPosyandu' => $daftarPosyandu,
             'users' => $users,
+            'isModalSasaranBayiBalitaOpen' => $this->isSasaranModalOpen || $this->isSasaranBalitaModalOpen, // Compatibility legacy
+            'isSasaranBalitaModalOpen' => $this->isSasaranBalitaModalOpen, // For direct view use if needed
+            'isModalSasaranRemajaOpen' => $this->isSasaranModalOpen || $this->isModalSasaranRemajaOpen,
+            'isModalSasaranDewasaOpen' => $this->isSasaranModalOpen || $this->isModalSasaranDewasaOpen,
+            'isModalSasaranPralansiaOpen' => $this->isSasaranModalOpen || $this->isModalSasaranPralansiaOpen,
+            'isSasaranLansiaModalOpen' => $this->isSasaranModalOpen || $this->isSasaranLansiaModalOpen, // Updated key usage
+            'isModalSasaranIbuHamilOpen' => $this->isSasaranModalOpen || $this->isModalSasaranIbuHamilOpen || $this->isSasaranIbuHamilModalOpen,
+            // Optionally expose id_sasaran_bayi_balita for view if expected
+            'id_sasaran_bayi_balita' => $this->id_sasaran_bayi_balita,
         ]);
     }
 }

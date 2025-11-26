@@ -2,15 +2,18 @@
 
 
 
-use App\Livewire\Posyandu\Kader;
-use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\ProfileController;
-use App\Livewire\Orangtua\OrangtuaDashboard;
-use App\Livewire\Posyandu\Kaders;
-use App\Livewire\Posyandu\PosyanduDashboard;
-use App\Livewire\SuperAdmin\PosyanduDetail;
-use App\Livewire\SuperAdmin\SuperAdminDashboard;
 use App\Models\Posyandu;
+use App\Livewire\Posyandu\Kader;
+use App\Livewire\Posyandu\Kaders;
+use Illuminate\Support\Facades\Route;
+use App\Livewire\SuperAdmin\Kader\Edit;
+use App\Livewire\SuperAdmin\Kader\Create;
+use App\Livewire\SuperAdmin\Kader\Destroy;
+use App\Http\Controllers\ProfileController;
+use App\Livewire\SuperAdmin\PosyanduDetail;
+use App\Livewire\Orangtua\OrangtuaDashboard;
+use App\Livewire\Posyandu\PosyanduDashboard;
+use App\Livewire\SuperAdmin\SuperAdminDashboard;
 
 Route::get('/', function () {
     return view('welcome');
@@ -21,6 +24,7 @@ Route::prefix('supervisor')->middleware(['auth', 'verified', 'role:superadmin'])
 
     // Tambah route detail posyandu khusus superadmin dashboard
     Route::get('/posyandu/{id}', PosyanduDetail::class)->name('posyandu.detail');
+    
 });
 
 

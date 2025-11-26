@@ -6,10 +6,13 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
+    /**
+     * Run the migrations.
+     */
     public function up(): void
     {
-        Schema::create('sasaran_bayibalita', function (Blueprint $table) {
-            $table->id('id_sasaran');
+        Schema::create('sasaran_dewasas', function (Blueprint $table) {
+            $table->id();
             $table->unsignedBigInteger('id_posyandu')->nullable();
             $table->unsignedBigInteger('id_users')->nullable();
             $table->string('nama_sasaran')->nullable();
@@ -32,10 +35,11 @@ return new class extends Migration
         });
     }
 
-
-
+    /**
+     * Reverse the migrations.
+     */
     public function down(): void
     {
-        Schema::dropIfExists('sasaran');
+        Schema::dropIfExists('sasaran_dewasas');
     }
 };
