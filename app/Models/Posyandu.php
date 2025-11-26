@@ -29,23 +29,23 @@ class Posyandu extends Model
     }
     public function sasaran_dewasa()
     {
-        return $this->hasMany(Sasaran_Dewasa::class, 'id_posyandu');
+        return $this->hasMany(sasaran_dewasa::class, 'id_posyandu');
     }
     public function sasaran_ibuhamil()
     {
-        return $this->hasMany(Sasaran_Ibuhamil::class, 'id_posyandu');
+        return $this->hasMany(sasaran_ibuhamil::class, 'id_posyandu');
     }
     public function sasaran_lansia()
     {
-        return $this->hasMany(Sasaran_Lansia::class, 'id_posyandu');
+        return $this->hasMany(sasaran_lansia::class, 'id_posyandu');
     }
     public function sasaran_remaja()
     {
-        return $this->hasMany(Sasaran_Remaja::class, 'id_posyandu');
+        return $this->hasMany(sasaran_remaja::class, 'id_posyandu');
     }
     public function sasaran_pralansia()
     {
-        return $this->hasMany(Sasaran_Pralansia::class, 'id_posyandu');
+        return $this->hasMany(sasaran_pralansia::class, 'id_posyandu');
     }
-    
+
 }
