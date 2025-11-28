@@ -21,7 +21,6 @@
                     <tr>
                         <th class="px-6 py-3">NIK</th>
                         <th class="px-6 py-3">Nama</th>
-                        <th class="px-6 py-3">Jabatan</th>
                         <th class="px-6 py-3">Tanggal Lahir</th>
                         <th class="px-6 py-3">Alamat</th>
                         <th class="px-6 py-3">Jabatan</th>
@@ -33,11 +32,6 @@
                     <tr class="bg-white border-b hover:bg-gray-50">
                         <td class="px-6 py-4 font-medium text-gray-900">{{ $kader->nik_kader ?? '-' }}</td>
                         <td class="px-6 py-4">{{ $kader->user->name ?? '-' }}</td>
-                        <td class="px-6 py-4">
-                            <span class="px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
-                                {{ $kader->jabatan_kader ?? '-' }}
-                            </span>
-                        </td>
                         <td class="px-6 py-4">{{ $kader->tanggal_lahir ? \Carbon\Carbon::parse($kader->tanggal_lahir)->format('d/m/Y') : '-' }}</td>
                         <td class="px-6 py-4">{{ $kader->alamat_kader ?? '-' }}</td>
                         @if($kader->jabatan_kader)

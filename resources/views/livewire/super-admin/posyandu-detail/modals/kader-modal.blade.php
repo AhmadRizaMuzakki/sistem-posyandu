@@ -60,7 +60,13 @@
                         {{-- Jabatan Kader --}}
                         <div>
                             <label class="block text-gray-700 text-sm font-bold mb-2">Jabatan Kader <span class="text-red-500">*</span></label>
-                            <input type="text" wire:model="jabatan_kader" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-primary focus:border-primary" placeholder="Jabatan Kader">
+                            <select wire:model="jabatan_kader" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-primary focus:border-primary">
+                                <option value="">Pilih Jabatan...</option>
+                                <option value="Ketua">Ketua</option>
+                                <option value="Sekretaris">Sekretaris</option>
+                                <option value="Bendahara">Bendahara</option>
+                                <option value="Anggota">Anggota</option>
+                            </select>
                             @error('jabatan_kader') <span class="text-red-500 text-xs">{{ $message }}</span>@enderror
                         </div>
 
@@ -70,7 +76,9 @@
                             <select wire:model="posyandu_id_kader" class="shadow border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-primary focus:border-primary">
                                 <option value="">Pilih Posyandu...</option>
                                 @foreach($dataPosyandu as $posyanduOpt)
-                                    <option value="{{ $posyanduOpt->id_posyandu ?? $posyanduOpt->id }}">{{ $posyanduOpt->nama_posyandu }}</option>
+                                    <option value="{{ is_array($posyanduOpt) ? ($posyanduOpt['id_posyandu'] ?? $posyanduOpt['id'] ?? '') : ($posyanduOpt->id_posyandu ?? $posyanduOpt->id ?? '') }}">
+                                        {{ is_array($posyanduOpt) ? ($posyanduOpt['nama_posyandu'] ?? '') : ($posyanduOpt->nama_posyandu ?? '') }}
+                                    </option>
                                 @endforeach
                             </select>
                             @error('posyandu_id_kader') <span class="text-red-500 text-xs">{{ $message }}</span>@enderror

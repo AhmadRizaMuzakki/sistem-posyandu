@@ -20,6 +20,9 @@
 
         {{-- Modal Form Sasaran --}}
         @include('livewire.super-admin.posyandu-detail.modals.all-modals')
+
+        {{-- Modal Upload SK --}}
+        @include('livewire.super-admin.posyandu-detail.partials.upload-sk')
     </div>
 </div>
 

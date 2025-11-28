@@ -29,12 +29,44 @@
                 <p class="text-gray-800 mt-1">{{ number_format($posyandu->jumlah_sasaran, 0, ',', '.') }} orang</p>
             </div>
             @endif
-            @if($posyandu->sk_posyandu)
             <div>
                 <label class="text-sm font-medium text-gray-500">SK Posyandu</label>
-                <p class="text-gray-800 mt-1">{{ $posyandu->sk_posyandu }}</p>
+                <div class="mt-2">
+                    @if($posyandu->sk_posyandu)
+                        <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-200 mb-2">
+                            <div class="flex items-center space-x-3">
+                                <i class="ph ph-file text-2xl text-primary"></i>
+                                <div>
+                                    <a href="{{ asset($posyandu->sk_posyandu) }}" target="_blank" class="text-primary hover:underline font-medium">
+                                        Lihat File SK
+                                    </a>
+                                    <p class="text-xs text-gray-500 mt-1">Klik untuk melihat atau download</p>
+                                </div>
+                            </div>
+                            <button 
+                                wire:click="deleteSk"
+                                wire:confirm="Apakah Anda yakin ingin menghapus file SK ini?"
+                                class="text-red-600 hover:text-red-700 p-2 hover:bg-red-50 rounded-lg transition-colors"
+                                title="Hapus File">
+                                <i class="ph ph-trash text-lg"></i>
+                            </button>
+                        </div>
+                        <button 
+                            wire:click="$set('showUploadModal', true)"
+                            class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark transition-colors text-sm flex items-center space-x-2">
+                            <i class="ph ph-upload"></i>
+                            <span>Ganti File SK</span>
+                        </button>
+                    @else
+                        <button 
+                            wire:click="$set('showUploadModal', true)"
+                            class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark transition-colors text-sm flex items-center space-x-2">
+                            <i class="ph ph-upload"></i>
+                            <span>Upload File SK</span>
+                        </button>
+                    @endif
+                </div>
             </div>
-            @endif
         </div>
     </div>
 

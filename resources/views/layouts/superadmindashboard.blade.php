@@ -153,12 +153,11 @@
                                     class="block px-4 py-2 text-gray-700 hover:bg-gray-100 hover:text-primary text-sm">
                                     <i class="ph ph-pencil-line mr-2"></i> Update Profil
                                 </a>
-                                <form method="POST" action="{{ route('profile.destroy') }}" onsubmit="return confirm('Yakin ingin menghapus akun?');">
+                                <form method="POST" action="{{ route('logout') }}">
                                     @csrf
-                                    @method('DELETE')
                                     <button type="submit"
-                                        class="w-full text-left px-4 py-2 text-red-600 hover:bg-gray-100 hover:text-red-700 text-sm">
-                                        <i class="ph ph-trash mr-2"></i> Delete Akun
+                                        class="w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100 hover:text-primary text-sm">
+                                        <i class="ph ph-sign-out mr-2"></i> Logout
                                     </button>
                                 </form>
                             </div>
