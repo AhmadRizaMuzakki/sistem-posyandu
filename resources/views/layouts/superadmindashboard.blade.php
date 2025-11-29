@@ -64,7 +64,12 @@
                 }
                 // Ambil posyandu yang sedang aktif dari URL jika ada
                 $currentPosyanduId = null;
-                if (request()->routeIs('posyandu.detail')) {
+                // Cek semua route yang terkait dengan posyandu
+                if (request()->routeIs('posyandu.detail') ||
+                    request()->routeIs('posyandu.info') ||
+                    request()->routeIs('posyandu.kader') ||
+                    request()->routeIs('posyandu.sasaran') ||
+                    request()->routeIs('posyandu.imunisasi')) {
                     try {
                         $encryptedId = request()->route('id');
                         if ($encryptedId) {
@@ -84,7 +89,21 @@
                         'nama' => $p->nama_posyandu ?? $p->nama ?? '-',
                         'encryptedId' => ($p->id_posyandu ?? $p->id) ? encrypt($p->id_posyandu ?? $p->id) : null
                     ];
-                })->filter(fn($p) => $p['id'] !== null)->values()->toArray())
+                })->filter(fn($p) => $p['id'] !== null)->values()->toArray()),
+                init() {
+                    // Jika selectedPosyandu belum ter-set, deteksi dari URL
+                    if (!this.selectedPosyandu) {
+                        const currentPath = window.location.pathname;
+                        const posyanduMatch = currentPath.match(/\/supervisor\/posyandu\/([^\/]+)/);
+                        if (posyanduMatch && posyanduMatch[1]) {
+                            const encryptedId = posyanduMatch[1];
+                            const found = this.posyanduList.find(p => p.encryptedId === encryptedId);
+                            if (found) {
+                                this.selectedPosyandu = found.id;
+                            }
+                        }
+                    }
+                }
             }">
                 {{-- DASHBOARD UTAMA --}}
                 <a
@@ -148,15 +167,15 @@
                                 </h3>
 
                                 <a
-                                    :href="`/supervisor/posyandu/${posyandu.encryptedId}`"
+                                    :href="`/supervisor/posyandu/${posyandu.encryptedId}/info`"
                                     class="flex items-center px-4 py-2 text-sm text-gray-600 hover:bg-gray-100 hover:text-primary rounded-lg transition-colors group"
                                 >
                                     <i class="ph ph-info text-lg mr-3 group-hover:text-primary"></i>
-                                    <span class="font-medium">Detail Posyandu</span>
+                                    <span class="font-medium">Info Posyandu</span>
                                 </a>
 
                                 <a
-                                    :href="`/supervisor/posyandu/${posyandu.encryptedId}#kader`"
+                                    :href="`/supervisor/posyandu/${posyandu.encryptedId}/kader`"
                                     class="flex items-center px-4 py-2 text-sm text-gray-600 hover:bg-gray-100 hover:text-primary rounded-lg transition-colors group"
                                 >
                                     <i class="ph ph-users text-lg mr-3 group-hover:text-primary"></i>
@@ -164,7 +183,7 @@
                                 </a>
 
                                 <a
-                                    :href="`/supervisor/posyandu/${posyandu.encryptedId}#sasaran`"
+                                    :href="`/supervisor/posyandu/${posyandu.encryptedId}/sasaran`"
                                     class="flex items-center px-4 py-2 text-sm text-gray-600 hover:bg-gray-100 hover:text-primary rounded-lg transition-colors group"
                                 >
                                     <i class="ph ph-baby text-lg mr-3 group-hover:text-primary"></i>
@@ -172,7 +191,7 @@
                                 </a>
 
                                 <a
-                                    :href="`/supervisor/posyandu/${posyandu.encryptedId}#imunisasi`"
+                                    :href="`/supervisor/posyandu/${posyandu.encryptedId}/imunisasi`"
                                     class="flex items-center px-4 py-2 text-sm text-gray-600 hover:bg-gray-100 hover:text-primary rounded-lg transition-colors group"
                                 >
                                     <i class="ph ph-syringe text-lg mr-3 group-hover:text-primary"></i>
