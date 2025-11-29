@@ -85,12 +85,12 @@
                         </td>
                         <td class="px-6 py-4">
                             <div class="flex items-center justify-center gap-2">
-                                <button wire:click="{{ $editMethod }}({{ $item->id_sasaran }})"
+                                <button wire:click="{{ $editMethod }}({{ $item->getKey() }})"
                                         class="text-blue-600 hover:text-blue-800 transition-colors"
                                         title="Edit">
                                     <i class="ph ph-pencil-simple text-xl"></i>
                                 </button>
-                                <button wire:click="{{ $deleteMethod }}({{ $item->id_sasaran }})"
+                                <button wire:click="{{ $deleteMethod }}({{ $item->getKey() }})"
                                         wire:confirm="Apakah Anda yakin ingin menghapus sasaran ini?"
                                         class="text-red-600 hover:text-red-800 transition-colors"
                                         title="Hapus">

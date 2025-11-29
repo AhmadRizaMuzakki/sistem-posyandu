@@ -140,7 +140,7 @@ trait LansiaCrud
         $this->searchUser = ''; // Reset search user
         $lansia = sasaran_lansia::findOrFail($id);
 
-        $this->id_sasaran_lansia = $lansia->id_sasaran;
+        $this->id_sasaran_lansia = $lansia->id_sasaran_lansia;
         $this->nama_sasaran_lansia = $lansia->nama_sasaran;
         $this->nik_sasaran_lansia = $lansia->nik_sasaran;
         $this->no_kk_sasaran_lansia = $lansia->no_kk_sasaran ?? '';

@@ -140,7 +140,7 @@ trait IbuHamilCrud
         $this->searchUser = ''; // Reset search user
         $ibuhamil = sasaran_ibuhamil::findOrFail($id);
 
-        $this->id_sasaran_ibuhamil = $ibuhamil->id_sasaran;
+        $this->id_sasaran_ibuhamil = $ibuhamil->id_sasaran_ibuhamil;
         $this->nama_sasaran_ibuhamil = $ibuhamil->nama_sasaran;
         $this->nik_sasaran_ibuhamil = $ibuhamil->nik_sasaran;
         $this->no_kk_sasaran_ibuhamil = $ibuhamil->no_kk_sasaran ?? '';

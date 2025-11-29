@@ -140,7 +140,7 @@ trait RemajaCrud
         $this->searchUser = ''; // Reset search user
         $remaja = sasaran_remaja::findOrFail($id);
 
-        $this->id_sasaran_remaja = $remaja->id_sasaran;
+        $this->id_sasaran_remaja = $remaja->id_sasaran_remaja;
         $this->nama_sasaran_remaja = $remaja->nama_sasaran;
         $this->nik_sasaran_remaja = $remaja->nik_sasaran;
         $this->no_kk_sasaran_remaja = $remaja->no_kk_sasaran ?? '';

@@ -140,7 +140,7 @@ trait PralansiaCrud
         $this->searchUser = ''; // Reset search user
         $pralansia = sasaran_pralansia::findOrFail($id);
 
-        $this->id_sasaran_pralansia = $pralansia->id_sasaran;
+        $this->id_sasaran_pralansia = $pralansia->id_sasaran_pralansia;
         $this->nama_sasaran_pralansia = $pralansia->nama_sasaran;
         $this->nik_sasaran_pralansia = $pralansia->nik_sasaran;
         $this->no_kk_sasaran_pralansia = $pralansia->no_kk_sasaran ?? '';

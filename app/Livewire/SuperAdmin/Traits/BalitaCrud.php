@@ -140,7 +140,7 @@ trait BalitaCrud
         $this->searchUser = ''; // Reset search user
         $balita = Sasaran_Bayibalita::findOrFail($id);
 
-        $this->id_sasaran_bayi_balita = $balita->id_sasaran;
+        $this->id_sasaran_bayi_balita = $balita->id_sasaran_bayibalita;
         $this->nama_sasaran = $balita->nama_sasaran;
         $this->nik_sasaran = $balita->nik_sasaran;
         $this->no_kk_sasaran = $balita->no_kk_sasaran ?? '';

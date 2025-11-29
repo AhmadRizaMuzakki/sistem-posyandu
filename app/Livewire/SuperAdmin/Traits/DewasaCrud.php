@@ -140,7 +140,7 @@ trait DewasaCrud
         $this->searchUser = ''; // Reset search user
         $dewasa = sasaran_dewasa::findOrFail($id);
 
-        $this->id_sasaran_dewasa = $dewasa->id_sasaran;
+        $this->id_sasaran_dewasa = $dewasa->id_sasaran_dewasa;
         $this->nama_sasaran_dewasa = $dewasa->nama_sasaran;
         $this->nik_sasaran_dewasa = $dewasa->nik_sasaran;
         $this->no_kk_sasaran_dewasa = $dewasa->no_kk_sasaran ?? '';
