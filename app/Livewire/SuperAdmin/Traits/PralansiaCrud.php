@@ -170,5 +170,17 @@ trait PralansiaCrud
         $this->refreshPosyandu();
         session()->flash('message', 'Data Pralansia berhasil dihapus.');
     }
+
+    /**
+     * Hitung umur otomatis ketika tanggal lahir berubah
+     */
+    public function updatedTanggalLahirPralansia()
+    {
+        if ($this->tanggal_lahir_pralansia) {
+            $this->umur_sasaran_pralansia = Carbon::parse($this->tanggal_lahir_pralansia)->age;
+        } else {
+            $this->umur_sasaran_pralansia = '';
+        }
+    }
 }
 

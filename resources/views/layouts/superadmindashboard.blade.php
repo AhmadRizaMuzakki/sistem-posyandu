@@ -8,6 +8,7 @@
 
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
 
@@ -61,9 +62,30 @@
                 if (!isset($daftarPosyandu)) {
                     $daftarPosyandu = \App\Models\Posyandu::orderBy('nama_posyandu')->get();
                 }
+                // Ambil posyandu yang sedang aktif dari URL jika ada
+                $currentPosyanduId = null;
+                if (request()->routeIs('posyandu.detail')) {
+                    try {
+                        $encryptedId = request()->route('id');
+                        if ($encryptedId) {
+                            $currentPosyanduId = decrypt($encryptedId);
+                        }
+                    } catch (\Exception $e) {
+                        // Ignore jika decrypt gagal
+                    }
+                }
             @endphp
 
-            <nav class="mt-6 px-4 space-y-2 h-[calc(100vh-5rem)] overflow-y-auto custom-scrollbar">
+            <nav class="mt-6 px-4 space-y-2 h-[calc(100vh-5rem)] overflow-y-auto custom-scrollbar" x-data="{
+                selectedPosyandu: @js($currentPosyanduId),
+                posyanduList: @js($daftarPosyandu->map(function($p) {
+                    return [
+                        'id' => $p->id_posyandu ?? $p->id ?? null,
+                        'nama' => $p->nama_posyandu ?? $p->nama ?? '-',
+                        'encryptedId' => ($p->id_posyandu ?? $p->id) ? encrypt($p->id_posyandu ?? $p->id) : null
+                    ];
+                })->filter(fn($p) => $p['id'] !== null)->values()->toArray())
+            }">
                 {{-- DASHBOARD UTAMA --}}
                 <a
                     href="{{ route('admin.dashboard') }}"
@@ -74,31 +96,100 @@
                 </a>
 
                 <h3 class="mt-6 mb-1 pt-4 text-xs font-semibold text-gray-400 uppercase border-t border-gray-100">
-                    Daftar Posyandu
+                    Pilih Posyandu
                 </h3>
 
-                {{-- Daftar Posyandu --}}
-                @foreach($daftarPosyandu as $posyandu)
-                    @php
-                        // Safety: use property names only, because $daftarPosyandu is always a collection of model objects.
-                        $id = $posyandu->id_posyandu ?? $posyandu->id ?? null;
-                        $nama = $posyandu->nama_posyandu ?? $posyandu->nama ?? '-';
-                    @endphp
-                    @if($id)
-                    <a
-                        href="{{ route('posyandu.detail', ['id' => encrypt($id)]) }}"
-                        class="flex items-center px-4 py-2 text-sm text-gray-600 hover:bg-gray-100 hover:text-primary rounded-lg transition-colors group"
+                {{-- Dropdown Posyandu --}}
+                <div class="relative" x-data="{ open: false }">
+                    <button
+                        @click="open = !open"
+                        class="w-full flex items-center justify-between px-4 py-3 text-sm text-gray-700 bg-gray-50 border border-gray-200 rounded-lg hover:bg-gray-100 transition-colors"
                     >
-                        <i class="ph ph-house-line text-lg mr-3 group-hover:text-primary"></i>
-                        <span class="font-medium">{{ e($nama) }}</span>
-                    </a>
-                    @else
-                    <span class="flex items-center px-4 py-2 text-sm text-red-500 rounded-lg transition-colors group opacity-70 cursor-not-allowed">
-                        <i class="ph ph-house-line text-lg mr-3"></i>
-                        <span class="font-medium">Data tidak valid</span>
-                    </span>
-                    @endif
-                @endforeach
+                        <span class="flex items-center">
+                            <i class="ph ph-house-line text-lg mr-3"></i>
+                            <span x-text="selectedPosyandu ? posyanduList.find(p => p.id == selectedPosyandu)?.nama || 'Pilih Posyandu' : 'Pilih Posyandu'" class="font-medium"></span>
+                        </span>
+                        <i class="ph ph-caret-down text-lg" :class="open ? 'transform rotate-180' : ''"></i>
+                    </button>
+
+                    <div
+                        x-show="open"
+                        @click.outside="open = false"
+                        x-transition:enter="transition ease-out duration-100"
+                        x-transition:enter-start="opacity-0 scale-95"
+                        x-transition:enter-end="opacity-100 scale-100"
+                        x-transition:leave="transition ease-in duration-75"
+                        x-transition:leave-start="opacity-100 scale-100"
+                        x-transition:leave-end="opacity-0 scale-95"
+                        class="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-60 overflow-auto"
+                        style="display: none;"
+                    >
+                        <template x-for="posyandu in posyanduList" :key="posyandu.id">
+                            <a
+                                :href="`/supervisor/posyandu/${posyandu.encryptedId}`"
+                                @click="selectedPosyandu = posyandu.id; open = false"
+                                class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-primary transition-colors"
+                                :class="selectedPosyandu == posyandu.id ? 'bg-primary/10 text-primary font-medium' : ''"
+                            >
+                                <i class="ph ph-house-line text-lg mr-2 inline-block"></i>
+                                <span x-text="posyandu.nama"></span>
+                            </a>
+                        </template>
+                    </div>
+                </div>
+
+                {{-- Menu Pelayanan (muncul ketika posyandu dipilih) --}}
+                <template x-if="selectedPosyandu">
+                    <div>
+                        <template x-for="posyandu in posyanduList.filter(p => p.id == selectedPosyandu)" :key="posyandu.id">
+                            <div>
+                                <h3 class="mt-6 mb-1 pt-4 text-xs font-semibold text-gray-400 uppercase border-t border-gray-100">
+                                    Pelayanan <span class="text-primary" x-text="posyandu.nama"></span>
+                                </h3>
+
+                                <a
+                                    :href="`/supervisor/posyandu/${posyandu.encryptedId}`"
+                                    class="flex items-center px-4 py-2 text-sm text-gray-600 hover:bg-gray-100 hover:text-primary rounded-lg transition-colors group"
+                                >
+                                    <i class="ph ph-info text-lg mr-3 group-hover:text-primary"></i>
+                                    <span class="font-medium">Detail Posyandu</span>
+                                </a>
+
+                                <a
+                                    :href="`/supervisor/posyandu/${posyandu.encryptedId}#kader`"
+                                    class="flex items-center px-4 py-2 text-sm text-gray-600 hover:bg-gray-100 hover:text-primary rounded-lg transition-colors group"
+                                >
+                                    <i class="ph ph-users text-lg mr-3 group-hover:text-primary"></i>
+                                    <span class="font-medium">Kader</span>
+                                </a>
+
+                                <a
+                                    :href="`/supervisor/posyandu/${posyandu.encryptedId}#sasaran`"
+                                    class="flex items-center px-4 py-2 text-sm text-gray-600 hover:bg-gray-100 hover:text-primary rounded-lg transition-colors group"
+                                >
+                                    <i class="ph ph-baby text-lg mr-3 group-hover:text-primary"></i>
+                                    <span class="font-medium">Sasaran</span>
+                                </a>
+
+                                <a
+                                    :href="`/supervisor/posyandu/${posyandu.encryptedId}#imunisasi`"
+                                    class="flex items-center px-4 py-2 text-sm text-gray-600 hover:bg-gray-100 hover:text-primary rounded-lg transition-colors group"
+                                >
+                                    <i class="ph ph-syringe text-lg mr-3 group-hover:text-primary"></i>
+                                    <span class="font-medium">Imunisasi</span>
+                                </a>
+
+                                <a
+                                    :href="`/supervisor/posyandu/${posyandu.encryptedId}#laporan`"
+                                    class="flex items-center px-4 py-2 text-sm text-gray-600 hover:bg-gray-100 hover:text-primary rounded-lg transition-colors group"
+                                >
+                                    <i class="ph ph-chart-bar text-lg mr-3 group-hover:text-primary"></i>
+                                    <span class="font-medium">Laporan</span>
+                                </a>
+                            </div>
+                        </template>
+                    </div>
+                </template>
 
                 {{-- Menu tambahan --}}
                 <div class="pt-4 mt-4 border-t border-gray-100">

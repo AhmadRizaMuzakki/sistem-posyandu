@@ -14,18 +14,18 @@
             </button>
         </div>
     </div>
-    
+
     {{-- Search Bar --}}
     @if(isset($searchProperty))
     <div class="mb-4">
         <div class="relative">
-            <input type="text" 
+            <input type="text"
                    wire:model.live.debounce.300ms="{{ $searchProperty }}"
                    placeholder="Cari berdasarkan nama..."
                    class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent">
             <i class="ph ph-magnifying-glass absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 text-lg"></i>
             @if(isset($search) && $search)
-            <button wire:click="$set('{{ $searchProperty }}', '')" 
+            <button wire:click="$set('{{ $searchProperty }}', '')"
                     class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600">
                 <i class="ph ph-x text-lg"></i>
             </button>
@@ -40,6 +40,7 @@
                     <tr>
                         <th class="px-6 py-3">NIK</th>
                         <th class="px-6 py-3">Nama</th>
+                        <th class="px-6 py-3">No KK</th>
                         <th class="px-6 py-3">Tanggal Lahir</th>
                         <th class="px-6 py-3">Jenis Kelamin</th>
                         <th class="px-6 py-3">Umur</th>
@@ -47,7 +48,7 @@
                         <th class="px-6 py-3">Kepersertaan BPJS</th>
                         <th class="px-6 py-3">Nomor BPJS</th>
                         <th class="px-6 py-3">Nomor Telepon</th>
-                        <th class="px-6 py-3">Kader</th>
+                        <th class="px-6 py-3">Orang Tua</th>
                         <th class="px-6 py-3 text-center">Aksi</th>
                     </tr>
                 </thead>
@@ -56,6 +57,7 @@
                     <tr class="bg-white border-b hover:bg-gray-50">
                         <td class="px-6 py-4 font-medium text-gray-900">{{ $item->nik_sasaran ?? '-' }}</td>
                         <td class="px-6 py-4">{{ $item->nama_sasaran ?? '-' }}</td>
+                        <td class="px-6 py-4">{{ $item->no_kk_sasaran ?? '-' }}</td>
                         <td class="px-6 py-4">{{ $item->tanggal_lahir ? \Carbon\Carbon::parse($item->tanggal_lahir)->format('d/m/Y') : '-' }}</td>
                         <td class="px-6 py-4">{{ $item->jenis_kelamin ?? '-' }}</td>
                         <td class="px-6 py-4">{{ $item->umur_sasaran ?? '-' }} tahun</td>
@@ -72,7 +74,7 @@
                         <td class="px-6 py-4">{{ $item->nomor_bpjs ?? '-' }}</td>
                         <td class="px-6 py-4">{{ $item->nomor_telepon ?? '-' }}</td>
                         <td class="px-6 py-4">
-                            @if($item->orang)
+                            @if($item->user && $item->user->hasRole('orangtua'))
                                 <span class="text-sm">{{ $item->user->name ?? '-' }}</span>
                                 @if($item->user->email)
                                     <br><span class="text-xs text-gray-400">{{ $item->user->email }}</span>
@@ -108,11 +110,11 @@
                 </tbody>
             </table>
             {{-- Pagination --}}
-            @if(isset($pagination) && $pagination['total_pages'] > 1)
+            @if(isset($pagination) && $pagination['total'] > 3)
             <div class="mt-4 flex items-center justify-between">
                 <div class="text-sm text-gray-500">
-                    Menampilkan {{ (($pagination['current_page'] - 1) * $pagination['per_page']) + 1 }} 
-                    sampai {{ min($pagination['current_page'] * $pagination['per_page'], $pagination['total']) }} 
+                    Menampilkan {{ (($pagination['current_page'] - 1) * $pagination['per_page']) + 1 }}
+                    sampai {{ min($pagination['current_page'] * $pagination['per_page'], $pagination['total']) }}
                     dari {{ $pagination['total'] }} data
                 </div>
                 <div class="flex items-center gap-2">
@@ -122,7 +124,7 @@
                             class="px-3 py-1 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
                         <i class="ph ph-caret-left"></i>
                     </button>
-                    
+
                     {{-- Page Numbers --}}
                     @for($i = max(1, $pagination['current_page'] - 2); $i <= min($pagination['total_pages'], $pagination['current_page'] + 2); $i++)
                         <button wire:click="$set('{{ $pageProperty }}', {{ $i }})"
@@ -130,7 +132,7 @@
                             {{ $i }}
                         </button>
                     @endfor
-                    
+
                     {{-- Next Button --}}
                     <button wire:click="$set('{{ $pageProperty }}', {{ min($pagination['total_pages'], $pagination['current_page'] + 1) }})"
                             @if($pagination['current_page'] == $pagination['total_pages']) disabled @endif

@@ -170,5 +170,17 @@ trait RemajaCrud
         $this->refreshPosyandu();
         session()->flash('message', 'Data Remaja berhasil dihapus.');
     }
+
+    /**
+     * Hitung umur otomatis ketika tanggal lahir berubah
+     */
+    public function updatedTanggalLahirRemaja()
+    {
+        if ($this->tanggal_lahir_remaja) {
+            $this->umur_sasaran_remaja = Carbon::parse($this->tanggal_lahir_remaja)->age;
+        } else {
+            $this->umur_sasaran_remaja = '';
+        }
+    }
 }
 

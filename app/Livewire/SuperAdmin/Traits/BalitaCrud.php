@@ -170,5 +170,17 @@ trait BalitaCrud
         $this->refreshPosyandu();
         session()->flash('message', 'Data Balita berhasil dihapus.');
     }
+
+    /**
+     * Hitung umur otomatis ketika tanggal lahir berubah
+     */
+    public function updatedTanggalLahirSasaran()
+    {
+        if ($this->tanggal_lahir_sasaran) {
+            $this->umur_sasaran = Carbon::parse($this->tanggal_lahir_sasaran)->age;
+        } else {
+            $this->umur_sasaran = '';
+        }
+    }
 }
 

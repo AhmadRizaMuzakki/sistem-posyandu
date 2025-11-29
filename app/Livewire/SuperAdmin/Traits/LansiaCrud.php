@@ -170,5 +170,17 @@ trait LansiaCrud
         $this->refreshPosyandu();
         session()->flash('message', 'Data Lansia berhasil dihapus.');
     }
+
+    /**
+     * Hitung umur otomatis ketika tanggal lahir berubah
+     */
+    public function updatedTanggalLahirLansia()
+    {
+        if ($this->tanggal_lahir_lansia) {
+            $this->umur_sasaran_lansia = Carbon::parse($this->tanggal_lahir_lansia)->age;
+        } else {
+            $this->umur_sasaran_lansia = '';
+        }
+    }
 }
 

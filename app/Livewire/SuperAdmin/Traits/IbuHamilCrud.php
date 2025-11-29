@@ -170,5 +170,17 @@ trait IbuHamilCrud
         $this->refreshPosyandu();
         session()->flash('message', 'Data Ibu Hamil berhasil dihapus.');
     }
+
+    /**
+     * Hitung umur otomatis ketika tanggal lahir berubah
+     */
+    public function updatedTanggalLahirIbuhamil()
+    {
+        if ($this->tanggal_lahir_ibuhamil) {
+            $this->umur_sasaran_ibuhamil = Carbon::parse($this->tanggal_lahir_ibuhamil)->age;
+        } else {
+            $this->umur_sasaran_ibuhamil = '';
+        }
+    }
 }
 

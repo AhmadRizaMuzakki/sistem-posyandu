@@ -170,5 +170,17 @@ trait DewasaCrud
         $this->refreshPosyandu();
         session()->flash('message', 'Data Dewasa berhasil dihapus.');
     }
+
+    /**
+     * Hitung umur otomatis ketika tanggal lahir berubah
+     */
+    public function updatedTanggalLahirDewasa()
+    {
+        if ($this->tanggal_lahir_dewasa) {
+            $this->umur_sasaran_dewasa = Carbon::parse($this->tanggal_lahir_dewasa)->age;
+        } else {
+            $this->umur_sasaran_dewasa = '';
+        }
+    }
 }
 

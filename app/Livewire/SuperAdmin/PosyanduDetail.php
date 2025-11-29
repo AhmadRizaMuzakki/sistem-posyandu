@@ -46,7 +46,7 @@ class PosyanduDetail extends Component
     public $page_ibuhamil = 1;
 
     // Items per page
-    public $perPage = 10;
+    public $perPage = 5;
 
     #[Layout('layouts.superadmindashboard')]
 
