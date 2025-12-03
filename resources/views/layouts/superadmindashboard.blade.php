@@ -114,6 +114,15 @@
                     <span class="font-medium">Dashboard</span>
                 </a>
 
+                {{-- Daftar Posyandu --}}
+                <a
+                    href="{{ route('posyandu.list') }}"
+                    class="flex items-center px-4 py-2 text-sm text-gray-600 hover:bg-gray-100 hover:text-primary rounded-lg transition-colors group mt-4"
+                >
+                    <i class="ph ph-list text-lg mr-3 group-hover:text-primary"></i>
+                    <span class="font-medium">Daftar Posyandu</span>
+                </a>
+
                 <h3 class="mt-6 mb-1 pt-4 text-xs font-semibold text-gray-400 uppercase border-t border-gray-100">
                     Pilih Posyandu
                 </h3>

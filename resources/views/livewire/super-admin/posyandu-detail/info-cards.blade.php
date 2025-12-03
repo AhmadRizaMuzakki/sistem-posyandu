@@ -1,5 +1,40 @@
 {{-- Informasi Utama --}}
-<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+<div class="space-y-6">
+    {{-- Card Logo Posyandu --}}
+    <div class="bg-white rounded-lg shadow-sm p-6">
+        <h2 class="text-xl font-semibold text-gray-800 mb-4 flex items-center">
+            <i class="ph ph-image text-2xl mr-3 text-primary"></i>
+            Logo Posyandu
+        </h2>
+        <div class="flex flex-col items-center justify-center py-6">
+            @if($posyandu->logo_posyandu)
+                <div class="relative group">
+                    <img
+                        src="{{ asset($posyandu->logo_posyandu) }}"
+                        alt="Logo {{ $posyandu->nama_posyandu }}"
+                        class="w-48 h-48 object-contain rounded-lg border-2 border-gray-200 shadow-md hover:shadow-lg transition-shadow">
+                    <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-10 rounded-lg transition-all flex items-center justify-center">
+                        <a
+                            href="{{ asset($posyandu->logo_posyandu) }}"
+                            target="_blank"
+                            class="opacity-0 group-hover:opacity-100 transition-opacity bg-white px-4 py-2 rounded-lg shadow-md hover:shadow-lg flex items-center space-x-2">
+                            <i class="ph ph-arrows-out text-lg text-primary"></i>
+                            <span class="text-sm font-medium text-gray-700">Lihat Full Size</span>
+                        </a>
+                    </div>
+                </div>
+                <p class="mt-4 text-sm text-gray-500 text-center">Logo {{ $posyandu->nama_posyandu }}</p>
+            @else
+                <div class="w-48 h-48 bg-gray-100 rounded-lg border-2 border-dashed border-gray-300 flex flex-col items-center justify-center">
+                    <i class="ph ph-image text-6xl text-gray-400 mb-3"></i>
+                    <p class="text-sm text-gray-500 text-center px-4">Belum ada logo posyandu</p>
+                </div>
+            @endif
+        </div>
+    </div>
+
+    {{-- Grid Informasi dan Statistik --}}
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
     {{-- Card Informasi Posyandu --}}
     <div class="bg-white rounded-lg shadow-sm p-6">
         <h2 class="text-xl font-semibold text-gray-800 mb-4 flex items-center">
@@ -23,12 +58,18 @@
                 <p class="text-gray-800 mt-1">{{ $posyandu->domisili_posyandu }}</p>
             </div>
             @endif
-            @if($posyandu->jumlah_sasaran)
             <div>
                 <label class="text-sm font-medium text-gray-500">Jumlah Sasaran</label>
-                <p class="text-gray-800 mt-1">{{ number_format($posyandu->jumlah_sasaran, 0, ',', '.') }} orang</p>
+                @php
+                    $totalSasaran = $posyandu->sasaran_bayibalita->count() +
+                                    $posyandu->sasaran_remaja->count() +
+                                    $posyandu->sasaran_dewasa->count() +
+                                    $posyandu->sasaran_ibuhamil->count() +
+                                    $posyandu->sasaran_pralansia->count() +
+                                    $posyandu->sasaran_lansia->count();
+                @endphp
+                <p class="text-gray-800 mt-1">{{ number_format($totalSasaran, 0, ',', '.') }} orang</p>
             </div>
-            @endif
             <div>
                 <label class="text-sm font-medium text-gray-500">SK Posyandu</label>
                 <div class="mt-2">
@@ -43,7 +84,7 @@
                                     <p class="text-xs text-gray-500 mt-1">Klik untuk melihat atau download</p>
                                 </div>
                             </div>
-                            <button 
+                            <button
                                 wire:click="deleteSk"
                                 wire:confirm="Apakah Anda yakin ingin menghapus file SK ini?"
                                 class="text-red-600 hover:text-red-700 p-2 hover:bg-red-50 rounded-lg transition-colors"
@@ -51,14 +92,14 @@
                                 <i class="ph ph-trash text-lg"></i>
                             </button>
                         </div>
-                        <button 
+                        <button
                             wire:click="$set('showUploadModal', true)"
                             class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark transition-colors text-sm flex items-center space-x-2">
                             <i class="ph ph-upload"></i>
                             <span>Ganti File SK</span>
                         </button>
                     @else
-                        <button 
+                        <button
                             wire:click="$set('showUploadModal', true)"
                             class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark transition-colors text-sm flex items-center space-x-2">
                             <i class="ph ph-upload"></i>
@@ -127,6 +168,7 @@
                 <i class="ph ph-user-gear text-4xl text-indigo-300"></i>
             </div>
         </div>
+    </div>
     </div>
 </div>
 

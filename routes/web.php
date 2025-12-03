@@ -15,6 +15,7 @@ use App\Livewire\SuperAdmin\PosyanduInfo;
 use App\Livewire\SuperAdmin\PosyanduKader;
 use App\Livewire\SuperAdmin\PosyanduSasaran;
 use App\Livewire\SuperAdmin\PosyanduImunisasi;
+use App\Livewire\SuperAdmin\PosyanduList;
 use App\Livewire\Orangtua\OrangtuaDashboard;
 use App\Livewire\Posyandu\PosyanduDashboard;
 use App\Livewire\SuperAdmin\SuperAdminDashboard;
@@ -25,6 +26,9 @@ Route::get('/', function () {
 
 Route::prefix('supervisor')->middleware(['auth', 'verified', 'role:superadmin'])->group(function () {
     Route::get('/', SuperAdminDashboard::class)->name('admin.dashboard');
+
+    // Route list posyandu
+    Route::get('/posyandu', PosyanduList::class)->name('posyandu.list');
 
     // Route detail posyandu (default ke info)
     Route::get('/posyandu/{id}', PosyanduInfo::class)->name('posyandu.detail');
