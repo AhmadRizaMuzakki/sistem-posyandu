@@ -57,6 +57,7 @@ class PosyanduKader extends Component
         return view('livewire.super-admin.posyandu-kader', [
             'title' => 'Kader - ' . $this->posyandu->nama_posyandu,
             'daftarPosyandu' => $daftarPosyandu,
+            'dataPosyandu' => $daftarPosyandu,
             'isKaderModalOpen' => $this->isKaderModalOpen,
             'id_kader' => $this->id_kader,
         ]);

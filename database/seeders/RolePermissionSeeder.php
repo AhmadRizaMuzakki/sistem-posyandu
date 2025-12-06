@@ -19,6 +19,7 @@ class RolePermissionSeeder extends Seeder
         Permission::firstOrCreate(['name' => 'manage users']);
         Permission::firstOrCreate(['name' => 'manage anak']);
         Permission::firstOrCreate(['name' => 'manage imunisasi']);
+        Permission::firstOrCreate(['name' => 'view imunisasi']);
         Permission::firstOrCreate(['name' => 'manage Posyandu']);
 
         // 3. Buat Role
@@ -35,6 +36,7 @@ class RolePermissionSeeder extends Seeder
         // --- B. Orang Tua ---
         $roleOrangtua = Role::findByName('orangtua');
         $roleOrangtua->givePermissionTo('view dashboard');
+        $roleOrangtua->givePermissionTo('view imunisasi');
 
         // --- C. Superadmin (Beri Semua) ---
         $roleSuperadmin = Role::findByName('superadmin');

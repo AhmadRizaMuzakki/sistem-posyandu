@@ -17,7 +17,9 @@ use App\Livewire\SuperAdmin\PosyanduSasaran;
 use App\Livewire\SuperAdmin\PosyanduImunisasi;
 use App\Livewire\SuperAdmin\PosyanduList;
 use App\Livewire\Orangtua\OrangtuaDashboard;
+use App\Livewire\Orangtua\OrangtuaImunisasi;
 use App\Livewire\Posyandu\PosyanduDashboard;
+use App\Livewire\Posyandu\KaderImunisasi;
 use App\Livewire\SuperAdmin\SuperAdminDashboard;
 
 Route::get('/', function () {
@@ -44,11 +46,13 @@ Route::prefix('supervisor')->middleware(['auth', 'verified', 'role:superadmin'])
 
 Route::prefix('posyandu')->middleware(['auth', 'verified', 'role:adminPosyandu|superadmin'])->group(function () {
     Route::get('/', PosyanduDashboard::class)->name('adminPosyandu.dashboard');
+    Route::get('/imunisasi', KaderImunisasi::class)->name('adminPosyandu.imunisasi');
 });
 
 
 Route::prefix('orangtua')->middleware(['auth', 'verified', 'role:orangtua|superadmin'])->group(function () {
     Route::get('/', OrangtuaDashboard::class)->name('orangtua.dashboard');
+    Route::get('/imunisasi', OrangtuaImunisasi::class)->name('orangtua.imunisasi');
 });
 
 Route::get('/dashboard', function () {
