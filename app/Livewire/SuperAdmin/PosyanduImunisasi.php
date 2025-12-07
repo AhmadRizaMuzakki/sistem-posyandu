@@ -14,6 +14,7 @@ class PosyanduImunisasi extends Component
 
     public $posyandu;
     public $posyanduId;
+    public $search = '';
 
     #[Layout('layouts.superadmindashboard')]
 
@@ -55,11 +56,20 @@ class PosyanduImunisasi extends Component
     {
         $daftarPosyandu = Posyandu::select('id_posyandu', 'nama_posyandu')->get();
 
-        // Ambil imunisasi untuk posyandu ini
-        $imunisasiList = Imunisasi::where('id_posyandu', $this->posyanduId)
-            ->with(['user', 'posyandu'])
-            ->orderBy('tanggal_imunisasi', 'desc')
-            ->get();
+        // Ambil imunisasi untuk posyandu ini dengan filter search
+        $query = Imunisasi::where('id_posyandu', $this->posyanduId)
+            ->with(['user', 'posyandu']);
+
+        // Filter berdasarkan search
+        if (!empty($this->search)) {
+            $query->where(function($q) {
+                $q->where('jenis_imunisasi', 'like', '%' . $this->search . '%')
+                  ->orWhere('keterangan', 'like', '%' . $this->search . '%')
+                  ->orWhere('kategori_sasaran', 'like', '%' . $this->search . '%');
+            });
+        }
+
+        $imunisasiList = $query->orderBy('tanggal_imunisasi', 'desc')->get();
 
         return view('livewire.super-admin.posyandu-imunisasi', [
             'title' => 'Imunisasi - ' . $this->posyandu->nama_posyandu,

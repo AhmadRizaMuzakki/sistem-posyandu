@@ -45,7 +45,7 @@
 
             <nav class="mt-6 px-4 space-y-2">
                 {{-- 1. DASHBOARD UTAMA --}}
-                <a href="{{ route('dashboard') }}"
+                <a href="{{ route('adminPosyandu.dashboard') }}"
                     class="flex items-center px-4 py-3 text-white bg-primary rounded-lg transition-colors">
                     <i class="ph ph-squares-four text-xl mr-3"></i>
                     <span class="font-medium">Dashboard</span>
@@ -69,13 +69,11 @@
                     </a>
                 @endif
 
-                {{-- @if (Auth::user()->hasRole('superadmin')) --}}
-
-                {{-- 3. DATA KADER --}}
-                <a href="{{ route('adminPosyandu.kader') }}"
+                {{-- 3. DATA IMUNISASI --}}
+                <a href="{{ route('adminPosyandu.imunisasi') }}"
                     class="flex items-center px-4 py-3 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
-                    <i class="ph ph-users text-xl mr-3"></i>
-                    <span class="font-medium">Kader</span>
+                    <i class="ph ph-syringe text-xl mr-3"></i>
+                    <span class="font-medium">Imunisasi</span>
                 </a>
 
                 {{-- 4. DATA SASARAN --}}
@@ -94,7 +92,7 @@
 
                 <div class="pt-4 mt-4 border-t border-gray-100">
                     {{-- PENGATURAN --}}
-                    <a href="{{ route('login') }}"
+                    <a href="{{ route('profile.edit') }}"
                         class="flex items-center px-4 py-3 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
                         <i class="ph ph-gear text-xl mr-3"></i>
                         <span class="font-medium">Pengaturan</span>

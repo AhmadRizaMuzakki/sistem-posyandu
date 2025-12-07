@@ -16,6 +16,7 @@ class KaderImunisasi extends Component
 
     public $posyandu;
     public $posyanduId;
+    public $search = '';
 
     #[Layout('layouts.posyandudashboard')]
 
@@ -125,11 +126,20 @@ class KaderImunisasi extends Component
 
     public function render()
     {
-        // Ambil imunisasi hanya untuk posyandu kader ini
-        $imunisasiList = Imunisasi::where('id_posyandu', $this->posyanduId)
-            ->with(['user', 'posyandu'])
-            ->orderBy('tanggal_imunisasi', 'desc')
-            ->get();
+        // Ambil imunisasi hanya untuk posyandu kader ini dengan filter search
+        $query = Imunisasi::where('id_posyandu', $this->posyanduId)
+            ->with(['user', 'posyandu']);
+
+        // Filter berdasarkan search
+        if (!empty($this->search)) {
+            $query->where(function($q) {
+                $q->where('jenis_imunisasi', 'like', '%' . $this->search . '%')
+                  ->orWhere('keterangan', 'like', '%' . $this->search . '%')
+                  ->orWhere('kategori_sasaran', 'like', '%' . $this->search . '%');
+            });
+        }
+
+        $imunisasiList = $query->orderBy('tanggal_imunisasi', 'desc')->get();
 
         return view('livewire.posyandu.kader-imunisasi', [
             'title' => 'Imunisasi - ' . $this->posyandu->nama_posyandu,

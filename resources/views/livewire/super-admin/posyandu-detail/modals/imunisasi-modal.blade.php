@@ -66,11 +66,56 @@
                         {{-- Jenis Imunisasi --}}
                         <div>
                             <label class="block text-gray-700 text-sm font-bold mb-2">Jenis Imunisasi <span class="text-red-500">*</span></label>
-                            <input type="text" 
-                                   wire:model="jenis_imunisasi" 
-                                   class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-primary focus:border-primary" 
-                                   placeholder="Contoh: BCG, Polio 1, DPT 1, Booster COVID, dll">
+                            <select wire:model="jenis_imunisasi" 
+                                    class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-primary focus:border-primary">
+                                <option value="">Pilih Jenis Imunisasi...</option>
+                                <optgroup label="Imunisasi Dasar Bayi">
+                                    <option value="BCG">BCG (Bacillus Calmette-Guérin)</option>
+                                    <option value="Polio 1">Polio 1</option>
+                                    <option value="Polio 2">Polio 2</option>
+                                    <option value="Polio 3">Polio 3</option>
+                                    <option value="Polio 4">Polio 4</option>
+                                    <option value="DPT-HB-Hib 1">DPT-HB-Hib 1</option>
+                                    <option value="DPT-HB-Hib 2">DPT-HB-Hib 2</option>
+                                    <option value="DPT-HB-Hib 3">DPT-HB-Hib 3</option>
+                                    <option value="Hepatitis B 0">Hepatitis B 0</option>
+                                    <option value="Hepatitis B 1">Hepatitis B 1</option>
+                                    <option value="Hepatitis B 2">Hepatitis B 2</option>
+                                    <option value="Campak 1">Campak 1</option>
+                                    <option value="Campak 2">Campak 2</option>
+                                </optgroup>
+                                <optgroup label="Imunisasi Lanjutan">
+                                    <option value="DPT-HB-Hib Booster">DPT-HB-Hib Booster</option>
+                                    <option value="Campak Booster">Campak Booster</option>
+                                    <option value="Polio Booster">Polio Booster</option>
+                                </optgroup>
+                                <optgroup label="Imunisasi Remaja & Dewasa">
+                                    <option value="TT (Tetanus Toxoid)">TT (Tetanus Toxoid)</option>
+                                    <option value="TT Booster 1">TT Booster 1</option>
+                                    <option value="TT Booster 2">TT Booster 2</option>
+                                    <option value="TT Booster 3">TT Booster 3</option>
+                                    <option value="TT Booster 4">TT Booster 4</option>
+                                    <option value="TT Booster 5">TT Booster 5</option>
+                                    <option value="Hepatitis B Dewasa">Hepatitis B Dewasa</option>
+                                    <option value="Influenza">Influenza</option>
+                                </optgroup>
+                                <optgroup label="Imunisasi COVID-19">
+                                    <option value="COVID-19 Dosis 1">COVID-19 Dosis 1</option>
+                                    <option value="COVID-19 Dosis 2">COVID-19 Dosis 2</option>
+                                    <option value="COVID-19 Booster 1">COVID-19 Booster 1</option>
+                                    <option value="COVID-19 Booster 2">COVID-19 Booster 2</option>
+                                    <option value="COVID-19 Booster 3">COVID-19 Booster 3</option>
+                                </optgroup>
+                                <optgroup label="Imunisasi Lansia">
+                                    <option value="Pneumonia">Pneumonia</option>
+                                    <option value="Herpes Zoster">Herpes Zoster</option>
+                                </optgroup>
+                                <optgroup label="Lainnya">
+                                    <option value="Lainnya">Lainnya (Isi di keterangan)</option>
+                                </optgroup>
+                            </select>
                             @error('jenis_imunisasi') <span class="text-red-500 text-xs">{{ $message }}</span>@enderror
+                            <p class="text-xs text-gray-500 mt-1">Jika jenis imunisasi tidak ada dalam daftar, pilih "Lainnya" dan isi di keterangan</p>
                         </div>
 
                         {{-- Tanggal Imunisasi --}}
