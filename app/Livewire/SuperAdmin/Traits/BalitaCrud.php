@@ -3,6 +3,9 @@
 namespace App\Livewire\SuperAdmin\Traits;
 
 use App\Models\Sasaran_Bayibalita;
+use App\Models\Orangtua;
+use App\Models\User;
+use Illuminate\Support\Facades\Hash;
 use Carbon\Carbon;
 
 trait BalitaCrud
@@ -24,14 +27,19 @@ trait BalitaCrud
     public $kepersertaan_bpjs;
     public $nomor_bpjs;
     public $nomor_telepon;
-    public $id_users_sasaran;
+
+    // Field Form Orangtua
+    public $nama_orangtua;
+    public $tempat_lahir_orangtua;
+    public $tanggal_lahir_orangtua;
+    public $pekerjaan_orangtua;
+    public $kelamin_orangtua;
 
     /**
      * Buka modal tambah/edit Sasaran Balita
      */
     public function openBalitaModal($id = null)
     {
-        $this->searchUser = ''; // Reset search user
         if ($id) {
             $this->editBalita($id);
         } else {
@@ -46,7 +54,6 @@ trait BalitaCrud
     public function closeBalitaModal()
     {
         $this->resetBalitaFields();
-        $this->searchUser = ''; // Reset search user
         $this->isSasaranBalitaModalOpen = false;
     }
 
@@ -68,7 +75,12 @@ trait BalitaCrud
         $this->kepersertaan_bpjs = '';
         $this->nomor_bpjs = '';
         $this->nomor_telepon = '';
-        $this->id_users_sasaran = '';
+        // Reset field orangtua
+        $this->nama_orangtua = '';
+        $this->tempat_lahir_orangtua = '';
+        $this->tanggal_lahir_orangtua = '';
+        $this->pekerjaan_orangtua = '';
+        $this->kelamin_orangtua = '';
     }
 
     /**
@@ -82,6 +94,12 @@ trait BalitaCrud
             'tanggal_lahir_sasaran' => 'required|date',
             'jenis_kelamin' => 'required|in:Laki-laki,Perempuan',
             'alamat_sasaran' => 'required|string|max:225',
+            'nik_orangtua' => 'required|numeric',
+            'nama_orangtua' => 'required|string|max:100',
+            'tempat_lahir_orangtua' => 'required|string|max:100',
+            'tanggal_lahir_orangtua' => 'required|date',
+            'pekerjaan_orangtua' => 'required|string',
+            'kelamin_orangtua' => 'required|in:Laki-laki,Perempuan',
         ], [
             'nama_sasaran.required' => 'Nama sasaran wajib diisi.',
             'nik_sasaran.required' => 'NIK wajib diisi.',
@@ -92,6 +110,15 @@ trait BalitaCrud
             'jenis_kelamin.in' => 'Jenis kelamin harus Laki-laki atau Perempuan.',
             'alamat_sasaran.required' => 'Alamat wajib diisi.',
             'alamat_sasaran.max' => 'Alamat maksimal 225 karakter.',
+            'nik_orangtua.required' => 'NIK orangtua wajib diisi.',
+            'nik_orangtua.numeric' => 'NIK orangtua harus berupa angka.',
+            'nama_orangtua.required' => 'Nama orangtua wajib diisi.',
+            'tempat_lahir_orangtua.required' => 'Tempat lahir orangtua wajib diisi.',
+            'tanggal_lahir_orangtua.required' => 'Tanggal lahir orangtua wajib diisi.',
+            'tanggal_lahir_orangtua.date' => 'Tanggal lahir orangtua harus berupa tanggal yang valid.',
+            'pekerjaan_orangtua.required' => 'Pekerjaan orangtua wajib dipilih.',
+            'kelamin_orangtua.required' => 'Jenis kelamin orangtua wajib dipilih.',
+            'kelamin_orangtua.in' => 'Jenis kelamin orangtua harus Laki-laki atau Perempuan.',
         ]);
 
         // Hitung umur dari tanggal_lahir_sasaran
@@ -100,8 +127,49 @@ trait BalitaCrud
             $umur = Carbon::parse($this->tanggal_lahir_sasaran)->age;
         }
 
+        // Simpan/Update data orangtua
+        $orangtuaData = [
+            'nik' => $this->nik_orangtua,
+            'nama' => $this->nama_orangtua,
+            'tempat_lahir' => $this->tempat_lahir_orangtua,
+            'tanggal_lahir' => $this->tanggal_lahir_orangtua,
+            'pekerjaan' => $this->pekerjaan_orangtua,
+            'kelamin' => $this->kelamin_orangtua,
+        ];
+
+        // Update atau create orangtua
+        Orangtua::updateOrCreate(
+            ['nik' => $this->nik_orangtua],
+            $orangtuaData
+        );
+
+        // Buat atau update user untuk orangtua
+        $email = $this->nik_orangtua . '@gmail.com';
+        $userExists = User::where('email', $email)->first();
+
+        if ($userExists) {
+            // Update user yang sudah ada
+            $userExists->name = $this->nama_orangtua;
+            $userExists->password = Hash::make($this->nik_orangtua);
+            $userExists->save();
+            $user = $userExists;
+        } else {
+            // Buat user baru
+            $user = User::create([
+                'name' => $this->nama_orangtua,
+                'email' => $email,
+                'password' => Hash::make($this->nik_orangtua),
+                'email_verified_at' => now(),
+            ]);
+        }
+
+        // Assign role orangtua jika belum punya
+        if (!$user->hasRole('orangtua')) {
+            $user->assignRole('orangtua');
+        }
+
         $data = [
-            'id_users' => $this->id_users_sasaran !== '' ? $this->id_users_sasaran : null,
+            'id_users' => $user->id,
             'id_posyandu' => $this->posyanduId,
             'nama_sasaran' => $this->nama_sasaran,
             'nik_sasaran' => $this->nik_sasaran,
@@ -110,7 +178,7 @@ trait BalitaCrud
             'tanggal_lahir' => $this->tanggal_lahir_sasaran,
             'jenis_kelamin' => $this->jenis_kelamin,
             'umur_sasaran' => $umur,
-            'nik_orangtua' => $this->nik_orangtua ?: null,
+            'nik_orangtua' => $this->nik_orangtua,
             'alamat_sasaran' => $this->alamat_sasaran,
             'kepersertaan_bpjs' => $this->kepersertaan_bpjs ?: null,
             'nomor_bpjs' => $this->nomor_bpjs ?: null,
@@ -137,7 +205,6 @@ trait BalitaCrud
      */
     public function editBalita($id)
     {
-        $this->searchUser = ''; // Reset search user
         $balita = Sasaran_Bayibalita::findOrFail($id);
 
         $this->id_sasaran_bayi_balita = $balita->id_sasaran_bayibalita;
@@ -155,7 +222,30 @@ trait BalitaCrud
         $this->kepersertaan_bpjs = $balita->kepersertaan_bpjs ?? '';
         $this->nomor_bpjs = $balita->nomor_bpjs ?? '';
         $this->nomor_telepon = $balita->nomor_telepon ?? '';
-        $this->id_users_sasaran = $balita->id_users ?? '';
+
+        // Load data orangtua jika ada
+        if ($balita->nik_orangtua) {
+            $orangtua = Orangtua::find($balita->nik_orangtua);
+            if ($orangtua) {
+                $this->nama_orangtua = $orangtua->nama;
+                $this->tempat_lahir_orangtua = $orangtua->tempat_lahir;
+                $this->tanggal_lahir_orangtua = $orangtua->tanggal_lahir ? $orangtua->tanggal_lahir->format('Y-m-d') : '';
+                $this->pekerjaan_orangtua = $orangtua->pekerjaan;
+                $this->kelamin_orangtua = $orangtua->kelamin;
+            } else {
+                $this->nama_orangtua = '';
+                $this->tempat_lahir_orangtua = '';
+                $this->tanggal_lahir_orangtua = '';
+                $this->pekerjaan_orangtua = '';
+                $this->kelamin_orangtua = '';
+            }
+        } else {
+            $this->nama_orangtua = '';
+            $this->tempat_lahir_orangtua = '';
+            $this->tanggal_lahir_orangtua = '';
+            $this->pekerjaan_orangtua = '';
+            $this->kelamin_orangtua = '';
+        }
 
         $this->isSasaranBalitaModalOpen = true;
     }

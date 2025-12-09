@@ -3,6 +3,9 @@
 namespace App\Livewire\SuperAdmin\Traits;
 
 use App\Models\sasaran_remaja;
+use App\Models\Orangtua;
+use App\Models\User;
+use Illuminate\Support\Facades\Hash;
 use Carbon\Carbon;
 
 trait RemajaCrud
@@ -24,14 +27,19 @@ trait RemajaCrud
     public $kepersertaan_bpjs_remaja;
     public $nomor_bpjs_remaja;
     public $nomor_telepon_remaja;
-    public $id_users_sasaran_remaja;
+
+    // Field Form Orangtua
+    public $nama_orangtua_remaja;
+    public $tempat_lahir_orangtua_remaja;
+    public $tanggal_lahir_orangtua_remaja;
+    public $pekerjaan_orangtua_remaja;
+    public $kelamin_orangtua_remaja;
 
     /**
      * Buka modal tambah/edit Sasaran Remaja
      */
     public function openRemajaModal($id = null)
     {
-        $this->searchUser = ''; // Reset search user
         if ($id) {
             $this->editRemaja($id);
         } else {
@@ -46,7 +54,6 @@ trait RemajaCrud
     public function closeRemajaModal()
     {
         $this->resetRemajaFields();
-        $this->searchUser = ''; // Reset search user
         $this->isSasaranRemajaModalOpen = false;
     }
 
@@ -68,7 +75,12 @@ trait RemajaCrud
         $this->kepersertaan_bpjs_remaja = '';
         $this->nomor_bpjs_remaja = '';
         $this->nomor_telepon_remaja = '';
-        $this->id_users_sasaran_remaja = '';
+        // Reset field orangtua
+        $this->nama_orangtua_remaja = '';
+        $this->tempat_lahir_orangtua_remaja = '';
+        $this->tanggal_lahir_orangtua_remaja = '';
+        $this->pekerjaan_orangtua_remaja = '';
+        $this->kelamin_orangtua_remaja = '';
     }
 
     /**
@@ -82,6 +94,12 @@ trait RemajaCrud
             'tanggal_lahir_remaja' => 'required|date',
             'jenis_kelamin_remaja' => 'required|in:Laki-laki,Perempuan',
             'alamat_sasaran_remaja' => 'required|string|max:225',
+            'nik_orangtua_remaja' => 'required|numeric',
+            'nama_orangtua_remaja' => 'required|string|max:100',
+            'tempat_lahir_orangtua_remaja' => 'required|string|max:100',
+            'tanggal_lahir_orangtua_remaja' => 'required|date',
+            'pekerjaan_orangtua_remaja' => 'required|string',
+            'kelamin_orangtua_remaja' => 'required|in:Laki-laki,Perempuan',
         ], [
             'nama_sasaran_remaja.required' => 'Nama sasaran wajib diisi.',
             'nik_sasaran_remaja.required' => 'NIK wajib diisi.',
@@ -92,7 +110,57 @@ trait RemajaCrud
             'jenis_kelamin_remaja.in' => 'Jenis kelamin harus Laki-laki atau Perempuan.',
             'alamat_sasaran_remaja.required' => 'Alamat wajib diisi.',
             'alamat_sasaran_remaja.max' => 'Alamat maksimal 225 karakter.',
+            'nik_orangtua_remaja.required' => 'NIK orangtua wajib diisi.',
+            'nik_orangtua_remaja.numeric' => 'NIK orangtua harus berupa angka.',
+            'nama_orangtua_remaja.required' => 'Nama orangtua wajib diisi.',
+            'tempat_lahir_orangtua_remaja.required' => 'Tempat lahir orangtua wajib diisi.',
+            'tanggal_lahir_orangtua_remaja.required' => 'Tanggal lahir orangtua wajib diisi.',
+            'tanggal_lahir_orangtua_remaja.date' => 'Tanggal lahir orangtua harus berupa tanggal yang valid.',
+            'pekerjaan_orangtua_remaja.required' => 'Pekerjaan orangtua wajib dipilih.',
+            'kelamin_orangtua_remaja.required' => 'Jenis kelamin orangtua wajib dipilih.',
+            'kelamin_orangtua_remaja.in' => 'Jenis kelamin orangtua harus Laki-laki atau Perempuan.',
         ]);
+
+        // Simpan/Update data orangtua
+        $orangtuaData = [
+            'nik' => $this->nik_orangtua_remaja,
+            'nama' => $this->nama_orangtua_remaja,
+            'tempat_lahir' => $this->tempat_lahir_orangtua_remaja,
+            'tanggal_lahir' => $this->tanggal_lahir_orangtua_remaja,
+            'pekerjaan' => $this->pekerjaan_orangtua_remaja,
+            'kelamin' => $this->kelamin_orangtua_remaja,
+        ];
+
+        // Update atau create orangtua
+        Orangtua::updateOrCreate(
+            ['nik' => $this->nik_orangtua_remaja],
+            $orangtuaData
+        );
+
+        // Buat atau update user untuk orangtua
+        $email = $this->nik_orangtua_remaja . '@gmail.com';
+        $userExists = User::where('email', $email)->first();
+
+        if ($userExists) {
+            // Update user yang sudah ada
+            $userExists->name = $this->nama_orangtua_remaja;
+            $userExists->password = Hash::make($this->nik_orangtua_remaja);
+            $userExists->save();
+            $user = $userExists;
+        } else {
+            // Buat user baru
+            $user = User::create([
+                'name' => $this->nama_orangtua_remaja,
+                'email' => $email,
+                'password' => Hash::make($this->nik_orangtua_remaja),
+                'email_verified_at' => now(),
+            ]);
+        }
+
+        // Assign role orangtua jika belum punya
+        if (!$user->hasRole('orangtua')) {
+            $user->assignRole('orangtua');
+        }
 
         // Hitung umur dari tanggal_lahir_remaja
         $umur = null;
@@ -101,7 +169,7 @@ trait RemajaCrud
         }
 
         $data = [
-            'id_users' => $this->id_users_sasaran_remaja !== '' ? $this->id_users_sasaran_remaja : null,
+            'id_users' => $user->id,
             'id_posyandu' => $this->posyanduId,
             'nama_sasaran' => $this->nama_sasaran_remaja,
             'nik_sasaran' => $this->nik_sasaran_remaja,
@@ -110,7 +178,7 @@ trait RemajaCrud
             'tanggal_lahir' => $this->tanggal_lahir_remaja,
             'jenis_kelamin' => $this->jenis_kelamin_remaja,
             'umur_sasaran' => $umur,
-            'nik_orangtua' => $this->nik_orangtua_remaja ?: null,
+            'nik_orangtua' => $this->nik_orangtua_remaja,
             'alamat_sasaran' => $this->alamat_sasaran_remaja,
             'kepersertaan_bpjs' => $this->kepersertaan_bpjs_remaja ?: null,
             'nomor_bpjs' => $this->nomor_bpjs_remaja ?: null,
@@ -137,7 +205,6 @@ trait RemajaCrud
      */
     public function editRemaja($id)
     {
-        $this->searchUser = ''; // Reset search user
         $remaja = sasaran_remaja::findOrFail($id);
 
         $this->id_sasaran_remaja = $remaja->id_sasaran_remaja;
@@ -147,15 +214,38 @@ trait RemajaCrud
         $this->tempat_lahir_remaja = $remaja->tempat_lahir ?? '';
         $this->tanggal_lahir_remaja = $remaja->tanggal_lahir;
         $this->jenis_kelamin_remaja = $remaja->jenis_kelamin;
-        $this->umur_sasaran_remaja = $remaja->tanggal_lahir 
-            ? Carbon::parse($remaja->tanggal_lahir)->age 
+        $this->umur_sasaran_remaja = $remaja->tanggal_lahir
+            ? Carbon::parse($remaja->tanggal_lahir)->age
             : $remaja->umur_sasaran;
         $this->nik_orangtua_remaja = $remaja->nik_orangtua ?? '';
         $this->alamat_sasaran_remaja = $remaja->alamat_sasaran ?? '';
         $this->kepersertaan_bpjs_remaja = $remaja->kepersertaan_bpjs ?? '';
         $this->nomor_bpjs_remaja = $remaja->nomor_bpjs ?? '';
         $this->nomor_telepon_remaja = $remaja->nomor_telepon ?? '';
-        $this->id_users_sasaran_remaja = $remaja->id_users ?? '';
+
+        // Load data orangtua jika ada
+        if ($remaja->nik_orangtua) {
+            $orangtua = Orangtua::find($remaja->nik_orangtua);
+            if ($orangtua) {
+                $this->nama_orangtua_remaja = $orangtua->nama;
+                $this->tempat_lahir_orangtua_remaja = $orangtua->tempat_lahir;
+                $this->tanggal_lahir_orangtua_remaja = $orangtua->tanggal_lahir ? $orangtua->tanggal_lahir->format('Y-m-d') : '';
+                $this->pekerjaan_orangtua_remaja = $orangtua->pekerjaan;
+                $this->kelamin_orangtua_remaja = $orangtua->kelamin;
+            } else {
+                $this->nama_orangtua_remaja = '';
+                $this->tempat_lahir_orangtua_remaja = '';
+                $this->tanggal_lahir_orangtua_remaja = '';
+                $this->pekerjaan_orangtua_remaja = '';
+                $this->kelamin_orangtua_remaja = '';
+            }
+        } else {
+            $this->nama_orangtua_remaja = '';
+            $this->tempat_lahir_orangtua_remaja = '';
+            $this->tanggal_lahir_orangtua_remaja = '';
+            $this->pekerjaan_orangtua_remaja = '';
+            $this->kelamin_orangtua_remaja = '';
+        }
 
         $this->isSasaranRemajaModalOpen = true;
     }

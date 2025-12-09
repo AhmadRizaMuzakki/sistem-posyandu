@@ -35,4 +35,9 @@ class Sasaran_Bayibalita extends Model
     {
         return $this->belongsTo(User::class, 'id_users');
     }
+
+    public function orangtua()
+    {
+        return $this->belongsTo(Orangtua::class, 'nik_orangtua', 'nik');
+    }
 }
