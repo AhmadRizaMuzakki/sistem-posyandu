@@ -8,14 +8,89 @@ use App\Livewire\SuperAdmin\Traits\DewasaCrud;
 use App\Livewire\SuperAdmin\Traits\PralansiaCrud;
 use App\Livewire\SuperAdmin\Traits\LansiaCrud;
 use App\Livewire\SuperAdmin\Traits\IbuHamilCrud;
+use App\Livewire\SuperAdmin\Traits\OrangtuaCrud;
 use App\Models\Posyandu;
 use App\Models\User;
+use App\Models\Orangtua;
+use Carbon\Carbon;
 use Livewire\Component;
 use Livewire\Attributes\Layout;
 
 class PosyanduSasaran extends Component
 {
-    use BalitaCrud, RemajaCrud, DewasaCrud, PralansiaCrud, LansiaCrud, IbuHamilCrud;
+    use BalitaCrud, RemajaCrud, DewasaCrud, PralansiaCrud, LansiaCrud, IbuHamilCrud, OrangtuaCrud;
+
+    /**
+     * Simple pseudo-user class for orangtua data
+     */
+    private function createPseudoUser($nama, $email = null)
+    {
+        return new class($nama, $email) {
+            public $name;
+            public $email;
+
+            public function __construct($name, $email = null) {
+                $this->name = $name;
+                $this->email = $email;
+            }
+
+            public function hasRole($role) {
+                return $role === 'orangtua';
+            }
+        };
+    }
+
+    /**
+     * Create pseudo-sasaran object for orangtua data
+     */
+    private function createPseudoSasaran($orangtua, $type)
+    {
+        $pseudoUser = $this->createPseudoUser($orangtua->nama);
+
+        return new class($orangtua, $pseudoUser, $type) {
+            public $nik_sasaran;
+            public $nama_sasaran;
+            public $no_kk_sasaran;
+            public $tempat_lahir;
+            public $tanggal_lahir;
+            public $jenis_kelamin;
+            public $umur_sasaran;
+            public $alamat_sasaran;
+            public $kepersertaan_bpjs;
+            public $nomor_bpjs;
+            public $nomor_telepon;
+            public $orangtua;
+            public $user;
+            public $id_sasaran_dewasa;
+            public $id_sasaran_pralansia;
+            public $id_sasaran_lansia;
+
+            public function __construct($orangtua, $pseudoUser, $type) {
+                $this->nik_sasaran = $orangtua->nik;
+                $this->nama_sasaran = $orangtua->nama;
+                $this->no_kk_sasaran = null;
+                $this->tempat_lahir = $orangtua->tempat_lahir;
+                $this->tanggal_lahir = $orangtua->tanggal_lahir;
+                $this->jenis_kelamin = $orangtua->kelamin;
+                $this->umur_sasaran = $orangtua->umur;
+                $this->alamat_sasaran = null;
+                $this->kepersertaan_bpjs = null;
+                $this->nomor_bpjs = null;
+                $this->nomor_telepon = null;
+                $this->orangtua = $orangtua;
+                $this->user = $pseudoUser;
+
+                // Set appropriate ID based on type (all null for orangtua data)
+                $this->id_sasaran_dewasa = null;
+                $this->id_sasaran_pralansia = null;
+                $this->id_sasaran_lansia = null;
+            }
+
+            public function getKey() {
+                return $this->nik_sasaran; // Use NIK as the key for orangtua records
+            }
+        };
+    }
 
     public $posyandu;
     public $posyanduId;
@@ -149,6 +224,50 @@ class PosyanduSasaran extends Component
         ];
     }
 
+    /**
+     * Get orangtua data by age range and format as sasaran
+     */
+    public function getOrangtuaByUmur($minAge, $maxAge = null, $search = '', $page = 1, $type = 'dewasa')
+    {
+        $query = Orangtua::query();
+
+        // Filter by age
+        if ($maxAge !== null) {
+            $query->byAgeRange($minAge, $maxAge);
+        } else {
+            $query->byMinAge($minAge);
+        }
+
+        // Filter by search
+        if (!empty($search)) {
+            $query->where(function($q) use ($search) {
+                $q->where('nama', 'like', '%' . $search . '%')
+                  ->orWhere('nik', 'like', '%' . $search . '%');
+            });
+        }
+
+        // Get all results
+        $allOrangtua = $query->get();
+
+        // Format data to match sasaran structure
+        $formattedData = $allOrangtua->map(function($orangtua) use ($type) {
+            return $this->createPseudoSasaran($orangtua, $type);
+        });
+
+        $total = $formattedData->count();
+        $totalPages = $total > 0 ? ceil($total / $this->perPage) : 1;
+
+        $paginated = $formattedData->slice(($page - 1) * $this->perPage, $this->perPage);
+
+        return [
+            'data' => $paginated,
+            'total' => $total,
+            'current_page' => $page,
+            'total_pages' => $totalPages,
+            'per_page' => $this->perPage,
+        ];
+    }
+
     public function render()
     {
         $daftarPosyandu = Posyandu::select('id_posyandu', 'nama_posyandu')->get();
@@ -181,6 +300,7 @@ class PosyanduSasaran extends Component
             'isSasaranPralansiaModalOpen' => $this->isSasaranPralansiaModalOpen,
             'isSasaranLansiaModalOpen' => $this->isSasaranLansiaModalOpen,
             'isSasaranIbuHamilModalOpen' => $this->isSasaranIbuHamilModalOpen,
+            'isOrangtuaModalOpen' => $this->isOrangtuaModalOpen,
             'id_sasaran_bayi_balita' => $this->id_sasaran_bayi_balita,
             'id_sasaran_remaja' => $this->id_sasaran_remaja,
             'id_sasaran_dewasa' => $this->id_sasaran_dewasa,

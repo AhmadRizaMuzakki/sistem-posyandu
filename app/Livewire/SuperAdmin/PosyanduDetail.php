@@ -11,6 +11,8 @@ use App\Livewire\SuperAdmin\Traits\LansiaCrud;
 use App\Livewire\SuperAdmin\Traits\IbuHamilCrud;
 use App\Models\Posyandu;
 use App\Models\User;
+use App\Models\Orangtua;
+use Carbon\Carbon;
 use Livewire\Component;
 use Livewire\Attributes\Layout;
 use Livewire\WithFileUploads;
@@ -257,6 +259,67 @@ class PosyanduDetail extends Component
         $totalPages = $total > 0 ? ceil($total / $this->perPage) : 1;
 
         $paginated = $query->slice(($page - 1) * $this->perPage, $this->perPage);
+
+        return [
+            'data' => $paginated,
+            'total' => $total,
+            'current_page' => $page,
+            'total_pages' => $totalPages,
+            'per_page' => $this->perPage,
+        ];
+    }
+
+    /**
+     * Get orangtua data by age range and format as sasaran
+     */
+    public function getOrangtuaByUmur($minAge, $maxAge = null, $search = '', $page = 1)
+    {
+        $query = Orangtua::query();
+
+        // Filter by age
+        if ($maxAge !== null) {
+            $query->byAgeRange($minAge, $maxAge);
+        } else {
+            $query->byMinAge($minAge);
+        }
+
+        // Filter by search
+        if (!empty($search)) {
+            $query->where(function($q) use ($search) {
+                $q->where('nama', 'like', '%' . $search . '%')
+                  ->orWhere('nik', 'like', '%' . $search . '%');
+            });
+        }
+
+        // Get all results
+        $allOrangtua = $query->get();
+
+        // Format data to match sasaran structure
+        $formattedData = $allOrangtua->map(function($orangtua) {
+            return (object)[
+                'id_sasaran_dewasa' => null, // For compatibility
+                'id_sasaran_pralansia' => null,
+                'id_sasaran_lansia' => null,
+                'nik_sasaran' => $orangtua->nik,
+                'nama_sasaran' => $orangtua->nama,
+                'no_kk_sasaran' => null,
+                'tempat_lahir' => $orangtua->tempat_lahir,
+                'tanggal_lahir' => $orangtua->tanggal_lahir,
+                'jenis_kelamin' => $orangtua->kelamin,
+                'umur_sasaran' => $orangtua->umur,
+                'nik_orangtua' => $orangtua->nik,
+                'alamat_sasaran' => null,
+                'kepersertaan_bpjs' => null,
+                'nomor_bpjs' => null,
+                'nomor_telepon' => null,
+                'orangtua' => $orangtua, // Keep reference to original
+            ];
+        });
+
+        $total = $formattedData->count();
+        $totalPages = $total > 0 ? ceil($total / $this->perPage) : 1;
+
+        $paginated = $formattedData->slice(($page - 1) * $this->perPage, $this->perPage);
 
         return [
             'data' => $paginated,

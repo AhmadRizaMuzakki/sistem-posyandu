@@ -100,7 +100,7 @@
                             <label class="block text-gray-700 text-sm font-bold mb-2">Tanggal Lahir Orangtua <span class="text-red-500">*</span></label>
                             <input type="date" wire:model="tanggal_lahir_orangtua" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-primary focus:border-primary">
                             @error('tanggal_lahir_orangtua') <span class="text-red-500 text-xs">{{ $message }}</span>@enderror
-                        </div>
+                                </div>
                         <div>
                             <label class="block text-gray-700 text-sm font-bold mb-2">Jenis Kelamin Orangtua <span class="text-red-500">*</span></label>
                             <select wire:model="kelamin_orangtua" class="shadow border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-primary focus:border-primary">
@@ -109,7 +109,7 @@
                                 <option value="Perempuan">Perempuan</option>
                             </select>
                             @error('kelamin_orangtua') <span class="text-red-500 text-xs">{{ $message }}</span>@enderror
-                        </div>
+                            </div>
                         <div>
                             <label class="block text-gray-700 text-sm font-bold mb-2">Pekerjaan Orangtua <span class="text-red-500">*</span></label>
                             <select wire:model="pekerjaan_orangtua" class="shadow border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-primary focus:border-primary">

@@ -1,4 +1,9 @@
-{{-- Daftar Sasaran Item --}}
+{{-- Logika Pengecekan: Apakah kategori ini Balita atau Remaja? --}}
+@php
+    // Cek apakah judul mengandung kata 'balita' atau 'remaja' (case insensitive)
+    $isDetailed = \Illuminate\Support\Str::contains(strtolower($title), ['balita', 'remaja']);
+@endphp
+
 <div class="bg-white rounded-lg shadow-sm p-6">
     <div class="flex items-center justify-between mb-4">
         <h2 class="text-xl font-semibold text-gray-800 flex items-center">
@@ -33,6 +38,7 @@
         </div>
     </div>
     @endif
+
     @if($count > 0)
         <div class="overflow-x-auto">
             <table class="w-full text-sm text-left text-gray-500">
@@ -44,10 +50,15 @@
                         <th class="px-6 py-3">Tanggal Lahir</th>
                         <th class="px-6 py-3">Jenis Kelamin</th>
                         <th class="px-6 py-3">Umur</th>
-                        <th class="px-6 py-3">Alamat</th>
-                        <th class="px-6 py-3">Kepersertaan BPJS</th>
-                        <th class="px-6 py-3">Nomor BPJS</th>
-                        <th class="px-6 py-3">Nomor Telepon</th>
+
+                        {{-- Kolom Khusus Balita & Remaja --}}
+                        @if($isDetailed)
+                            <th class="px-6 py-3">Alamat</th>
+                            <th class="px-6 py-3">Kepersertaan BPJS</th>
+                            <th class="px-6 py-3">Nomor BPJS</th>
+                            <th class="px-6 py-3">Nomor Telepon</th>
+                        @endif
+
                         <th class="px-6 py-3">Orang Tua</th>
                         <th class="px-6 py-3 text-center">Aksi</th>
                     </tr>
@@ -61,18 +72,23 @@
                         <td class="px-6 py-4">{{ $item->tanggal_lahir ? \Carbon\Carbon::parse($item->tanggal_lahir)->format('d/m/Y') : '-' }}</td>
                         <td class="px-6 py-4">{{ $item->jenis_kelamin ?? '-' }}</td>
                         <td class="px-6 py-4">{{ $item->umur_sasaran ?? '-' }} tahun</td>
-                        <td class="px-6 py-4">{{ $item->alamat_sasaran ?? '-' }}</td>
-                        <td class="px-6 py-4">
-                            @if($item->kepersertaan_bpjs)
-                                <span class="px-2 py-1 text-xs font-semibold rounded-full {{ $item->kepersertaan_bpjs == 'PBI' ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800' }}">
-                                    {{ $item->kepersertaan_bpjs }}
-                                </span>
-                            @else
-                                <span class="text-gray-400">-</span>
-                            @endif
-                        </td>
-                        <td class="px-6 py-4">{{ $item->nomor_bpjs ?? '-' }}</td>
-                        <td class="px-6 py-4">{{ $item->nomor_telepon ?? '-' }}</td>
+
+                        {{-- Isi Kolom Khusus Balita & Remaja --}}
+                        @if($isDetailed)
+                            <td class="px-6 py-4">{{ $item->alamat_sasaran ?? '-' }}</td>
+                            <td class="px-6 py-4">
+                                @if($item->kepersertaan_bpjs)
+                                    <span class="px-2 py-1 text-xs font-semibold rounded-full {{ $item->kepersertaan_bpjs == 'PBI' ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800' }}">
+                                        {{ $item->kepersertaan_bpjs }}
+                                    </span>
+                                @else
+                                    <span class="text-gray-400">-</span>
+                                @endif
+                            </td>
+                            <td class="px-6 py-4">{{ $item->nomor_bpjs ?? '-' }}</td>
+                            <td class="px-6 py-4">{{ $item->nomor_telepon ?? '-' }}</td>
+                        @endif
+
                         <td class="px-6 py-4">
                             @if($item->user && $item->user->hasRole('orangtua'))
                                 <span class="text-sm">{{ $item->user->name ?? '-' }}</span>
@@ -85,6 +101,12 @@
                         </td>
                         <td class="px-6 py-4">
                             <div class="flex items-center justify-center gap-2">
+                                @if(isset($item->id_sasaran_bayi_balita) && $item->id_sasaran_bayi_balita ||
+                                    isset($item->id_sasaran_remaja) && $item->id_sasaran_remaja ||
+                                    isset($item->id_sasaran_dewasa) && $item->id_sasaran_dewasa ||
+                                    isset($item->id_sasaran_pralansia) && $item->id_sasaran_pralansia ||
+                                    isset($item->id_sasaran_lansia) && $item->id_sasaran_lansia ||
+                                    isset($item->id_sasaran_ibuhamil) && $item->id_sasaran_ibuhamil)
                                 <button wire:click="{{ $editMethod }}({{ $item->getKey() }})"
                                         class="text-blue-600 hover:text-blue-800 transition-colors"
                                         title="Edit">
@@ -96,12 +118,26 @@
                                         title="Hapus">
                                     <i class="ph ph-trash text-xl"></i>
                                 </button>
+                                @else
+                                <button wire:click="editOrangtua({{ $item->getKey() }})"
+                                        class="text-blue-600 hover:text-blue-800 transition-colors"
+                                        title="Edit">
+                                    <i class="ph ph-pencil-simple text-xl"></i>
+                                </button>
+                                <button wire:click="deleteOrangtua({{ $item->getKey() }})"
+                                        wire:confirm="Apakah Anda yakin ingin menghapus data orangtua ini?"
+                                        class="text-red-600 hover:text-red-800 transition-colors"
+                                        title="Hapus">
+                                    <i class="ph ph-trash text-xl"></i>
+                                </button>
+                                @endif
                             </div>
                         </td>
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="11" class="px-6 py-8 text-center text-gray-500">
+                        {{-- Sesuaikan colspan berdasarkan jumlah kolom yang aktif --}}
+                        <td colspan="{{ $isDetailed ? 12 : 8 }}" class="px-6 py-8 text-center text-gray-500">
                             <i class="ph ph-magnifying-glass text-3xl mb-2 block"></i>
                             <p>Tidak ada data ditemukan</p>
                         </td>

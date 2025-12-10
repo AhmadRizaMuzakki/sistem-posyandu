@@ -5,4 +5,5 @@
 @include('livewire.super-admin.posyandu-detail.modals.ibuhamil-modal')
 @include('livewire.super-admin.posyandu-detail.modals.pralansia-modal')
 @include('livewire.super-admin.posyandu-detail.modals.lansia-modal')
+@include('livewire.super-admin.posyandu-detail.modals.orangtua-modal')
 
