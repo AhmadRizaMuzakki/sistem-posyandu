@@ -19,6 +19,7 @@ trait DewasaCrud
     public $tanggal_lahir_dewasa;
     public $jenis_kelamin_dewasa;
     public $umur_sasaran_dewasa;
+    public $pekerjaan_dewasa;
     public $nik_orangtua_dewasa;
     public $alamat_sasaran_dewasa;
     public $kepersertaan_bpjs_dewasa;
@@ -63,6 +64,7 @@ trait DewasaCrud
         $this->tanggal_lahir_dewasa = '';
         $this->jenis_kelamin_dewasa = '';
         $this->umur_sasaran_dewasa = '';
+        $this->pekerjaan_dewasa = '';
         $this->nik_orangtua_dewasa = '';
         $this->alamat_sasaran_dewasa = '';
         $this->kepersertaan_bpjs_dewasa = '';
@@ -160,6 +162,7 @@ trait DewasaCrud
         $this->umur_sasaran_dewasa = $dewasa->tanggal_lahir
             ? Carbon::parse($dewasa->tanggal_lahir)->age
             : $dewasa->umur_sasaran;
+        $this->pekerjaan_dewasa = $dewasa->pekerjaan ?? '';
         $this->nik_orangtua_dewasa = $dewasa->nik_orangtua ?? '';
         $this->alamat_sasaran_dewasa = $dewasa->alamat_sasaran ?? '';
         $this->kepersertaan_bpjs_dewasa = $dewasa->kepersertaan_bpjs ?? '';

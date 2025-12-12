@@ -70,6 +70,13 @@
                             <th class="px-6 py-3">Nomor Telepon</th>
                         @endif
 
+                        {{-- Kolom untuk Lansia, Dewasa, Pralansia --}}
+                        @if(!$isDetailed && !$isIbuHamil)
+                            <th class="px-6 py-3">Pekerjaan</th>
+                            <th class="px-6 py-3">Kepersertaan BPJS</th>
+                            <th class="px-6 py-3">Nomor Telepon</th>
+                        @endif
+
                         {{-- Kolom Orang Tua (tidak untuk Ibu Hamil) --}}
                         @if(!$isIbuHamil)
                             <th class="px-6 py-3">Orang Tua</th>
@@ -120,10 +127,38 @@
                             <td class="px-6 py-4">{{ $item->nomor_telepon ?? '-' }}</td>
                         @endif
 
+                        {{-- Isi Kolom untuk Lansia, Dewasa, Pralansia --}}
+                        @if(!$isDetailed && !$isIbuHamil)
+                            <td class="px-6 py-4">{{ $item->pekerjaan ?? '-' }}</td>
+                            <td class="px-6 py-4">
+                                @if($item->kepersertaan_bpjs)
+                                    <span class="px-2 py-1 text-xs font-semibold rounded-full {{ $item->kepersertaan_bpjs == 'PBI' ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800' }}">
+                                        {{ $item->kepersertaan_bpjs }}
+                                    </span>
+                                @else
+                                    <span class="text-gray-400">-</span>
+                                @endif
+                            </td>
+                            <td class="px-6 py-4">{{ $item->nomor_telepon ?? '-' }}</td>
+                        @endif
+
                         {{-- Kolom Orang Tua (tidak untuk Ibu Hamil) --}}
                         @if(!$isIbuHamil)
                             <td class="px-6 py-4">
-                                @if($item->user && $item->user->hasRole('orangtua'))
+                                @php
+                                    // Cek apakah data berasal dari remaja atau balita
+                                    $fromRemaja = false;
+                                    $fromBalita = false;
+                                    if (isset($item->nik_sasaran)) {
+                                        $fromRemaja = \App\Models\sasaran_remaja::where('nik_sasaran', $item->nik_sasaran)->exists();
+                                        $fromBalita = \App\Models\Sasaran_Bayibalita::where('nik_sasaran', $item->nik_sasaran)->exists();
+                                    }
+                                    // Jika berasal dari remaja/balita atau nik_orangtua adalah strip, tampilkan strip
+                                    $showStrip = ($fromRemaja || $fromBalita || (isset($item->nik_orangtua) && $item->nik_orangtua == '-'));
+                                @endphp
+                                @if($showStrip)
+                                    <span class="text-gray-400">-</span>
+                                @elseif($item->user && $item->user->hasRole('orangtua'))
                                     <span class="text-sm">{{ $item->user->name ?? '-' }}</span>
                                     @if($item->user->email)
                                         <br><span class="text-xs text-gray-400">{{ $item->user->email }}</span>
@@ -180,6 +215,7 @@
                             if ($isIbuHamil) {
                                 $colspan += 5; // Nama Suami, NIK Suami, Pekerjaan Suami, Kepersertaan BPJS, Nomor Telepon
                             } elseif (!$isDetailed) {
+                                $colspan += 3; // Pekerjaan, Kepersertaan BPJS, Nomor Telepon
                                 $colspan += 1; // Orang Tua (untuk yang bukan detailed dan bukan ibu hamil)
                             }
                         @endphp

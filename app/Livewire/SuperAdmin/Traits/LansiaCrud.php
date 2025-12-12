@@ -19,6 +19,7 @@ trait LansiaCrud
     public $tanggal_lahir_lansia;
     public $jenis_kelamin_lansia;
     public $umur_sasaran_lansia;
+    public $pekerjaan_lansia;
     public $nik_orangtua_lansia;
     public $alamat_sasaran_lansia;
     public $kepersertaan_bpjs_lansia;
@@ -63,6 +64,7 @@ trait LansiaCrud
         $this->tanggal_lahir_lansia = '';
         $this->jenis_kelamin_lansia = '';
         $this->umur_sasaran_lansia = '';
+        $this->pekerjaan_lansia = '';
         $this->nik_orangtua_lansia = '';
         $this->alamat_sasaran_lansia = '';
         $this->kepersertaan_bpjs_lansia = '';
@@ -120,6 +122,7 @@ trait LansiaCrud
             'tanggal_lahir' => $this->tanggal_lahir_lansia,
             'jenis_kelamin' => $this->jenis_kelamin_lansia,
             'umur_sasaran' => $umur,
+            'pekerjaan' => $this->pekerjaan_lansia ?: null,
             'nik_orangtua' => $nik_orangtua ?: null,
             'alamat_sasaran' => $this->alamat_sasaran_lansia,
             'kepersertaan_bpjs' => $this->kepersertaan_bpjs_lansia ?: null,
@@ -160,6 +163,7 @@ trait LansiaCrud
         $this->umur_sasaran_lansia = $lansia->tanggal_lahir
             ? Carbon::parse($lansia->tanggal_lahir)->age
             : $lansia->umur_sasaran;
+        $this->pekerjaan_lansia = $lansia->pekerjaan ?? '';
         $this->nik_orangtua_lansia = $lansia->nik_orangtua ?? '';
         $this->alamat_sasaran_lansia = $lansia->alamat_sasaran ?? '';
         $this->kepersertaan_bpjs_lansia = $lansia->kepersertaan_bpjs ?? '';

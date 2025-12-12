@@ -19,6 +19,7 @@ class sasaran_dewasa extends Model
         'tanggal_lahir',
         'jenis_kelamin',
         'umur_sasaran',
+        'pekerjaan',
         'nik_orangtua',
         'alamat_sasaran',
         'kepersertaan_bpjs',

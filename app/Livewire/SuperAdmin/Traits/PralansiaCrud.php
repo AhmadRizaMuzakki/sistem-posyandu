@@ -19,6 +19,7 @@ trait PralansiaCrud
     public $tanggal_lahir_pralansia;
     public $jenis_kelamin_pralansia;
     public $umur_sasaran_pralansia;
+    public $pekerjaan_pralansia;
     public $nik_orangtua_pralansia;
     public $alamat_sasaran_pralansia;
     public $kepersertaan_bpjs_pralansia;
@@ -63,6 +64,7 @@ trait PralansiaCrud
         $this->tanggal_lahir_pralansia = '';
         $this->jenis_kelamin_pralansia = '';
         $this->umur_sasaran_pralansia = '';
+        $this->pekerjaan_pralansia = '';
         $this->nik_orangtua_pralansia = '';
         $this->alamat_sasaran_pralansia = '';
         $this->kepersertaan_bpjs_pralansia = '';
@@ -160,6 +162,7 @@ trait PralansiaCrud
         $this->umur_sasaran_pralansia = $pralansia->tanggal_lahir
             ? Carbon::parse($pralansia->tanggal_lahir)->age
             : $pralansia->umur_sasaran;
+        $this->pekerjaan_pralansia = $pralansia->pekerjaan ?? '';
         $this->nik_orangtua_pralansia = $pralansia->nik_orangtua ?? '';
         $this->alamat_sasaran_pralansia = $pralansia->alamat_sasaran ?? '';
         $this->kepersertaan_bpjs_pralansia = $pralansia->kepersertaan_bpjs ?? '';
