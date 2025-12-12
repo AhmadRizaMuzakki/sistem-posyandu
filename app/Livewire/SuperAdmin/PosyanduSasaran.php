@@ -138,7 +138,9 @@ class PosyanduSasaran extends Component
     {
         $relations = [
             'sasaran_bayibalita.user',
+            'sasaran_bayibalita.orangtua',
             'sasaran_remaja.user',
+            'sasaran_remaja.orangtua',
             'sasaran_dewasa.user',
             'sasaran_pralansia.user',
             'sasaran_lansia.user',

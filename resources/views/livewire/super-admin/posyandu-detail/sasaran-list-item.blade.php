@@ -77,6 +77,12 @@
                             <th class="px-6 py-3">Nomor Telepon</th>
                         @endif
 
+                        {{-- Kolom Data Orang Tua (khusus untuk Balita & Remaja) --}}
+                        @if($isDetailed)
+                            <th class="px-6 py-3">Nama Orang Tua</th>
+                            <th class="px-6 py-3">Tempat Lahir Orang Tua</th>
+                            <th class="px-6 py-3">Pekerjaan Orang Tua</th>
+                        @endif
                         {{-- Kolom Orang Tua (tidak untuk Ibu Hamil) --}}
                         @if(!$isIbuHamil)
                             <th class="px-6 py-3">Orang Tua</th>
@@ -140,6 +146,13 @@
                                 @endif
                             </td>
                             <td class="px-6 py-4">{{ $item->nomor_telepon ?? '-' }}</td>
+                        @endif
+
+                        {{-- Kolom Data Orang Tua (khusus untuk Balita & Remaja) --}}
+                        @if($isDetailed)
+                            <td class="px-6 py-4">{{ $item->orangtua->nama ?? '-' }}</td>
+                            <td class="px-6 py-4">{{ $item->orangtua->tempat_lahir ?? '-' }}</td>
+                            <td class="px-6 py-4">{{ $item->orangtua->pekerjaan ?? '-' }}</td>
                         @endif
 
                         {{-- Kolom Orang Tua (tidak untuk Ibu Hamil) --}}
@@ -210,6 +223,7 @@
                             $colspan = 7; // Base columns: NIK, Nama, No KK, Tanggal Lahir, Jenis Kelamin, Umur, Aksi
                             if ($isDetailed) {
                                 $colspan += 4; // Alamat, Kepersertaan BPJS, Nomor BPJS, Nomor Telepon
+                                $colspan += 3; // Nama Orang Tua, NIK Orang Tua, No KK Orang Tua
                                 $colspan += 1; // Orang Tua
                             }
                             if ($isIbuHamil) {
