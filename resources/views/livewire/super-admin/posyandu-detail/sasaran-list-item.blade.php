@@ -74,6 +74,7 @@
                         @if(!$isDetailed && !$isIbuHamil)
                             <th class="px-6 py-3">Pekerjaan</th>
                             <th class="px-6 py-3">Kepersertaan BPJS</th>
+                            <th class="px-6 py-3">Nomor BPJS</th>
                             <th class="px-6 py-3">Nomor Telepon</th>
                         @endif
 
@@ -82,10 +83,6 @@
                             <th class="px-6 py-3">Nama Orang Tua</th>
                             <th class="px-6 py-3">Tempat Lahir Orang Tua</th>
                             <th class="px-6 py-3">Pekerjaan Orang Tua</th>
-                        @endif
-                        {{-- Kolom Orang Tua (tidak untuk Ibu Hamil) --}}
-                        @if(!$isIbuHamil)
-                            <th class="px-6 py-3">Orang Tua</th>
                         @endif
                         <th class="px-6 py-3 text-center">Aksi</th>
                     </tr>
@@ -145,6 +142,7 @@
                                     <span class="text-gray-400">-</span>
                                 @endif
                             </td>
+                            <td class="px-6 py-4">{{ $item->nomor_bpjs ?? '-' }}</td>
                             <td class="px-6 py-4">{{ $item->nomor_telepon ?? '-' }}</td>
                         @endif
 
@@ -223,13 +221,13 @@
                             $colspan = 7; // Base columns: NIK, Nama, No KK, Tanggal Lahir, Jenis Kelamin, Umur, Aksi
                             if ($isDetailed) {
                                 $colspan += 4; // Alamat, Kepersertaan BPJS, Nomor BPJS, Nomor Telepon
-                                $colspan += 3; // Nama Orang Tua, NIK Orang Tua, No KK Orang Tua
+                                $colspan += 3; // Nama Orang Tua, Tempat Lahir Orang Tua, Pekerjaan Orang Tua
                                 $colspan += 1; // Orang Tua
                             }
                             if ($isIbuHamil) {
                                 $colspan += 5; // Nama Suami, NIK Suami, Pekerjaan Suami, Kepersertaan BPJS, Nomor Telepon
                             } elseif (!$isDetailed) {
-                                $colspan += 3; // Pekerjaan, Kepersertaan BPJS, Nomor Telepon
+                                $colspan += 4; // Pekerjaan, Kepersertaan BPJS, Nomor BPJS, Nomor Telepon
                                 $colspan += 1; // Orang Tua (untuk yang bukan detailed dan bukan ibu hamil)
                             }
                         @endphp

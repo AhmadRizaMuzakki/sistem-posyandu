@@ -55,6 +55,7 @@ class PosyanduSasaran extends Component
             public $tanggal_lahir;
             public $jenis_kelamin;
             public $umur_sasaran;
+            public $pekerjaan;
             public $alamat_sasaran;
             public $kepersertaan_bpjs;
             public $nomor_bpjs;
@@ -73,10 +74,11 @@ class PosyanduSasaran extends Component
                 $this->tanggal_lahir = $orangtua->tanggal_lahir;
                 $this->jenis_kelamin = $orangtua->kelamin;
                 $this->umur_sasaran = $orangtua->umur;
+                $this->pekerjaan = $orangtua->pekerjaan;
                 $this->alamat_sasaran = null;
-                $this->kepersertaan_bpjs = null;
-                $this->nomor_bpjs = null;
-                $this->nomor_telepon = null;
+                $this->kepersertaan_bpjs = $orangtua->kepersertaan_bpjs;
+                $this->nomor_bpjs = $orangtua->nomor_bpjs;
+                $this->nomor_telepon = $orangtua->nomor_telepon;
                 $this->orangtua = $orangtua;
                 $this->user = $pseudoUser;
 
