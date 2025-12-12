@@ -3,6 +3,7 @@
 namespace App\Livewire\SuperAdmin;
 
 use App\Models\Posyandu;
+use App\Models\Orangtua;
 use Livewire\Component;
 use Livewire\Attributes\Layout;
 use Livewire\WithFileUploads;
@@ -44,7 +45,7 @@ class PosyanduInfo extends Component
             'sasaran_dewasa.user',
             'sasaran_pralansia.user',
             'sasaran_lansia.user',
-            'sasaran_ibuhamil.user',
+            'sasaran_ibuhamil',
         ];
 
         $posyandu = Posyandu::with($relations)->find($this->posyanduId);
@@ -165,6 +166,23 @@ class PosyanduInfo extends Component
             session()->flash('message', 'Gagal menghapus file SK: ' . $e->getMessage());
             session()->flash('messageType', 'error');
         }
+    }
+
+    /**
+     * Get count of orangtua by age range (for statistics)
+     */
+    public function getOrangtuaCountByUmur($minAge, $maxAge = null)
+    {
+        $query = Orangtua::query();
+
+        // Filter by age
+        if ($maxAge !== null) {
+            $query->byAgeRange($minAge, $maxAge);
+        } else {
+            $query->byMinAge($minAge);
+        }
+
+        return $query->count();
     }
 
     public function render()

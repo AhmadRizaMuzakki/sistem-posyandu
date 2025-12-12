@@ -108,6 +108,9 @@ return new class extends Migration
                 'Lainnya'
             ]);
             $table->enum('kelamin', ['Laki-laki', 'Perempuan']);
+            $table->enum('kepersertaan_bpjs', ['PBI', 'NON PBI'])->nullable();
+            $table->string('nomor_bpjs')->nullable();
+            $table->string('nomor_telepon')->nullable();
             $table->timestamps();
         });
     }

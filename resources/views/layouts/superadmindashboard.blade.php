@@ -341,6 +341,7 @@
         document.addEventListener('DOMContentLoaded', handleSidebar);
     </script>
 
+    @stack('scripts')
     @livewireScripts
 </body>
 

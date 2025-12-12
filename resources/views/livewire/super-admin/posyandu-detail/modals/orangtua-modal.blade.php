@@ -45,6 +45,25 @@
                             </select>
                             @error('kelamin_orangtua') <span class="text-red-500 text-xs">{{ $message }}</span>@enderror
                         </div>
+                        <div>
+                            <label class="block text-gray-700 text-sm font-bold mb-2">Kepersertaan BPJS</label>
+                            <select wire:model="kepersertaan_bpjs_orangtua" class="shadow border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-primary focus:border-primary">
+                                <option value="">Pilih Kepersertaan BPJS...</option>
+                                <option value="PBI">PBI</option>
+                                <option value="NON PBI">NON PBI</option>
+                            </select>
+                            @error('kepersertaan_bpjs_orangtua') <span class="text-red-500 text-xs">{{ $message }}</span>@enderror
+                        </div>
+                        <div>
+                            <label class="block text-gray-700 text-sm font-bold mb-2">Nomor BPJS</label>
+                            <input type="text" wire:model="nomor_bpjs_orangtua" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-primary focus:border-primary" placeholder="Masukkan nomor BPJS">
+                            @error('nomor_bpjs_orangtua') <span class="text-red-500 text-xs">{{ $message }}</span>@enderror
+                        </div>
+                        <div>
+                            <label class="block text-gray-700 text-sm font-bold mb-2">Nomor Telepon</label>
+                            <input type="text" wire:model="nomor_telepon_orangtua" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-primary focus:border-primary" placeholder="Contoh: 081234567890">
+                            @error('nomor_telepon_orangtua') <span class="text-red-500 text-xs">{{ $message }}</span>@enderror
+                        </div>
                     </div>
                 </div>
                 <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">

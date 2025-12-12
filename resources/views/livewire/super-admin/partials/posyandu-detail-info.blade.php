@@ -69,7 +69,7 @@
             <div class="flex items-center justify-between p-4 bg-orange-50 rounded-lg">
                 <div>
                     <p class="text-sm text-gray-600">Total Sasaran Dewasa</p>
-                    <p class="text-2xl font-bold text-orange-600 mt-1">{{ $posyandu->sasaran_dewasa->count() }}</p>
+                    <p class="text-2xl font-bold text-orange-600 mt-1">{{ $this->getOrangtuaCountByUmur(20, 40) }}</p>
                 </div>
                 <i class="ph ph-users text-4xl text-orange-300"></i>
             </div>
@@ -83,14 +83,14 @@
             <div class="flex items-center justify-between p-4 bg-yellow-50 rounded-lg">
                 <div>
                     <p class="text-sm text-gray-600">Total Pralansia</p>
-                    <p class="text-2xl font-bold text-yellow-600 mt-1">{{ $posyandu->sasaran_pralansia->count() }}</p>
+                    <p class="text-2xl font-bold text-yellow-600 mt-1">{{ $this->getOrangtuaCountByUmur(40, 60) }}</p>
                 </div>
                 <i class="ph ph-user-circle text-4xl text-yellow-300"></i>
             </div>
             <div class="flex items-center justify-between p-4 bg-indigo-50 rounded-lg">
                 <div>
                     <p class="text-sm text-gray-600">Total Lansia</p>
-                    <p class="text-2xl font-bold text-indigo-600 mt-1">{{ $posyandu->sasaran_lansia->count() }}</p>
+                    <p class="text-2xl font-bold text-indigo-600 mt-1">{{ $this->getOrangtuaCountByUmur(60, null) }}</p>
                 </div>
                 <i class="ph ph-user-gear text-4xl text-indigo-300"></i>
             </div>

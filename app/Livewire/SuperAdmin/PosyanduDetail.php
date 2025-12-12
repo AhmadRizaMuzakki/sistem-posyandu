@@ -76,7 +76,7 @@ class PosyanduDetail extends Component
             'sasaran_dewasa.user',
             'sasaran_pralansia.user',
             'sasaran_lansia.user',
-            'sasaran_ibuhamil.user',
+            'sasaran_ibuhamil',
         ];
 
         $posyandu = Posyandu::with($relations)->find($this->posyanduId);
@@ -270,9 +270,26 @@ class PosyanduDetail extends Component
     }
 
     /**
+     * Get count of orangtua by age range (for statistics)
+     */
+    public function getOrangtuaCountByUmur($minAge, $maxAge = null)
+    {
+        $query = Orangtua::query();
+
+        // Filter by age
+        if ($maxAge !== null) {
+            $query->byAgeRange($minAge, $maxAge);
+        } else {
+            $query->byMinAge($minAge);
+        }
+
+        return $query->count();
+    }
+
+    /**
      * Get orangtua data by age range and format as sasaran
      */
-    public function getOrangtuaByUmur($minAge, $maxAge = null, $search = '', $page = 1)
+    public function getOrangtuaByUmur($minAge, $maxAge = null, $search = '', $page = 1, $type = 'dewasa')
     {
         $query = Orangtua::query();
 
@@ -295,25 +312,67 @@ class PosyanduDetail extends Component
         $allOrangtua = $query->get();
 
         // Format data to match sasaran structure
-        $formattedData = $allOrangtua->map(function($orangtua) {
-            return (object)[
-                'id_sasaran_dewasa' => null, // For compatibility
-                'id_sasaran_pralansia' => null,
-                'id_sasaran_lansia' => null,
-                'nik_sasaran' => $orangtua->nik,
-                'nama_sasaran' => $orangtua->nama,
-                'no_kk_sasaran' => null,
-                'tempat_lahir' => $orangtua->tempat_lahir,
-                'tanggal_lahir' => $orangtua->tanggal_lahir,
-                'jenis_kelamin' => $orangtua->kelamin,
-                'umur_sasaran' => $orangtua->umur,
-                'nik_orangtua' => $orangtua->nik,
-                'alamat_sasaran' => null,
-                'kepersertaan_bpjs' => null,
-                'nomor_bpjs' => null,
-                'nomor_telepon' => null,
-                'orangtua' => $orangtua, // Keep reference to original
-            ];
+        $formattedData = $allOrangtua->map(function($orangtua) use ($type) {
+            // Create pseudo user object for compatibility
+            $email = $orangtua->nik . '@gmail.com';
+            $pseudoUser = new class($orangtua->nama, $email) {
+                public $name;
+                public $email;
+
+                public function __construct($name, $email = null) {
+                    $this->name = $name;
+                    $this->email = $email;
+                }
+
+                public function hasRole($role) {
+                    return $role === 'orangtua';
+                }
+            };
+
+            // Create pseudo sasaran object with getKey method
+            return new class($orangtua, $pseudoUser, $type) {
+                public $nik_sasaran;
+                public $nama_sasaran;
+                public $no_kk_sasaran;
+                public $tempat_lahir;
+                public $tanggal_lahir;
+                public $jenis_kelamin;
+                public $umur_sasaran;
+                public $alamat_sasaran;
+                public $kepersertaan_bpjs;
+                public $nomor_bpjs;
+                public $nomor_telepon;
+                public $orangtua;
+                public $user;
+                public $id_sasaran_dewasa;
+                public $id_sasaran_pralansia;
+                public $id_sasaran_lansia;
+
+                public function __construct($orangtua, $pseudoUser, $type) {
+                    $this->nik_sasaran = $orangtua->nik;
+                    $this->nama_sasaran = $orangtua->nama;
+                    $this->no_kk_sasaran = null;
+                    $this->tempat_lahir = $orangtua->tempat_lahir;
+                    $this->tanggal_lahir = $orangtua->tanggal_lahir;
+                    $this->jenis_kelamin = $orangtua->kelamin;
+                    $this->umur_sasaran = $orangtua->umur;
+                    $this->alamat_sasaran = null;
+                    $this->kepersertaan_bpjs = null;
+                    $this->nomor_bpjs = null;
+                    $this->nomor_telepon = null;
+                    $this->orangtua = $orangtua;
+                    $this->user = $pseudoUser;
+
+                    // Set appropriate ID based on type (all null for orangtua data)
+                    $this->id_sasaran_dewasa = null;
+                    $this->id_sasaran_pralansia = null;
+                    $this->id_sasaran_lansia = null;
+                }
+
+                public function getKey() {
+                    return $this->nik_sasaran; // Use NIK as the key for orangtua records
+                }
+            };
         });
 
         $total = $formattedData->count();

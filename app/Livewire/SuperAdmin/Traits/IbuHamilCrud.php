@@ -19,19 +19,23 @@ trait IbuHamilCrud
     public $tanggal_lahir_ibuhamil;
     public $jenis_kelamin_ibuhamil;
     public $umur_sasaran_ibuhamil;
-    public $nik_orangtua_ibuhamil;
     public $alamat_sasaran_ibuhamil;
     public $kepersertaan_bpjs_ibuhamil;
     public $nomor_bpjs_ibuhamil;
     public $nomor_telepon_ibuhamil;
-    public $id_users_sasaran_ibuhamil;
+    
+    // Field Biodata Suami
+    public $nama_suami_ibuhamil;
+    public $nik_suami_ibuhamil;
+    public $tempat_lahir_suami_ibuhamil;
+    public $tanggal_lahir_suami_ibuhamil;
+    public $pekerjaan_suami_ibuhamil;
 
     /**
      * Buka modal tambah/edit Sasaran Ibu Hamil
      */
     public function openIbuHamilModal($id = null)
     {
-        $this->searchUser = ''; // Reset search user
         if ($id) {
             $this->editIbuHamil($id);
         } else {
@@ -46,7 +50,6 @@ trait IbuHamilCrud
     public function closeIbuHamilModal()
     {
         $this->resetIbuHamilFields();
-        $this->searchUser = ''; // Reset search user
         $this->isSasaranIbuHamilModalOpen = false;
     }
 
@@ -63,12 +66,17 @@ trait IbuHamilCrud
         $this->tanggal_lahir_ibuhamil = '';
         $this->jenis_kelamin_ibuhamil = '';
         $this->umur_sasaran_ibuhamil = '';
-        $this->nik_orangtua_ibuhamil = '';
         $this->alamat_sasaran_ibuhamil = '';
         $this->kepersertaan_bpjs_ibuhamil = '';
         $this->nomor_bpjs_ibuhamil = '';
         $this->nomor_telepon_ibuhamil = '';
-        $this->id_users_sasaran_ibuhamil = '';
+        
+        // Reset field suami
+        $this->nama_suami_ibuhamil = '';
+        $this->nik_suami_ibuhamil = '';
+        $this->tempat_lahir_suami_ibuhamil = '';
+        $this->tanggal_lahir_suami_ibuhamil = '';
+        $this->pekerjaan_suami_ibuhamil = '';
     }
 
     /**
@@ -101,7 +109,6 @@ trait IbuHamilCrud
         }
 
         $data = [
-            'id_users' => $this->id_users_sasaran_ibuhamil !== '' ? $this->id_users_sasaran_ibuhamil : null,
             'id_posyandu' => $this->posyanduId,
             'nama_sasaran' => $this->nama_sasaran_ibuhamil,
             'nik_sasaran' => $this->nik_sasaran_ibuhamil,
@@ -110,11 +117,15 @@ trait IbuHamilCrud
             'tanggal_lahir' => $this->tanggal_lahir_ibuhamil,
             'jenis_kelamin' => $this->jenis_kelamin_ibuhamil,
             'umur_sasaran' => $umur,
-            'nik_orangtua' => $this->nik_orangtua_ibuhamil ?: null,
             'alamat_sasaran' => $this->alamat_sasaran_ibuhamil,
             'kepersertaan_bpjs' => $this->kepersertaan_bpjs_ibuhamil ?: null,
             'nomor_bpjs' => $this->nomor_bpjs_ibuhamil ?: null,
             'nomor_telepon' => $this->nomor_telepon_ibuhamil ?: null,
+            'nama_suami' => $this->nama_suami_ibuhamil ?: null,
+            'nik_suami' => $this->nik_suami_ibuhamil ?: null,
+            'tempat_lahir_suami' => $this->tempat_lahir_suami_ibuhamil ?: null,
+            'tanggal_lahir_suami' => $this->tanggal_lahir_suami_ibuhamil ?: null,
+            'pekerjaan_suami' => $this->pekerjaan_suami_ibuhamil ?: null,
         ];
 
         if ($this->id_sasaran_ibuhamil) {
@@ -137,7 +148,6 @@ trait IbuHamilCrud
      */
     public function editIbuHamil($id)
     {
-        $this->searchUser = ''; // Reset search user
         $ibuhamil = sasaran_ibuhamil::findOrFail($id);
 
         $this->id_sasaran_ibuhamil = $ibuhamil->id_sasaran_ibuhamil;
@@ -150,12 +160,17 @@ trait IbuHamilCrud
         $this->umur_sasaran_ibuhamil = $ibuhamil->tanggal_lahir 
             ? Carbon::parse($ibuhamil->tanggal_lahir)->age 
             : $ibuhamil->umur_sasaran;
-        $this->nik_orangtua_ibuhamil = $ibuhamil->nik_orangtua ?? '';
         $this->alamat_sasaran_ibuhamil = $ibuhamil->alamat_sasaran ?? '';
         $this->kepersertaan_bpjs_ibuhamil = $ibuhamil->kepersertaan_bpjs ?? '';
         $this->nomor_bpjs_ibuhamil = $ibuhamil->nomor_bpjs ?? '';
         $this->nomor_telepon_ibuhamil = $ibuhamil->nomor_telepon ?? '';
-        $this->id_users_sasaran_ibuhamil = $ibuhamil->id_users ?? '';
+        
+        // Load data suami
+        $this->nama_suami_ibuhamil = $ibuhamil->nama_suami ?? '';
+        $this->nik_suami_ibuhamil = $ibuhamil->nik_suami ?? '';
+        $this->tempat_lahir_suami_ibuhamil = $ibuhamil->tempat_lahir_suami ?? '';
+        $this->tanggal_lahir_suami_ibuhamil = $ibuhamil->tanggal_lahir_suami ? $ibuhamil->tanggal_lahir_suami->format('Y-m-d') : '';
+        $this->pekerjaan_suami_ibuhamil = $ibuhamil->pekerjaan_suami ?? '';
 
         $this->isSasaranIbuHamilModalOpen = true;
     }

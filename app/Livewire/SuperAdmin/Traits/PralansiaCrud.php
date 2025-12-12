@@ -100,6 +100,16 @@ trait PralansiaCrud
             $umur = Carbon::parse($this->tanggal_lahir_pralansia)->age;
         }
 
+        // Jika data berasal dari remaja atau balita, set nik_orangtua ke strip
+        $nik_orangtua = $this->nik_orangtua_pralansia;
+        // Cek apakah ada data di remaja atau balita dengan nik_sasaran yang sama
+        $fromRemaja = \App\Models\sasaran_remaja::where('nik_sasaran', $this->nik_sasaran_pralansia)->exists();
+        $fromBalita = \App\Models\Sasaran_Bayibalita::where('nik_sasaran', $this->nik_sasaran_pralansia)->exists();
+
+        if ($fromRemaja || $fromBalita) {
+            $nik_orangtua = '-';
+        }
+
         $data = [
             'id_users' => $this->id_users_sasaran_pralansia !== '' ? $this->id_users_sasaran_pralansia : null,
             'id_posyandu' => $this->posyanduId,
@@ -110,7 +120,7 @@ trait PralansiaCrud
             'tanggal_lahir' => $this->tanggal_lahir_pralansia,
             'jenis_kelamin' => $this->jenis_kelamin_pralansia,
             'umur_sasaran' => $umur,
-            'nik_orangtua' => $this->nik_orangtua_pralansia ?: null,
+            'nik_orangtua' => $nik_orangtua ?: null,
             'alamat_sasaran' => $this->alamat_sasaran_pralansia,
             'kepersertaan_bpjs' => $this->kepersertaan_bpjs_pralansia ?: null,
             'nomor_bpjs' => $this->nomor_bpjs_pralansia ?: null,
@@ -147,8 +157,8 @@ trait PralansiaCrud
         $this->tempat_lahir_pralansia = $pralansia->tempat_lahir ?? '';
         $this->tanggal_lahir_pralansia = $pralansia->tanggal_lahir;
         $this->jenis_kelamin_pralansia = $pralansia->jenis_kelamin;
-        $this->umur_sasaran_pralansia = $pralansia->tanggal_lahir 
-            ? Carbon::parse($pralansia->tanggal_lahir)->age 
+        $this->umur_sasaran_pralansia = $pralansia->tanggal_lahir
+            ? Carbon::parse($pralansia->tanggal_lahir)->age
             : $pralansia->umur_sasaran;
         $this->nik_orangtua_pralansia = $pralansia->nik_orangtua ?? '';
         $this->alamat_sasaran_pralansia = $pralansia->alamat_sasaran ?? '';

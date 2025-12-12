@@ -21,6 +21,9 @@ class Orangtua extends Model
         'tanggal_lahir',
         'pekerjaan',
         'kelamin',
+        'kepersertaan_bpjs',
+        'nomor_bpjs',
+        'nomor_telepon',
     ];
 
     protected function casts(): array

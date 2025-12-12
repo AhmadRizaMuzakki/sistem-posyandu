@@ -14,7 +14,6 @@ return new class extends Migration
         Schema::create('sasaran_ibuhamils', function (Blueprint $table) {
             $table->id('id_sasaran_ibuhamil');
             $table->unsignedBigInteger('id_posyandu')->nullable();
-            $table->unsignedBigInteger('id_users')->nullable();
             $table->string('nama_sasaran')->nullable();
             $table->string('nik_sasaran')->nullable();
             $table->string('no_kk_sasaran')->nullable();
@@ -27,11 +26,105 @@ return new class extends Migration
             $table->enum('kepersertaan_bpjs', ['PBI','NON PBI'])->nullable();
             $table->string('nomor_bpjs')->nullable();
             $table->string('nomor_telepon')->nullable();
+            $table->string('nama_suami')->nullable();
+            $table->string('nik_suami')->nullable();
+            $table->string('tempat_lahir_suami')->nullable();
+            $table->date('tanggal_lahir_suami')->nullable();
+            $table->enum('pekerjaan_suami', [
+                'Belum/Tidak Bekerja',
+                'Mengurus Rumah Tangga',
+                'Pelajar/Mahasiswa',
+                'Pensiunan',
+                'Pegawai Negeri Sipil',
+                'Tentara Nasional Indonesia',
+                'Kepolisian RI',
+                'Perdagangan',
+                'Petani/Pekebun',
+                'Peternak',
+                'Nelayan/Perikanan',
+                'Industri',
+                'Konstruksi',
+                'Transportasi',
+                'Karyawan Swasta',
+                'Karyawan BUMN',
+                'Karyawan BUMD',
+                'Karyawan Honorer',
+                'Buruh Harian Lepas',
+                'Buruh Tani/Perkebunan',
+                'Buruh Nelayan/Perikanan',
+                'Buruh Peternakan',
+                'Pembantu Rumah Tangga',
+                'Tukang Cukur',
+                'Tukang Listrik',
+                'Tukang Batu',
+                'Tukang Kayu',
+                'Tukang Sol Sepatu',
+                'Tukang Las/Pandai Besi',
+                'Tukang Jahit',
+                'Tukang Gigi',
+                'Penata Rias',
+                'Penata Busana',
+                'Penata Rambut',
+                'Mekanik',
+                'Seniman',
+                'Tabib',
+                'Paraji',
+                'Perancang Busana',
+                'Penterjemah',
+                'Imam Masjid',
+                'Pendeta',
+                'Pastor',
+                'Wartawan',
+                'Ustadz/Mubaligh',
+                'Juru Masak',
+                'Promotor Acara',
+                'Anggota DPR-RI',
+                'Anggota DPD',
+                'Anggota BPK',
+                'Presiden',
+                'Wakil Presiden',
+                'Anggota Mahkamah Konstitusi',
+                'Anggota Kabinet/Kementerian',
+                'Duta Besar',
+                'Gubernur',
+                'Wakil Gubernur',
+                'Bupati',
+                'Wakil Bupati',
+                'Walikota',
+                'Wakil Walikota',
+                'Anggota DPRD Provinsi',
+                'Anggota DPRD Kabupaten/Kota',
+                'Dosen',
+                'Guru',
+                'Pilot',
+                'Pengacara',
+                'Notaris',
+                'Arsitek',
+                'Akuntan',
+                'Konsultan',
+                'Dokter',
+                'Bidan',
+                'Perawat',
+                'Apoteker',
+                'Psikiater/Psikolog',
+                'Penyiar Televisi',
+                'Penyiar Radio',
+                'Pelaut',
+                'Peneliti',
+                'Sopir',
+                'Pialang',
+                'Paranormal',
+                'Pedagang',
+                'Perangkat Desa',
+                'Kepala Desa',
+                'Biarawati',
+                'Wiraswasta',
+                'Lainnya'
+            ])->nullable();
 
             $table->timestamps();
 
             $table->foreign('id_posyandu')->references('id_posyandu')->on('posyandu')->cascadeOnDelete();
-            $table->foreign('id_users')->references('id')->on('users')->cascadeOnDelete();
         });
     }
 

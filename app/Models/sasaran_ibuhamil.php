@@ -11,7 +11,6 @@ class sasaran_ibuhamil extends Model
 
     protected $fillable = [
         'id_posyandu',
-        'id_users',
         'nama_sasaran',
         'nik_sasaran',
         'no_kk_sasaran',
@@ -24,15 +23,15 @@ class sasaran_ibuhamil extends Model
         'kepersertaan_bpjs',
         'nomor_bpjs',
         'nomor_telepon',
+        'nama_suami',
+        'nik_suami',
+        'tempat_lahir_suami',
+        'tanggal_lahir_suami',
+        'pekerjaan_suami',
     ];
 
     public function posyandu()
     {
         return $this->belongsTo(Posyandu::class, 'id_posyandu');
     }
-
-    public function user()
-    {
-        return $this->belongsTo(User::class, 'id_users');
-    }//
 }

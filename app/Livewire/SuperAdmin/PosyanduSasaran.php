@@ -142,7 +142,7 @@ class PosyanduSasaran extends Component
             'sasaran_dewasa.user',
             'sasaran_pralansia.user',
             'sasaran_lansia.user',
-            'sasaran_ibuhamil.user',
+            'sasaran_ibuhamil',
         ];
 
         $posyandu = Posyandu::with($relations)->find($this->posyanduId);

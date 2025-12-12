@@ -17,6 +17,9 @@ trait OrangtuaCrud
     public $tanggal_lahir_orangtua;
     public $pekerjaan_orangtua;
     public $kelamin_orangtua;
+    public $kepersertaan_bpjs_orangtua;
+    public $nomor_bpjs_orangtua;
+    public $nomor_telepon_orangtua;
 
     /**
      * Buka modal tambah/edit Orangtua
@@ -51,6 +54,9 @@ trait OrangtuaCrud
         $this->tanggal_lahir_orangtua = '';
         $this->pekerjaan_orangtua = '';
         $this->kelamin_orangtua = '';
+        $this->kepersertaan_bpjs_orangtua = '';
+        $this->nomor_bpjs_orangtua = '';
+        $this->nomor_telepon_orangtua = '';
     }
 
     /**
@@ -64,6 +70,9 @@ trait OrangtuaCrud
             'tempat_lahir_orangtua' => 'required|string|max:50',
             'tanggal_lahir_orangtua' => 'required|date',
             'kelamin_orangtua' => 'required|in:Laki-laki,Perempuan',
+            'kepersertaan_bpjs_orangtua' => 'nullable|in:PBI,NON PBI',
+            'nomor_bpjs_orangtua' => 'nullable|string|max:50',
+            'nomor_telepon_orangtua' => 'nullable|string|max:20',
         ], [
             'nik_orangtua.required' => 'NIK wajib diisi.',
             'nik_orangtua.numeric' => 'NIK harus berupa angka.',
@@ -76,6 +85,9 @@ trait OrangtuaCrud
             'tanggal_lahir_orangtua.date' => 'Tanggal lahir harus berupa tanggal yang valid.',
             'kelamin_orangtua.required' => 'Jenis kelamin wajib dipilih.',
             'kelamin_orangtua.in' => 'Jenis kelamin harus Laki-laki atau Perempuan.',
+            'kepersertaan_bpjs_orangtua.in' => 'Kepersertaan BPJS harus PBI atau NON PBI.',
+            'nomor_bpjs_orangtua.max' => 'Nomor BPJS maksimal 50 karakter.',
+            'nomor_telepon_orangtua.max' => 'Nomor telepon maksimal 20 karakter.',
         ]);
 
         $data = [
@@ -85,6 +97,9 @@ trait OrangtuaCrud
             'tanggal_lahir' => $this->tanggal_lahir_orangtua,
             'pekerjaan' => $this->pekerjaan_orangtua ?: null,
             'kelamin' => $this->kelamin_orangtua,
+            'kepersertaan_bpjs' => $this->kepersertaan_bpjs_orangtua ?: null,
+            'nomor_bpjs' => $this->nomor_bpjs_orangtua ?: null,
+            'nomor_telepon' => $this->nomor_telepon_orangtua ?: null,
         ];
 
         if ($this->nik_orangtua) {
@@ -115,6 +130,9 @@ trait OrangtuaCrud
         $this->tanggal_lahir_orangtua = $orangtua->tanggal_lahir ? $orangtua->tanggal_lahir->format('Y-m-d') : '';
         $this->pekerjaan_orangtua = $orangtua->pekerjaan ?? '';
         $this->kelamin_orangtua = $orangtua->kelamin;
+        $this->kepersertaan_bpjs_orangtua = $orangtua->kepersertaan_bpjs ?? '';
+        $this->nomor_bpjs_orangtua = $orangtua->nomor_bpjs ?? '';
+        $this->nomor_telepon_orangtua = $orangtua->nomor_telepon ?? '';
 
         $this->isOrangtuaModalOpen = true;
     }

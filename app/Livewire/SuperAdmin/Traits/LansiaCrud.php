@@ -100,6 +100,16 @@ trait LansiaCrud
             $umur = Carbon::parse($this->tanggal_lahir_lansia)->age;
         }
 
+        // Jika data berasal dari remaja atau balita, set nik_orangtua ke strip
+        $nik_orangtua = $this->nik_orangtua_lansia;
+        // Cek apakah ada data di remaja atau balita dengan nik_sasaran yang sama
+        $fromRemaja = \App\Models\sasaran_remaja::where('nik_sasaran', $this->nik_sasaran_lansia)->exists();
+        $fromBalita = \App\Models\Sasaran_Bayibalita::where('nik_sasaran', $this->nik_sasaran_lansia)->exists();
+
+        if ($fromRemaja || $fromBalita) {
+            $nik_orangtua = '-';
+        }
+
         $data = [
             'id_users' => $this->id_users_sasaran_lansia !== '' ? $this->id_users_sasaran_lansia : null,
             'id_posyandu' => $this->posyanduId,
@@ -110,7 +120,7 @@ trait LansiaCrud
             'tanggal_lahir' => $this->tanggal_lahir_lansia,
             'jenis_kelamin' => $this->jenis_kelamin_lansia,
             'umur_sasaran' => $umur,
-            'nik_orangtua' => $this->nik_orangtua_lansia ?: null,
+            'nik_orangtua' => $nik_orangtua ?: null,
             'alamat_sasaran' => $this->alamat_sasaran_lansia,
             'kepersertaan_bpjs' => $this->kepersertaan_bpjs_lansia ?: null,
             'nomor_bpjs' => $this->nomor_bpjs_lansia ?: null,
@@ -147,8 +157,8 @@ trait LansiaCrud
         $this->tempat_lahir_lansia = $lansia->tempat_lahir ?? '';
         $this->tanggal_lahir_lansia = $lansia->tanggal_lahir;
         $this->jenis_kelamin_lansia = $lansia->jenis_kelamin;
-        $this->umur_sasaran_lansia = $lansia->tanggal_lahir 
-            ? Carbon::parse($lansia->tanggal_lahir)->age 
+        $this->umur_sasaran_lansia = $lansia->tanggal_lahir
+            ? Carbon::parse($lansia->tanggal_lahir)->age
             : $lansia->umur_sasaran;
         $this->nik_orangtua_lansia = $lansia->nik_orangtua ?? '';
         $this->alamat_sasaran_lansia = $lansia->alamat_sasaran ?? '';

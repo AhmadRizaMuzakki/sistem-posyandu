@@ -30,6 +30,103 @@
                 <span class="text-sm text-gray-500 mt-1">Total Sasaran</span>
             </div>
         </div>
-    </div>
 
+        <!-- Grafik Jumlah Sasaran per Posyandu -->
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <h2 class="text-xl font-semibold text-gray-800 mb-4 flex items-center">
+                <i class="ph ph-chart-bar text-2xl mr-3 text-primary"></i>
+                Grafik Jumlah Sasaran per Posyandu
+            </h2>
+            <div class="h-96">
+                <canvas id="posyanduChart"></canvas>
+            </div>
+        </div>
+    </div>
 </div>
+
+@push('scripts')
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const posyanduData = @json($posyanduData);
+
+        const labels = posyanduData.map(item => item.nama);
+        const data = posyanduData.map(item => item.jumlah);
+
+        const ctx = document.getElementById('posyanduChart').getContext('2d');
+
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Jumlah Sasaran',
+                    data: data,
+                    backgroundColor: [
+                        'rgba(79, 70, 229, 0.8)',
+                        'rgba(34, 197, 94, 0.8)',
+                        'rgba(251, 191, 36, 0.8)',
+                        'rgba(239, 68, 68, 0.8)',
+                        'rgba(168, 85, 247, 0.8)',
+                        'rgba(236, 72, 153, 0.8)',
+                        'rgba(14, 165, 233, 0.8)',
+                    ],
+                    borderColor: [
+                        'rgba(79, 70, 229, 1)',
+                        'rgba(34, 197, 94, 1)',
+                        'rgba(251, 191, 36, 1)',
+                        'rgba(239, 68, 68, 1)',
+                        'rgba(168, 85, 247, 1)',
+                        'rgba(236, 72, 153, 1)',
+                        'rgba(14, 165, 233, 1)',
+                    ],
+                    borderWidth: 2,
+                    borderRadius: 8,
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'top',
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return 'Jumlah Sasaran: ' + context.parsed.y + ' orang';
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            stepSize: 1,
+                            callback: function(value) {
+                                return value + ' orang';
+                            }
+                        },
+                        title: {
+                            display: true,
+                            text: 'Jumlah Sasaran'
+                        }
+                    },
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Nama Posyandu'
+                        },
+                        ticks: {
+                            maxRotation: 45,
+                            minRotation: 45
+                        }
+                    }
+                }
+            }
+        });
+    });
+</script>
+@endpush

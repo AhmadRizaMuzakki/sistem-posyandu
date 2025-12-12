@@ -2,6 +2,8 @@
 @php
     // Cek apakah judul mengandung kata 'balita' atau 'remaja' (case insensitive)
     $isDetailed = \Illuminate\Support\Str::contains(strtolower($title), ['balita', 'remaja']);
+    // Cek apakah kategori ini Ibu Hamil
+    $isIbuHamil = \Illuminate\Support\Str::contains(strtolower($title), ['ibu hamil']);
 @endphp
 
 <div class="bg-white rounded-lg shadow-sm p-6">
@@ -59,7 +61,19 @@
                             <th class="px-6 py-3">Nomor Telepon</th>
                         @endif
 
-                        <th class="px-6 py-3">Orang Tua</th>
+                        {{-- Kolom Khusus Ibu Hamil - Data Suami dan BPJS --}}
+                        @if($isIbuHamil)
+                            <th class="px-6 py-3">Nama Suami</th>
+                            <th class="px-6 py-3">NIK Suami</th>
+                            <th class="px-6 py-3">Pekerjaan Suami</th>
+                            <th class="px-6 py-3">Kepersertaan BPJS</th>
+                            <th class="px-6 py-3">Nomor Telepon</th>
+                        @endif
+
+                        {{-- Kolom Orang Tua (tidak untuk Ibu Hamil) --}}
+                        @if(!$isIbuHamil)
+                            <th class="px-6 py-3">Orang Tua</th>
+                        @endif
                         <th class="px-6 py-3 text-center">Aksi</th>
                     </tr>
                 </thead>
@@ -89,19 +103,39 @@
                             <td class="px-6 py-4">{{ $item->nomor_telepon ?? '-' }}</td>
                         @endif
 
-                        <td class="px-6 py-4">
-                            @if($item->user && $item->user->hasRole('orangtua'))
-                                <span class="text-sm">{{ $item->user->name ?? '-' }}</span>
-                                @if($item->user->email)
-                                    <br><span class="text-xs text-gray-400">{{ $item->user->email }}</span>
+                        {{-- Isi Kolom Khusus Ibu Hamil - Data Suami dan BPJS --}}
+                        @if($isIbuHamil)
+                            <td class="px-6 py-4">{{ $item->nama_suami ?? '-' }}</td>
+                            <td class="px-6 py-4">{{ $item->nik_suami ?? '-' }}</td>
+                            <td class="px-6 py-4">{{ $item->pekerjaan_suami ?? '-' }}</td>
+                            <td class="px-6 py-4">
+                                @if($item->kepersertaan_bpjs)
+                                    <span class="px-2 py-1 text-xs font-semibold rounded-full {{ $item->kepersertaan_bpjs == 'PBI' ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800' }}">
+                                        {{ $item->kepersertaan_bpjs }}
+                                    </span>
+                                @else
+                                    <span class="text-gray-400">-</span>
                                 @endif
-                            @else
-                                <span class="text-gray-400">-</span>
-                            @endif
-                        </td>
+                            </td>
+                            <td class="px-6 py-4">{{ $item->nomor_telepon ?? '-' }}</td>
+                        @endif
+
+                        {{-- Kolom Orang Tua (tidak untuk Ibu Hamil) --}}
+                        @if(!$isIbuHamil)
+                            <td class="px-6 py-4">
+                                @if($item->user && $item->user->hasRole('orangtua'))
+                                    <span class="text-sm">{{ $item->user->name ?? '-' }}</span>
+                                    @if($item->user->email)
+                                        <br><span class="text-xs text-gray-400">{{ $item->user->email }}</span>
+                                    @endif
+                                @else
+                                    <span class="text-gray-400">-</span>
+                                @endif
+                            </td>
+                        @endif
                         <td class="px-6 py-4">
                             <div class="flex items-center justify-center gap-2">
-                                @if(isset($item->id_sasaran_bayi_balita) && $item->id_sasaran_bayi_balita ||
+                                @if(isset($item->id_sasaran_bayibalita) && $item->id_sasaran_bayibalita ||
                                     isset($item->id_sasaran_remaja) && $item->id_sasaran_remaja ||
                                     isset($item->id_sasaran_dewasa) && $item->id_sasaran_dewasa ||
                                     isset($item->id_sasaran_pralansia) && $item->id_sasaran_pralansia ||
@@ -137,7 +171,19 @@
                     @empty
                     <tr>
                         {{-- Sesuaikan colspan berdasarkan jumlah kolom yang aktif --}}
-                        <td colspan="{{ $isDetailed ? 12 : 8 }}" class="px-6 py-8 text-center text-gray-500">
+                        @php
+                            $colspan = 7; // Base columns: NIK, Nama, No KK, Tanggal Lahir, Jenis Kelamin, Umur, Aksi
+                            if ($isDetailed) {
+                                $colspan += 4; // Alamat, Kepersertaan BPJS, Nomor BPJS, Nomor Telepon
+                                $colspan += 1; // Orang Tua
+                            }
+                            if ($isIbuHamil) {
+                                $colspan += 5; // Nama Suami, NIK Suami, Pekerjaan Suami, Kepersertaan BPJS, Nomor Telepon
+                            } elseif (!$isDetailed) {
+                                $colspan += 1; // Orang Tua (untuk yang bukan detailed dan bukan ibu hamil)
+                            }
+                        @endphp
+                        <td colspan="{{ $colspan }}" class="px-6 py-8 text-center text-gray-500">
                             <i class="ph ph-magnifying-glass text-3xl mb-2 block"></i>
                             <p>Tidak ada data ditemukan</p>
                         </td>
