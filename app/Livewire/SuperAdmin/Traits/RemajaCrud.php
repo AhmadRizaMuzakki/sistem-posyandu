@@ -20,6 +20,9 @@ trait RemajaCrud
     public $no_kk_sasaran_remaja;
     public $tempat_lahir_remaja;
     public $tanggal_lahir_remaja;
+    public $hari_lahir_remaja;
+    public $bulan_lahir_remaja;
+    public $tahun_lahir_remaja;
     public $jenis_kelamin_remaja;
     public $umur_sasaran_remaja;
     public $nik_orangtua_remaja;
@@ -88,9 +91,15 @@ trait RemajaCrud
      */
     public function storeRemaja()
     {
+        // Combine hari, bulan, tahun menjadi tanggal lahir
+        $this->combineTanggalLahirRemaja();
+
         $this->validate([
             'nama_sasaran_remaja' => 'required|string|max:100',
             'nik_sasaran_remaja' => 'required|numeric',
+            'hari_lahir_remaja' => 'required|numeric|min:1|max:31',
+            'bulan_lahir_remaja' => 'required|numeric|min:1|max:12',
+            'tahun_lahir_remaja' => 'required|numeric|min:1900|max:' . date('Y'),
             'tanggal_lahir_remaja' => 'required|date',
             'jenis_kelamin_remaja' => 'required|in:Laki-laki,Perempuan',
             'alamat_sasaran_remaja' => 'required|string|max:225',
@@ -104,6 +113,18 @@ trait RemajaCrud
             'nama_sasaran_remaja.required' => 'Nama sasaran wajib diisi.',
             'nik_sasaran_remaja.required' => 'NIK wajib diisi.',
             'nik_sasaran_remaja.numeric' => 'NIK harus berupa angka.',
+            'hari_lahir_remaja.required' => 'Hari lahir wajib diisi.',
+            'hari_lahir_remaja.numeric' => 'Hari harus berupa angka.',
+            'hari_lahir_remaja.min' => 'Hari minimal 1.',
+            'hari_lahir_remaja.max' => 'Hari maksimal 31.',
+            'bulan_lahir_remaja.required' => 'Bulan lahir wajib diisi.',
+            'bulan_lahir_remaja.numeric' => 'Bulan harus berupa angka.',
+            'bulan_lahir_remaja.min' => 'Bulan minimal 1.',
+            'bulan_lahir_remaja.max' => 'Bulan maksimal 12.',
+            'tahun_lahir_remaja.required' => 'Tahun lahir wajib diisi.',
+            'tahun_lahir_remaja.numeric' => 'Tahun harus berupa angka.',
+            'tahun_lahir_remaja.min' => 'Tahun minimal 1900.',
+            'tahun_lahir_remaja.max' => 'Tahun maksimal ' . date('Y') . '.',
             'tanggal_lahir_remaja.required' => 'Tanggal lahir wajib diisi.',
             'tanggal_lahir_remaja.date' => 'Tanggal lahir harus berupa tanggal yang valid.',
             'jenis_kelamin_remaja.required' => 'Jenis kelamin wajib dipilih.',
@@ -262,14 +283,64 @@ trait RemajaCrud
     }
 
     /**
-     * Hitung umur otomatis ketika tanggal lahir berubah
+     * Combine hari, bulan, tahun menjadi tanggal lahir
      */
-    public function updatedTanggalLahirRemaja()
+    private function combineTanggalLahirRemaja()
     {
-        if ($this->tanggal_lahir_remaja) {
-            $this->umur_sasaran_remaja = Carbon::parse($this->tanggal_lahir_remaja)->age;
+        if ($this->hari_lahir_remaja && $this->bulan_lahir_remaja && $this->tahun_lahir_remaja) {
+            try {
+                $this->tanggal_lahir_remaja = Carbon::create(
+                    $this->tahun_lahir_remaja,
+                    $this->bulan_lahir_remaja,
+                    $this->hari_lahir_remaja
+                )->format('Y-m-d');
+            } catch (\Exception $e) {
+                $this->tanggal_lahir_remaja = null;
+            }
+        } else {
+            $this->tanggal_lahir_remaja = null;
+        }
+    }
+
+    /**
+     * Hitung umur otomatis ketika hari, bulan, atau tahun lahir berubah
+     */
+    public function updatedHariLahirRemaja()
+    {
+        $this->calculateUmurRemaja();
+    }
+
+    public function updatedBulanLahirRemaja()
+    {
+        $this->calculateUmurRemaja();
+    }
+
+    public function updatedTahunLahirRemaja()
+    {
+        $this->calculateUmurRemaja();
+    }
+
+    /**
+     * Calculate umur dari hari, bulan, tahun lahir
+     */
+    private function calculateUmurRemaja()
+    {
+        if ($this->hari_lahir_remaja && $this->bulan_lahir_remaja && $this->tahun_lahir_remaja) {
+            try {
+                $tanggalLahir = Carbon::create(
+                    $this->tahun_lahir_remaja,
+                    $this->bulan_lahir_remaja,
+                    $this->hari_lahir_remaja
+                );
+                $this->umur_sasaran_remaja = $tanggalLahir->age;
+                $this->tanggal_lahir_remaja = $tanggalLahir->format('Y-m-d');
+            } catch (\Exception $e) {
+                $this->umur_sasaran_remaja = '';
+                $this->tanggal_lahir_remaja = null;
+            }
         } else {
             $this->umur_sasaran_remaja = '';
+            $this->tanggal_lahir_remaja = null;
         }
     }
 }

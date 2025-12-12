@@ -17,10 +17,12 @@ class Orangtua extends Model
     protected $fillable = [
         'nik',
         'nama',
+        'no_kk',
         'tempat_lahir',
         'tanggal_lahir',
         'pekerjaan',
         'kelamin',
+        'alamat',
         'kepersertaan_bpjs',
         'nomor_bpjs',
         'nomor_telepon',

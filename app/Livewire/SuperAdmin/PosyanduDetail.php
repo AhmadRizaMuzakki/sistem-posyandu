@@ -72,10 +72,15 @@ class PosyanduDetail extends Component
         $relations = [
             'kader.user',
             'sasaran_bayibalita.user',
+            'sasaran_bayibalita.orangtua',
             'sasaran_remaja.user',
+            'sasaran_remaja.orangtua',
             'sasaran_dewasa.user',
+            'sasaran_dewasa.orangtua',
             'sasaran_pralansia.user',
+            'sasaran_pralansia.orangtua',
             'sasaran_lansia.user',
+            'sasaran_lansia.orangtua',
             'sasaran_ibuhamil',
         ];
 
@@ -329,8 +334,37 @@ class PosyanduDetail extends Component
                 }
             };
 
+            // Cek apakah orangtua ini juga ada di tabel sasaran dengan nik_orangtua
+            $orangtuaData = null;
+            $sasaranDewasa = \App\Models\sasaran_dewasa::where('nik_sasaran', $orangtua->nik)
+                ->whereNotNull('nik_orangtua')
+                ->where('nik_orangtua', '!=', '-')
+                ->with('orangtua')
+                ->first();
+            if ($sasaranDewasa && $sasaranDewasa->orangtua) {
+                $orangtuaData = $sasaranDewasa->orangtua;
+            } else {
+                $sasaranPralansia = \App\Models\sasaran_pralansia::where('nik_sasaran', $orangtua->nik)
+                    ->whereNotNull('nik_orangtua')
+                    ->where('nik_orangtua', '!=', '-')
+                    ->with('orangtua')
+                    ->first();
+                if ($sasaranPralansia && $sasaranPralansia->orangtua) {
+                    $orangtuaData = $sasaranPralansia->orangtua;
+                } else {
+                    $sasaranLansia = \App\Models\sasaran_lansia::where('nik_sasaran', $orangtua->nik)
+                        ->whereNotNull('nik_orangtua')
+                        ->where('nik_orangtua', '!=', '-')
+                        ->with('orangtua')
+                        ->first();
+                    if ($sasaranLansia && $sasaranLansia->orangtua) {
+                        $orangtuaData = $sasaranLansia->orangtua;
+                    }
+                }
+            }
+
             // Create pseudo sasaran object with getKey method
-            return new class($orangtua, $pseudoUser, $type) {
+            return new class($orangtua, $pseudoUser, $type, $orangtuaData) {
                 public $nik_sasaran;
                 public $nama_sasaran;
                 public $no_kk_sasaran;
@@ -347,21 +381,24 @@ class PosyanduDetail extends Component
                 public $id_sasaran_dewasa;
                 public $id_sasaran_pralansia;
                 public $id_sasaran_lansia;
+                public $nik_orangtua;
 
-                public function __construct($orangtua, $pseudoUser, $type) {
+                public function __construct($orangtua, $pseudoUser, $type, $orangtuaData) {
                     $this->nik_sasaran = $orangtua->nik;
                     $this->nama_sasaran = $orangtua->nama;
-                    $this->no_kk_sasaran = null;
+                    $this->no_kk_sasaran = $orangtua->no_kk;
                     $this->tempat_lahir = $orangtua->tempat_lahir;
                     $this->tanggal_lahir = $orangtua->tanggal_lahir;
                     $this->jenis_kelamin = $orangtua->kelamin;
                     $this->umur_sasaran = $orangtua->umur;
-                    $this->alamat_sasaran = null;
-                    $this->kepersertaan_bpjs = null;
-                    $this->nomor_bpjs = null;
-                    $this->nomor_telepon = null;
-                    $this->orangtua = $orangtua;
+                    $this->alamat_sasaran = $orangtua->alamat;
+                    $this->kepersertaan_bpjs = $orangtua->kepersertaan_bpjs;
+                    $this->nomor_bpjs = $orangtua->nomor_bpjs;
+                    $this->nomor_telepon = $orangtua->nomor_telepon;
+                    // Set orangtua data jika ada, jika tidak set ke null
+                    $this->orangtua = $orangtuaData;
                     $this->user = $pseudoUser;
+                    $this->nik_orangtua = $orangtuaData ? $orangtuaData->nik : null;
 
                     // Set appropriate ID based on type (all null for orangtua data)
                     $this->id_sasaran_dewasa = null;

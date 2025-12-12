@@ -20,6 +20,9 @@ trait BalitaCrud
     public $no_kk_sasaran;
     public $tempat_lahir;
     public $tanggal_lahir_sasaran;
+    public $hari_lahir_sasaran;
+    public $bulan_lahir_sasaran;
+    public $tahun_lahir_sasaran;
     public $jenis_kelamin;
     public $umur_sasaran;
     public $nik_orangtua;
@@ -68,6 +71,9 @@ trait BalitaCrud
         $this->no_kk_sasaran = '';
         $this->tempat_lahir = '';
         $this->tanggal_lahir_sasaran = '';
+        $this->hari_lahir_sasaran = '';
+        $this->bulan_lahir_sasaran = '';
+        $this->tahun_lahir_sasaran = '';
         $this->jenis_kelamin = '';
         $this->umur_sasaran = '';
         $this->nik_orangtua = '';
@@ -88,9 +94,15 @@ trait BalitaCrud
      */
     public function storeBalita()
     {
+        // Combine hari, bulan, tahun menjadi tanggal lahir
+        $this->combineTanggalLahirSasaran();
+
         $this->validate([
             'nama_sasaran' => 'required|string|max:100',
             'nik_sasaran' => 'required|numeric',
+            'hari_lahir_sasaran' => 'required|numeric|min:1|max:31',
+            'bulan_lahir_sasaran' => 'required|numeric|min:1|max:12',
+            'tahun_lahir_sasaran' => 'required|numeric|min:1900|max:' . date('Y'),
             'tanggal_lahir_sasaran' => 'required|date',
             'jenis_kelamin' => 'required|in:Laki-laki,Perempuan',
             'alamat_sasaran' => 'required|string|max:225',
@@ -104,6 +116,18 @@ trait BalitaCrud
             'nama_sasaran.required' => 'Nama sasaran wajib diisi.',
             'nik_sasaran.required' => 'NIK wajib diisi.',
             'nik_sasaran.numeric' => 'NIK harus berupa angka.',
+            'hari_lahir_sasaran.required' => 'Hari lahir wajib diisi.',
+            'hari_lahir_sasaran.numeric' => 'Hari harus berupa angka.',
+            'hari_lahir_sasaran.min' => 'Hari minimal 1.',
+            'hari_lahir_sasaran.max' => 'Hari maksimal 31.',
+            'bulan_lahir_sasaran.required' => 'Bulan lahir wajib diisi.',
+            'bulan_lahir_sasaran.numeric' => 'Bulan harus berupa angka.',
+            'bulan_lahir_sasaran.min' => 'Bulan minimal 1.',
+            'bulan_lahir_sasaran.max' => 'Bulan maksimal 12.',
+            'tahun_lahir_sasaran.required' => 'Tahun lahir wajib diisi.',
+            'tahun_lahir_sasaran.numeric' => 'Tahun harus berupa angka.',
+            'tahun_lahir_sasaran.min' => 'Tahun minimal 1900.',
+            'tahun_lahir_sasaran.max' => 'Tahun maksimal ' . date('Y') . '.',
             'tanggal_lahir_sasaran.required' => 'Tanggal lahir wajib diisi.',
             'tanggal_lahir_sasaran.date' => 'Tanggal lahir harus berupa tanggal yang valid.',
             'jenis_kelamin.required' => 'Jenis kelamin wajib dipilih.',
@@ -213,6 +237,17 @@ trait BalitaCrud
         $this->no_kk_sasaran = $balita->no_kk_sasaran ?? '';
         $this->tempat_lahir = $balita->tempat_lahir ?? '';
         $this->tanggal_lahir_sasaran = $balita->tanggal_lahir;
+        // Split tanggal lahir menjadi hari, bulan, tahun
+        if ($balita->tanggal_lahir) {
+            $date = Carbon::parse($balita->tanggal_lahir);
+            $this->hari_lahir_sasaran = $date->day;
+            $this->bulan_lahir_sasaran = $date->month;
+            $this->tahun_lahir_sasaran = $date->year;
+        } else {
+            $this->hari_lahir_sasaran = '';
+            $this->bulan_lahir_sasaran = '';
+            $this->tahun_lahir_sasaran = '';
+        }
         $this->jenis_kelamin = $balita->jenis_kelamin;
         $this->umur_sasaran = $balita->tanggal_lahir
             ? Carbon::parse($balita->tanggal_lahir)->age
@@ -262,14 +297,64 @@ trait BalitaCrud
     }
 
     /**
-     * Hitung umur otomatis ketika tanggal lahir berubah
+     * Combine hari, bulan, tahun menjadi tanggal lahir
      */
-    public function updatedTanggalLahirSasaran()
+    private function combineTanggalLahirSasaran()
     {
-        if ($this->tanggal_lahir_sasaran) {
-            $this->umur_sasaran = Carbon::parse($this->tanggal_lahir_sasaran)->age;
+        if ($this->hari_lahir_sasaran && $this->bulan_lahir_sasaran && $this->tahun_lahir_sasaran) {
+            try {
+                $this->tanggal_lahir_sasaran = Carbon::create(
+                    $this->tahun_lahir_sasaran,
+                    $this->bulan_lahir_sasaran,
+                    $this->hari_lahir_sasaran
+                )->format('Y-m-d');
+            } catch (\Exception $e) {
+                $this->tanggal_lahir_sasaran = null;
+            }
+        } else {
+            $this->tanggal_lahir_sasaran = null;
+        }
+    }
+
+    /**
+     * Hitung umur otomatis ketika hari, bulan, atau tahun lahir berubah
+     */
+    public function updatedHariLahirSasaran()
+    {
+        $this->calculateUmurSasaran();
+    }
+
+    public function updatedBulanLahirSasaran()
+    {
+        $this->calculateUmurSasaran();
+    }
+
+    public function updatedTahunLahirSasaran()
+    {
+        $this->calculateUmurSasaran();
+    }
+
+    /**
+     * Calculate umur dari hari, bulan, tahun lahir
+     */
+    private function calculateUmurSasaran()
+    {
+        if ($this->hari_lahir_sasaran && $this->bulan_lahir_sasaran && $this->tahun_lahir_sasaran) {
+            try {
+                $tanggalLahir = Carbon::create(
+                    $this->tahun_lahir_sasaran,
+                    $this->bulan_lahir_sasaran,
+                    $this->hari_lahir_sasaran
+                );
+                $this->umur_sasaran = $tanggalLahir->age;
+                $this->tanggal_lahir_sasaran = $tanggalLahir->format('Y-m-d');
+            } catch (\Exception $e) {
+                $this->umur_sasaran = '';
+                $this->tanggal_lahir_sasaran = null;
+            }
         } else {
             $this->umur_sasaran = '';
+            $this->tanggal_lahir_sasaran = null;
         }
     }
 }

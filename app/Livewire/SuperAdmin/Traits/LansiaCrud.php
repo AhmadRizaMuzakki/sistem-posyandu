@@ -17,10 +17,12 @@ trait LansiaCrud
     public $no_kk_sasaran_lansia;
     public $tempat_lahir_lansia;
     public $tanggal_lahir_lansia;
+    public $hari_lahir_lansia;
+    public $bulan_lahir_lansia;
+    public $tahun_lahir_lansia;
     public $jenis_kelamin_lansia;
     public $umur_sasaran_lansia;
     public $pekerjaan_lansia;
-    public $nik_orangtua_lansia;
     public $alamat_sasaran_lansia;
     public $kepersertaan_bpjs_lansia;
     public $nomor_bpjs_lansia;
@@ -62,10 +64,12 @@ trait LansiaCrud
         $this->no_kk_sasaran_lansia = '';
         $this->tempat_lahir_lansia = '';
         $this->tanggal_lahir_lansia = '';
+        $this->hari_lahir_lansia = '';
+        $this->bulan_lahir_lansia = '';
+        $this->tahun_lahir_lansia = '';
         $this->jenis_kelamin_lansia = '';
         $this->umur_sasaran_lansia = '';
         $this->pekerjaan_lansia = '';
-        $this->nik_orangtua_lansia = '';
         $this->alamat_sasaran_lansia = '';
         $this->kepersertaan_bpjs_lansia = '';
         $this->nomor_bpjs_lansia = '';
@@ -78,9 +82,15 @@ trait LansiaCrud
      */
     public function storeLansia()
     {
+        // Combine hari, bulan, tahun menjadi tanggal lahir
+        $this->combineTanggalLahirLansia();
+
         $this->validate([
             'nama_sasaran_lansia' => 'required|string|max:100',
             'nik_sasaran_lansia' => 'required|numeric',
+            'hari_lahir_lansia' => 'required|numeric|min:1|max:31',
+            'bulan_lahir_lansia' => 'required|numeric|min:1|max:12',
+            'tahun_lahir_lansia' => 'required|numeric|min:1900|max:' . date('Y'),
             'tanggal_lahir_lansia' => 'required|date',
             'jenis_kelamin_lansia' => 'required|in:Laki-laki,Perempuan',
             'alamat_sasaran_lansia' => 'required|string|max:225',
@@ -88,6 +98,18 @@ trait LansiaCrud
             'nama_sasaran_lansia.required' => 'Nama sasaran wajib diisi.',
             'nik_sasaran_lansia.required' => 'NIK wajib diisi.',
             'nik_sasaran_lansia.numeric' => 'NIK harus berupa angka.',
+            'hari_lahir_lansia.required' => 'Hari lahir wajib diisi.',
+            'hari_lahir_lansia.numeric' => 'Hari harus berupa angka.',
+            'hari_lahir_lansia.min' => 'Hari minimal 1.',
+            'hari_lahir_lansia.max' => 'Hari maksimal 31.',
+            'bulan_lahir_lansia.required' => 'Bulan lahir wajib diisi.',
+            'bulan_lahir_lansia.numeric' => 'Bulan harus berupa angka.',
+            'bulan_lahir_lansia.min' => 'Bulan minimal 1.',
+            'bulan_lahir_lansia.max' => 'Bulan maksimal 12.',
+            'tahun_lahir_lansia.required' => 'Tahun lahir wajib diisi.',
+            'tahun_lahir_lansia.numeric' => 'Tahun harus berupa angka.',
+            'tahun_lahir_lansia.min' => 'Tahun minimal 1900.',
+            'tahun_lahir_lansia.max' => 'Tahun maksimal ' . date('Y') . '.',
             'tanggal_lahir_lansia.required' => 'Tanggal lahir wajib diisi.',
             'tanggal_lahir_lansia.date' => 'Tanggal lahir harus berupa tanggal yang valid.',
             'jenis_kelamin_lansia.required' => 'Jenis kelamin wajib dipilih.',
@@ -102,16 +124,6 @@ trait LansiaCrud
             $umur = Carbon::parse($this->tanggal_lahir_lansia)->age;
         }
 
-        // Jika data berasal dari remaja atau balita, set nik_orangtua ke strip
-        $nik_orangtua = $this->nik_orangtua_lansia;
-        // Cek apakah ada data di remaja atau balita dengan nik_sasaran yang sama
-        $fromRemaja = \App\Models\sasaran_remaja::where('nik_sasaran', $this->nik_sasaran_lansia)->exists();
-        $fromBalita = \App\Models\Sasaran_Bayibalita::where('nik_sasaran', $this->nik_sasaran_lansia)->exists();
-
-        if ($fromRemaja || $fromBalita) {
-            $nik_orangtua = '-';
-        }
-
         $data = [
             'id_users' => $this->id_users_sasaran_lansia !== '' ? $this->id_users_sasaran_lansia : null,
             'id_posyandu' => $this->posyanduId,
@@ -123,7 +135,6 @@ trait LansiaCrud
             'jenis_kelamin' => $this->jenis_kelamin_lansia,
             'umur_sasaran' => $umur,
             'pekerjaan' => $this->pekerjaan_lansia ?: null,
-            'nik_orangtua' => $nik_orangtua ?: null,
             'alamat_sasaran' => $this->alamat_sasaran_lansia,
             'kepersertaan_bpjs' => $this->kepersertaan_bpjs_lansia ?: null,
             'nomor_bpjs' => $this->nomor_bpjs_lansia ?: null,
@@ -159,12 +170,22 @@ trait LansiaCrud
         $this->no_kk_sasaran_lansia = $lansia->no_kk_sasaran ?? '';
         $this->tempat_lahir_lansia = $lansia->tempat_lahir ?? '';
         $this->tanggal_lahir_lansia = $lansia->tanggal_lahir;
+        // Split tanggal lahir menjadi hari, bulan, tahun
+        if ($lansia->tanggal_lahir) {
+            $date = Carbon::parse($lansia->tanggal_lahir);
+            $this->hari_lahir_lansia = $date->day;
+            $this->bulan_lahir_lansia = $date->month;
+            $this->tahun_lahir_lansia = $date->year;
+        } else {
+            $this->hari_lahir_lansia = '';
+            $this->bulan_lahir_lansia = '';
+            $this->tahun_lahir_lansia = '';
+        }
         $this->jenis_kelamin_lansia = $lansia->jenis_kelamin;
         $this->umur_sasaran_lansia = $lansia->tanggal_lahir
             ? Carbon::parse($lansia->tanggal_lahir)->age
             : $lansia->umur_sasaran;
         $this->pekerjaan_lansia = $lansia->pekerjaan ?? '';
-        $this->nik_orangtua_lansia = $lansia->nik_orangtua ?? '';
         $this->alamat_sasaran_lansia = $lansia->alamat_sasaran ?? '';
         $this->kepersertaan_bpjs_lansia = $lansia->kepersertaan_bpjs ?? '';
         $this->nomor_bpjs_lansia = $lansia->nomor_bpjs ?? '';
@@ -186,14 +207,64 @@ trait LansiaCrud
     }
 
     /**
-     * Hitung umur otomatis ketika tanggal lahir berubah
+     * Combine hari, bulan, tahun menjadi tanggal lahir
      */
-    public function updatedTanggalLahirLansia()
+    private function combineTanggalLahirLansia()
     {
-        if ($this->tanggal_lahir_lansia) {
-            $this->umur_sasaran_lansia = Carbon::parse($this->tanggal_lahir_lansia)->age;
+        if ($this->hari_lahir_lansia && $this->bulan_lahir_lansia && $this->tahun_lahir_lansia) {
+            try {
+                $this->tanggal_lahir_lansia = Carbon::create(
+                    $this->tahun_lahir_lansia,
+                    $this->bulan_lahir_lansia,
+                    $this->hari_lahir_lansia
+                )->format('Y-m-d');
+            } catch (\Exception $e) {
+                $this->tanggal_lahir_lansia = null;
+            }
+        } else {
+            $this->tanggal_lahir_lansia = null;
+        }
+    }
+
+    /**
+     * Hitung umur otomatis ketika hari, bulan, atau tahun lahir berubah
+     */
+    public function updatedHariLahirLansia()
+    {
+        $this->calculateUmurLansia();
+    }
+
+    public function updatedBulanLahirLansia()
+    {
+        $this->calculateUmurLansia();
+    }
+
+    public function updatedTahunLahirLansia()
+    {
+        $this->calculateUmurLansia();
+    }
+
+    /**
+     * Calculate umur dari hari, bulan, tahun lahir
+     */
+    private function calculateUmurLansia()
+    {
+        if ($this->hari_lahir_lansia && $this->bulan_lahir_lansia && $this->tahun_lahir_lansia) {
+            try {
+                $tanggalLahir = Carbon::create(
+                    $this->tahun_lahir_lansia,
+                    $this->bulan_lahir_lansia,
+                    $this->hari_lahir_lansia
+                );
+                $this->umur_sasaran_lansia = $tanggalLahir->age;
+                $this->tanggal_lahir_lansia = $tanggalLahir->format('Y-m-d');
+            } catch (\Exception $e) {
+                $this->umur_sasaran_lansia = '';
+                $this->tanggal_lahir_lansia = null;
+            }
         } else {
             $this->umur_sasaran_lansia = '';
+            $this->tanggal_lahir_lansia = null;
         }
     }
 }

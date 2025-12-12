@@ -17,13 +17,16 @@ trait IbuHamilCrud
     public $no_kk_sasaran_ibuhamil;
     public $tempat_lahir_ibuhamil;
     public $tanggal_lahir_ibuhamil;
+    public $hari_lahir_ibuhamil;
+    public $bulan_lahir_ibuhamil;
+    public $tahun_lahir_ibuhamil;
     public $jenis_kelamin_ibuhamil;
     public $umur_sasaran_ibuhamil;
     public $alamat_sasaran_ibuhamil;
     public $kepersertaan_bpjs_ibuhamil;
     public $nomor_bpjs_ibuhamil;
     public $nomor_telepon_ibuhamil;
-    
+
     // Field Biodata Suami
     public $nama_suami_ibuhamil;
     public $nik_suami_ibuhamil;
@@ -64,13 +67,16 @@ trait IbuHamilCrud
         $this->no_kk_sasaran_ibuhamil = '';
         $this->tempat_lahir_ibuhamil = '';
         $this->tanggal_lahir_ibuhamil = '';
+        $this->hari_lahir_ibuhamil = '';
+        $this->bulan_lahir_ibuhamil = '';
+        $this->tahun_lahir_ibuhamil = '';
         $this->jenis_kelamin_ibuhamil = '';
         $this->umur_sasaran_ibuhamil = '';
         $this->alamat_sasaran_ibuhamil = '';
         $this->kepersertaan_bpjs_ibuhamil = '';
         $this->nomor_bpjs_ibuhamil = '';
         $this->nomor_telepon_ibuhamil = '';
-        
+
         // Reset field suami
         $this->nama_suami_ibuhamil = '';
         $this->nik_suami_ibuhamil = '';
@@ -94,6 +100,18 @@ trait IbuHamilCrud
             'nama_sasaran_ibuhamil.required' => 'Nama sasaran wajib diisi.',
             'nik_sasaran_ibuhamil.required' => 'NIK wajib diisi.',
             'nik_sasaran_ibuhamil.numeric' => 'NIK harus berupa angka.',
+            'hari_lahir_ibuhamil.required' => 'Hari lahir wajib diisi.',
+            'hari_lahir_ibuhamil.numeric' => 'Hari harus berupa angka.',
+            'hari_lahir_ibuhamil.min' => 'Hari minimal 1.',
+            'hari_lahir_ibuhamil.max' => 'Hari maksimal 31.',
+            'bulan_lahir_ibuhamil.required' => 'Bulan lahir wajib diisi.',
+            'bulan_lahir_ibuhamil.numeric' => 'Bulan harus berupa angka.',
+            'bulan_lahir_ibuhamil.min' => 'Bulan minimal 1.',
+            'bulan_lahir_ibuhamil.max' => 'Bulan maksimal 12.',
+            'tahun_lahir_ibuhamil.required' => 'Tahun lahir wajib diisi.',
+            'tahun_lahir_ibuhamil.numeric' => 'Tahun harus berupa angka.',
+            'tahun_lahir_ibuhamil.min' => 'Tahun minimal 1900.',
+            'tahun_lahir_ibuhamil.max' => 'Tahun maksimal ' . date('Y') . '.',
             'tanggal_lahir_ibuhamil.required' => 'Tanggal lahir wajib diisi.',
             'tanggal_lahir_ibuhamil.date' => 'Tanggal lahir harus berupa tanggal yang valid.',
             'jenis_kelamin_ibuhamil.required' => 'Jenis kelamin wajib dipilih.',
@@ -157,14 +175,14 @@ trait IbuHamilCrud
         $this->tempat_lahir_ibuhamil = $ibuhamil->tempat_lahir ?? '';
         $this->tanggal_lahir_ibuhamil = $ibuhamil->tanggal_lahir;
         $this->jenis_kelamin_ibuhamil = $ibuhamil->jenis_kelamin;
-        $this->umur_sasaran_ibuhamil = $ibuhamil->tanggal_lahir 
-            ? Carbon::parse($ibuhamil->tanggal_lahir)->age 
+        $this->umur_sasaran_ibuhamil = $ibuhamil->tanggal_lahir
+            ? Carbon::parse($ibuhamil->tanggal_lahir)->age
             : $ibuhamil->umur_sasaran;
         $this->alamat_sasaran_ibuhamil = $ibuhamil->alamat_sasaran ?? '';
         $this->kepersertaan_bpjs_ibuhamil = $ibuhamil->kepersertaan_bpjs ?? '';
         $this->nomor_bpjs_ibuhamil = $ibuhamil->nomor_bpjs ?? '';
         $this->nomor_telepon_ibuhamil = $ibuhamil->nomor_telepon ?? '';
-        
+
         // Load data suami
         $this->nama_suami_ibuhamil = $ibuhamil->nama_suami ?? '';
         $this->nik_suami_ibuhamil = $ibuhamil->nik_suami ?? '';
@@ -187,14 +205,64 @@ trait IbuHamilCrud
     }
 
     /**
-     * Hitung umur otomatis ketika tanggal lahir berubah
+     * Combine hari, bulan, tahun menjadi tanggal lahir
      */
-    public function updatedTanggalLahirIbuhamil()
+    private function combineTanggalLahirIbuhamil()
     {
-        if ($this->tanggal_lahir_ibuhamil) {
-            $this->umur_sasaran_ibuhamil = Carbon::parse($this->tanggal_lahir_ibuhamil)->age;
+        if ($this->hari_lahir_ibuhamil && $this->bulan_lahir_ibuhamil && $this->tahun_lahir_ibuhamil) {
+            try {
+                $this->tanggal_lahir_ibuhamil = Carbon::create(
+                    $this->tahun_lahir_ibuhamil,
+                    $this->bulan_lahir_ibuhamil,
+                    $this->hari_lahir_ibuhamil
+                )->format('Y-m-d');
+            } catch (\Exception $e) {
+                $this->tanggal_lahir_ibuhamil = null;
+            }
+        } else {
+            $this->tanggal_lahir_ibuhamil = null;
+        }
+    }
+
+    /**
+     * Hitung umur otomatis ketika hari, bulan, atau tahun lahir berubah
+     */
+    public function updatedHariLahirIbuhamil()
+    {
+        $this->calculateUmurIbuhamil();
+    }
+
+    public function updatedBulanLahirIbuhamil()
+    {
+        $this->calculateUmurIbuhamil();
+    }
+
+    public function updatedTahunLahirIbuhamil()
+    {
+        $this->calculateUmurIbuhamil();
+    }
+
+    /**
+     * Calculate umur dari hari, bulan, tahun lahir
+     */
+    private function calculateUmurIbuhamil()
+    {
+        if ($this->hari_lahir_ibuhamil && $this->bulan_lahir_ibuhamil && $this->tahun_lahir_ibuhamil) {
+            try {
+                $tanggalLahir = Carbon::create(
+                    $this->tahun_lahir_ibuhamil,
+                    $this->bulan_lahir_ibuhamil,
+                    $this->hari_lahir_ibuhamil
+                );
+                $this->umur_sasaran_ibuhamil = $tanggalLahir->age;
+                $this->tanggal_lahir_ibuhamil = $tanggalLahir->format('Y-m-d');
+            } catch (\Exception $e) {
+                $this->umur_sasaran_ibuhamil = '';
+                $this->tanggal_lahir_ibuhamil = null;
+            }
         } else {
             $this->umur_sasaran_ibuhamil = '';
+            $this->tanggal_lahir_ibuhamil = null;
         }
     }
 }

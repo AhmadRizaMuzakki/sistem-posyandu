@@ -72,13 +72,13 @@
 
                         {{-- Kolom untuk Lansia, Dewasa, Pralansia --}}
                         @if(!$isDetailed && !$isIbuHamil)
-                            <th class="px-6 py-3">Pekerjaan</th>
+                            <th class="px-6 py-3">Alamat</th>
                             <th class="px-6 py-3">Kepersertaan BPJS</th>
                             <th class="px-6 py-3">Nomor BPJS</th>
                             <th class="px-6 py-3">Nomor Telepon</th>
                         @endif
 
-                        {{-- Kolom Data Orang Tua (khusus untuk Balita & Remaja) --}}
+                        {{-- Kolom Data Orang Tua (hanya untuk Balita dan Remaja) --}}
                         @if($isDetailed)
                             <th class="px-6 py-3">Nama Orang Tua</th>
                             <th class="px-6 py-3">Tempat Lahir Orang Tua</th>
@@ -132,7 +132,7 @@
 
                         {{-- Isi Kolom untuk Lansia, Dewasa, Pralansia --}}
                         @if(!$isDetailed && !$isIbuHamil)
-                            <td class="px-6 py-4">{{ $item->pekerjaan ?? '-' }}</td>
+                            <td class="px-6 py-4">{{ $item->alamat_sasaran ?? '-' }}</td>
                             <td class="px-6 py-4">
                                 @if($item->kepersertaan_bpjs)
                                     <span class="px-2 py-1 text-xs font-semibold rounded-full {{ $item->kepersertaan_bpjs == 'PBI' ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800' }}">
@@ -146,34 +146,46 @@
                             <td class="px-6 py-4">{{ $item->nomor_telepon ?? '-' }}</td>
                         @endif
 
-                        {{-- Kolom Data Orang Tua (khusus untuk Balita & Remaja) --}}
+                        {{-- Kolom Data Orang Tua (hanya untuk Balita dan Remaja) --}}
                         @if($isDetailed)
-                            <td class="px-6 py-4">{{ $item->orangtua->nama ?? '-' }}</td>
-                            <td class="px-6 py-4">{{ $item->orangtua->tempat_lahir ?? '-' }}</td>
-                            <td class="px-6 py-4">{{ $item->orangtua->pekerjaan ?? '-' }}</td>
-                        @endif
+                            @php
+                                // Ambil data orangtua
+                                $orangtua = null;
+                                if (isset($item->orangtua) && $item->orangtua) {
+                                    $orangtua = $item->orangtua;
+                                }
 
-                        {{-- Kolom Orang Tua (tidak untuk Ibu Hamil) --}}
-                        @if(!$isIbuHamil)
+                                // Tentukan apakah harus menampilkan strip
+                                $showStrip = false;
+                                if (isset($item->nik_orangtua) && $item->nik_orangtua == '-') {
+                                    $showStrip = true;
+                                } elseif (!$orangtua) {
+                                    $showStrip = true;
+                                }
+                            @endphp
                             <td class="px-6 py-4">
-                                @php
-                                    // Cek apakah data berasal dari remaja atau balita
-                                    $fromRemaja = false;
-                                    $fromBalita = false;
-                                    if (isset($item->nik_sasaran)) {
-                                        $fromRemaja = \App\Models\sasaran_remaja::where('nik_sasaran', $item->nik_sasaran)->exists();
-                                        $fromBalita = \App\Models\Sasaran_Bayibalita::where('nik_sasaran', $item->nik_sasaran)->exists();
-                                    }
-                                    // Jika berasal dari remaja/balita atau nik_orangtua adalah strip, tampilkan strip
-                                    $showStrip = ($fromRemaja || $fromBalita || (isset($item->nik_orangtua) && $item->nik_orangtua == '-'));
-                                @endphp
                                 @if($showStrip)
                                     <span class="text-gray-400">-</span>
-                                @elseif($item->user && $item->user->hasRole('orangtua'))
-                                    <span class="text-sm">{{ $item->user->name ?? '-' }}</span>
-                                    @if($item->user->email)
-                                        <br><span class="text-xs text-gray-400">{{ $item->user->email }}</span>
-                                    @endif
+                                @elseif($orangtua)
+                                    {{ $orangtua->nama ?? '-' }}
+                                @else
+                                    <span class="text-gray-400">-</span>
+                                @endif
+                            </td>
+                            <td class="px-6 py-4">
+                                @if($showStrip)
+                                    <span class="text-gray-400">-</span>
+                                @elseif($orangtua)
+                                    {{ $orangtua->tempat_lahir ?? '-' }}
+                                @else
+                                    <span class="text-gray-400">-</span>
+                                @endif
+                            </td>
+                            <td class="px-6 py-4">
+                                @if($showStrip)
+                                    <span class="text-gray-400">-</span>
+                                @elseif($orangtua)
+                                    {{ $orangtua->pekerjaan ?? '-' }}
                                 @else
                                     <span class="text-gray-400">-</span>
                                 @endif
@@ -222,13 +234,12 @@
                             if ($isDetailed) {
                                 $colspan += 4; // Alamat, Kepersertaan BPJS, Nomor BPJS, Nomor Telepon
                                 $colspan += 3; // Nama Orang Tua, Tempat Lahir Orang Tua, Pekerjaan Orang Tua
-                                $colspan += 1; // Orang Tua
                             }
                             if ($isIbuHamil) {
                                 $colspan += 5; // Nama Suami, NIK Suami, Pekerjaan Suami, Kepersertaan BPJS, Nomor Telepon
                             } elseif (!$isDetailed) {
-                                $colspan += 4; // Pekerjaan, Kepersertaan BPJS, Nomor BPJS, Nomor Telepon
-                                $colspan += 1; // Orang Tua (untuk yang bukan detailed dan bukan ibu hamil)
+                                $colspan += 4; // Alamat, Kepersertaan BPJS, Nomor BPJS, Nomor Telepon
+                                $colspan += 3; // Nama Orang Tua, Tempat Lahir Orang Tua, Pekerjaan Orang Tua
                             }
                         @endphp
                         <td colspan="{{ $colspan }}" class="px-6 py-8 text-center text-gray-500">

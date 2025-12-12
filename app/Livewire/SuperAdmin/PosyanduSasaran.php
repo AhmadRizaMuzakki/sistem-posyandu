@@ -69,13 +69,13 @@ class PosyanduSasaran extends Component
             public function __construct($orangtua, $pseudoUser, $type) {
                 $this->nik_sasaran = $orangtua->nik;
                 $this->nama_sasaran = $orangtua->nama;
-                $this->no_kk_sasaran = null;
+                $this->no_kk_sasaran = $orangtua->no_kk;
                 $this->tempat_lahir = $orangtua->tempat_lahir;
                 $this->tanggal_lahir = $orangtua->tanggal_lahir;
                 $this->jenis_kelamin = $orangtua->kelamin;
                 $this->umur_sasaran = $orangtua->umur;
                 $this->pekerjaan = $orangtua->pekerjaan;
-                $this->alamat_sasaran = null;
+                $this->alamat_sasaran = $orangtua->alamat;
                 $this->kepersertaan_bpjs = $orangtua->kepersertaan_bpjs;
                 $this->nomor_bpjs = $orangtua->nomor_bpjs;
                 $this->nomor_telepon = $orangtua->nomor_telepon;
