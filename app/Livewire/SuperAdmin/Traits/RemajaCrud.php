@@ -27,6 +27,8 @@ trait RemajaCrud
     public $umur_sasaran_remaja;
     public $nik_orangtua_remaja;
     public $alamat_sasaran_remaja;
+    public $rt_remaja;
+    public $rw_remaja;
     public $kepersertaan_bpjs_remaja;
     public $nomor_bpjs_remaja;
     public $nomor_telepon_remaja;
@@ -75,6 +77,8 @@ trait RemajaCrud
         $this->umur_sasaran_remaja = '';
         $this->nik_orangtua_remaja = '';
         $this->alamat_sasaran_remaja = '';
+        $this->rt_remaja = '';
+        $this->rw_remaja = '';
         $this->kepersertaan_bpjs_remaja = '';
         $this->nomor_bpjs_remaja = '';
         $this->nomor_telepon_remaja = '';
@@ -201,6 +205,8 @@ trait RemajaCrud
             'umur_sasaran' => $umur,
             'nik_orangtua' => $this->nik_orangtua_remaja,
             'alamat_sasaran' => $this->alamat_sasaran_remaja,
+            'rt' => $this->rt_remaja ?: null,
+            'rw' => $this->rw_remaja ?: null,
             'kepersertaan_bpjs' => $this->kepersertaan_bpjs_remaja ?: null,
             'nomor_bpjs' => $this->nomor_bpjs_remaja ?: null,
             'nomor_telepon' => $this->nomor_telepon_remaja ?: null,
@@ -240,6 +246,8 @@ trait RemajaCrud
             : $remaja->umur_sasaran;
         $this->nik_orangtua_remaja = $remaja->nik_orangtua ?? '';
         $this->alamat_sasaran_remaja = $remaja->alamat_sasaran ?? '';
+        $this->rt_remaja = $remaja->rt ?? '';
+        $this->rw_remaja = $remaja->rw ?? '';
         $this->kepersertaan_bpjs_remaja = $remaja->kepersertaan_bpjs ?? '';
         $this->nomor_bpjs_remaja = $remaja->nomor_bpjs ?? '';
         $this->nomor_telepon_remaja = $remaja->nomor_telepon ?? '';

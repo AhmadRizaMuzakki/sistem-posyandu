@@ -2,8 +2,9 @@
 
 namespace App\Livewire\SuperAdmin\Traits;
 
-use App\Models\Kader;
 use App\Models\User;
+use App\Models\Kader;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 
 trait KaderCrud
@@ -61,7 +62,7 @@ trait KaderCrud
         $this->nik_kader = '';
         $this->tanggal_lahir = '';
         $this->alamat_kader = '';
-        $this->jabatan_kader = ''; 
+        $this->jabatan_kader = '';
     }
 
     /**
@@ -69,6 +70,35 @@ trait KaderCrud
      */
     public function storeKader()
     {
+        // Cek apakah user memiliki hak untuk menambah kader (hanya Ketua dan Superadmin)
+        /** @var \App\Models\User|null $user */
+        $user = Auth::user();
+        
+        if (!$user) {
+            session()->flash('message', 'Anda harus login terlebih dahulu.');
+            session()->flash('messageType', 'error');
+            return;
+        }
+        
+        $isSuperadmin = $user->hasRole('superadmin');
+        $isKetua = false;
+
+        // Cek apakah user adalah kader dengan jabatan Ketua di posyandu yang sama
+        if (!$isSuperadmin) {
+            $kaderUser = \App\Models\Kader::where('id_users', $user->id)
+                ->where('id_posyandu', $this->posyandu_id_kader ?? $this->posyanduId)
+                ->where('jabatan_kader', 'Ketua')
+                ->first();
+            $isKetua = $kaderUser !== null;
+        }
+
+        // Jika bukan superadmin dan bukan ketua, tolak akses
+        if (!$isSuperadmin && !$isKetua) {
+            session()->flash('message', 'Anda tidak memiliki hak untuk menambah anggota kader. Hanya Ketua dan Superadmin yang dapat menambah anggota.');
+            session()->flash('messageType', 'error');
+            return;
+        }
+
         // Get user ID for unique email validation if editing
         $userId = null;
         if ($this->id_kader) {

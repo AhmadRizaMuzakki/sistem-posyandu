@@ -93,6 +93,16 @@
                             @error('alamat_sasaran_pralansia') <span class="text-red-500 text-xs">{{ $message }}</span>@enderror
                         </div>
                         <div>
+                            <label class="block text-gray-700 text-sm font-bold mb-2">RT</label>
+                            <input type="text" wire:model="rt_pralansia" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-primary focus:border-primary" placeholder="RT">
+                            @error('rt_pralansia') <span class="text-red-500 text-xs">{{ $message }}</span>@enderror
+                        </div>
+                        <div>
+                            <label class="block text-gray-700 text-sm font-bold mb-2">RW</label>
+                            <input type="text" wire:model="rw_pralansia" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-primary focus:border-primary" placeholder="RW">
+                            @error('rw_pralansia') <span class="text-red-500 text-xs">{{ $message }}</span>@enderror
+                        </div>
+                        <div>
                             <label class="block text-gray-700 text-sm font-bold mb-2">Kepersertaan BPJS</label>
                             <select wire:model="kepersertaan_bpjs_pralansia" class="shadow border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-primary focus:border-primary">
                                 <option value="">Pilih...</option>

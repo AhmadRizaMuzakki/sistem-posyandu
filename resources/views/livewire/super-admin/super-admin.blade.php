@@ -32,13 +32,24 @@
         </div>
 
         <!-- Grafik Jumlah Sasaran per Posyandu -->
-        <div class="bg-white rounded-lg shadow-md p-6">
+        <div class="bg-white rounded-lg shadow-md p-6 mb-6">
             <h2 class="text-xl font-semibold text-gray-800 mb-4 flex items-center">
                 <i class="ph ph-chart-bar text-2xl mr-3 text-primary"></i>
                 Grafik Jumlah Sasaran per Posyandu
             </h2>
             <div class="h-96">
                 <canvas id="posyanduChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Grafik Jumlah Sasaran per Kategori -->
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <h2 class="text-xl font-semibold text-gray-800 mb-4 flex items-center">
+                <i class="ph ph-chart-bar text-2xl mr-3 text-primary"></i>
+                Grafik Jumlah Sasaran per Kategori
+            </h2>
+            <div class="h-96">
+                <canvas id="sasaranCategoryChart"></canvas>
             </div>
         </div>
     </div>
@@ -122,6 +133,86 @@
                         ticks: {
                             maxRotation: 45,
                             minRotation: 45
+                        }
+                    }
+                }
+            }
+        });
+
+        // Grafik Bar Chart untuk Sasaran per Kategori
+        const sasaranByCategory = @json($sasaranByCategory);
+        const categoryLabels = ['Bayi/Balita', 'Remaja', 'Ibu Hamil', 'Dewasa', 'Pralansia', 'Lansia'];
+        const categoryData = [
+            sasaranByCategory.bayibalita,
+            sasaranByCategory.remaja,
+            sasaranByCategory.ibuhamil,
+            sasaranByCategory.dewasa,
+            sasaranByCategory.pralansia,
+            sasaranByCategory.lansia
+        ];
+
+        const categoryCtx = document.getElementById('sasaranCategoryChart').getContext('2d');
+        new Chart(categoryCtx, {
+            type: 'bar',
+            data: {
+                labels: categoryLabels,
+                datasets: [{
+                    label: 'Jumlah Sasaran',
+                    data: categoryData,
+                    backgroundColor: [
+                        'rgba(59, 130, 246, 0.8)',
+                        'rgba(16, 185, 129, 0.8)',
+                        'rgba(251, 191, 36, 0.8)',
+                        'rgba(239, 68, 68, 0.8)',
+                        'rgba(168, 85, 247, 0.8)',
+                        'rgba(236, 72, 153, 0.8)',
+                    ],
+                    borderColor: [
+                        'rgba(59, 130, 246, 1)',
+                        'rgba(16, 185, 129, 1)',
+                        'rgba(251, 191, 36, 1)',
+                        'rgba(239, 68, 68, 1)',
+                        'rgba(168, 85, 247, 1)',
+                        'rgba(236, 72, 153, 1)',
+                    ],
+                    borderWidth: 2,
+                    borderRadius: 8,
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'top',
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return 'Jumlah: ' + context.parsed.y + ' orang';
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            stepSize: 1,
+                            callback: function(value) {
+                                return value + ' orang';
+                            }
+                        },
+                        title: {
+                            display: true,
+                            text: 'Jumlah Sasaran'
+                        }
+                    },
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Kategori Sasaran'
                         }
                     }
                 }

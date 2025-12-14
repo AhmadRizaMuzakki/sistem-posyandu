@@ -24,6 +24,8 @@ trait LansiaCrud
     public $umur_sasaran_lansia;
     public $pekerjaan_lansia;
     public $alamat_sasaran_lansia;
+    public $rt_lansia;
+    public $rw_lansia;
     public $kepersertaan_bpjs_lansia;
     public $nomor_bpjs_lansia;
     public $nomor_telepon_lansia;
@@ -71,6 +73,8 @@ trait LansiaCrud
         $this->umur_sasaran_lansia = '';
         $this->pekerjaan_lansia = '';
         $this->alamat_sasaran_lansia = '';
+        $this->rt_lansia = '';
+        $this->rw_lansia = '';
         $this->kepersertaan_bpjs_lansia = '';
         $this->nomor_bpjs_lansia = '';
         $this->nomor_telepon_lansia = '';
@@ -136,6 +140,8 @@ trait LansiaCrud
             'umur_sasaran' => $umur,
             'pekerjaan' => $this->pekerjaan_lansia ?: null,
             'alamat_sasaran' => $this->alamat_sasaran_lansia,
+            'rt' => $this->rt_lansia ?: null,
+            'rw' => $this->rw_lansia ?: null,
             'kepersertaan_bpjs' => $this->kepersertaan_bpjs_lansia ?: null,
             'nomor_bpjs' => $this->nomor_bpjs_lansia ?: null,
             'nomor_telepon' => $this->nomor_telepon_lansia ?: null,
@@ -187,6 +193,8 @@ trait LansiaCrud
             : $lansia->umur_sasaran;
         $this->pekerjaan_lansia = $lansia->pekerjaan ?? '';
         $this->alamat_sasaran_lansia = $lansia->alamat_sasaran ?? '';
+        $this->rt_lansia = $lansia->rt ?? '';
+        $this->rw_lansia = $lansia->rw ?? '';
         $this->kepersertaan_bpjs_lansia = $lansia->kepersertaan_bpjs ?? '';
         $this->nomor_bpjs_lansia = $lansia->nomor_bpjs ?? '';
         $this->nomor_telepon_lansia = $lansia->nomor_telepon ?? '';

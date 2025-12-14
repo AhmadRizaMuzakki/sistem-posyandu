@@ -47,7 +47,6 @@
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nama Posyandu</th>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Alamat</th>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Domisili</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Jumlah Sasaran</th>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Aksi</th>
                             </tr>
                         </thead>
@@ -63,17 +62,6 @@
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap">
                                         <div class="text-sm text-gray-700">{{ $posyandu->domisili_posyandu ?? '-' }}</div>
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap">
-                                        @php
-                                            $totalSasaran = $posyandu->sasaran_bayibalita->count() +
-                                                            $posyandu->sasaran_remaja->count() +
-                                                            $posyandu->sasaran_dewasa->count() +
-                                                            $posyandu->sasaran_ibuhamil->count() +
-                                                            $posyandu->sasaran_pralansia->count() +
-                                                            $posyandu->sasaran_lansia->count();
-                                        @endphp
-                                        <div class="text-sm text-gray-700">{{ number_format($totalSasaran, 0, ',', '.') }} orang</div>
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                         <div class="flex items-center space-x-2">

@@ -15,6 +15,7 @@ trait BalitaCrud
 
     // Field Form Sasaran Bayi & Balita
     public $id_sasaran_bayi_balita = null;
+    public $id_posyandu_sasaran;
     public $nama_sasaran;
     public $nik_sasaran;
     public $no_kk_sasaran;
@@ -27,6 +28,8 @@ trait BalitaCrud
     public $umur_sasaran;
     public $nik_orangtua;
     public $alamat_sasaran;
+    public $rt_sasaran;
+    public $rw_sasaran;
     public $kepersertaan_bpjs;
     public $nomor_bpjs;
     public $nomor_telepon;
@@ -66,6 +69,7 @@ trait BalitaCrud
     private function resetBalitaFields()
     {
         $this->id_sasaran_bayi_balita = null;
+        $this->id_posyandu_sasaran = $this->posyanduId ?? '';
         $this->nama_sasaran = '';
         $this->nik_sasaran = '';
         $this->no_kk_sasaran = '';
@@ -78,6 +82,8 @@ trait BalitaCrud
         $this->umur_sasaran = '';
         $this->nik_orangtua = '';
         $this->alamat_sasaran = '';
+        $this->rt_sasaran = '';
+        $this->rw_sasaran = '';
         $this->kepersertaan_bpjs = '';
         $this->nomor_bpjs = '';
         $this->nomor_telepon = '';
@@ -98,6 +104,7 @@ trait BalitaCrud
         $this->combineTanggalLahirSasaran();
 
         $this->validate([
+            'id_posyandu_sasaran' => 'required|exists:posyandu,id_posyandu',
             'nama_sasaran' => 'required|string|max:100',
             'nik_sasaran' => 'required|numeric',
             'hari_lahir_sasaran' => 'required|numeric|min:1|max:31',
@@ -113,6 +120,8 @@ trait BalitaCrud
             'pekerjaan_orangtua' => 'required|string',
             'kelamin_orangtua' => 'required|in:Laki-laki,Perempuan',
         ], [
+            'id_posyandu_sasaran.required' => 'Posyandu wajib dipilih.',
+            'id_posyandu_sasaran.exists' => 'Posyandu yang dipilih tidak valid.',
             'nama_sasaran.required' => 'Nama sasaran wajib diisi.',
             'nik_sasaran.required' => 'NIK wajib diisi.',
             'nik_sasaran.numeric' => 'NIK harus berupa angka.',
@@ -152,14 +161,40 @@ trait BalitaCrud
         }
 
         // Simpan/Update data orangtua
+        // Cari orangtua berdasarkan no_kk dan alamat dari balita
         $orangtuaData = [
             'nik' => $this->nik_orangtua,
             'nama' => $this->nama_orangtua,
+            'no_kk' => $this->no_kk_sasaran, // Gunakan no_kk dari balita
             'tempat_lahir' => $this->tempat_lahir_orangtua,
             'tanggal_lahir' => $this->tanggal_lahir_orangtua,
             'pekerjaan' => $this->pekerjaan_orangtua,
             'kelamin' => $this->kelamin_orangtua,
+            'alamat' => $this->alamat_sasaran, // Gunakan alamat dari balita
         ];
+
+        // Update atau create orangtua berdasarkan nik, no_kk, dan alamat
+        // Jika ada balita dengan no_kk dan alamat yang sama, gunakan data orangtua dari balita tersebut
+        $existingBalita = Sasaran_Bayibalita::where('no_kk_sasaran', $this->no_kk_sasaran)
+            ->where('alamat_sasaran', $this->alamat_sasaran)
+            ->whereNotNull('nik_orangtua')
+            ->first();
+
+        if ($existingBalita && $existingBalita->nik_orangtua) {
+            // Gunakan nik orangtua yang sudah ada dari balita dengan no_kk dan alamat yang sama
+            $orangtuaData['nik'] = $existingBalita->nik_orangtua;
+            $this->nik_orangtua = $existingBalita->nik_orangtua;
+
+            // Update data orangtua jika ada perubahan
+            $existingOrangtua = Orangtua::find($existingBalita->nik_orangtua);
+            if ($existingOrangtua) {
+                $orangtuaData['nama'] = $existingOrangtua->nama ?? $this->nama_orangtua;
+                $orangtuaData['tempat_lahir'] = $existingOrangtua->tempat_lahir ?? $this->tempat_lahir_orangtua;
+                $orangtuaData['tanggal_lahir'] = $existingOrangtua->tanggal_lahir ?? $this->tanggal_lahir_orangtua;
+                $orangtuaData['pekerjaan'] = $existingOrangtua->pekerjaan ?? $this->pekerjaan_orangtua;
+                $orangtuaData['kelamin'] = $existingOrangtua->kelamin ?? $this->kelamin_orangtua;
+            }
+        }
 
         // Update atau create orangtua
         Orangtua::updateOrCreate(
@@ -194,7 +229,7 @@ trait BalitaCrud
 
         $data = [
             'id_users' => $user->id,
-            'id_posyandu' => $this->posyanduId,
+            'id_posyandu' => $this->id_posyandu_sasaran ?? $this->posyanduId,
             'nama_sasaran' => $this->nama_sasaran,
             'nik_sasaran' => $this->nik_sasaran,
             'no_kk_sasaran' => $this->no_kk_sasaran ?: null,
@@ -204,6 +239,8 @@ trait BalitaCrud
             'umur_sasaran' => $umur,
             'nik_orangtua' => $this->nik_orangtua,
             'alamat_sasaran' => $this->alamat_sasaran,
+            'rt' => $this->rt_sasaran ?: null,
+            'rw' => $this->rw_sasaran ?: null,
             'kepersertaan_bpjs' => $this->kepersertaan_bpjs ?: null,
             'nomor_bpjs' => $this->nomor_bpjs ?: null,
             'nomor_telepon' => $this->nomor_telepon ?: null,
@@ -232,6 +269,7 @@ trait BalitaCrud
         $balita = Sasaran_Bayibalita::findOrFail($id);
 
         $this->id_sasaran_bayi_balita = $balita->id_sasaran_bayibalita;
+        $this->id_posyandu_sasaran = $balita->id_posyandu ?? $this->posyanduId;
         $this->nama_sasaran = $balita->nama_sasaran;
         $this->nik_sasaran = $balita->nik_sasaran;
         $this->no_kk_sasaran = $balita->no_kk_sasaran ?? '';
@@ -254,6 +292,8 @@ trait BalitaCrud
             : $balita->umur_sasaran;
         $this->nik_orangtua = $balita->nik_orangtua ?? '';
         $this->alamat_sasaran = $balita->alamat_sasaran ?? '';
+        $this->rt_sasaran = $balita->rt ?? '';
+        $this->rw_sasaran = $balita->rw ?? '';
         $this->kepersertaan_bpjs = $balita->kepersertaan_bpjs ?? '';
         $this->nomor_bpjs = $balita->nomor_bpjs ?? '';
         $this->nomor_telepon = $balita->nomor_telepon ?? '';

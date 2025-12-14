@@ -16,47 +16,115 @@
                     </h3>
 
                     <div class="grid grid-cols-1 gap-4">
-                        {{-- Pilih Posyandu --}}
+                        {{-- Pilih Posyandu (Read-only) --}}
                         <div>
                             <label class="block text-gray-700 text-sm font-bold mb-2">Posyandu <span class="text-red-500">*</span></label>
-                            <select wire:model="id_posyandu_imunisasi" 
-                                    wire:change="updatedIdPosyanduImunisasi"
-                                    class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-primary focus:border-primary">
-                                <option value="">Pilih Posyandu...</option>
-                                @foreach($dataPosyandu as $posyanduOpt)
-                                    <option value="{{ is_array($posyanduOpt) ? ($posyanduOpt['id_posyandu'] ?? $posyanduOpt['id'] ?? '') : ($posyanduOpt->id_posyandu ?? $posyanduOpt->id ?? '') }}">
-                                        {{ is_array($posyanduOpt) ? ($posyanduOpt['nama_posyandu'] ?? '') : ($posyanduOpt->nama_posyandu ?? '') }}
-                                    </option>
-                                @endforeach
-                            </select>
+                            @php
+                                $userPosyandu = auth()->user()->kader->first()->posyandu ?? null;
+                                if ($userPosyandu) {
+                                    $this->id_posyandu_imunisasi = $userPosyandu->id_posyandu;
+                                    $this->loadSasaranList();
+                                }
+                            @endphp
+                            <input type="text"
+                                   value="{{ $userPosyandu ? $userPosyandu->nama_posyandu : ($posyandu->nama_posyandu ?? '') }}"
+                                   readonly
+                                   class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 bg-gray-100 leading-tight focus:outline-none focus:ring-primary focus:border-primary cursor-not-allowed">
+                            @if(!$userPosyandu && !isset($posyandu))
+                                <select wire:model="id_posyandu_imunisasi"
+                                        wire:change="updatedIdPosyanduImunisasi"
+                                        class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-primary focus:border-primary">
+                                    <option value="">Pilih Posyandu...</option>
+                                    @foreach($dataPosyandu as $posyanduOpt)
+                                        <option value="{{ is_array($posyanduOpt) ? ($posyanduOpt['id_posyandu'] ?? $posyanduOpt['id'] ?? '') : ($posyanduOpt->id_posyandu ?? $posyanduOpt->id ?? '') }}">
+                                            {{ is_array($posyanduOpt) ? ($posyanduOpt['nama_posyandu'] ?? '') : ($posyanduOpt->nama_posyandu ?? '') }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            @endif
                             @error('id_posyandu_imunisasi') <span class="text-red-500 text-xs">{{ $message }}</span>@enderror
                         </div>
 
-                        {{-- Pilih Sasaran --}}
+                        {{-- Pilih Sasaran (Searchable) --}}
                         <div>
                             <label class="block text-gray-700 text-sm font-bold mb-2">Sasaran <span class="text-red-500">*</span></label>
-                            <select wire:model="id_sasaran_imunisasi" 
-                                    wire:change="updatedIdSasaranImunisasi"
+                            <div class="relative" x-data="{
+                                open: false,
+                                searchText: '',
+                                selectedId: @entangle('id_sasaran_imunisasi'),
+                                selectedName: ''
+                            }" x-init="
+                                $watch('selectedId', value => {
+                                    if (value) {
+                                        const sasaran = @js($sasaranList).find(s => s.id == value);
+                                        if (sasaran) {
+                                            selectedName = sasaran.nama + ' (' + sasaran.nik + ') - ' + sasaran.kategori.charAt(0).toUpperCase() + sasaran.kategori.slice(1);
+                                            searchText = selectedName;
+                                        }
+                                    } else {
+                                        selectedName = '';
+                                        searchText = '';
+                                    }
+                                });
+                                if (selectedId) {
+                                    const sasaran = @js($sasaranList).find(s => s.id == selectedId);
+                                    if (sasaran) {
+                                        selectedName = sasaran.nama + ' (' + sasaran.nik + ') - ' + sasaran.kategori.charAt(0).toUpperCase() + sasaran.kategori.slice(1);
+                                        searchText = selectedName;
+                                    }
+                                }
+                            ">
+                                <input
+                                    type="text"
+                                    x-model="searchText"
+                                    @focus="open = true"
+                                    @input="open = true"
+                                    @keydown.escape="open = false"
                                     class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-primary focus:border-primary"
+                                    placeholder="Ketik untuk mencari sasaran..."
+                                    autocomplete="off"
                                     @if(empty($sasaranList)) disabled @endif>
-                                <option value="">Pilih Sasaran...</option>
-                                @foreach($sasaranList as $sasaran)
-                                    <option value="{{ $sasaran['id'] }}" data-kategori="{{ $sasaran['kategori'] }}">
-                                        {{ $sasaran['nama'] }} ({{ $sasaran['nik'] }}) - {{ ucfirst($sasaran['kategori']) }}
-                                    </option>
-                                @endforeach
-                            </select>
+                                <div x-show="open"
+                                     @click.outside="open = false"
+                                     x-transition:enter="transition ease-out duration-100"
+                                     x-transition:enter-start="opacity-0 scale-95"
+                                     x-transition:enter-end="opacity-100 scale-100"
+                                     x-transition:leave="transition ease-in duration-75"
+                                     x-transition:leave-start="opacity-100 scale-100"
+                                     x-transition:leave-end="opacity-0 scale-95"
+                                     class="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-auto"
+                                     style="display: none;">
+                                    <ul class="py-1">
+                                        <li @click="selectedId = ''; searchText = ''; open = false; $wire.set('id_sasaran_imunisasi', '')"
+                                            class="px-4 py-2 text-sm text-gray-500 hover:bg-gray-100 cursor-pointer">
+                                            -- Pilih Sasaran --
+                                        </li>
+                                        @if(!empty($sasaranList))
+                                            @foreach($sasaranList as $sasaran)
+                                                <li @click="selectedId = '{{ $sasaran['id'] }}'; selectedName = '{{ $sasaran['nama'] }} ({{ $sasaran['nik'] }}) - {{ ucfirst($sasaran['kategori']) }}'; searchText = selectedName; open = false; $wire.set('id_sasaran_imunisasi', '{{ $sasaran['id'] }}'); $wire.updatedIdSasaranImunisasi('{{ $sasaran['id'] }}')"
+                                                    x-show="!searchText || '{{ strtolower($sasaran['nama'] . ' ' . $sasaran['nik'] . ' ' . $sasaran['kategori']) }}'.includes(searchText.toLowerCase())"
+                                                    class="px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer"
+                                                    :class="selectedId == '{{ $sasaran['id'] }}' ? 'bg-blue-50 font-medium' : ''">
+                                                    {{ $sasaran['nama'] }} ({{ $sasaran['nik'] }}) - {{ ucfirst($sasaran['kategori']) }}
+                                                </li>
+                                            @endforeach
+                                        @else
+                                            <li class="px-4 py-2 text-sm text-gray-500">Tidak ada sasaran ditemukan</li>
+                                        @endif
+                                    </ul>
+                                </div>
+                            </div>
                             @error('id_sasaran_imunisasi') <span class="text-red-500 text-xs">{{ $message }}</span>@enderror
                             @if(empty($sasaranList) && $id_posyandu_imunisasi)
-                                <p class="text-xs text-gray-500 mt-1">Pilih posyandu terlebih dahulu untuk melihat sasaran</p>
+                                <p class="text-xs text-gray-500 mt-1">Belum ada sasaran terdaftar di posyandu ini</p>
                             @endif
                         </div>
 
                         {{-- Kategori Sasaran (Auto-filled) --}}
                         <div>
                             <label class="block text-gray-700 text-sm font-bold mb-2">Kategori Sasaran <span class="text-red-500">*</span></label>
-                            <input type="text" 
-                                   wire:model="kategori_sasaran_imunisasi" 
+                            <input type="text"
+                                   wire:model="kategori_sasaran_imunisasi"
                                    readonly
                                    class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 bg-gray-100 leading-tight focus:outline-none focus:ring-primary focus:border-primary"
                                    placeholder="Akan terisi otomatis">
@@ -66,7 +134,7 @@
                         {{-- Jenis Imunisasi --}}
                         <div>
                             <label class="block text-gray-700 text-sm font-bold mb-2">Jenis Imunisasi <span class="text-red-500">*</span></label>
-                            <select wire:model="jenis_imunisasi" 
+                            <select wire:model="jenis_imunisasi"
                                     class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-primary focus:border-primary">
                                 <option value="">Pilih Jenis Imunisasi...</option>
                                 <optgroup label="Imunisasi Dasar Bayi">
@@ -121,8 +189,8 @@
                         {{-- Tanggal Imunisasi --}}
                         <div>
                             <label class="block text-gray-700 text-sm font-bold mb-2">Tanggal Imunisasi <span class="text-red-500">*</span></label>
-                            <input type="date" 
-                                   wire:model="tanggal_imunisasi" 
+                            <input type="date"
+                                   wire:model="tanggal_imunisasi"
                                    class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-primary focus:border-primary">
                             @error('tanggal_imunisasi') <span class="text-red-500 text-xs">{{ $message }}</span>@enderror
                         </div>
@@ -130,9 +198,9 @@
                         {{-- Keterangan --}}
                         <div>
                             <label class="block text-gray-700 text-sm font-bold mb-2">Keterangan</label>
-                            <textarea wire:model="keterangan" 
+                            <textarea wire:model="keterangan"
                                       rows="3"
-                                      class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-primary focus:border-primary" 
+                                      class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-primary focus:border-primary"
                                       placeholder="Keterangan tambahan (opsional)"></textarea>
                             @error('keterangan') <span class="text-red-500 text-xs">{{ $message }}</span>@enderror
                         </div>
@@ -144,8 +212,8 @@
                             class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-primary text-base font-medium text-white hover:bg-indigo-700 focus:outline-none sm:ml-3 sm:w-auto sm:text-sm">
                         Simpan Data
                     </button>
-                    <button type="button" 
-                            wire:click="closeImunisasiModal" 
+                    <button type="button"
+                            wire:click="closeImunisasiModal"
                             class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
                         Batal
                     </button>

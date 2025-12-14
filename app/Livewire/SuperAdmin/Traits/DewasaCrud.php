@@ -24,6 +24,8 @@ trait DewasaCrud
     public $umur_sasaran_dewasa;
     public $pekerjaan_dewasa;
     public $alamat_sasaran_dewasa;
+    public $rt_dewasa;
+    public $rw_dewasa;
     public $kepersertaan_bpjs_dewasa;
     public $nomor_bpjs_dewasa;
     public $nomor_telepon_dewasa;
@@ -71,6 +73,8 @@ trait DewasaCrud
         $this->umur_sasaran_dewasa = '';
         $this->pekerjaan_dewasa = '';
         $this->alamat_sasaran_dewasa = '';
+        $this->rt_dewasa = '';
+        $this->rw_dewasa = '';
         $this->kepersertaan_bpjs_dewasa = '';
         $this->nomor_bpjs_dewasa = '';
         $this->nomor_telepon_dewasa = '';
@@ -135,6 +139,8 @@ trait DewasaCrud
             'jenis_kelamin' => $this->jenis_kelamin_dewasa,
             'umur_sasaran' => $umur,
             'alamat_sasaran' => $this->alamat_sasaran_dewasa,
+            'rt' => $this->rt_dewasa ?: null,
+            'rw' => $this->rw_dewasa ?: null,
             'kepersertaan_bpjs' => $this->kepersertaan_bpjs_dewasa ?: null,
             'nomor_bpjs' => $this->nomor_bpjs_dewasa ?: null,
             'nomor_telepon' => $this->nomor_telepon_dewasa ?: null,
@@ -186,6 +192,8 @@ trait DewasaCrud
             : $dewasa->umur_sasaran;
         $this->pekerjaan_dewasa = $dewasa->pekerjaan ?? '';
         $this->alamat_sasaran_dewasa = $dewasa->alamat_sasaran ?? '';
+        $this->rt_dewasa = $dewasa->rt ?? '';
+        $this->rw_dewasa = $dewasa->rw ?? '';
         $this->kepersertaan_bpjs_dewasa = $dewasa->kepersertaan_bpjs ?? '';
         $this->nomor_bpjs_dewasa = $dewasa->nomor_bpjs ?? '';
         $this->nomor_telepon_dewasa = $dewasa->nomor_telepon ?? '';

@@ -21,6 +21,8 @@ class Sasaran_Bayibalita extends Model
         'umur_sasaran',
         'nik_orangtua',
         'alamat_sasaran',
+        'rt',
+        'rw',
         'kepersertaan_bpjs',
         'nomor_bpjs',
         'nomor_telepon',

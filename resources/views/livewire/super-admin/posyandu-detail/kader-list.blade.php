@@ -7,11 +7,25 @@
         </h2>
         <div class="flex items-center gap-4">
             <span class="text-sm text-gray-500">{{ $posyandu->kader->count() }} kader</span>
-            <button wire:click="openKaderModal"
-                    class="flex items-center px-4 py-2 text-sm font-medium text-white bg-primary rounded-lg hover:bg-indigo-700 transition-colors">
-                <i class="ph ph-plus-circle text-lg mr-2"></i>
-                Tambah Kader
-            </button>
+            @php
+                $user = auth()->user();
+                $isSuperadmin = $user->hasRole('superadmin');
+                $isKetua = false;
+                if (!$isSuperadmin) {
+                    $kaderUser = \App\Models\Kader::where('id_users', $user->id)
+                        ->where('id_posyandu', $posyandu->id_posyandu)
+                        ->where('jabatan_kader', 'Ketua')
+                        ->first();
+                    $isKetua = $kaderUser !== null;
+                }
+            @endphp
+            @if($isSuperadmin || $isKetua)
+                <button wire:click="openKaderModal"
+                        class="flex items-center px-4 py-2 text-sm font-medium text-white bg-primary rounded-lg hover:bg-indigo-700 transition-colors">
+                    <i class="ph ph-plus-circle text-lg mr-2"></i>
+                    Tambah Kader
+                </button>
+            @endif
         </div>
     </div>
     @if($posyandu->kader->count() > 0)

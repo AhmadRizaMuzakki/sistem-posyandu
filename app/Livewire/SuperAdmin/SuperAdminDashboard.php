@@ -27,11 +27,15 @@ class SuperAdminDashboard extends Component
         // Ambil data posyandu dengan jumlah sasaran untuk grafik
         $posyanduData = $this->getPosyanduSasaranData();
 
+        // Ambil data sasaran per kategori untuk bar chart
+        $sasaranByCategory = $this->getSasaranByCategory();
+
         return view('livewire.super-admin.super-admin', [
             'totalPosyandu' => $totalPosyandu,
             'totalKader' => $totalKader,
             'totalSasaran' => $totalSasaran,
             'posyanduData' => $posyanduData,
+            'sasaranByCategory' => $sasaranByCategory,
         ]);
     }
 
@@ -43,9 +47,9 @@ class SuperAdminDashboard extends Component
         $bayibalita = Sasaran_Bayibalita::count();
         $remaja = \App\Models\sasaran_remaja::count();
         $ibuhamil = \App\Models\sasaran_ibuhamil::count();
-        $dewasa = Orangtua::byAgeRange(20, 40)->count();
-        $pralansia = Orangtua::byAgeRange(40, 60)->count();
-        $lansia = Orangtua::byMinAge(60)->count();
+        $dewasa = \App\Models\sasaran_dewasa::count();
+        $pralansia = \App\Models\sasaran_pralansia::count();
+        $lansia = \App\Models\sasaran_lansia::count();
 
         return $bayibalita + $remaja + $ibuhamil + $dewasa + $pralansia + $lansia;
     }
@@ -58,7 +62,10 @@ class SuperAdminDashboard extends Component
         $posyanduList = Posyandu::with([
             'sasaran_bayibalita',
             'sasaran_remaja',
-            'sasaran_ibuhamil'
+            'sasaran_dewasa',
+            'sasaran_ibuhamil',
+            'sasaran_pralansia',
+            'sasaran_lansia'
         ])->get();
 
         $data = [];
@@ -67,7 +74,10 @@ class SuperAdminDashboard extends Component
             $totalSasaran =
                 $posyandu->sasaran_bayibalita->count() +
                 $posyandu->sasaran_remaja->count() +
-                $posyandu->sasaran_ibuhamil->count();
+                $posyandu->sasaran_dewasa->count() +
+                $posyandu->sasaran_ibuhamil->count() +
+                $posyandu->sasaran_pralansia->count() +
+                $posyandu->sasaran_lansia->count();
 
             $data[] = [
                 'nama' => $posyandu->nama_posyandu,
@@ -76,5 +86,20 @@ class SuperAdminDashboard extends Component
         }
 
         return $data;
+    }
+
+    /**
+     * Ambil data sasaran per kategori untuk bar chart
+     */
+    private function getSasaranByCategory()
+    {
+        return [
+            'bayibalita' => Sasaran_Bayibalita::count(),
+            'remaja' => \App\Models\sasaran_remaja::count(),
+            'ibuhamil' => \App\Models\sasaran_ibuhamil::count(),
+            'dewasa' => \App\Models\sasaran_dewasa::count(),
+            'pralansia' => \App\Models\sasaran_pralansia::count(),
+            'lansia' => \App\Models\sasaran_lansia::count(),
+        ];
     }
 }

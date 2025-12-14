@@ -23,6 +23,8 @@ trait IbuHamilCrud
     public $jenis_kelamin_ibuhamil;
     public $umur_sasaran_ibuhamil;
     public $alamat_sasaran_ibuhamil;
+    public $rt_ibuhamil;
+    public $rw_ibuhamil;
     public $kepersertaan_bpjs_ibuhamil;
     public $nomor_bpjs_ibuhamil;
     public $nomor_telepon_ibuhamil;
@@ -73,6 +75,8 @@ trait IbuHamilCrud
         $this->jenis_kelamin_ibuhamil = '';
         $this->umur_sasaran_ibuhamil = '';
         $this->alamat_sasaran_ibuhamil = '';
+        $this->rt_ibuhamil = '';
+        $this->rw_ibuhamil = '';
         $this->kepersertaan_bpjs_ibuhamil = '';
         $this->nomor_bpjs_ibuhamil = '';
         $this->nomor_telepon_ibuhamil = '';
@@ -136,6 +140,8 @@ trait IbuHamilCrud
             'jenis_kelamin' => $this->jenis_kelamin_ibuhamil,
             'umur_sasaran' => $umur,
             'alamat_sasaran' => $this->alamat_sasaran_ibuhamil,
+            'rt' => $this->rt_ibuhamil ?: null,
+            'rw' => $this->rw_ibuhamil ?: null,
             'kepersertaan_bpjs' => $this->kepersertaan_bpjs_ibuhamil ?: null,
             'nomor_bpjs' => $this->nomor_bpjs_ibuhamil ?: null,
             'nomor_telepon' => $this->nomor_telepon_ibuhamil ?: null,
@@ -179,6 +185,8 @@ trait IbuHamilCrud
             ? Carbon::parse($ibuhamil->tanggal_lahir)->age
             : $ibuhamil->umur_sasaran;
         $this->alamat_sasaran_ibuhamil = $ibuhamil->alamat_sasaran ?? '';
+        $this->rt_ibuhamil = $ibuhamil->rt ?? '';
+        $this->rw_ibuhamil = $ibuhamil->rw ?? '';
         $this->kepersertaan_bpjs_ibuhamil = $ibuhamil->kepersertaan_bpjs ?? '';
         $this->nomor_bpjs_ibuhamil = $ibuhamil->nomor_bpjs ?? '';
         $this->nomor_telepon_ibuhamil = $ibuhamil->nomor_telepon ?? '';

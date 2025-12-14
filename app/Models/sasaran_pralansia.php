@@ -22,6 +22,8 @@ class sasaran_pralansia extends Model
         'pekerjaan',
         'nik_orangtua',
         'alamat_sasaran',
+        'rt',
+        'rw',
         'kepersertaan_bpjs',
         'nomor_bpjs',
         'nomor_telepon',

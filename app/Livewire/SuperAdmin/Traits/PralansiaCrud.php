@@ -24,6 +24,8 @@ trait PralansiaCrud
     public $umur_sasaran_pralansia;
     public $pekerjaan_pralansia;
     public $alamat_sasaran_pralansia;
+    public $rt_pralansia;
+    public $rw_pralansia;
     public $kepersertaan_bpjs_pralansia;
     public $nomor_bpjs_pralansia;
     public $nomor_telepon_pralansia;
@@ -71,6 +73,8 @@ trait PralansiaCrud
         $this->umur_sasaran_pralansia = '';
         $this->pekerjaan_pralansia = '';
         $this->alamat_sasaran_pralansia = '';
+        $this->rt_pralansia = '';
+        $this->rw_pralansia = '';
         $this->kepersertaan_bpjs_pralansia = '';
         $this->nomor_bpjs_pralansia = '';
         $this->nomor_telepon_pralansia = '';
@@ -129,6 +133,8 @@ trait PralansiaCrud
             'jenis_kelamin' => $this->jenis_kelamin_pralansia,
             'umur_sasaran' => $umur,
             'alamat_sasaran' => $this->alamat_sasaran_pralansia,
+            'rt' => $this->rt_pralansia ?: null,
+            'rw' => $this->rw_pralansia ?: null,
             'kepersertaan_bpjs' => $this->kepersertaan_bpjs_pralansia ?: null,
             'nomor_bpjs' => $this->nomor_bpjs_pralansia ?: null,
             'nomor_telepon' => $this->nomor_telepon_pralansia ?: null,
@@ -180,6 +186,8 @@ trait PralansiaCrud
             : $pralansia->umur_sasaran;
         $this->pekerjaan_pralansia = $pralansia->pekerjaan ?? '';
         $this->alamat_sasaran_pralansia = $pralansia->alamat_sasaran ?? '';
+        $this->rt_pralansia = $pralansia->rt ?? '';
+        $this->rw_pralansia = $pralansia->rw ?? '';
         $this->kepersertaan_bpjs_pralansia = $pralansia->kepersertaan_bpjs ?? '';
         $this->nomor_bpjs_pralansia = $pralansia->nomor_bpjs ?? '';
         $this->nomor_telepon_pralansia = $pralansia->nomor_telepon ?? '';
