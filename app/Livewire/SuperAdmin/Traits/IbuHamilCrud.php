@@ -22,6 +22,7 @@ trait IbuHamilCrud
     public $tahun_lahir_ibuhamil;
     public $jenis_kelamin_ibuhamil;
     public $umur_sasaran_ibuhamil;
+    public $pekerjaan_ibuhamil;
     public $alamat_sasaran_ibuhamil;
     public $rt_ibuhamil;
     public $rw_ibuhamil;
@@ -74,6 +75,7 @@ trait IbuHamilCrud
         $this->tahun_lahir_ibuhamil = '';
         $this->jenis_kelamin_ibuhamil = '';
         $this->umur_sasaran_ibuhamil = '';
+        $this->pekerjaan_ibuhamil = '';
         $this->alamat_sasaran_ibuhamil = '';
         $this->rt_ibuhamil = '';
         $this->rw_ibuhamil = '';
@@ -94,9 +96,15 @@ trait IbuHamilCrud
      */
     public function storeIbuHamil()
     {
+        // Combine hari, bulan, tahun menjadi tanggal lahir sebelum validasi
+        $this->combineTanggalLahirIbuhamil();
+
         $this->validate([
             'nama_sasaran_ibuhamil' => 'required|string|max:100',
             'nik_sasaran_ibuhamil' => 'required|numeric',
+            'hari_lahir_ibuhamil' => 'required|numeric|min:1|max:31',
+            'bulan_lahir_ibuhamil' => 'required|numeric|min:1|max:12',
+            'tahun_lahir_ibuhamil' => 'required|numeric|min:1900|max:' . date('Y'),
             'tanggal_lahir_ibuhamil' => 'required|date',
             'jenis_kelamin_ibuhamil' => 'required|in:Laki-laki,Perempuan',
             'alamat_sasaran_ibuhamil' => 'required|string|max:225',
@@ -139,6 +147,7 @@ trait IbuHamilCrud
             'tanggal_lahir' => $this->tanggal_lahir_ibuhamil,
             'jenis_kelamin' => $this->jenis_kelamin_ibuhamil,
             'umur_sasaran' => $umur,
+            'pekerjaan' => $this->pekerjaan_ibuhamil ?: null,
             'alamat_sasaran' => $this->alamat_sasaran_ibuhamil,
             'rt' => $this->rt_ibuhamil ?: null,
             'rw' => $this->rw_ibuhamil ?: null,
@@ -180,10 +189,22 @@ trait IbuHamilCrud
         $this->no_kk_sasaran_ibuhamil = $ibuhamil->no_kk_sasaran ?? '';
         $this->tempat_lahir_ibuhamil = $ibuhamil->tempat_lahir ?? '';
         $this->tanggal_lahir_ibuhamil = $ibuhamil->tanggal_lahir;
+        // Split tanggal lahir menjadi hari, bulan, tahun
+        if ($ibuhamil->tanggal_lahir) {
+            $date = Carbon::parse($ibuhamil->tanggal_lahir);
+            $this->hari_lahir_ibuhamil = $date->day;
+            $this->bulan_lahir_ibuhamil = $date->month;
+            $this->tahun_lahir_ibuhamil = $date->year;
+        } else {
+            $this->hari_lahir_ibuhamil = '';
+            $this->bulan_lahir_ibuhamil = '';
+            $this->tahun_lahir_ibuhamil = '';
+        }
         $this->jenis_kelamin_ibuhamil = $ibuhamil->jenis_kelamin;
         $this->umur_sasaran_ibuhamil = $ibuhamil->tanggal_lahir
             ? Carbon::parse($ibuhamil->tanggal_lahir)->age
             : $ibuhamil->umur_sasaran;
+        $this->pekerjaan_ibuhamil = $ibuhamil->pekerjaan ?? '';
         $this->alamat_sasaran_ibuhamil = $ibuhamil->alamat_sasaran ?? '';
         $this->rt_ibuhamil = $ibuhamil->rt ?? '';
         $this->rw_ibuhamil = $ibuhamil->rw ?? '';

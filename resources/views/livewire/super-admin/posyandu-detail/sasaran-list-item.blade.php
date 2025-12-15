@@ -63,6 +63,10 @@
 
                         {{-- Kolom Khusus Ibu Hamil - Data Suami dan BPJS --}}
                         @if($isIbuHamil)
+                            <th class="px-6 py-3">Pekerjaan</th>
+                            <th class="px-6 py-3">Alamat</th>
+                            <th class="px-6 py-3">RT</th>
+                            <th class="px-6 py-3">RW</th>
                             <th class="px-6 py-3">Nama Suami</th>
                             <th class="px-6 py-3">NIK Suami</th>
                             <th class="px-6 py-3">Pekerjaan Suami</th>
@@ -115,6 +119,10 @@
 
                         {{-- Isi Kolom Khusus Ibu Hamil - Data Suami dan BPJS --}}
                         @if($isIbuHamil)
+                            <td class="px-6 py-4">{{ $item->pekerjaan ?? '-' }}</td>
+                            <td class="px-6 py-4">{{ $item->alamat_sasaran ?? '-' }}</td>
+                            <td class="px-6 py-4">{{ $item->rt ?? '-' }}</td>
+                            <td class="px-6 py-4">{{ $item->rw ?? '-' }}</td>
                             <td class="px-6 py-4">{{ $item->nama_suami ?? '-' }}</td>
                             <td class="px-6 py-4">{{ $item->nik_suami ?? '-' }}</td>
                             <td class="px-6 py-4">{{ $item->pekerjaan_suami ?? '-' }}</td>
@@ -236,7 +244,7 @@
                                 $colspan += 3; // Nama Orang Tua, Tempat Lahir Orang Tua, Pekerjaan Orang Tua
                             }
                             if ($isIbuHamil) {
-                                $colspan += 5; // Nama Suami, NIK Suami, Pekerjaan Suami, Kepersertaan BPJS, Nomor Telepon
+                                $colspan += 9; // Pekerjaan, Alamat, RT, RW, Nama Suami, NIK Suami, Pekerjaan Suami, Kepersertaan BPJS, Nomor Telepon
                             } elseif (!$isDetailed) {
                                 $colspan += 4; // Alamat, Kepersertaan BPJS, Nomor BPJS, Nomor Telepon
                                 $colspan += 3; // Nama Orang Tua, Tempat Lahir Orang Tua, Pekerjaan Orang Tua
