@@ -37,8 +37,7 @@
 ])
 
 @php
-    // Ambil data dari tabel orangtua dengan umur >= 20 dan < 40
-    $dewasaData = $this->getOrangtuaByUmur(20, 40, $search_dewasa, $page_dewasa, 'dewasa');
+    $dewasaData = $this->getFilteredSasaran($posyandu->sasaran_dewasa, $search_dewasa, $page_dewasa);
 @endphp
 {{-- Daftar Sasaran Dewasa --}}
 @include('livewire.super-admin.posyandu-detail.sasaran-list-item', [
@@ -50,9 +49,9 @@
     'search' => $search_dewasa,
     'searchProperty' => 'search_dewasa',
     'pageProperty' => 'page_dewasa',
-    'openModal' => 'openOrangtuaModal()',
-    'editMethod' => 'editOrangtua',
-    'deleteMethod' => 'deleteOrangtua',
+    'openModal' => 'openDewasaModal()',
+    'editMethod' => 'editDewasa',
+    'deleteMethod' => 'deleteDewasa',
     'emptyMessage' => 'Belum ada sasaran dewasa terdaftar'
 ])
 
@@ -76,8 +75,7 @@
 ])
 
 @php
-    // Ambil data dari tabel orangtua dengan umur >= 40 dan < 60
-    $pralansiaData = $this->getOrangtuaByUmur(40, 60, $search_pralansia, $page_pralansia, 'pralansia');
+    $pralansiaData = $this->getFilteredSasaran($posyandu->sasaran_pralansia, $search_pralansia, $page_pralansia);
 @endphp
 {{-- Daftar Sasaran Pralansia --}}
 @include('livewire.super-admin.posyandu-detail.sasaran-list-item', [
@@ -89,15 +87,14 @@
     'search' => $search_pralansia,
     'searchProperty' => 'search_pralansia',
     'pageProperty' => 'page_pralansia',
-    'openModal' => 'openOrangtuaModal()',
-    'editMethod' => 'editOrangtua',
-    'deleteMethod' => 'deleteOrangtua',
+    'openModal' => 'openPralansiaModal()',
+    'editMethod' => 'editPralansia',
+    'deleteMethod' => 'deletePralansia',
     'emptyMessage' => 'Belum ada sasaran pralansia terdaftar'
 ])
 
 @php
-    // Ambil data dari tabel orangtua dengan umur >= 60
-    $lansiaData = $this->getOrangtuaByUmur(60, null, $search_lansia, $page_lansia, 'lansia');
+    $lansiaData = $this->getFilteredSasaran($posyandu->sasaran_lansia, $search_lansia, $page_lansia);
 @endphp
 {{-- Daftar Sasaran Lansia --}}
 @include('livewire.super-admin.posyandu-detail.sasaran-list-item', [
@@ -109,9 +106,9 @@
     'search' => $search_lansia,
     'searchProperty' => 'search_lansia',
     'pageProperty' => 'page_lansia',
-    'openModal' => 'openOrangtuaModal()',
-    'editMethod' => 'editOrangtua',
-    'deleteMethod' => 'deleteOrangtua',
+    'openModal' => 'openLansiaModal()',
+    'editMethod' => 'editLansia',
+    'deleteMethod' => 'deleteLansia',
     'emptyMessage' => 'Belum ada sasaran lansia terdaftar'
 ])
 
