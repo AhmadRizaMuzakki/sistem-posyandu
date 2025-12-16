@@ -25,6 +25,7 @@ trait RemajaCrud
     public $tahun_lahir_remaja;
     public $jenis_kelamin_remaja;
     public $umur_sasaran_remaja;
+    public $pendidikan_remaja;
     public $nik_orangtua_remaja;
     public $alamat_sasaran_remaja;
     public $rt_remaja;
@@ -38,6 +39,7 @@ trait RemajaCrud
     public $tempat_lahir_orangtua_remaja;
     public $tanggal_lahir_orangtua_remaja;
     public $pekerjaan_orangtua_remaja;
+    public $pendidikan_orangtua_remaja;
     public $kelamin_orangtua_remaja;
 
     /**
@@ -75,6 +77,7 @@ trait RemajaCrud
         $this->tanggal_lahir_remaja = '';
         $this->jenis_kelamin_remaja = '';
         $this->umur_sasaran_remaja = '';
+        $this->pendidikan_remaja = '';
         $this->nik_orangtua_remaja = '';
         $this->alamat_sasaran_remaja = '';
         $this->rt_remaja = '';
@@ -87,6 +90,7 @@ trait RemajaCrud
         $this->tempat_lahir_orangtua_remaja = '';
         $this->tanggal_lahir_orangtua_remaja = '';
         $this->pekerjaan_orangtua_remaja = '';
+        $this->pendidikan_orangtua_remaja = '';
         $this->kelamin_orangtua_remaja = '';
     }
 
@@ -112,6 +116,7 @@ trait RemajaCrud
             'tempat_lahir_orangtua_remaja' => 'required|string|max:100',
             'tanggal_lahir_orangtua_remaja' => 'required|date',
             'pekerjaan_orangtua_remaja' => 'required|string',
+            'pendidikan_orangtua_remaja' => 'nullable|string',
             'kelamin_orangtua_remaja' => 'required|in:Laki-laki,Perempuan',
         ], [
             'nama_sasaran_remaja.required' => 'Nama sasaran wajib diisi.',
@@ -142,6 +147,7 @@ trait RemajaCrud
             'tanggal_lahir_orangtua_remaja.required' => 'Tanggal lahir orangtua wajib diisi.',
             'tanggal_lahir_orangtua_remaja.date' => 'Tanggal lahir orangtua harus berupa tanggal yang valid.',
             'pekerjaan_orangtua_remaja.required' => 'Pekerjaan orangtua wajib dipilih.',
+            'pendidikan_orangtua_remaja.string' => 'Pendidikan orangtua harus berupa teks.',
             'kelamin_orangtua_remaja.required' => 'Jenis kelamin orangtua wajib dipilih.',
             'kelamin_orangtua_remaja.in' => 'Jenis kelamin orangtua harus Laki-laki atau Perempuan.',
         ]);
@@ -153,6 +159,7 @@ trait RemajaCrud
             'tempat_lahir' => $this->tempat_lahir_orangtua_remaja,
             'tanggal_lahir' => $this->tanggal_lahir_orangtua_remaja,
             'pekerjaan' => $this->pekerjaan_orangtua_remaja,
+            'pendidikan' => $this->pendidikan_orangtua_remaja ?: null,
             'kelamin' => $this->kelamin_orangtua_remaja,
         ];
 
@@ -203,6 +210,7 @@ trait RemajaCrud
             'tanggal_lahir' => $this->tanggal_lahir_remaja,
             'jenis_kelamin' => $this->jenis_kelamin_remaja,
             'umur_sasaran' => $umur,
+            'pendidikan' => $this->pendidikan_remaja ?: null,
             'nik_orangtua' => $this->nik_orangtua_remaja,
             'alamat_sasaran' => $this->alamat_sasaran_remaja,
             'rt' => $this->rt_remaja ?: null,
@@ -244,6 +252,7 @@ trait RemajaCrud
         $this->umur_sasaran_remaja = $remaja->tanggal_lahir
             ? Carbon::parse($remaja->tanggal_lahir)->age
             : $remaja->umur_sasaran;
+        $this->pendidikan_remaja = $remaja->pendidikan ?? '';
         $this->nik_orangtua_remaja = $remaja->nik_orangtua ?? '';
         $this->alamat_sasaran_remaja = $remaja->alamat_sasaran ?? '';
         $this->rt_remaja = $remaja->rt ?? '';
@@ -260,12 +269,14 @@ trait RemajaCrud
                 $this->tempat_lahir_orangtua_remaja = $orangtua->tempat_lahir;
                 $this->tanggal_lahir_orangtua_remaja = $orangtua->tanggal_lahir ? $orangtua->tanggal_lahir->format('Y-m-d') : '';
                 $this->pekerjaan_orangtua_remaja = $orangtua->pekerjaan;
+                $this->pendidikan_orangtua_remaja = $orangtua->pendidikan ?? '';
                 $this->kelamin_orangtua_remaja = $orangtua->kelamin;
             } else {
                 $this->nama_orangtua_remaja = '';
                 $this->tempat_lahir_orangtua_remaja = '';
                 $this->tanggal_lahir_orangtua_remaja = '';
                 $this->pekerjaan_orangtua_remaja = '';
+                $this->pendidikan_orangtua_remaja = '';
                 $this->kelamin_orangtua_remaja = '';
             }
         } else {
@@ -273,6 +284,7 @@ trait RemajaCrud
             $this->tempat_lahir_orangtua_remaja = '';
             $this->tanggal_lahir_orangtua_remaja = '';
             $this->pekerjaan_orangtua_remaja = '';
+            $this->pendidikan_orangtua_remaja = '';
             $this->kelamin_orangtua_remaja = '';
         }
 

@@ -19,6 +19,7 @@ class sasaran_remaja extends Model
         'tanggal_lahir',
         'jenis_kelamin',
         'umur_sasaran',
+        'pendidikan',
         'nik_orangtua',
         'alamat_sasaran',
         'rt',

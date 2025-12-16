@@ -3,6 +3,7 @@
 namespace App\Livewire\SuperAdmin\Traits;
 
 use App\Models\sasaran_pralansia;
+use App\Models\Sasaran_Bayibalita;
 use Carbon\Carbon;
 
 trait PralansiaCrud
@@ -86,9 +87,15 @@ trait PralansiaCrud
      */
     public function storePralansia()
     {
+        // Combine hari, bulan, tahun menjadi tanggal lahir
+        $this->combineTanggalLahirPralansia();
+
         $this->validate([
             'nama_sasaran_pralansia' => 'required|string|max:100',
             'nik_sasaran_pralansia' => 'required|numeric',
+            'hari_lahir_pralansia' => 'required|numeric|min:1|max:31',
+            'bulan_lahir_pralansia' => 'required|numeric|min:1|max:12',
+            'tahun_lahir_pralansia' => 'required|numeric|min:1900|max:' . date('Y'),
             'tanggal_lahir_pralansia' => 'required|date',
             'jenis_kelamin_pralansia' => 'required|in:Laki-laki,Perempuan',
             'alamat_sasaran_pralansia' => 'required|string|max:225',
@@ -122,6 +129,30 @@ trait PralansiaCrud
             $umur = Carbon::parse($this->tanggal_lahir_pralansia)->age;
         }
 
+        // Cari nik_orangtua dari sasaran balita jika ada no_kk dan alamat yang sama
+        $nik_orangtua = null;
+        $pralansia = null;
+        
+        // Jika update, cek apakah sudah ada nik_orangtua
+        if ($this->id_sasaran_pralansia) {
+            $pralansia = sasaran_pralansia::find($this->id_sasaran_pralansia);
+            if ($pralansia && $pralansia->nik_orangtua) {
+                $nik_orangtua = $pralansia->nik_orangtua;
+            }
+        }
+        
+        // Jika belum ada nik_orangtua, cari dari sasaran balita
+        if (!$nik_orangtua && $this->no_kk_sasaran_pralansia && $this->alamat_sasaran_pralansia) {
+            $existingBalita = Sasaran_Bayibalita::where('no_kk_sasaran', $this->no_kk_sasaran_pralansia)
+                ->where('alamat_sasaran', $this->alamat_sasaran_pralansia)
+                ->whereNotNull('nik_orangtua')
+                ->first();
+            
+            if ($existingBalita && $existingBalita->nik_orangtua) {
+                $nik_orangtua = $existingBalita->nik_orangtua;
+            }
+        }
+
         $data = [
             'id_users' => $this->id_users_sasaran_pralansia !== '' ? $this->id_users_sasaran_pralansia : null,
             'id_posyandu' => $this->posyanduId,
@@ -132,6 +163,8 @@ trait PralansiaCrud
             'tanggal_lahir' => $this->tanggal_lahir_pralansia,
             'jenis_kelamin' => $this->jenis_kelamin_pralansia,
             'umur_sasaran' => $umur,
+            'pekerjaan' => $this->pekerjaan_pralansia ?: null,
+            'nik_orangtua' => $nik_orangtua,
             'alamat_sasaran' => $this->alamat_sasaran_pralansia,
             'rt' => $this->rt_pralansia ?: null,
             'rw' => $this->rw_pralansia ?: null,
@@ -142,7 +175,9 @@ trait PralansiaCrud
 
         if ($this->id_sasaran_pralansia) {
             // UPDATE
-            $pralansia = sasaran_pralansia::findOrFail($this->id_sasaran_pralansia);
+            if (!$pralansia) {
+                $pralansia = sasaran_pralansia::findOrFail($this->id_sasaran_pralansia);
+            }
             $pralansia->update($data);
             session()->flash('message', 'Data Pralansia berhasil diperbarui.');
         } else {

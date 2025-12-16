@@ -21,6 +21,7 @@ class Orangtua extends Model
         'tempat_lahir',
         'tanggal_lahir',
         'pekerjaan',
+        'pendidikan',
         'kelamin',
         'alamat',
         'kepersertaan_bpjs',

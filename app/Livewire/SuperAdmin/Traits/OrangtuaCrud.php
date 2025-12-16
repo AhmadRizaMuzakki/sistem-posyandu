@@ -20,6 +20,7 @@ trait OrangtuaCrud
     public $bulan_lahir_orangtua;
     public $tahun_lahir_orangtua;
     public $pekerjaan_orangtua;
+    public $pendidikan_orangtua;
     public $kelamin_orangtua;
     public $alamat_orangtua;
     public $kepersertaan_bpjs_orangtua;
@@ -62,6 +63,7 @@ trait OrangtuaCrud
         $this->bulan_lahir_orangtua = '';
         $this->tahun_lahir_orangtua = '';
         $this->pekerjaan_orangtua = '';
+        $this->pendidikan_orangtua = '';
         $this->kelamin_orangtua = '';
         $this->alamat_orangtua = '';
         $this->kepersertaan_bpjs_orangtua = '';
@@ -86,6 +88,7 @@ trait OrangtuaCrud
             'bulan_lahir_orangtua' => 'required|numeric|min:1|max:12',
             'tahun_lahir_orangtua' => 'required|numeric|min:1900|max:' . date('Y'),
             'tanggal_lahir_orangtua' => 'required|date',
+            'pendidikan_orangtua' => 'nullable|string',
             'kelamin_orangtua' => 'required|in:Laki-laki,Perempuan',
             'alamat_orangtua' => 'required|string|max:225',
             'kepersertaan_bpjs_orangtua' => 'nullable|in:PBI,NON PBI',
@@ -113,6 +116,7 @@ trait OrangtuaCrud
             'tahun_lahir_orangtua.max' => 'Tahun maksimal ' . date('Y') . '.',
             'tanggal_lahir_orangtua.required' => 'Tanggal lahir wajib diisi.',
             'tanggal_lahir_orangtua.date' => 'Tanggal lahir harus berupa tanggal yang valid.',
+            'pendidikan_orangtua.string' => 'Pendidikan harus berupa teks.',
             'kelamin_orangtua.required' => 'Jenis kelamin wajib dipilih.',
             'kelamin_orangtua.in' => 'Jenis kelamin harus Laki-laki atau Perempuan.',
             'alamat_orangtua.required' => 'Alamat wajib diisi.',
@@ -129,6 +133,7 @@ trait OrangtuaCrud
             'tempat_lahir' => $this->tempat_lahir_orangtua,
             'tanggal_lahir' => $this->tanggal_lahir_orangtua,
             'pekerjaan' => $this->pekerjaan_orangtua ?: null,
+            'pendidikan' => $this->pendidikan_orangtua ?: null,
             'kelamin' => $this->kelamin_orangtua,
             'alamat' => $this->alamat_orangtua,
             'kepersertaan_bpjs' => $this->kepersertaan_bpjs_orangtua ?: null,
@@ -175,6 +180,7 @@ trait OrangtuaCrud
             $this->tahun_lahir_orangtua = '';
         }
         $this->pekerjaan_orangtua = $orangtua->pekerjaan ?? '';
+        $this->pendidikan_orangtua = $orangtua->pendidikan ?? '';
         $this->kelamin_orangtua = $orangtua->kelamin;
         $this->alamat_orangtua = $orangtua->alamat ?? '';
         $this->kepersertaan_bpjs_orangtua = $orangtua->kepersertaan_bpjs ?? '';

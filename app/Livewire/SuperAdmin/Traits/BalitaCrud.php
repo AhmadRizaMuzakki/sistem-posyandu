@@ -5,6 +5,9 @@ namespace App\Livewire\SuperAdmin\Traits;
 use App\Models\Sasaran_Bayibalita;
 use App\Models\Orangtua;
 use App\Models\User;
+use App\Models\sasaran_dewasa;
+use App\Models\sasaran_pralansia;
+use App\Models\sasaran_lansia;
 use Illuminate\Support\Facades\Hash;
 use Carbon\Carbon;
 
@@ -39,6 +42,7 @@ trait BalitaCrud
     public $tempat_lahir_orangtua;
     public $tanggal_lahir_orangtua;
     public $pekerjaan_orangtua;
+    public $pendidikan_orangtua;
     public $kelamin_orangtua;
 
     /**
@@ -92,6 +96,7 @@ trait BalitaCrud
         $this->tempat_lahir_orangtua = '';
         $this->tanggal_lahir_orangtua = '';
         $this->pekerjaan_orangtua = '';
+        $this->pendidikan_orangtua = '';
         $this->kelamin_orangtua = '';
     }
 
@@ -118,6 +123,7 @@ trait BalitaCrud
             'tempat_lahir_orangtua' => 'required|string|max:100',
             'tanggal_lahir_orangtua' => 'required|date',
             'pekerjaan_orangtua' => 'required|string',
+            'pendidikan_orangtua' => 'nullable|string',
             'kelamin_orangtua' => 'required|in:Laki-laki,Perempuan',
         ], [
             'id_posyandu_sasaran.required' => 'Posyandu wajib dipilih.',
@@ -150,6 +156,7 @@ trait BalitaCrud
             'tanggal_lahir_orangtua.required' => 'Tanggal lahir orangtua wajib diisi.',
             'tanggal_lahir_orangtua.date' => 'Tanggal lahir orangtua harus berupa tanggal yang valid.',
             'pekerjaan_orangtua.required' => 'Pekerjaan orangtua wajib dipilih.',
+            'pendidikan_orangtua.string' => 'Pendidikan orangtua harus berupa teks.',
             'kelamin_orangtua.required' => 'Jenis kelamin orangtua wajib dipilih.',
             'kelamin_orangtua.in' => 'Jenis kelamin orangtua harus Laki-laki atau Perempuan.',
         ]);
@@ -169,6 +176,7 @@ trait BalitaCrud
             'tempat_lahir' => $this->tempat_lahir_orangtua,
             'tanggal_lahir' => $this->tanggal_lahir_orangtua,
             'pekerjaan' => $this->pekerjaan_orangtua,
+            'pendidikan' => $this->pendidikan_orangtua ?: null,
             'kelamin' => $this->kelamin_orangtua,
             'alamat' => $this->alamat_sasaran, // Gunakan alamat dari balita
         ];
@@ -192,12 +200,13 @@ trait BalitaCrud
                 $orangtuaData['tempat_lahir'] = $existingOrangtua->tempat_lahir ?? $this->tempat_lahir_orangtua;
                 $orangtuaData['tanggal_lahir'] = $existingOrangtua->tanggal_lahir ?? $this->tanggal_lahir_orangtua;
                 $orangtuaData['pekerjaan'] = $existingOrangtua->pekerjaan ?? $this->pekerjaan_orangtua;
+                $orangtuaData['pendidikan'] = $existingOrangtua->pendidikan ?? ($this->pendidikan_orangtua ?: null);
                 $orangtuaData['kelamin'] = $existingOrangtua->kelamin ?? $this->kelamin_orangtua;
             }
         }
 
         // Update atau create orangtua
-        Orangtua::updateOrCreate(
+        $orangtua = Orangtua::updateOrCreate(
             ['nik' => $this->nik_orangtua],
             $orangtuaData
         );
@@ -226,6 +235,15 @@ trait BalitaCrud
         if (!$user->hasRole('orangtua')) {
             $user->assignRole('orangtua');
         }
+
+        // Buat atau update record sasaran dewasa/pralansia/lansia berdasarkan umur orangtua
+        // Panggil setelah user dibuat agar user sudah tersedia
+        $this->createOrUpdateSasaranFromOrangtua(
+            $orangtua, 
+            $this->id_posyandu_sasaran ?? $this->posyanduId,
+            $this->rt_sasaran,
+            $this->rw_sasaran
+        );
 
         $data = [
             'id_users' => $user->id,
@@ -306,12 +324,14 @@ trait BalitaCrud
                 $this->tempat_lahir_orangtua = $orangtua->tempat_lahir;
                 $this->tanggal_lahir_orangtua = $orangtua->tanggal_lahir ? $orangtua->tanggal_lahir->format('Y-m-d') : '';
                 $this->pekerjaan_orangtua = $orangtua->pekerjaan;
+                $this->pendidikan_orangtua = $orangtua->pendidikan ?? '';
                 $this->kelamin_orangtua = $orangtua->kelamin;
             } else {
                 $this->nama_orangtua = '';
                 $this->tempat_lahir_orangtua = '';
                 $this->tanggal_lahir_orangtua = '';
                 $this->pekerjaan_orangtua = '';
+                $this->pendidikan_orangtua = '';
                 $this->kelamin_orangtua = '';
             }
         } else {
@@ -319,6 +339,7 @@ trait BalitaCrud
             $this->tempat_lahir_orangtua = '';
             $this->tanggal_lahir_orangtua = '';
             $this->pekerjaan_orangtua = '';
+            $this->pendidikan_orangtua = '';
             $this->kelamin_orangtua = '';
         }
 
@@ -395,6 +416,83 @@ trait BalitaCrud
         } else {
             $this->umur_sasaran = '';
             $this->tanggal_lahir_sasaran = null;
+        }
+    }
+
+    /**
+     * Buat atau update record sasaran dewasa/pralansia/lansia dari data orangtua
+     */
+    private function createOrUpdateSasaranFromOrangtua($orangtua, $idPosyandu, $rt = null, $rw = null)
+    {
+        if (!$orangtua || !$orangtua->tanggal_lahir || !$idPosyandu) {
+            return;
+        }
+
+        $umur = $orangtua->umur;
+        $email = $orangtua->nik . '@gmail.com';
+        $user = User::where('email', $email)->first();
+
+        if (!$user) {
+            return; // User harus sudah dibuat sebelumnya
+        }
+
+        // Data dasar untuk sasaran
+        $sasaranData = [
+            'id_users' => $user->id,
+            'id_posyandu' => $idPosyandu,
+            'nama_sasaran' => $orangtua->nama,
+            'nik_sasaran' => $orangtua->nik,
+            'no_kk_sasaran' => $orangtua->no_kk,
+            'tempat_lahir' => $orangtua->tempat_lahir,
+            'tanggal_lahir' => $orangtua->tanggal_lahir,
+            'jenis_kelamin' => $orangtua->kelamin,
+            'umur_sasaran' => $umur,
+            'pekerjaan' => $orangtua->pekerjaan,
+            'alamat_sasaran' => $orangtua->alamat,
+            'rt' => $rt ?: null,
+            'rw' => $rw ?: null,
+            'kepersertaan_bpjs' => $orangtua->kepersertaan_bpjs,
+            'nomor_bpjs' => $orangtua->nomor_bpjs,
+            'nomor_telepon' => $orangtua->nomor_telepon,
+            'nik_orangtua' => null, // Orangtua tidak punya orangtua
+        ];
+
+        // Tentukan kategori berdasarkan umur
+        if ($umur >= 18 && $umur <= 45) {
+            // Dewasa (18-45 tahun)
+            $existing = sasaran_dewasa::where('nik_sasaran', $orangtua->nik)
+                ->where('id_posyandu', $idPosyandu)
+                ->first();
+            
+            if ($existing) {
+                $sasaranData['pendidikan'] = $orangtua->pendidikan;
+                $existing->update($sasaranData);
+            } else {
+                $sasaranData['pendidikan'] = $orangtua->pendidikan;
+                sasaran_dewasa::create($sasaranData);
+            }
+        } elseif ($umur >= 46 && $umur <= 59) {
+            // Pralansia (46-59 tahun)
+            $existing = sasaran_pralansia::where('nik_sasaran', $orangtua->nik)
+                ->where('id_posyandu', $idPosyandu)
+                ->first();
+            
+            if ($existing) {
+                $existing->update($sasaranData);
+            } else {
+                sasaran_pralansia::create($sasaranData);
+            }
+        } elseif ($umur >= 60) {
+            // Lansia (60+ tahun)
+            $existing = sasaran_lansia::where('nik_sasaran', $orangtua->nik)
+                ->where('id_posyandu', $idPosyandu)
+                ->first();
+            
+            if ($existing) {
+                $existing->update($sasaranData);
+            } else {
+                sasaran_lansia::create($sasaranData);
+            }
         }
     }
 }

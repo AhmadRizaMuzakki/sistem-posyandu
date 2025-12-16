@@ -3,6 +3,7 @@
 namespace App\Livewire\SuperAdmin\Traits;
 
 use App\Models\sasaran_lansia;
+use App\Models\Sasaran_Bayibalita;
 use Carbon\Carbon;
 
 trait LansiaCrud
@@ -128,6 +129,30 @@ trait LansiaCrud
             $umur = Carbon::parse($this->tanggal_lahir_lansia)->age;
         }
 
+        // Cari nik_orangtua dari sasaran balita jika ada no_kk dan alamat yang sama
+        $nik_orangtua = null;
+        $lansia = null;
+        
+        // Jika update, cek apakah sudah ada nik_orangtua
+        if ($this->id_sasaran_lansia) {
+            $lansia = sasaran_lansia::find($this->id_sasaran_lansia);
+            if ($lansia && $lansia->nik_orangtua) {
+                $nik_orangtua = $lansia->nik_orangtua;
+            }
+        }
+        
+        // Jika belum ada nik_orangtua, cari dari sasaran balita
+        if (!$nik_orangtua && $this->no_kk_sasaran_lansia && $this->alamat_sasaran_lansia) {
+            $existingBalita = Sasaran_Bayibalita::where('no_kk_sasaran', $this->no_kk_sasaran_lansia)
+                ->where('alamat_sasaran', $this->alamat_sasaran_lansia)
+                ->whereNotNull('nik_orangtua')
+                ->first();
+            
+            if ($existingBalita && $existingBalita->nik_orangtua) {
+                $nik_orangtua = $existingBalita->nik_orangtua;
+            }
+        }
+
         $data = [
             'id_users' => $this->id_users_sasaran_lansia !== '' ? $this->id_users_sasaran_lansia : null,
             'id_posyandu' => $this->posyanduId,
@@ -139,6 +164,7 @@ trait LansiaCrud
             'jenis_kelamin' => $this->jenis_kelamin_lansia,
             'umur_sasaran' => $umur,
             'pekerjaan' => $this->pekerjaan_lansia ?: null,
+            'nik_orangtua' => $nik_orangtua,
             'alamat_sasaran' => $this->alamat_sasaran_lansia,
             'rt' => $this->rt_lansia ?: null,
             'rw' => $this->rw_lansia ?: null,
@@ -149,7 +175,9 @@ trait LansiaCrud
 
         if ($this->id_sasaran_lansia) {
             // UPDATE
-            $lansia = sasaran_lansia::findOrFail($this->id_sasaran_lansia);
+            if (!$lansia) {
+                $lansia = sasaran_lansia::findOrFail($this->id_sasaran_lansia);
+            }
             $lansia->update($data);
             session()->flash('message', 'Data Lansia berhasil diperbarui.');
         } else {

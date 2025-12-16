@@ -3,6 +3,7 @@
 namespace App\Livewire\SuperAdmin\Traits;
 
 use App\Models\sasaran_dewasa;
+use App\Models\Sasaran_Bayibalita;
 use Carbon\Carbon;
 
 trait DewasaCrud
@@ -23,6 +24,7 @@ trait DewasaCrud
     public $jenis_kelamin_dewasa;
     public $umur_sasaran_dewasa;
     public $pekerjaan_dewasa;
+    public $pendidikan_dewasa;
     public $alamat_sasaran_dewasa;
     public $rt_dewasa;
     public $rw_dewasa;
@@ -72,6 +74,7 @@ trait DewasaCrud
         $this->jenis_kelamin_dewasa = '';
         $this->umur_sasaran_dewasa = '';
         $this->pekerjaan_dewasa = '';
+        $this->pendidikan_dewasa = '';
         $this->alamat_sasaran_dewasa = '';
         $this->rt_dewasa = '';
         $this->rw_dewasa = '';
@@ -128,6 +131,30 @@ trait DewasaCrud
             $umur = Carbon::parse($this->tanggal_lahir_dewasa)->age;
         }
 
+        // Cari nik_orangtua dari sasaran balita jika ada no_kk dan alamat yang sama
+        $nik_orangtua = null;
+        $dewasa = null;
+        
+        // Jika update, cek apakah sudah ada nik_orangtua
+        if ($this->id_sasaran_dewasa) {
+            $dewasa = sasaran_dewasa::find($this->id_sasaran_dewasa);
+            if ($dewasa && $dewasa->nik_orangtua) {
+                $nik_orangtua = $dewasa->nik_orangtua;
+            }
+        }
+        
+        // Jika belum ada nik_orangtua, cari dari sasaran balita
+        if (!$nik_orangtua && $this->no_kk_sasaran_dewasa && $this->alamat_sasaran_dewasa) {
+            $existingBalita = Sasaran_Bayibalita::where('no_kk_sasaran', $this->no_kk_sasaran_dewasa)
+                ->where('alamat_sasaran', $this->alamat_sasaran_dewasa)
+                ->whereNotNull('nik_orangtua')
+                ->first();
+            
+            if ($existingBalita && $existingBalita->nik_orangtua) {
+                $nik_orangtua = $existingBalita->nik_orangtua;
+            }
+        }
+
         $data = [
             'id_users' => $this->id_users_sasaran_dewasa !== '' ? $this->id_users_sasaran_dewasa : null,
             'id_posyandu' => $this->posyanduId,
@@ -138,6 +165,9 @@ trait DewasaCrud
             'tanggal_lahir' => $this->tanggal_lahir_dewasa,
             'jenis_kelamin' => $this->jenis_kelamin_dewasa,
             'umur_sasaran' => $umur,
+            'pekerjaan' => $this->pekerjaan_dewasa ?: null,
+            'pendidikan' => $this->pendidikan_dewasa ?: null,
+            'nik_orangtua' => $nik_orangtua,
             'alamat_sasaran' => $this->alamat_sasaran_dewasa,
             'rt' => $this->rt_dewasa ?: null,
             'rw' => $this->rw_dewasa ?: null,
@@ -148,7 +178,9 @@ trait DewasaCrud
 
         if ($this->id_sasaran_dewasa) {
             // UPDATE
-            $dewasa = sasaran_dewasa::findOrFail($this->id_sasaran_dewasa);
+            if (!$dewasa) {
+                $dewasa = sasaran_dewasa::findOrFail($this->id_sasaran_dewasa);
+            }
             $dewasa->update($data);
             session()->flash('message', 'Data Dewasa berhasil diperbarui.');
         } else {
@@ -191,6 +223,7 @@ trait DewasaCrud
             ? Carbon::parse($dewasa->tanggal_lahir)->age
             : $dewasa->umur_sasaran;
         $this->pekerjaan_dewasa = $dewasa->pekerjaan ?? '';
+        $this->pendidikan_dewasa = $dewasa->pendidikan ?? '';
         $this->alamat_sasaran_dewasa = $dewasa->alamat_sasaran ?? '';
         $this->rt_dewasa = $dewasa->rt ?? '';
         $this->rw_dewasa = $dewasa->rw ?? '';

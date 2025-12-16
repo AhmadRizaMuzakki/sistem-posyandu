@@ -53,6 +53,11 @@
                         <th class="px-6 py-3">Jenis Kelamin</th>
                         <th class="px-6 py-3">Umur</th>
 
+                        {{-- Kolom Pendidikan untuk Dewasa, Remaja, Lansia, Pralansia --}}
+                        @if(!$isIbuHamil)
+                            <th class="px-6 py-3">Pendidikan</th>
+                        @endif
+
                         {{-- Kolom Khusus Balita & Remaja --}}
                         @if($isDetailed)
                             <th class="px-6 py-3">Alamat</th>
@@ -87,6 +92,7 @@
                             <th class="px-6 py-3">Nama Orang Tua</th>
                             <th class="px-6 py-3">Tempat Lahir Orang Tua</th>
                             <th class="px-6 py-3">Pekerjaan Orang Tua</th>
+                            <th class="px-6 py-3">Pendidikan Orang Tua</th>
                         @endif
                         <th class="px-6 py-3 text-center">Aksi</th>
                     </tr>
@@ -100,6 +106,11 @@
                         <td class="px-6 py-4">{{ $item->tanggal_lahir ? \Carbon\Carbon::parse($item->tanggal_lahir)->format('d/m/Y') : '-' }}</td>
                         <td class="px-6 py-4">{{ $item->jenis_kelamin ?? '-' }}</td>
                         <td class="px-6 py-4">{{ $item->umur_sasaran ?? '-' }} tahun</td>
+
+                        {{-- Isi Kolom Pendidikan untuk Dewasa, Remaja, Lansia, Pralansia --}}
+                        @if(!$isIbuHamil)
+                            <td class="px-6 py-4">{{ $item->pendidikan ?? '-' }}</td>
+                        @endif
 
                         {{-- Isi Kolom Khusus Balita & Remaja --}}
                         @if($isDetailed)
@@ -198,6 +209,15 @@
                                     <span class="text-gray-400">-</span>
                                 @endif
                             </td>
+                            <td class="px-6 py-4">
+                                @if($showStrip)
+                                    <span class="text-gray-400">-</span>
+                                @elseif($orangtua)
+                                    {{ $orangtua->pendidikan ?? '-' }}
+                                @else
+                                    <span class="text-gray-400">-</span>
+                                @endif
+                            </td>
                         @endif
                         <td class="px-6 py-4">
                             <div class="flex items-center justify-center gap-2">
@@ -240,14 +260,15 @@
                         @php
                             $colspan = 7; // Base columns: NIK, Nama, No KK, Tanggal Lahir, Jenis Kelamin, Umur, Aksi
                             if ($isDetailed) {
+                                $colspan += 1; // Pendidikan
                                 $colspan += 4; // Alamat, Kepersertaan BPJS, Nomor BPJS, Nomor Telepon
-                                $colspan += 3; // Nama Orang Tua, Tempat Lahir Orang Tua, Pekerjaan Orang Tua
+                                $colspan += 4; // Nama Orang Tua, Tempat Lahir Orang Tua, Pekerjaan Orang Tua, Pendidikan Orang Tua
                             }
                             if ($isIbuHamil) {
                                 $colspan += 9; // Pekerjaan, Alamat, RT, RW, Nama Suami, NIK Suami, Pekerjaan Suami, Kepersertaan BPJS, Nomor Telepon
                             } elseif (!$isDetailed) {
+                                $colspan += 1; // Pendidikan
                                 $colspan += 4; // Alamat, Kepersertaan BPJS, Nomor BPJS, Nomor Telepon
-                                $colspan += 3; // Nama Orang Tua, Tempat Lahir Orang Tua, Pekerjaan Orang Tua
                             }
                         @endphp
                         <td colspan="{{ $colspan }}" class="px-6 py-8 text-center text-gray-500">
