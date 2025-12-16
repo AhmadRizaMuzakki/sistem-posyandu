@@ -21,8 +21,11 @@
                             <label class="block text-gray-700 text-sm font-bold mb-2">Posyandu <span class="text-red-500">*</span></label>
                             @php
                                 $userPosyandu = auth()->user()->kader->first()->posyandu ?? null;
-                                if ($userPosyandu) {
+                                if ($userPosyandu && !$id_posyandu_imunisasi) {
                                     $this->id_posyandu_imunisasi = $userPosyandu->id_posyandu;
+                                    $this->loadSasaranList();
+                                } elseif (isset($posyandu) && !$id_posyandu_imunisasi) {
+                                    $this->id_posyandu_imunisasi = $posyandu->id_posyandu;
                                     $this->loadSasaranList();
                                 }
                             @endphp
@@ -52,22 +55,51 @@
                                 open: false,
                                 searchText: '',
                                 selectedId: @entangle('id_sasaran_imunisasi'),
-                                selectedName: ''
+                                selectedKategori: @entangle('kategori_sasaran_imunisasi'),
+                                selectedName: '',
+                                sasaranList: @js($sasaranList)
                             }" x-init="
+                                // Fungsi untuk mencari sasaran berdasarkan ID dan kategori
+                                function findSasaran(id, kategori) {
+                                    if (!id) return null;
+                                    // Jika ada kategori, cari yang sesuai dengan ID dan kategori
+                                    if (kategori) {
+                                        return sasaranList.find(s => s.id == id && s.kategori == kategori);
+                                    }
+                                    // Jika tidak ada kategori, ambil yang pertama dengan ID tersebut
+                                    return sasaranList.find(s => s.id == id);
+                                }
+                                
                                 $watch('selectedId', value => {
                                     if (value) {
-                                        const sasaran = @js($sasaranList).find(s => s.id == value);
+                                        const sasaran = findSasaran(value, selectedKategori);
                                         if (sasaran) {
                                             selectedName = sasaran.nama + ' (' + sasaran.nik + ') - ' + sasaran.kategori.charAt(0).toUpperCase() + sasaran.kategori.slice(1);
                                             searchText = selectedName;
+                                            // Pastikan kategori sesuai
+                                            if (sasaran.kategori !== selectedKategori) {
+                                                $wire.set('kategori_sasaran_imunisasi', sasaran.kategori);
+                                            }
                                         }
                                     } else {
                                         selectedName = '';
                                         searchText = '';
                                     }
                                 });
+                                
+                                $watch('selectedKategori', value => {
+                                    if (selectedId && value) {
+                                        const sasaran = findSasaran(selectedId, value);
+                                        if (sasaran) {
+                                            selectedName = sasaran.nama + ' (' + sasaran.nik + ') - ' + sasaran.kategori.charAt(0).toUpperCase() + sasaran.kategori.slice(1);
+                                            searchText = selectedName;
+                                        }
+                                    }
+                                });
+                                
+                                // Inisialisasi saat pertama kali load
                                 if (selectedId) {
-                                    const sasaran = @js($sasaranList).find(s => s.id == selectedId);
+                                    const sasaran = findSasaran(selectedId, selectedKategori);
                                     if (sasaran) {
                                         selectedName = sasaran.nama + ' (' + sasaran.nik + ') - ' + sasaran.kategori.charAt(0).toUpperCase() + sasaran.kategori.slice(1);
                                         searchText = selectedName;
@@ -81,7 +113,7 @@
                                     @input="open = true"
                                     @keydown.escape="open = false"
                                     class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-primary focus:border-primary"
-                                    placeholder="Ketik untuk mencari sasaran..."
+                                    placeholder="Ketik untuk mencari sasaran (Balita, Remaja, Dewasa, Pralansia, Lansia)..."
                                     autocomplete="off"
                                     @if(empty($sasaranList)) disabled @endif>
                                 <div x-show="open"
@@ -101,10 +133,20 @@
                                         </li>
                                         @if(!empty($sasaranList))
                                             @foreach($sasaranList as $sasaran)
-                                                <li @click="selectedId = '{{ $sasaran['id'] }}'; selectedName = '{{ $sasaran['nama'] }} ({{ $sasaran['nik'] }}) - {{ ucfirst($sasaran['kategori']) }}'; searchText = selectedName; open = false; $wire.set('id_sasaran_imunisasi', '{{ $sasaran['id'] }}'); $wire.updatedIdSasaranImunisasi('{{ $sasaran['id'] }}')"
+                                                <li @click="
+                                                    // Update UI state
+                                                    selectedId = '{{ $sasaran['id'] }}';
+                                                    selectedKategori = '{{ $sasaran['kategori'] }}';
+                                                    selectedName = '{{ $sasaran['nama'] }} ({{ $sasaran['nik'] }}) - {{ ucfirst($sasaran['kategori']) }}';
+                                                    searchText = selectedName;
+                                                    open = false;
+                                                    // Set kategori dan ID secara bersamaan - kategori dulu untuk menghindari konflik
+                                                    $wire.set('kategori_sasaran_imunisasi', '{{ $sasaran['kategori'] }}');
+                                                    $wire.set('id_sasaran_imunisasi', '{{ $sasaran['id'] }}');
+                                                "
                                                     x-show="!searchText || '{{ strtolower($sasaran['nama'] . ' ' . $sasaran['nik'] . ' ' . $sasaran['kategori']) }}'.includes(searchText.toLowerCase())"
                                                     class="px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer"
-                                                    :class="selectedId == '{{ $sasaran['id'] }}' ? 'bg-blue-50 font-medium' : ''">
+                                                    :class="selectedId == '{{ $sasaran['id'] }}' && selectedKategori == '{{ $sasaran['kategori'] }}' ? 'bg-blue-50 font-medium' : ''">
                                                     {{ $sasaran['nama'] }} ({{ $sasaran['nik'] }}) - {{ ucfirst($sasaran['kategori']) }}
                                                 </li>
                                             @endforeach

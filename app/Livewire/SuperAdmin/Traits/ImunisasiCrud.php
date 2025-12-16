@@ -137,14 +137,33 @@ trait ImunisasiCrud
 
     /**
      * Update kategori saat sasaran dipilih
+     * Method ini dipanggil otomatis oleh Livewire ketika id_sasaran_imunisasi berubah
      */
     public function updatedIdSasaranImunisasi($value)
     {
-        if ($value) {
-            $sasaran = collect($this->sasaranList)->firstWhere('id', $value);
-            if ($sasaran) {
+        if ($value && !empty($this->sasaranList)) {
+            // Cari sasaran dari list berdasarkan ID dan kategori (jika sudah ada)
+            // Ini penting untuk menghindari konflik ID antar kategori
+            $sasaran = null;
+            
+            // Jika sudah ada kategori, cari yang sesuai dengan ID dan kategori
+            if ($this->kategori_sasaran_imunisasi) {
+                $sasaran = collect($this->sasaranList)->first(function($s) use ($value) {
+                    return $s['id'] == $value && $s['kategori'] == $this->kategori_sasaran_imunisasi;
+                });
+            }
+            
+            // Jika tidak ditemukan dengan kategori, cari berdasarkan ID saja
+            if (!$sasaran) {
+                $sasaran = collect($this->sasaranList)->firstWhere('id', $value);
+            }
+            
+            if ($sasaran && isset($sasaran['kategori'])) {
+                // Set kategori langsung dari list untuk menghindari konflik ID
                 $this->kategori_sasaran_imunisasi = $sasaran['kategori'];
             }
+        } else {
+            $this->kategori_sasaran_imunisasi = '';
         }
     }
 
@@ -215,13 +234,20 @@ trait ImunisasiCrud
 
         $this->id_imunisasi = $imunisasi->id_imunisasi;
         $this->id_posyandu_imunisasi = $imunisasi->id_posyandu;
-        $this->id_sasaran_imunisasi = $imunisasi->id_sasaran;
+        
+        // Load sasaran list dulu sebelum set ID dan kategori
+        $this->loadSasaranList();
+        
+        // Set kategori DULU sebelum ID untuk menghindari konflik ID antar kategori
         $this->kategori_sasaran_imunisasi = $imunisasi->kategori_sasaran;
+        
+        // Set ID setelah kategori untuk memastikan updatedIdSasaranImunisasi menggunakan kategori yang benar
+        $this->id_sasaran_imunisasi = $imunisasi->id_sasaran;
+        
         $this->jenis_imunisasi = $imunisasi->jenis_imunisasi;
         $this->tanggal_imunisasi = $imunisasi->tanggal_imunisasi ? $imunisasi->tanggal_imunisasi->format('Y-m-d') : '';
         $this->keterangan = $imunisasi->keterangan ?? '';
 
-        $this->loadSasaranList();
         $this->isImunisasiModalOpen = true;
     }
 
