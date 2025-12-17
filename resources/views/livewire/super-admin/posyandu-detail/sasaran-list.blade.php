@@ -14,7 +14,11 @@
     'openModal' => 'openBalitaModal()',
     'editMethod' => 'editBalita',
     'deleteMethod' => 'deleteBalita',
-    'emptyMessage' => 'Belum ada sasaran terdaftar'
+    'emptyMessage' => 'Belum ada sasaran terdaftar',
+    'exportUrl' => route('superadmin.posyandu.sasaran.pdf', [
+        'id' => $posyandu->id_posyandu,
+        'kategori' => 'bayibalita',
+    ]),
 ])
 
 @php
@@ -33,7 +37,11 @@
     'openModal' => 'openRemajaModal()',
     'editMethod' => 'editRemaja',
     'deleteMethod' => 'deleteRemaja',
-    'emptyMessage' => 'Belum ada sasaran remaja terdaftar'
+    'emptyMessage' => 'Belum ada sasaran remaja terdaftar',
+    'exportUrl' => route('superadmin.posyandu.sasaran.pdf', [
+        'id' => $posyandu->id_posyandu,
+        'kategori' => 'remaja',
+    ]),
 ])
 
 @php
@@ -52,7 +60,11 @@
     'openModal' => 'openDewasaModal()',
     'editMethod' => 'editDewasa',
     'deleteMethod' => 'deleteDewasa',
-    'emptyMessage' => 'Belum ada sasaran dewasa terdaftar'
+    'emptyMessage' => 'Belum ada sasaran dewasa terdaftar',
+    'exportUrl' => route('superadmin.posyandu.sasaran.pdf', [
+        'id' => $posyandu->id_posyandu,
+        'kategori' => 'dewasa',
+    ]),
 ])
 
 @php
@@ -71,7 +83,11 @@
     'openModal' => 'openIbuHamilModal()',
     'editMethod' => 'editIbuHamil',
     'deleteMethod' => 'deleteIbuHamil',
-    'emptyMessage' => 'Belum ada sasaran ibu hamil terdaftar'
+    'emptyMessage' => 'Belum ada sasaran ibu hamil terdaftar',
+    'exportUrl' => route('superadmin.posyandu.sasaran.pdf', [
+        'id' => $posyandu->id_posyandu,
+        'kategori' => 'ibuhamil',
+    ]),
 ])
 
 @php
@@ -90,7 +106,11 @@
     'openModal' => 'openPralansiaModal()',
     'editMethod' => 'editPralansia',
     'deleteMethod' => 'deletePralansia',
-    'emptyMessage' => 'Belum ada sasaran pralansia terdaftar'
+    'emptyMessage' => 'Belum ada sasaran pralansia terdaftar',
+    'exportUrl' => route('superadmin.posyandu.sasaran.pdf', [
+        'id' => $posyandu->id_posyandu,
+        'kategori' => 'pralansia',
+    ]),
 ])
 
 @php
@@ -109,6 +129,10 @@
     'openModal' => 'openLansiaModal()',
     'editMethod' => 'editLansia',
     'deleteMethod' => 'deleteLansia',
-    'emptyMessage' => 'Belum ada sasaran lansia terdaftar'
+    'emptyMessage' => 'Belum ada sasaran lansia terdaftar',
+    'exportUrl' => route('superadmin.posyandu.sasaran.pdf', [
+        'id' => $posyandu->id_posyandu,
+        'kategori' => 'lansia',
+    ]),
 ])
 

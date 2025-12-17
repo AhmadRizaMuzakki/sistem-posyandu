@@ -1,9 +1,14 @@
 {{-- Logika Pengecekan: Apakah kategori ini Balita atau Remaja? --}}
 @php
     // Cek apakah judul mengandung kata 'balita' atau 'remaja' (case insensitive)
-    $isDetailed = \Illuminate\Support\Str::contains(strtolower($title), ['balita', 'remaja']);
+    $lowerTitle = strtolower($title);
+    $isDetailed = \Illuminate\Support\Str::contains($lowerTitle, ['balita', 'remaja']);
+    // Cek apakah ini daftar Bayi/Balita (untuk format umur khusus bulan dan kolom pendidikan)
+    $isBalitaList = \Illuminate\Support\Str::contains($lowerTitle, ['bayi/balita', 'bayi dan balita', 'bayi & balita']);
     // Cek apakah kategori ini Ibu Hamil
-    $isIbuHamil = \Illuminate\Support\Str::contains(strtolower($title), ['ibu hamil']);
+    $isIbuHamil = \Illuminate\Support\Str::contains($lowerTitle, ['ibu hamil']);
+    // Tampilkan kolom Pendidikan hanya jika bukan Ibu Hamil dan bukan Balita
+    $showPendidikanColumn = !$isIbuHamil && !$isBalitaList;
 @endphp
 
 <div class="bg-white rounded-lg shadow-sm p-6">
@@ -12,8 +17,18 @@
             <i class="ph {{ $icon }} text-2xl mr-3 text-primary"></i>
             {{ $title }}
         </h2>
-        <div class="flex items-center gap-4">
+        <div class="flex items-center gap-3">
             <span class="text-sm text-gray-500">{{ $count }} sasaran</span>
+
+            @isset($exportUrl)
+                <a href="{{ $exportUrl }}"
+                   target="_blank"
+                   class="flex items-center px-3 py-2 text-xs font-medium text-primary border border-primary rounded-lg hover:bg-primary hover:text-white transition-colors">
+                    <i class="ph ph-file-pdf text-sm mr-2"></i>
+                    Export PDF
+                </a>
+            @endisset
+
             <button wire:click="{{ $openModal }}"
                     class="flex items-center px-4 py-2 text-sm font-medium text-white bg-primary rounded-lg hover:bg-indigo-700 transition-colors">
                 <i class="ph ph-plus-circle text-lg mr-2"></i>
@@ -53,8 +68,8 @@
                         <th class="px-6 py-3">Jenis Kelamin</th>
                         <th class="px-6 py-3">Umur</th>
 
-                        {{-- Kolom Pendidikan untuk Dewasa, Remaja, Lansia, Pralansia --}}
-                        @if(!$isIbuHamil)
+                        {{-- Kolom Pendidikan untuk Remaja, Dewasa, Lansia, Pralansia --}}
+                        @if($showPendidikanColumn)
                             <th class="px-6 py-3">Pendidikan</th>
                         @endif
 
@@ -105,10 +120,29 @@
                         <td class="px-6 py-4">{{ $item->no_kk_sasaran ?? '-' }}</td>
                         <td class="px-6 py-4">{{ $item->tanggal_lahir ? \Carbon\Carbon::parse($item->tanggal_lahir)->format('d/m/Y') : '-' }}</td>
                         <td class="px-6 py-4">{{ $item->jenis_kelamin ?? '-' }}</td>
-                        <td class="px-6 py-4">{{ $item->umur_sasaran ?? '-' }} tahun</td>
+                        <td class="px-6 py-4">
+                            @php
+                                $umurLabel = '-';
+                                if ($item->tanggal_lahir) {
+                                    $dob = \Carbon\Carbon::parse($item->tanggal_lahir);
+                                    $now = \Carbon\Carbon::now();
+                                    // Pastikan tahun & bulan selalu integer
+                                    $tahun = (int) $dob->diffInYears($now);
+                                    if ($isBalitaList && $tahun < 1) {
+                                        $bulan = (int) $dob->diffInMonths($now);
+                                        $umurLabel = $bulan . ' bln';
+                                    } else {
+                                        $umurLabel = $tahun . ' th';
+                                    }
+                                } elseif (!is_null($item->umur_sasaran)) {
+                                    $umurLabel = (int) $item->umur_sasaran . ' th';
+                                }
+                            @endphp
+                            {{ $umurLabel }}
+                        </td>
 
-                        {{-- Isi Kolom Pendidikan untuk Dewasa, Remaja, Lansia, Pralansia --}}
-                        @if(!$isIbuHamil)
+                        {{-- Isi Kolom Pendidikan untuk Remaja, Dewasa, Lansia, Pralansia --}}
+                        @if($showPendidikanColumn)
                             <td class="px-6 py-4">{{ $item->pendidikan ?? '-' }}</td>
                         @endif
 
@@ -260,14 +294,18 @@
                         @php
                             $colspan = 7; // Base columns: NIK, Nama, No KK, Tanggal Lahir, Jenis Kelamin, Umur, Aksi
                             if ($isDetailed) {
-                                $colspan += 1; // Pendidikan
+                                if ($showPendidikanColumn) {
+                                    $colspan += 1; // Pendidikan
+                                }
                                 $colspan += 4; // Alamat, Kepersertaan BPJS, Nomor BPJS, Nomor Telepon
                                 $colspan += 4; // Nama Orang Tua, Tempat Lahir Orang Tua, Pekerjaan Orang Tua, Pendidikan Orang Tua
                             }
                             if ($isIbuHamil) {
                                 $colspan += 9; // Pekerjaan, Alamat, RT, RW, Nama Suami, NIK Suami, Pekerjaan Suami, Kepersertaan BPJS, Nomor Telepon
                             } elseif (!$isDetailed) {
-                                $colspan += 1; // Pendidikan
+                                if ($showPendidikanColumn) {
+                                    $colspan += 1; // Pendidikan
+                                }
                                 $colspan += 4; // Alamat, Kepersertaan BPJS, Nomor BPJS, Nomor Telepon
                             }
                         @endphp

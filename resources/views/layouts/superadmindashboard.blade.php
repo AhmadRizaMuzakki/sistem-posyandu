@@ -208,7 +208,7 @@
                                 </a>
 
                                 <a
-                                    :href="`/supervisor/posyandu/${posyandu.encryptedId}#laporan`"
+                                    :href="`/supervisor/posyandu/${posyandu.encryptedId}/laporan`"
                                     class="flex items-center px-4 py-2 text-sm text-gray-600 hover:bg-gray-100 hover:text-primary rounded-lg transition-colors group"
                                 >
                                     <i class="ph ph-chart-bar text-lg mr-3 group-hover:text-primary"></i>

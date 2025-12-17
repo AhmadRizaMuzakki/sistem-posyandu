@@ -204,7 +204,7 @@ trait RemajaCrud
         ];
 
         // Update atau create orangtua
-        Orangtua::updateOrCreate(
+        $orangtua = Orangtua::updateOrCreate(
             ['nik' => $this->nik_orangtua_remaja],
             $orangtuaData
         );
@@ -232,6 +232,17 @@ trait RemajaCrud
         // Assign role orangtua jika belum punya
         if (!$user->hasRole('orangtua')) {
             $user->assignRole('orangtua');
+        }
+
+        // Buat atau update record sasaran dewasa/pralansia/lansia dari data orangtua
+        // Panggil setelah user dibuat agar user sudah tersedia
+        if (method_exists($this, 'createOrUpdateSasaranFromOrangtua')) {
+            $this->createOrUpdateSasaranFromOrangtua(
+                $orangtua,
+                $this->posyanduId,
+                $this->rt_remaja,
+                $this->rw_remaja
+            );
         }
 
         // Hitung umur dari tanggal_lahir_remaja
