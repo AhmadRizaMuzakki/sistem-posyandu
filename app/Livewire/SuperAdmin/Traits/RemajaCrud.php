@@ -38,9 +38,15 @@ trait RemajaCrud
     public $nama_orangtua_remaja;
     public $tempat_lahir_orangtua_remaja;
     public $tanggal_lahir_orangtua_remaja;
+    public $hari_lahir_orangtua_remaja;
+    public $bulan_lahir_orangtua_remaja;
+    public $tahun_lahir_orangtua_remaja;
     public $pekerjaan_orangtua_remaja;
     public $pendidikan_orangtua_remaja;
     public $kelamin_orangtua_remaja;
+    public $kepersertaan_bpjs_orangtua_remaja;
+    public $nomor_bpjs_orangtua_remaja;
+    public $nomor_telepon_orangtua_remaja;
 
     /**
      * Buka modal tambah/edit Sasaran Remaja
@@ -75,6 +81,9 @@ trait RemajaCrud
         $this->no_kk_sasaran_remaja = '';
         $this->tempat_lahir_remaja = '';
         $this->tanggal_lahir_remaja = '';
+        $this->hari_lahir_remaja = '';
+        $this->bulan_lahir_remaja = '';
+        $this->tahun_lahir_remaja = '';
         $this->jenis_kelamin_remaja = '';
         $this->umur_sasaran_remaja = '';
         $this->pendidikan_remaja = '';
@@ -89,9 +98,15 @@ trait RemajaCrud
         $this->nama_orangtua_remaja = '';
         $this->tempat_lahir_orangtua_remaja = '';
         $this->tanggal_lahir_orangtua_remaja = '';
+        $this->hari_lahir_orangtua_remaja = '';
+        $this->bulan_lahir_orangtua_remaja = '';
+        $this->tahun_lahir_orangtua_remaja = '';
         $this->pekerjaan_orangtua_remaja = '';
         $this->pendidikan_orangtua_remaja = '';
         $this->kelamin_orangtua_remaja = '';
+        $this->kepersertaan_bpjs_orangtua_remaja = '';
+        $this->nomor_bpjs_orangtua_remaja = '';
+        $this->nomor_telepon_orangtua_remaja = '';
     }
 
     /**
@@ -101,6 +116,7 @@ trait RemajaCrud
     {
         // Combine hari, bulan, tahun menjadi tanggal lahir
         $this->combineTanggalLahirRemaja();
+        $this->combineTanggalLahirOrangtuaRemaja();
 
         $this->validate([
             'nama_sasaran_remaja' => 'required|string|max:100',
@@ -114,10 +130,16 @@ trait RemajaCrud
             'nik_orangtua_remaja' => 'required|numeric',
             'nama_orangtua_remaja' => 'required|string|max:100',
             'tempat_lahir_orangtua_remaja' => 'required|string|max:100',
+            'hari_lahir_orangtua_remaja' => 'required|numeric|min:1|max:31',
+            'bulan_lahir_orangtua_remaja' => 'required|numeric|min:1|max:12',
+            'tahun_lahir_orangtua_remaja' => 'required|numeric|min:1900|max:' . date('Y'),
             'tanggal_lahir_orangtua_remaja' => 'required|date',
             'pekerjaan_orangtua_remaja' => 'required|string',
             'pendidikan_orangtua_remaja' => 'nullable|string',
             'kelamin_orangtua_remaja' => 'required|in:Laki-laki,Perempuan',
+            'kepersertaan_bpjs_orangtua_remaja' => 'nullable|in:PBI,NON PBI',
+            'nomor_bpjs_orangtua_remaja' => 'nullable|string|max:50',
+            'nomor_telepon_orangtua_remaja' => 'nullable|string|max:20',
         ], [
             'nama_sasaran_remaja.required' => 'Nama sasaran wajib diisi.',
             'nik_sasaran_remaja.required' => 'NIK wajib diisi.',
@@ -144,12 +166,27 @@ trait RemajaCrud
             'nik_orangtua_remaja.numeric' => 'NIK orangtua harus berupa angka.',
             'nama_orangtua_remaja.required' => 'Nama orangtua wajib diisi.',
             'tempat_lahir_orangtua_remaja.required' => 'Tempat lahir orangtua wajib diisi.',
+            'hari_lahir_orangtua_remaja.required' => 'Hari lahir orangtua wajib diisi.',
+            'hari_lahir_orangtua_remaja.numeric' => 'Hari lahir orangtua harus berupa angka.',
+            'hari_lahir_orangtua_remaja.min' => 'Hari lahir orangtua minimal 1.',
+            'hari_lahir_orangtua_remaja.max' => 'Hari lahir orangtua maksimal 31.',
+            'bulan_lahir_orangtua_remaja.required' => 'Bulan lahir orangtua wajib diisi.',
+            'bulan_lahir_orangtua_remaja.numeric' => 'Bulan lahir orangtua harus berupa angka.',
+            'bulan_lahir_orangtua_remaja.min' => 'Bulan lahir orangtua minimal 1.',
+            'bulan_lahir_orangtua_remaja.max' => 'Bulan lahir orangtua maksimal 12.',
+            'tahun_lahir_orangtua_remaja.required' => 'Tahun lahir orangtua wajib diisi.',
+            'tahun_lahir_orangtua_remaja.numeric' => 'Tahun lahir orangtua harus berupa angka.',
+            'tahun_lahir_orangtua_remaja.min' => 'Tahun lahir orangtua minimal 1900.',
+            'tahun_lahir_orangtua_remaja.max' => 'Tahun lahir orangtua maksimal ' . date('Y') . '.',
             'tanggal_lahir_orangtua_remaja.required' => 'Tanggal lahir orangtua wajib diisi.',
             'tanggal_lahir_orangtua_remaja.date' => 'Tanggal lahir orangtua harus berupa tanggal yang valid.',
             'pekerjaan_orangtua_remaja.required' => 'Pekerjaan orangtua wajib dipilih.',
             'pendidikan_orangtua_remaja.string' => 'Pendidikan orangtua harus berupa teks.',
             'kelamin_orangtua_remaja.required' => 'Jenis kelamin orangtua wajib dipilih.',
             'kelamin_orangtua_remaja.in' => 'Jenis kelamin orangtua harus Laki-laki atau Perempuan.',
+            'kepersertaan_bpjs_orangtua_remaja.in' => 'Kepersertaan BPJS orangtua harus PBI atau NON PBI.',
+            'nomor_bpjs_orangtua_remaja.max' => 'Nomor BPJS orangtua maksimal 50 karakter.',
+            'nomor_telepon_orangtua_remaja.max' => 'Nomor telepon orangtua maksimal 20 karakter.',
         ]);
 
         // Simpan/Update data orangtua
@@ -161,6 +198,9 @@ trait RemajaCrud
             'pekerjaan' => $this->pekerjaan_orangtua_remaja,
             'pendidikan' => $this->pendidikan_orangtua_remaja ?: null,
             'kelamin' => $this->kelamin_orangtua_remaja,
+            'kepersertaan_bpjs' => $this->kepersertaan_bpjs_orangtua_remaja ?: null,
+            'nomor_bpjs' => $this->nomor_bpjs_orangtua_remaja ?: null,
+            'nomor_telepon' => $this->nomor_telepon_orangtua_remaja ?: null,
         ];
 
         // Update atau create orangtua
@@ -248,6 +288,17 @@ trait RemajaCrud
         $this->no_kk_sasaran_remaja = $remaja->no_kk_sasaran ?? '';
         $this->tempat_lahir_remaja = $remaja->tempat_lahir ?? '';
         $this->tanggal_lahir_remaja = $remaja->tanggal_lahir;
+        // Split tanggal lahir menjadi hari, bulan, tahun
+        if ($remaja->tanggal_lahir) {
+            $date = Carbon::parse($remaja->tanggal_lahir);
+            $this->hari_lahir_remaja = $date->day;
+            $this->bulan_lahir_remaja = $date->month;
+            $this->tahun_lahir_remaja = $date->year;
+        } else {
+            $this->hari_lahir_remaja = '';
+            $this->bulan_lahir_remaja = '';
+            $this->tahun_lahir_remaja = '';
+        }
         $this->jenis_kelamin_remaja = $remaja->jenis_kelamin;
         $this->umur_sasaran_remaja = $remaja->tanggal_lahir
             ? Carbon::parse($remaja->tanggal_lahir)->age
@@ -268,16 +319,35 @@ trait RemajaCrud
                 $this->nama_orangtua_remaja = $orangtua->nama;
                 $this->tempat_lahir_orangtua_remaja = $orangtua->tempat_lahir;
                 $this->tanggal_lahir_orangtua_remaja = $orangtua->tanggal_lahir ? $orangtua->tanggal_lahir->format('Y-m-d') : '';
+                if ($orangtua->tanggal_lahir) {
+                    $dateOrtu = Carbon::parse($orangtua->tanggal_lahir);
+                    $this->hari_lahir_orangtua_remaja = $dateOrtu->day;
+                    $this->bulan_lahir_orangtua_remaja = $dateOrtu->month;
+                    $this->tahun_lahir_orangtua_remaja = $dateOrtu->year;
+                } else {
+                    $this->hari_lahir_orangtua_remaja = '';
+                    $this->bulan_lahir_orangtua_remaja = '';
+                    $this->tahun_lahir_orangtua_remaja = '';
+                }
                 $this->pekerjaan_orangtua_remaja = $orangtua->pekerjaan;
                 $this->pendidikan_orangtua_remaja = $orangtua->pendidikan ?? '';
                 $this->kelamin_orangtua_remaja = $orangtua->kelamin;
+                $this->kepersertaan_bpjs_orangtua_remaja = $orangtua->kepersertaan_bpjs ?? '';
+                $this->nomor_bpjs_orangtua_remaja = $orangtua->nomor_bpjs ?? '';
+                $this->nomor_telepon_orangtua_remaja = $orangtua->nomor_telepon ?? '';
             } else {
                 $this->nama_orangtua_remaja = '';
                 $this->tempat_lahir_orangtua_remaja = '';
                 $this->tanggal_lahir_orangtua_remaja = '';
+                $this->hari_lahir_orangtua_remaja = '';
+                $this->bulan_lahir_orangtua_remaja = '';
+                $this->tahun_lahir_orangtua_remaja = '';
                 $this->pekerjaan_orangtua_remaja = '';
                 $this->pendidikan_orangtua_remaja = '';
                 $this->kelamin_orangtua_remaja = '';
+                $this->kepersertaan_bpjs_orangtua_remaja = '';
+                $this->nomor_bpjs_orangtua_remaja = '';
+                $this->nomor_telepon_orangtua_remaja = '';
             }
         } else {
             $this->nama_orangtua_remaja = '';
@@ -286,6 +356,12 @@ trait RemajaCrud
             $this->pekerjaan_orangtua_remaja = '';
             $this->pendidikan_orangtua_remaja = '';
             $this->kelamin_orangtua_remaja = '';
+            $this->hari_lahir_orangtua_remaja = '';
+            $this->bulan_lahir_orangtua_remaja = '';
+            $this->tahun_lahir_orangtua_remaja = '';
+            $this->kepersertaan_bpjs_orangtua_remaja = '';
+            $this->nomor_bpjs_orangtua_remaja = '';
+            $this->nomor_telepon_orangtua_remaja = '';
         }
 
         $this->isSasaranRemajaModalOpen = true;
@@ -319,6 +395,26 @@ trait RemajaCrud
             }
         } else {
             $this->tanggal_lahir_remaja = null;
+        }
+    }
+
+    /**
+     * Combine hari, bulan, tahun menjadi tanggal lahir orangtua
+     */
+    private function combineTanggalLahirOrangtuaRemaja()
+    {
+        if ($this->hari_lahir_orangtua_remaja && $this->bulan_lahir_orangtua_remaja && $this->tahun_lahir_orangtua_remaja) {
+            try {
+                $this->tanggal_lahir_orangtua_remaja = Carbon::create(
+                    $this->tahun_lahir_orangtua_remaja,
+                    $this->bulan_lahir_orangtua_remaja,
+                    $this->hari_lahir_orangtua_remaja
+                )->format('Y-m-d');
+            } catch (\Exception $e) {
+                $this->tanggal_lahir_orangtua_remaja = null;
+            }
+        } else {
+            $this->tanggal_lahir_orangtua_remaja = null;
         }
     }
 

@@ -41,9 +41,15 @@ trait BalitaCrud
     public $nama_orangtua;
     public $tempat_lahir_orangtua;
     public $tanggal_lahir_orangtua;
+    public $hari_lahir_orangtua;
+    public $bulan_lahir_orangtua;
+    public $tahun_lahir_orangtua;
     public $pekerjaan_orangtua;
     public $pendidikan_orangtua;
     public $kelamin_orangtua;
+    public $kepersertaan_bpjs_orangtua;
+    public $nomor_bpjs_orangtua;
+    public $nomor_telepon_orangtua;
 
     /**
      * Buka modal tambah/edit Sasaran Balita
@@ -95,9 +101,15 @@ trait BalitaCrud
         $this->nama_orangtua = '';
         $this->tempat_lahir_orangtua = '';
         $this->tanggal_lahir_orangtua = '';
+        $this->hari_lahir_orangtua = '';
+        $this->bulan_lahir_orangtua = '';
+        $this->tahun_lahir_orangtua = '';
         $this->pekerjaan_orangtua = '';
         $this->pendidikan_orangtua = '';
         $this->kelamin_orangtua = '';
+        $this->kepersertaan_bpjs_orangtua = '';
+        $this->nomor_bpjs_orangtua = '';
+        $this->nomor_telepon_orangtua = '';
     }
 
     /**
@@ -107,6 +119,7 @@ trait BalitaCrud
     {
         // Combine hari, bulan, tahun menjadi tanggal lahir
         $this->combineTanggalLahirSasaran();
+        $this->combineTanggalLahirOrangtuaBalita();
 
         $this->validate([
             'id_posyandu_sasaran' => 'required|exists:posyandu,id_posyandu',
@@ -121,10 +134,16 @@ trait BalitaCrud
             'nik_orangtua' => 'required|numeric',
             'nama_orangtua' => 'required|string|max:100',
             'tempat_lahir_orangtua' => 'required|string|max:100',
+            'hari_lahir_orangtua' => 'required|numeric|min:1|max:31',
+            'bulan_lahir_orangtua' => 'required|numeric|min:1|max:12',
+            'tahun_lahir_orangtua' => 'required|numeric|min:1900|max:' . date('Y'),
             'tanggal_lahir_orangtua' => 'required|date',
             'pekerjaan_orangtua' => 'required|string',
             'pendidikan_orangtua' => 'nullable|string',
             'kelamin_orangtua' => 'required|in:Laki-laki,Perempuan',
+            'kepersertaan_bpjs_orangtua' => 'nullable|in:PBI,NON PBI',
+            'nomor_bpjs_orangtua' => 'nullable|string|max:50',
+            'nomor_telepon_orangtua' => 'nullable|string|max:20',
         ], [
             'id_posyandu_sasaran.required' => 'Posyandu wajib dipilih.',
             'id_posyandu_sasaran.exists' => 'Posyandu yang dipilih tidak valid.',
@@ -153,12 +172,27 @@ trait BalitaCrud
             'nik_orangtua.numeric' => 'NIK orangtua harus berupa angka.',
             'nama_orangtua.required' => 'Nama orangtua wajib diisi.',
             'tempat_lahir_orangtua.required' => 'Tempat lahir orangtua wajib diisi.',
+            'hari_lahir_orangtua.required' => 'Hari lahir orangtua wajib diisi.',
+            'hari_lahir_orangtua.numeric' => 'Hari lahir orangtua harus berupa angka.',
+            'hari_lahir_orangtua.min' => 'Hari lahir orangtua minimal 1.',
+            'hari_lahir_orangtua.max' => 'Hari lahir orangtua maksimal 31.',
+            'bulan_lahir_orangtua.required' => 'Bulan lahir orangtua wajib diisi.',
+            'bulan_lahir_orangtua.numeric' => 'Bulan lahir orangtua harus berupa angka.',
+            'bulan_lahir_orangtua.min' => 'Bulan lahir orangtua minimal 1.',
+            'bulan_lahir_orangtua.max' => 'Bulan lahir orangtua maksimal 12.',
+            'tahun_lahir_orangtua.required' => 'Tahun lahir orangtua wajib diisi.',
+            'tahun_lahir_orangtua.numeric' => 'Tahun lahir orangtua harus berupa angka.',
+            'tahun_lahir_orangtua.min' => 'Tahun lahir orangtua minimal 1900.',
+            'tahun_lahir_orangtua.max' => 'Tahun lahir orangtua maksimal ' . date('Y') . '.',
             'tanggal_lahir_orangtua.required' => 'Tanggal lahir orangtua wajib diisi.',
             'tanggal_lahir_orangtua.date' => 'Tanggal lahir orangtua harus berupa tanggal yang valid.',
             'pekerjaan_orangtua.required' => 'Pekerjaan orangtua wajib dipilih.',
             'pendidikan_orangtua.string' => 'Pendidikan orangtua harus berupa teks.',
             'kelamin_orangtua.required' => 'Jenis kelamin orangtua wajib dipilih.',
             'kelamin_orangtua.in' => 'Jenis kelamin orangtua harus Laki-laki atau Perempuan.',
+            'kepersertaan_bpjs_orangtua.in' => 'Kepersertaan BPJS orangtua harus PBI atau NON PBI.',
+            'nomor_bpjs_orangtua.max' => 'Nomor BPJS orangtua maksimal 50 karakter.',
+            'nomor_telepon_orangtua.max' => 'Nomor telepon orangtua maksimal 20 karakter.',
         ]);
 
         // Hitung umur dari tanggal_lahir_sasaran
@@ -179,6 +213,9 @@ trait BalitaCrud
             'pendidikan' => $this->pendidikan_orangtua ?: null,
             'kelamin' => $this->kelamin_orangtua,
             'alamat' => $this->alamat_sasaran, // Gunakan alamat dari balita
+            'kepersertaan_bpjs' => $this->kepersertaan_bpjs_orangtua ?: null,
+            'nomor_bpjs' => $this->nomor_bpjs_orangtua ?: null,
+            'nomor_telepon' => $this->nomor_telepon_orangtua ?: null,
         ];
 
         // Update atau create orangtua berdasarkan nik, no_kk, dan alamat
@@ -202,6 +239,9 @@ trait BalitaCrud
                 $orangtuaData['pekerjaan'] = $existingOrangtua->pekerjaan ?? $this->pekerjaan_orangtua;
                 $orangtuaData['pendidikan'] = $existingOrangtua->pendidikan ?? ($this->pendidikan_orangtua ?: null);
                 $orangtuaData['kelamin'] = $existingOrangtua->kelamin ?? $this->kelamin_orangtua;
+                $orangtuaData['kepersertaan_bpjs'] = $existingOrangtua->kepersertaan_bpjs ?? ($this->kepersertaan_bpjs_orangtua ?: null);
+                $orangtuaData['nomor_bpjs'] = $existingOrangtua->nomor_bpjs ?? ($this->nomor_bpjs_orangtua ?: null);
+                $orangtuaData['nomor_telepon'] = $existingOrangtua->nomor_telepon ?? ($this->nomor_telepon_orangtua ?: null);
             }
         }
 
@@ -323,16 +363,35 @@ trait BalitaCrud
                 $this->nama_orangtua = $orangtua->nama;
                 $this->tempat_lahir_orangtua = $orangtua->tempat_lahir;
                 $this->tanggal_lahir_orangtua = $orangtua->tanggal_lahir ? $orangtua->tanggal_lahir->format('Y-m-d') : '';
+                if ($orangtua->tanggal_lahir) {
+                    $dateOrtu = Carbon::parse($orangtua->tanggal_lahir);
+                    $this->hari_lahir_orangtua = $dateOrtu->day;
+                    $this->bulan_lahir_orangtua = $dateOrtu->month;
+                    $this->tahun_lahir_orangtua = $dateOrtu->year;
+                } else {
+                    $this->hari_lahir_orangtua = '';
+                    $this->bulan_lahir_orangtua = '';
+                    $this->tahun_lahir_orangtua = '';
+                }
                 $this->pekerjaan_orangtua = $orangtua->pekerjaan;
                 $this->pendidikan_orangtua = $orangtua->pendidikan ?? '';
                 $this->kelamin_orangtua = $orangtua->kelamin;
+                $this->kepersertaan_bpjs_orangtua = $orangtua->kepersertaan_bpjs ?? '';
+                $this->nomor_bpjs_orangtua = $orangtua->nomor_bpjs ?? '';
+                $this->nomor_telepon_orangtua = $orangtua->nomor_telepon ?? '';
             } else {
                 $this->nama_orangtua = '';
                 $this->tempat_lahir_orangtua = '';
                 $this->tanggal_lahir_orangtua = '';
+                $this->hari_lahir_orangtua = '';
+                $this->bulan_lahir_orangtua = '';
+                $this->tahun_lahir_orangtua = '';
                 $this->pekerjaan_orangtua = '';
                 $this->pendidikan_orangtua = '';
                 $this->kelamin_orangtua = '';
+                $this->kepersertaan_bpjs_orangtua = '';
+                $this->nomor_bpjs_orangtua = '';
+                $this->nomor_telepon_orangtua = '';
             }
         } else {
             $this->nama_orangtua = '';
@@ -341,6 +400,12 @@ trait BalitaCrud
             $this->pekerjaan_orangtua = '';
             $this->pendidikan_orangtua = '';
             $this->kelamin_orangtua = '';
+            $this->hari_lahir_orangtua = '';
+            $this->bulan_lahir_orangtua = '';
+            $this->tahun_lahir_orangtua = '';
+            $this->kepersertaan_bpjs_orangtua = '';
+            $this->nomor_bpjs_orangtua = '';
+            $this->nomor_telepon_orangtua = '';
         }
 
         $this->isSasaranBalitaModalOpen = true;
@@ -374,6 +439,26 @@ trait BalitaCrud
             }
         } else {
             $this->tanggal_lahir_sasaran = null;
+        }
+    }
+
+    /**
+     * Combine hari, bulan, tahun menjadi tanggal lahir orangtua
+     */
+    private function combineTanggalLahirOrangtuaBalita()
+    {
+        if ($this->hari_lahir_orangtua && $this->bulan_lahir_orangtua && $this->tahun_lahir_orangtua) {
+            try {
+                $this->tanggal_lahir_orangtua = Carbon::create(
+                    $this->tahun_lahir_orangtua,
+                    $this->bulan_lahir_orangtua,
+                    $this->hari_lahir_orangtua
+                )->format('Y-m-d');
+            } catch (\Exception $e) {
+                $this->tanggal_lahir_orangtua = null;
+            }
+        } else {
+            $this->tanggal_lahir_orangtua = null;
         }
     }
 

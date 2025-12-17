@@ -77,6 +77,15 @@
                                                 title="Edit">
                                                 <i class="ph ph-pencil text-lg"></i>
                                             </button>
+                                            @if($posyandu->logo_posyandu)
+                                                <button
+                                                    wire:click="deleteLogo({{ $posyandu->id_posyandu }})"
+                                                    wire:confirm="Apakah Anda yakin ingin menghapus logo untuk posyandu '{{ $posyandu->nama_posyandu }}'?"
+                                                    class="text-orange-600 hover:text-orange-700 p-2 hover:bg-orange-50 rounded transition-colors"
+                                                    title="Hapus Logo">
+                                                    <i class="ph ph-image-broken text-lg"></i>
+                                                </button>
+                                            @endif
                                             <button
                                                 wire:click="delete({{ $posyandu->id_posyandu }})"
                                                 wire:confirm="Apakah Anda yakin ingin menghapus posyandu '{{ $posyandu->nama_posyandu }}'? Tindakan ini tidak dapat dibatalkan."

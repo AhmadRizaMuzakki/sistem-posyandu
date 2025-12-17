@@ -80,13 +80,23 @@ class KaderImunisasi extends Component
         // Pastikan posyandu sesuai dengan kader
         $this->id_posyandu_imunisasi = $this->posyanduId;
 
+         // Gabungkan hari, bulan, tahun menjadi tanggal imunisasi
+        if (method_exists($this, 'combineTanggalImunisasi')) {
+            $this->combineTanggalImunisasi();
+        }
+
         // Panggil method dari trait
         $this->validate([
             'id_posyandu_imunisasi' => 'required|exists:posyandu,id_posyandu',
             'id_sasaran_imunisasi' => 'required',
             'kategori_sasaran_imunisasi' => 'required|in:bayibalita,remaja,dewasa,pralansia,lansia',
             'jenis_imunisasi' => 'required|string|max:255',
+            'hari_imunisasi' => 'required|numeric|min:1|max:31',
+            'bulan_imunisasi' => 'required|numeric|min:1|max:12',
+            'tahun_imunisasi' => 'required|numeric|min:1900|max:' . date('Y'),
             'tanggal_imunisasi' => 'required|date',
+            'tinggi_badan' => 'nullable|numeric|min:0|max:300',
+            'berat_badan' => 'nullable|numeric|min:0|max:300',
             'keterangan' => 'nullable|string',
         ], [
             'id_posyandu_imunisasi.required' => 'Posyandu wajib dipilih.',
@@ -95,8 +105,26 @@ class KaderImunisasi extends Component
             'kategori_sasaran_imunisasi.required' => 'Kategori sasaran wajib dipilih.',
             'kategori_sasaran_imunisasi.in' => 'Kategori sasaran tidak valid.',
             'jenis_imunisasi.required' => 'Jenis imunisasi wajib diisi.',
+            'hari_imunisasi.required' => 'Hari imunisasi wajib diisi.',
+            'hari_imunisasi.numeric' => 'Hari imunisasi harus berupa angka.',
+            'hari_imunisasi.min' => 'Hari imunisasi minimal 1.',
+            'hari_imunisasi.max' => 'Hari imunisasi maksimal 31.',
+            'bulan_imunisasi.required' => 'Bulan imunisasi wajib diisi.',
+            'bulan_imunisasi.numeric' => 'Bulan imunisasi harus berupa angka.',
+            'bulan_imunisasi.min' => 'Bulan imunisasi minimal 1.',
+            'bulan_imunisasi.max' => 'Bulan imunisasi maksimal 12.',
+            'tahun_imunisasi.required' => 'Tahun imunisasi wajib diisi.',
+            'tahun_imunisasi.numeric' => 'Tahun imunisasi harus berupa angka.',
+            'tahun_imunisasi.min' => 'Tahun imunisasi minimal 1900.',
+            'tahun_imunisasi.max' => 'Tahun imunisasi maksimal ' . date('Y') . '.',
             'tanggal_imunisasi.required' => 'Tanggal imunisasi wajib diisi.',
             'tanggal_imunisasi.date' => 'Tanggal imunisasi tidak valid.',
+            'tinggi_badan.numeric' => 'Tinggi badan harus berupa angka.',
+            'tinggi_badan.min' => 'Tinggi badan minimal 0 cm.',
+            'tinggi_badan.max' => 'Tinggi badan maksimal 300 cm.',
+            'berat_badan.numeric' => 'Berat badan harus berupa angka.',
+            'berat_badan.min' => 'Berat badan minimal 0 kg.',
+            'berat_badan.max' => 'Berat badan maksimal 300 kg.',
         ]);
 
         $data = [
@@ -106,6 +134,8 @@ class KaderImunisasi extends Component
             'kategori_sasaran' => $this->kategori_sasaran_imunisasi,
             'jenis_imunisasi' => $this->jenis_imunisasi,
             'tanggal_imunisasi' => $this->tanggal_imunisasi,
+            'tinggi_badan' => $this->tinggi_badan !== '' ? $this->tinggi_badan : null,
+            'berat_badan' => $this->berat_badan !== '' ? $this->berat_badan : null,
             'keterangan' => $this->keterangan,
         ];
 

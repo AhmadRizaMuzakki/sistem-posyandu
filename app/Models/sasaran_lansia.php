@@ -20,6 +20,7 @@ class sasaran_lansia extends Model
         'jenis_kelamin',
         'umur_sasaran',
         'pekerjaan',
+        'pendidikan',
         'nik_orangtua',
         'alamat_sasaran',
         'rt',

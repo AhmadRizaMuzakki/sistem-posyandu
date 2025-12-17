@@ -16,11 +16,15 @@ class Imunisasi extends Model
         'kategori_sasaran',
         'jenis_imunisasi',
         'tanggal_imunisasi',
+        'tinggi_badan',
+        'berat_badan',
         'keterangan',
     ];
 
     protected $casts = [
         'tanggal_imunisasi' => 'date',
+        'tinggi_badan' => 'decimal:2',
+        'berat_badan' => 'decimal:2',
     ];
 
     // Relasi ke Posyandu

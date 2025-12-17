@@ -235,7 +235,39 @@
                             </div>
                             <div>
                                 <label class="block text-gray-700 text-sm font-bold mb-2">Tanggal Lahir Suami</label>
-                                <input type="date" wire:model="tanggal_lahir_suami_ibuhamil" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-primary focus:border-primary">
+                                <div class="grid grid-cols-3 gap-2">
+                                    <div>
+                                        <select wire:model="hari_lahir_suami_ibuhamil" class="shadow border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-primary focus:border-primary">
+                                            <option value="">Hari</option>
+                                            @for($i = 1; $i <= 31; $i++)
+                                                <option value="{{ $i }}">{{ $i }}</option>
+                                            @endfor
+                                        </select>
+                                        @error('hari_lahir_suami_ibuhamil') <span class="text-red-500 text-xs">{{ $message }}</span>@enderror
+                                    </div>
+                                    <div>
+                                        <select wire:model="bulan_lahir_suami_ibuhamil" class="shadow border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-primary focus:border-primary">
+                                            <option value="">Bulan</option>
+                                            <option value="1">Januari</option>
+                                            <option value="2">Februari</option>
+                                            <option value="3">Maret</option>
+                                            <option value="4">April</option>
+                                            <option value="5">Mei</option>
+                                            <option value="6">Juni</option>
+                                            <option value="7">Juli</option>
+                                            <option value="8">Agustus</option>
+                                            <option value="9">September</option>
+                                            <option value="10">Oktober</option>
+                                            <option value="11">November</option>
+                                            <option value="12">Desember</option>
+                                        </select>
+                                        @error('bulan_lahir_suami_ibuhamil') <span class="text-red-500 text-xs">{{ $message }}</span>@enderror
+                                    </div>
+                                    <div>
+                                        <input type="number" wire:model="tahun_lahir_suami_ibuhamil" min="1900" max="{{ date('Y') }}" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-primary focus:border-primary" placeholder="Tahun">
+                                        @error('tahun_lahir_suami_ibuhamil') <span class="text-red-500 text-xs">{{ $message }}</span>@enderror
+                                    </div>
+                                </div>
                                 @error('tanggal_lahir_suami_ibuhamil') <span class="text-red-500 text-xs">{{ $message }}</span>@enderror
                             </div>
                             <div>

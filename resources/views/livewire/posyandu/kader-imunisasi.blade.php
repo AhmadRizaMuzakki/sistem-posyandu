@@ -216,10 +216,83 @@
                                 {{-- Tanggal Imunisasi --}}
                                 <div>
                                     <label class="block text-gray-700 text-sm font-bold mb-2">Tanggal Imunisasi <span class="text-red-500">*</span></label>
-                                    <input type="date" 
-                                           wire:model="tanggal_imunisasi" 
-                                           class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-primary focus:border-primary">
+                                    <div class="grid grid-cols-3 gap-2">
+                                        <div>
+                                            <select wire:model="hari_imunisasi"
+                                                    class="shadow border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-primary focus:border-primary">
+                                                <option value="">Hari</option>
+                                                @for($i = 1; $i <= 31; $i++)
+                                                    <option value="{{ $i }}">{{ $i }}</option>
+                                                @endfor
+                                            </select>
+                                            @error('hari_imunisasi') <span class="text-red-500 text-xs">{{ $message }}</span>@enderror
+                                        </div>
+                                        <div>
+                                            <select wire:model="bulan_imunisasi"
+                                                    class="shadow border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-primary focus:border-primary">
+                                                <option value="">Bulan</option>
+                                                <option value="1">Januari</option>
+                                                <option value="2">Februari</option>
+                                                <option value="3">Maret</option>
+                                                <option value="4">April</option>
+                                                <option value="5">Mei</option>
+                                                <option value="6">Juni</option>
+                                                <option value="7">Juli</option>
+                                                <option value="8">Agustus</option>
+                                                <option value="9">September</option>
+                                                <option value="10">Oktober</option>
+                                                <option value="11">November</option>
+                                                <option value="12">Desember</option>
+                                            </select>
+                                            @error('bulan_imunisasi') <span class="text-red-500 text-xs">{{ $message }}</span>@enderror
+                                        </div>
+                                        <div>
+                                            <input type="number"
+                                                   wire:model="tahun_imunisasi"
+                                                   min="1900"
+                                                   max="{{ date('Y') }}"
+                                                   class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-primary focus:border-primary"
+                                                   placeholder="Tahun">
+                                            @error('tahun_imunisasi') <span class="text-red-500 text-xs">{{ $message }}</span>@enderror
+                                        </div>
+                                    </div>
                                     @error('tanggal_imunisasi') <span class="text-red-500 text-xs">{{ $message }}</span>@enderror
+                                </div>
+
+                                {{-- Tinggi & Berat Badan --}}
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                    <div>
+                                        <label class="block text-gray-700 text-sm font-bold mb-2">Tinggi Badan</label>
+                                        <div class="flex">
+                                            <input type="number"
+                                                   step="0.1"
+                                                   min="0"
+                                                   max="300"
+                                                   wire:model="tinggi_badan"
+                                                   class="shadow appearance-none border border-r-0 rounded-l w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-primary focus:border-primary"
+                                                   placeholder="Contoh: 120">
+                                            <span class="inline-flex items-center px-3 border border-l-0 rounded-r bg-gray-50 text-gray-500 text-sm">
+                                                cm
+                                            </span>
+                                        </div>
+                                        @error('tinggi_badan') <span class="text-red-500 text-xs">{{ $message }}</span>@enderror
+                                    </div>
+                                    <div>
+                                        <label class="block text-gray-700 text-sm font-bold mb-2">Berat Badan</label>
+                                        <div class="flex">
+                                            <input type="number"
+                                                   step="0.1"
+                                                   min="0"
+                                                   max="300"
+                                                   wire:model="berat_badan"
+                                                   class="shadow appearance-none border border-r-0 rounded-l w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-primary focus:border-primary"
+                                                   placeholder="Contoh: 25">
+                                            <span class="inline-flex items-center px-3 border border-l-0 rounded-r bg-gray-50 text-gray-500 text-sm">
+                                                kg
+                                            </span>
+                                        </div>
+                                        @error('berat_badan') <span class="text-red-500 text-xs">{{ $message }}</span>@enderror
+                                    </div>
                                 </div>
 
                                 {{-- Keterangan --}}

@@ -24,6 +24,7 @@ trait PralansiaCrud
     public $jenis_kelamin_pralansia;
     public $umur_sasaran_pralansia;
     public $pekerjaan_pralansia;
+    public $pendidikan_pralansia;
     public $alamat_sasaran_pralansia;
     public $rt_pralansia;
     public $rw_pralansia;
@@ -73,6 +74,7 @@ trait PralansiaCrud
         $this->jenis_kelamin_pralansia = '';
         $this->umur_sasaran_pralansia = '';
         $this->pekerjaan_pralansia = '';
+        $this->pendidikan_pralansia = '';
         $this->alamat_sasaran_pralansia = '';
         $this->rt_pralansia = '';
         $this->rw_pralansia = '';
@@ -99,6 +101,7 @@ trait PralansiaCrud
             'tanggal_lahir_pralansia' => 'required|date',
             'jenis_kelamin_pralansia' => 'required|in:Laki-laki,Perempuan',
             'alamat_sasaran_pralansia' => 'required|string|max:225',
+            'pendidikan_pralansia' => 'nullable|string',
         ], [
             'nama_sasaran_pralansia.required' => 'Nama sasaran wajib diisi.',
             'nik_sasaran_pralansia.required' => 'NIK wajib diisi.',
@@ -121,6 +124,7 @@ trait PralansiaCrud
             'jenis_kelamin_pralansia.in' => 'Jenis kelamin harus Laki-laki atau Perempuan.',
             'alamat_sasaran_pralansia.required' => 'Alamat wajib diisi.',
             'alamat_sasaran_pralansia.max' => 'Alamat maksimal 225 karakter.',
+            'pendidikan_pralansia.string' => 'Pendidikan harus berupa teks.',
         ]);
 
         // Hitung umur dari tanggal_lahir_pralansia
@@ -164,6 +168,7 @@ trait PralansiaCrud
             'jenis_kelamin' => $this->jenis_kelamin_pralansia,
             'umur_sasaran' => $umur,
             'pekerjaan' => $this->pekerjaan_pralansia ?: null,
+            'pendidikan' => $this->pendidikan_pralansia ?: null,
             'nik_orangtua' => $nik_orangtua,
             'alamat_sasaran' => $this->alamat_sasaran_pralansia,
             'rt' => $this->rt_pralansia ?: null,
@@ -220,6 +225,7 @@ trait PralansiaCrud
             ? Carbon::parse($pralansia->tanggal_lahir)->age
             : $pralansia->umur_sasaran;
         $this->pekerjaan_pralansia = $pralansia->pekerjaan ?? '';
+        $this->pendidikan_pralansia = $pralansia->pendidikan ?? '';
         $this->alamat_sasaran_pralansia = $pralansia->alamat_sasaran ?? '';
         $this->rt_pralansia = $pralansia->rt ?? '';
         $this->rw_pralansia = $pralansia->rw ?? '';

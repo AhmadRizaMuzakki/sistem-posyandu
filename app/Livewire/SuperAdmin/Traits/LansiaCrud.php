@@ -24,6 +24,7 @@ trait LansiaCrud
     public $jenis_kelamin_lansia;
     public $umur_sasaran_lansia;
     public $pekerjaan_lansia;
+    public $pendidikan_lansia;
     public $alamat_sasaran_lansia;
     public $rt_lansia;
     public $rw_lansia;
@@ -73,6 +74,7 @@ trait LansiaCrud
         $this->jenis_kelamin_lansia = '';
         $this->umur_sasaran_lansia = '';
         $this->pekerjaan_lansia = '';
+        $this->pendidikan_lansia = '';
         $this->alamat_sasaran_lansia = '';
         $this->rt_lansia = '';
         $this->rw_lansia = '';
@@ -99,6 +101,7 @@ trait LansiaCrud
             'tanggal_lahir_lansia' => 'required|date',
             'jenis_kelamin_lansia' => 'required|in:Laki-laki,Perempuan',
             'alamat_sasaran_lansia' => 'required|string|max:225',
+            'pendidikan_lansia' => 'nullable|string',
         ], [
             'nama_sasaran_lansia.required' => 'Nama sasaran wajib diisi.',
             'nik_sasaran_lansia.required' => 'NIK wajib diisi.',
@@ -121,6 +124,7 @@ trait LansiaCrud
             'jenis_kelamin_lansia.in' => 'Jenis kelamin harus Laki-laki atau Perempuan.',
             'alamat_sasaran_lansia.required' => 'Alamat wajib diisi.',
             'alamat_sasaran_lansia.max' => 'Alamat maksimal 225 karakter.',
+            'pendidikan_lansia.string' => 'Pendidikan harus berupa teks.',
         ]);
 
         // Hitung umur dari tanggal_lahir_lansia
@@ -164,6 +168,7 @@ trait LansiaCrud
             'jenis_kelamin' => $this->jenis_kelamin_lansia,
             'umur_sasaran' => $umur,
             'pekerjaan' => $this->pekerjaan_lansia ?: null,
+            'pendidikan' => $this->pendidikan_lansia ?: null,
             'nik_orangtua' => $nik_orangtua,
             'alamat_sasaran' => $this->alamat_sasaran_lansia,
             'rt' => $this->rt_lansia ?: null,
@@ -220,6 +225,7 @@ trait LansiaCrud
             ? Carbon::parse($lansia->tanggal_lahir)->age
             : $lansia->umur_sasaran;
         $this->pekerjaan_lansia = $lansia->pekerjaan ?? '';
+        $this->pendidikan_lansia = $lansia->pendidikan ?? '';
         $this->alamat_sasaran_lansia = $lansia->alamat_sasaran ?? '';
         $this->rt_lansia = $lansia->rt ?? '';
         $this->rw_lansia = $lansia->rw ?? '';

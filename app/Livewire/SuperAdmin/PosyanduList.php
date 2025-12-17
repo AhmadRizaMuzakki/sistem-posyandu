@@ -257,6 +257,38 @@ class PosyanduList extends Component
     }
 
     /**
+     * Hapus logo posyandu saja (tanpa menghapus data posyandu)
+     */
+    public function deleteLogo($id)
+    {
+        try {
+            $posyandu = Posyandu::find($id);
+            if (!$posyandu) {
+                session()->flash('message', 'Posyandu tidak ditemukan.');
+                session()->flash('messageType', 'error');
+                return;
+            }
+
+            if ($posyandu->logo_posyandu) {
+                $oldPath = str_replace('/storage/', '', $posyandu->logo_posyandu);
+                if (Storage::disk('public')->exists($oldPath)) {
+                    Storage::disk('public')->delete($oldPath);
+                }
+            }
+
+            $posyandu->update(['logo_posyandu' => null]);
+
+            $this->loadPosyandu();
+
+            session()->flash('message', 'Logo posyandu berhasil dihapus.');
+            session()->flash('messageType', 'success');
+        } catch (\Exception $e) {
+            session()->flash('message', 'Gagal menghapus logo posyandu: ' . $e->getMessage());
+            session()->flash('messageType', 'error');
+        }
+    }
+
+    /**
      * Updated search - reload data
      */
     public function updatedSearch()

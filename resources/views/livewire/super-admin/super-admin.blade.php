@@ -43,13 +43,24 @@
         </div>
 
         <!-- Grafik Jumlah Sasaran per Kategori -->
-        <div class="bg-white rounded-lg shadow-md p-6">
+        <div class="bg-white rounded-lg shadow-md p-6 mb-6">
             <h2 class="text-xl font-semibold text-gray-800 mb-4 flex items-center">
                 <i class="ph ph-chart-bar text-2xl mr-3 text-primary"></i>
                 Grafik Jumlah Sasaran per Kategori
             </h2>
             <div class="h-96">
                 <canvas id="sasaranCategoryChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Grafik Pendidikan Sasaran -->
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <h2 class="text-xl font-semibold text-gray-800 mb-4 flex items-center">
+                <i class="ph ph-graduation-cap text-2xl mr-3 text-primary"></i>
+                Grafik Pendidikan Sasaran (Remaja, Dewasa, Ibu Hamil, Pralansia, Lansia)
+            </h2>
+            <div class="h-96">
+                <canvas id="pendidikanChart"></canvas>
             </div>
         </div>
     </div>
@@ -213,6 +224,69 @@
                         title: {
                             display: true,
                             text: 'Kategori Sasaran'
+                        }
+                    }
+                }
+            }
+        });
+
+        // Grafik Pendidikan Sasaran (gabungan)
+        const pendidikanData = @json($pendidikanData);
+        const pendidikanLabels = pendidikanData.labels;
+        const pendidikanCounts = pendidikanData.data;
+
+        const pendidikanCtx = document.getElementById('pendidikanChart').getContext('2d');
+        new Chart(pendidikanCtx, {
+            type: 'bar',
+            data: {
+                labels: pendidikanLabels,
+                datasets: [{
+                    label: 'Jumlah Sasaran',
+                    data: pendidikanCounts,
+                    backgroundColor: 'rgba(56, 189, 248, 0.8)',
+                    borderColor: 'rgba(56, 189, 248, 1)',
+                    borderWidth: 2,
+                    borderRadius: 8,
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'top',
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return context.label + ': ' + context.parsed.y + ' orang';
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            stepSize: 1,
+                            callback: function(value) {
+                                return value + ' orang';
+                            }
+                        },
+                        title: {
+                            display: true,
+                            text: 'Jumlah Sasaran'
+                        }
+                    },
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Pendidikan'
+                        },
+                        ticks: {
+                            maxRotation: 45,
+                            minRotation: 45
                         }
                     }
                 }

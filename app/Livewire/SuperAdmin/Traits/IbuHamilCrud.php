@@ -36,6 +36,9 @@ trait IbuHamilCrud
     public $tempat_lahir_suami_ibuhamil;
     public $tanggal_lahir_suami_ibuhamil;
     public $pekerjaan_suami_ibuhamil;
+    public $hari_lahir_suami_ibuhamil;
+    public $bulan_lahir_suami_ibuhamil;
+    public $tahun_lahir_suami_ibuhamil;
 
     /**
      * Buka modal tambah/edit Sasaran Ibu Hamil
@@ -89,6 +92,9 @@ trait IbuHamilCrud
         $this->tempat_lahir_suami_ibuhamil = '';
         $this->tanggal_lahir_suami_ibuhamil = '';
         $this->pekerjaan_suami_ibuhamil = '';
+        $this->hari_lahir_suami_ibuhamil = '';
+        $this->bulan_lahir_suami_ibuhamil = '';
+        $this->tahun_lahir_suami_ibuhamil = '';
     }
 
     /**
@@ -98,6 +104,7 @@ trait IbuHamilCrud
     {
         // Combine hari, bulan, tahun menjadi tanggal lahir sebelum validasi
         $this->combineTanggalLahirIbuhamil();
+        $this->combineTanggalLahirSuamiIbuhamil();
 
         $this->validate([
             'nama_sasaran_ibuhamil' => 'required|string|max:100',
@@ -217,6 +224,16 @@ trait IbuHamilCrud
         $this->nik_suami_ibuhamil = $ibuhamil->nik_suami ?? '';
         $this->tempat_lahir_suami_ibuhamil = $ibuhamil->tempat_lahir_suami ?? '';
         $this->tanggal_lahir_suami_ibuhamil = $ibuhamil->tanggal_lahir_suami ? $ibuhamil->tanggal_lahir_suami->format('Y-m-d') : '';
+        if ($ibuhamil->tanggal_lahir_suami) {
+            $dateSuami = Carbon::parse($ibuhamil->tanggal_lahir_suami);
+            $this->hari_lahir_suami_ibuhamil = $dateSuami->day;
+            $this->bulan_lahir_suami_ibuhamil = $dateSuami->month;
+            $this->tahun_lahir_suami_ibuhamil = $dateSuami->year;
+        } else {
+            $this->hari_lahir_suami_ibuhamil = '';
+            $this->bulan_lahir_suami_ibuhamil = '';
+            $this->tahun_lahir_suami_ibuhamil = '';
+        }
         $this->pekerjaan_suami_ibuhamil = $ibuhamil->pekerjaan_suami ?? '';
 
         $this->isSasaranIbuHamilModalOpen = true;
@@ -250,6 +267,26 @@ trait IbuHamilCrud
             }
         } else {
             $this->tanggal_lahir_ibuhamil = null;
+        }
+    }
+
+    /**
+     * Combine hari, bulan, tahun menjadi tanggal lahir suami
+     */
+    private function combineTanggalLahirSuamiIbuhamil()
+    {
+        if ($this->hari_lahir_suami_ibuhamil && $this->bulan_lahir_suami_ibuhamil && $this->tahun_lahir_suami_ibuhamil) {
+            try {
+                $this->tanggal_lahir_suami_ibuhamil = Carbon::create(
+                    $this->tahun_lahir_suami_ibuhamil,
+                    $this->bulan_lahir_suami_ibuhamil,
+                    $this->hari_lahir_suami_ibuhamil
+                )->format('Y-m-d');
+            } catch (\Exception $e) {
+                $this->tanggal_lahir_suami_ibuhamil = null;
+            }
+        } else {
+            $this->tanggal_lahir_suami_ibuhamil = null;
         }
     }
 
