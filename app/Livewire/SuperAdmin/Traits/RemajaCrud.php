@@ -190,18 +190,48 @@ trait RemajaCrud
         ]);
 
         // Simpan/Update data orangtua
+        // Cari orangtua berdasarkan no_kk dan alamat dari remaja
         $orangtuaData = [
             'nik' => $this->nik_orangtua_remaja,
             'nama' => $this->nama_orangtua_remaja,
+            'no_kk' => $this->no_kk_sasaran_remaja, // Gunakan no_kk dari remaja
             'tempat_lahir' => $this->tempat_lahir_orangtua_remaja,
             'tanggal_lahir' => $this->tanggal_lahir_orangtua_remaja,
             'pekerjaan' => $this->pekerjaan_orangtua_remaja,
             'pendidikan' => $this->pendidikan_orangtua_remaja ?: null,
             'kelamin' => $this->kelamin_orangtua_remaja,
+            'alamat' => $this->alamat_sasaran_remaja, // Gunakan alamat dari remaja
             'kepersertaan_bpjs' => $this->kepersertaan_bpjs_orangtua_remaja ?: null,
             'nomor_bpjs' => $this->nomor_bpjs_orangtua_remaja ?: null,
             'nomor_telepon' => $this->nomor_telepon_orangtua_remaja ?: null,
         ];
+
+        // Update atau create orangtua berdasarkan nik, no_kk, dan alamat
+        // Jika ada remaja dengan no_kk dan alamat yang sama, gunakan data orangtua dari remaja tersebut
+        $existingRemaja = SasaranRemaja::where('no_kk_sasaran', $this->no_kk_sasaran_remaja)
+            ->where('alamat_sasaran', $this->alamat_sasaran_remaja)
+            ->whereNotNull('nik_orangtua')
+            ->first();
+
+        if ($existingRemaja && $existingRemaja->nik_orangtua) {
+            // Gunakan nik orangtua yang sudah ada dari remaja dengan no_kk dan alamat yang sama
+            $orangtuaData['nik'] = $existingRemaja->nik_orangtua;
+            $this->nik_orangtua_remaja = $existingRemaja->nik_orangtua;
+
+            // Update data orangtua jika ada perubahan
+            $existingOrangtua = Orangtua::find($existingRemaja->nik_orangtua);
+            if ($existingOrangtua) {
+                $orangtuaData['nama'] = $existingOrangtua->nama ?? $this->nama_orangtua_remaja;
+                $orangtuaData['tempat_lahir'] = $existingOrangtua->tempat_lahir ?? $this->tempat_lahir_orangtua_remaja;
+                $orangtuaData['tanggal_lahir'] = $existingOrangtua->tanggal_lahir ?? $this->tanggal_lahir_orangtua_remaja;
+                $orangtuaData['pekerjaan'] = $existingOrangtua->pekerjaan ?? $this->pekerjaan_orangtua_remaja;
+                $orangtuaData['pendidikan'] = $existingOrangtua->pendidikan ?? ($this->pendidikan_orangtua_remaja ?: null);
+                $orangtuaData['kelamin'] = $existingOrangtua->kelamin ?? $this->kelamin_orangtua_remaja;
+                $orangtuaData['kepersertaan_bpjs'] = $existingOrangtua->kepersertaan_bpjs ?? ($this->kepersertaan_bpjs_orangtua_remaja ?: null);
+                $orangtuaData['nomor_bpjs'] = $existingOrangtua->nomor_bpjs ?? ($this->nomor_bpjs_orangtua_remaja ?: null);
+                $orangtuaData['nomor_telepon'] = $existingOrangtua->nomor_telepon ?? ($this->nomor_telepon_orangtua_remaja ?: null);
+            }
+        }
 
         // Update atau create orangtua
         $orangtua = Orangtua::updateOrCreate(

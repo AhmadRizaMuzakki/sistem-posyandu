@@ -3,57 +3,29 @@
 namespace App\Livewire\Posyandu;
 
 use App\Livewire\SuperAdmin\Traits\ImunisasiCrud;
+use App\Livewire\Posyandu\Traits\PosyanduHelper;
+use App\Livewire\Posyandu\Traits\PosyanduCrudTrait;
 use App\Models\Imunisasi;
-use App\Models\Kader;
-use App\Models\Posyandu;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
 use Livewire\Attributes\Layout;
 
 class KaderImunisasi extends Component
 {
-    use ImunisasiCrud;
+    use ImunisasiCrud {
+        ImunisasiCrud::storeImunisasi as traitStoreImunisasi;
+        ImunisasiCrud::editImunisasi as traitEditImunisasi;
+        ImunisasiCrud::deleteImunisasi as traitDeleteImunisasi;
+    }
+    use PosyanduHelper, PosyanduCrudTrait;
 
-    public $posyandu;
-    public $posyanduId;
     public $search = '';
 
     #[Layout('layouts.posyandudashboard')]
 
     public function mount()
     {
-        // Ambil posyandu dari kader yang login
-        $user = Auth::user();
-        $kader = Kader::where('id_users', $user->id)->first();
-
-        if (!$kader) {
-            abort(403, 'Anda bukan kader terdaftar.');
-        }
-
-        $this->posyanduId = $kader->id_posyandu;
-        $this->loadPosyandu();
-    }
-
-    /**
-     * Load data posyandu
-     */
-    private function loadPosyandu()
-    {
-        $posyandu = Posyandu::find($this->posyanduId);
-
-        if (!$posyandu) {
-            abort(404, 'Posyandu tidak ditemukan');
-        }
-
-        $this->posyandu = $posyandu;
-    }
-
-    /**
-     * Refresh data posyandu (agar Livewire view update)
-     */
-    protected function refreshPosyandu()
-    {
-        $this->loadPosyandu();
+        $this->initializePosyandu();
     }
 
     /**
@@ -73,6 +45,26 @@ class KaderImunisasi extends Component
     }
 
     /**
+     * Override editImunisasi untuk validasi posyandu
+     */
+    public function editImunisasi($id)
+    {
+        $imunisasi = Imunisasi::findOrFail($id);
+        $this->validateSasaranPosyanduAccess($imunisasi, 'id_posyandu');
+        $this->traitEditImunisasi($id);
+    }
+
+    /**
+     * Override deleteImunisasi untuk validasi posyandu
+     */
+    public function deleteImunisasi($id)
+    {
+        $imunisasi = Imunisasi::findOrFail($id);
+        $this->validateSasaranPosyanduAccess($imunisasi, 'id_posyandu');
+        $this->traitDeleteImunisasi($id);
+    }
+
+    /**
      * Override updatedIdSasaranImunisasi untuk memastikan method bisa dipanggil
      * Method ini dipanggil otomatis oleh Livewire ketika id_sasaran_imunisasi berubah
      */
@@ -81,19 +73,19 @@ class KaderImunisasi extends Component
         if ($value && !empty($this->sasaranList)) {
             // Cari sasaran dari list berdasarkan ID
             $sasaran = null;
-            
+
             // Jika sudah ada kategori, cari yang sesuai dengan ID dan kategori
             if ($this->kategori_sasaran_imunisasi) {
                 $sasaran = collect($this->sasaranList)->first(function($s) use ($value) {
                     return $s['id'] == $value && $s['kategori'] == $this->kategori_sasaran_imunisasi;
                 });
             }
-            
+
             // Jika tidak ditemukan dengan kategori, cari berdasarkan ID saja
             if (!$sasaran) {
                 $sasaran = collect($this->sasaranList)->firstWhere('id', $value);
             }
-            
+
             if ($sasaran && isset($sasaran['kategori'])) {
                 // Set kategori langsung dari list untuk menghindari konflik ID
                 $this->kategori_sasaran_imunisasi = $sasaran['kategori'];
@@ -108,81 +100,17 @@ class KaderImunisasi extends Component
      */
     public function storeImunisasi()
     {
-        // Pastikan posyandu sesuai dengan kader
-        $this->id_posyandu_imunisasi = $this->posyanduId;
+        // Validasi dan set posyandu dari kader
+        $this->id_posyandu_imunisasi = $this->validatePosyanduAccess($this->id_posyandu_imunisasi ?? null);
 
-         // Gabungkan hari, bulan, tahun menjadi tanggal imunisasi
-        if (method_exists($this, 'combineTanggalImunisasi')) {
-            $this->combineTanggalImunisasi();
+        // Jika edit, validasi akses
+        if ($this->id_imunisasi) {
+            $imunisasi = Imunisasi::findOrFail($this->id_imunisasi);
+            $this->validateSasaranPosyanduAccess($imunisasi, 'id_posyandu');
         }
 
         // Panggil method dari trait
-        $this->validate([
-            'id_posyandu_imunisasi' => 'required|exists:posyandu,id_posyandu',
-            'id_sasaran_imunisasi' => 'required',
-            'kategori_sasaran_imunisasi' => 'required|in:bayibalita,remaja,dewasa,pralansia,lansia',
-            'jenis_imunisasi' => 'required|string|max:255',
-            'hari_imunisasi' => 'required|numeric|min:1|max:31',
-            'bulan_imunisasi' => 'required|numeric|min:1|max:12',
-            'tahun_imunisasi' => 'required|numeric|min:1900|max:' . date('Y'),
-            'tanggal_imunisasi' => 'required|date',
-            'tinggi_badan' => 'nullable|numeric|min:0|max:300',
-            'berat_badan' => 'nullable|numeric|min:0|max:300',
-            'keterangan' => 'nullable|string',
-        ], [
-            'id_posyandu_imunisasi.required' => 'Posyandu wajib dipilih.',
-            'id_posyandu_imunisasi.exists' => 'Posyandu yang dipilih tidak valid.',
-            'id_sasaran_imunisasi.required' => 'Sasaran wajib dipilih.',
-            'kategori_sasaran_imunisasi.required' => 'Kategori sasaran wajib dipilih.',
-            'kategori_sasaran_imunisasi.in' => 'Kategori sasaran tidak valid.',
-            'jenis_imunisasi.required' => 'Jenis imunisasi wajib diisi.',
-            'hari_imunisasi.required' => 'Hari imunisasi wajib diisi.',
-            'hari_imunisasi.numeric' => 'Hari imunisasi harus berupa angka.',
-            'hari_imunisasi.min' => 'Hari imunisasi minimal 1.',
-            'hari_imunisasi.max' => 'Hari imunisasi maksimal 31.',
-            'bulan_imunisasi.required' => 'Bulan imunisasi wajib diisi.',
-            'bulan_imunisasi.numeric' => 'Bulan imunisasi harus berupa angka.',
-            'bulan_imunisasi.min' => 'Bulan imunisasi minimal 1.',
-            'bulan_imunisasi.max' => 'Bulan imunisasi maksimal 12.',
-            'tahun_imunisasi.required' => 'Tahun imunisasi wajib diisi.',
-            'tahun_imunisasi.numeric' => 'Tahun imunisasi harus berupa angka.',
-            'tahun_imunisasi.min' => 'Tahun imunisasi minimal 1900.',
-            'tahun_imunisasi.max' => 'Tahun imunisasi maksimal ' . date('Y') . '.',
-            'tanggal_imunisasi.required' => 'Tanggal imunisasi wajib diisi.',
-            'tanggal_imunisasi.date' => 'Tanggal imunisasi tidak valid.',
-            'tinggi_badan.numeric' => 'Tinggi badan harus berupa angka.',
-            'tinggi_badan.min' => 'Tinggi badan minimal 0 cm.',
-            'tinggi_badan.max' => 'Tinggi badan maksimal 300 cm.',
-            'berat_badan.numeric' => 'Berat badan harus berupa angka.',
-            'berat_badan.min' => 'Berat badan minimal 0 kg.',
-            'berat_badan.max' => 'Berat badan maksimal 300 kg.',
-        ]);
-
-        $data = [
-            'id_posyandu' => $this->id_posyandu_imunisasi,
-            'id_users' => Auth::id(),
-            'id_sasaran' => $this->id_sasaran_imunisasi,
-            'kategori_sasaran' => $this->kategori_sasaran_imunisasi,
-            'jenis_imunisasi' => $this->jenis_imunisasi,
-            'tanggal_imunisasi' => $this->tanggal_imunisasi,
-            'tinggi_badan' => $this->tinggi_badan !== '' ? $this->tinggi_badan : null,
-            'berat_badan' => $this->berat_badan !== '' ? $this->berat_badan : null,
-            'keterangan' => $this->keterangan,
-        ];
-
-        if ($this->id_imunisasi) {
-            // UPDATE
-            $imunisasi = Imunisasi::findOrFail($this->id_imunisasi);
-            $imunisasi->update($data);
-            session()->flash('message', 'Data Imunisasi berhasil diperbarui.');
-        } else {
-            // CREATE
-            Imunisasi::create($data);
-            session()->flash('message', 'Data Imunisasi berhasil ditambahkan.');
-        }
-
-        $this->refreshPosyandu();
-        $this->closeImunisasiModal();
+        $this->traitStoreImunisasi();
     }
 
     public function render()

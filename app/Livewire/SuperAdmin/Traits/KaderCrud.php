@@ -6,6 +6,7 @@ use App\Models\User;
 use App\Models\Kader;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Carbon\Carbon;
 
 trait KaderCrud
 {
@@ -22,6 +23,9 @@ trait KaderCrud
     public $nik_kader;
     public $id_users; // Biasanya diisi oleh sistem/database
     public $tanggal_lahir;
+    public $hari_lahir;
+    public $bulan_lahir;
+    public $tahun_lahir;
     public $alamat_kader;
     public $jabatan_kader;
 
@@ -61,6 +65,9 @@ trait KaderCrud
         $this->posyandu_id_kader = '';
         $this->nik_kader = '';
         $this->tanggal_lahir = '';
+        $this->hari_lahir = '';
+        $this->bulan_lahir = '';
+        $this->tahun_lahir = '';
         $this->alamat_kader = '';
         $this->jabatan_kader = '';
     }
@@ -113,11 +120,17 @@ trait KaderCrud
             }
         }
 
+        // Gabungkan hari, bulan, tahun menjadi tanggal lahir
+        $this->combineTanggalLahir();
+
         // Validasi: email dan password hanya required jika password diisi (untuk membuat user)
         $rules = [
             'nama_kader' => 'required|string|max:255',
             'posyandu_id_kader' => 'required|exists:posyandu,id_posyandu',
             'nik_kader' => 'required|string|max:50',
+            'hari_lahir' => 'required|numeric|min:1|max:31',
+            'bulan_lahir' => 'required|numeric|min:1|max:12',
+            'tahun_lahir' => 'required|numeric|min:1900|max:' . date('Y'),
             'tanggal_lahir' => 'required|date',
             'alamat_kader' => 'required|string|max:255',
             'jabatan_kader' => 'required|string|max:100',
@@ -128,6 +141,18 @@ trait KaderCrud
             'posyandu_id_kader.required' => 'Posyandu wajib dipilih.',
             'posyandu_id_kader.exists' => 'Posyandu yang dipilih tidak valid.',
             'nik_kader.required' => 'NIK kader wajib diisi.',
+            'hari_lahir.required' => 'Hari lahir wajib diisi.',
+            'hari_lahir.numeric' => 'Hari lahir harus berupa angka.',
+            'hari_lahir.min' => 'Hari lahir minimal 1.',
+            'hari_lahir.max' => 'Hari lahir maksimal 31.',
+            'bulan_lahir.required' => 'Bulan lahir wajib diisi.',
+            'bulan_lahir.numeric' => 'Bulan lahir harus berupa angka.',
+            'bulan_lahir.min' => 'Bulan lahir minimal 1.',
+            'bulan_lahir.max' => 'Bulan lahir maksimal 12.',
+            'tahun_lahir.required' => 'Tahun lahir wajib diisi.',
+            'tahun_lahir.numeric' => 'Tahun lahir harus berupa angka.',
+            'tahun_lahir.min' => 'Tahun lahir minimal 1900.',
+            'tahun_lahir.max' => 'Tahun lahir maksimal ' . date('Y') . '.',
             'tanggal_lahir.required' => 'Tanggal lahir wajib diisi.',
             'tanggal_lahir.date' => 'Tanggal lahir tidak valid.',
             'alamat_kader.required' => 'Alamat kader wajib diisi.',
@@ -250,11 +275,44 @@ trait KaderCrud
         $this->posyandu_id_kader = $kader->id_posyandu;
         $this->nik_kader = $kader->nik_kader ?? '';
         $this->tanggal_lahir = $kader->tanggal_lahir ?? '';
+        
+        // Pecah tanggal lahir menjadi hari, bulan, tahun
+        if ($kader->tanggal_lahir) {
+            $tanggal = Carbon::parse($kader->tanggal_lahir);
+            $this->hari_lahir = $tanggal->day;
+            $this->bulan_lahir = $tanggal->month;
+            $this->tahun_lahir = $tanggal->year;
+        } else {
+            $this->hari_lahir = '';
+            $this->bulan_lahir = '';
+            $this->tahun_lahir = '';
+        }
+        
         $this->alamat_kader = $kader->alamat_kader ?? '';
         $this->jabatan_kader = $kader->jabatan_kader ?? '';
         $this->password_kader = '';
 
         $this->isKaderModalOpen = true;
+    }
+
+    /**
+     * Combine hari, bulan, tahun menjadi tanggal lahir
+     */
+    private function combineTanggalLahir()
+    {
+        if ($this->hari_lahir && $this->bulan_lahir && $this->tahun_lahir) {
+            try {
+                $this->tanggal_lahir = Carbon::create(
+                    $this->tahun_lahir,
+                    $this->bulan_lahir,
+                    $this->hari_lahir
+                )->format('Y-m-d');
+            } catch (\Exception $e) {
+                $this->tanggal_lahir = null;
+            }
+        } else {
+            $this->tanggal_lahir = null;
+        }
     }
 
     /**

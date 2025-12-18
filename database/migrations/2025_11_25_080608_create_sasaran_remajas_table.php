@@ -22,8 +22,22 @@ return new class extends Migration
             $table->date('tanggal_lahir')->nullable();
             $table->string('jenis_kelamin')->nullable();
             $table->integer('umur_sasaran')->nullable();
+            $table->enum('pendidikan', [
+                'Tidak/Belum Sekolah',
+                'Tidak Tamat SD/Sederajat',
+                'Tamat SD/Sederajat',
+                'SLTP/Sederajat',
+                'SLTA/Sederajat',
+                'Diploma I/II',
+                'Akademi/Diploma III/Sarjana Muda',
+                'Diploma IV/Strata I',
+                'Strata II',
+                'Strata III'
+            ])->nullable();
             $table->string('nik_orangtua')->nullable();
             $table->text('alamat_sasaran')->nullable();
+            $table->string('rt')->nullable();
+            $table->string('rw')->nullable();
             $table->enum('kepersertaan_bpjs', ['PBI', 'NON PBI'])->default('NON PBI')->nullable();
             $table->string('nomor_bpjs')->nullable();
             $table->string('nomor_telepon')->nullable();

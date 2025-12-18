@@ -24,6 +24,18 @@ return new class extends Migration
             $table->string('jenis_kelamin')->nullable();
             $table->integer('umur_sasaran')->nullable();
             $table->string('pekerjaan')->nullable();
+            $table->enum('pendidikan', [
+                'Tidak/Belum Sekolah',
+                'Tidak Tamat SD/Sederajat',
+                'Tamat SD/Sederajat',
+                'SLTP/Sederajat',
+                'SLTA/Sederajat',
+                'Diploma I/II',
+                'Akademi/Diploma III/Sarjana Muda',
+                'Diploma IV/Strata I',
+                'Strata II',
+                'Strata III'
+            ])->nullable();
             $table->string('nik_orangtua')->nullable();
             $table->text('alamat_sasaran')->nullable();
             $table->string('rt')->nullable();
@@ -51,6 +63,18 @@ return new class extends Migration
             $table->string('jenis_kelamin')->nullable();
             $table->integer('umur_sasaran')->nullable();
             $table->string('pekerjaan')->nullable();
+            $table->enum('pendidikan', [
+                'Tidak/Belum Sekolah',
+                'Tidak Tamat SD/Sederajat',
+                'Tamat SD/Sederajat',
+                'SLTP/Sederajat',
+                'SLTA/Sederajat',
+                'Diploma I/II',
+                'Akademi/Diploma III/Sarjana Muda',
+                'Diploma IV/Strata I',
+                'Strata II',
+                'Strata III'
+            ])->nullable();
             $table->string('nik_orangtua')->nullable();
             $table->text('alamat_sasaran')->nullable();
             $table->string('rt')->nullable();
@@ -78,6 +102,18 @@ return new class extends Migration
             $table->string('jenis_kelamin')->nullable();
             $table->integer('umur_sasaran')->nullable();
             $table->string('pekerjaan')->nullable();
+            $table->enum('pendidikan', [
+                'Tidak/Belum Sekolah',
+                'Tidak Tamat SD/Sederajat',
+                'Tamat SD/Sederajat',
+                'SLTP/Sederajat',
+                'SLTA/Sederajat',
+                'Diploma I/II',
+                'Akademi/Diploma III/Sarjana Muda',
+                'Diploma IV/Strata I',
+                'Strata II',
+                'Strata III'
+            ])->nullable();
             $table->string('nik_orangtua')->nullable();
             $table->text('alamat_sasaran')->nullable();
             $table->string('rt')->nullable();

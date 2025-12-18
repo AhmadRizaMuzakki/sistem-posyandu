@@ -26,7 +26,7 @@
             <div>
                 <p class="text-gray-500">Tanggal Cetak</p>
                 <p class="font-medium text-gray-800">
-                    {{ now()->format('d F Y') }}
+                    {{ \Carbon\Carbon::now('Asia/Jakarta')->format('d F Y') }}
                 </p>
             </div>
         </div>

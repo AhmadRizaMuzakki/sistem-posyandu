@@ -14,6 +14,7 @@ return new class extends Migration
         Schema::create('kader', function (Blueprint $table) {
             $table->id('id_kader');
             $table->string('nik_kader');
+            $table->string('nama_kader')->nullable();
             $table->unsignedBigInteger('id_users')->nullable();
             $table->date('tanggal_lahir')->nullable();
             $table->text('alamat_kader')->nullable();

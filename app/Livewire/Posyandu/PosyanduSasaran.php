@@ -9,94 +9,54 @@ use App\Livewire\SuperAdmin\Traits\PralansiaCrud;
 use App\Livewire\SuperAdmin\Traits\LansiaCrud;
 use App\Livewire\SuperAdmin\Traits\IbuHamilCrud;
 use App\Livewire\SuperAdmin\Traits\OrangtuaCrud;
-use App\Models\Kader;
-use App\Models\Posyandu;
+use App\Livewire\Posyandu\Traits\PosyanduHelper;
+use App\Livewire\Posyandu\Traits\SasaranHelper;
+use App\Livewire\Posyandu\Traits\ModalHelper;
+use App\Livewire\Posyandu\Traits\PosyanduCrudTrait;
 use App\Models\User;
-use App\Models\Orangtua;
-use Illuminate\Support\Facades\Auth;
+use App\Models\SasaranBayibalita;
+use App\Models\SasaranRemaja;
+use App\Models\SasaranDewasa;
+use App\Models\SasaranPralansia;
+use App\Models\SasaranLansia;
+use App\Models\SasaranIbuhamil;
 use Livewire\Component;
 use Livewire\Attributes\Layout;
 
 class PosyanduSasaran extends Component
 {
-    use BalitaCrud, RemajaCrud, DewasaCrud, PralansiaCrud, LansiaCrud, IbuHamilCrud, OrangtuaCrud;
-
-    /**
-     * Simple pseudo-user class for orangtua data
-     */
-    private function createPseudoUser($nama, $email = null)
-    {
-        return new class($nama, $email) {
-            public $name;
-            public $email;
-
-            public function __construct($name, $email = null) {
-                $this->name = $name;
-                $this->email = $email;
-            }
-
-            public function hasRole($role) {
-                return $role === 'orangtua';
-            }
-        };
+    use BalitaCrud {
+        BalitaCrud::storeBalita as traitStoreBalita;
+        BalitaCrud::editBalita as traitEditBalita;
+        BalitaCrud::deleteBalita as traitDeleteBalita;
     }
-
-    /**
-     * Create pseudo-sasaran object for orangtua data
-     */
-    private function createPseudoSasaran($orangtua, $type)
-    {
-        $pseudoUser = $this->createPseudoUser($orangtua->nama);
-
-        return new class($orangtua, $pseudoUser, $type) {
-            public $nik_sasaran;
-            public $nama_sasaran;
-            public $no_kk_sasaran;
-            public $tempat_lahir;
-            public $tanggal_lahir;
-            public $jenis_kelamin;
-            public $umur_sasaran;
-            public $pekerjaan;
-            public $alamat_sasaran;
-            public $kepersertaan_bpjs;
-            public $nomor_bpjs;
-            public $nomor_telepon;
-            public $orangtua;
-            public $user;
-            public $id_sasaran_dewasa;
-            public $id_sasaran_pralansia;
-            public $id_sasaran_lansia;
-
-            public function __construct($orangtua, $pseudoUser, $type) {
-                $this->nik_sasaran = $orangtua->nik;
-                $this->nama_sasaran = $orangtua->nama;
-                $this->no_kk_sasaran = $orangtua->no_kk;
-                $this->tempat_lahir = $orangtua->tempat_lahir;
-                $this->tanggal_lahir = $orangtua->tanggal_lahir;
-                $this->jenis_kelamin = $orangtua->kelamin;
-                $this->umur_sasaran = $orangtua->umur;
-                $this->pekerjaan = $orangtua->pekerjaan;
-                $this->alamat_sasaran = $orangtua->alamat;
-                $this->kepersertaan_bpjs = $orangtua->kepersertaan_bpjs;
-                $this->nomor_bpjs = $orangtua->nomor_bpjs;
-                $this->nomor_telepon = $orangtua->nomor_telepon;
-                $this->orangtua = $orangtua;
-                $this->user = $pseudoUser;
-
-                // Set appropriate ID based on type (all null for orangtua data)
-                $this->id_sasaran_dewasa = null;
-                $this->id_sasaran_pralansia = null;
-                $this->id_sasaran_lansia = null;
-            }
-
-            public function getKey() {
-                return $this->nik_sasaran; // Use NIK as the key for orangtua records
-            }
-        };
+    use RemajaCrud {
+        RemajaCrud::storeRemaja as traitStoreRemaja;
+        RemajaCrud::editRemaja as traitEditRemaja;
+        RemajaCrud::deleteRemaja as traitDeleteRemaja;
     }
-
-    public $posyandu;
-    public $posyanduId;
+    use DewasaCrud {
+        DewasaCrud::storeDewasa as traitStoreDewasa;
+        DewasaCrud::editDewasa as traitEditDewasa;
+        DewasaCrud::deleteDewasa as traitDeleteDewasa;
+    }
+    use PralansiaCrud {
+        PralansiaCrud::storePralansia as traitStorePralansia;
+        PralansiaCrud::editPralansia as traitEditPralansia;
+        PralansiaCrud::deletePralansia as traitDeletePralansia;
+    }
+    use LansiaCrud {
+        LansiaCrud::storeLansia as traitStoreLansia;
+        LansiaCrud::editLansia as traitEditLansia;
+        LansiaCrud::deleteLansia as traitDeleteLansia;
+    }
+    use IbuHamilCrud {
+        IbuHamilCrud::storeIbuHamil as traitStoreIbuHamil;
+        IbuHamilCrud::editIbuHamil as traitEditIbuHamil;
+        IbuHamilCrud::deleteIbuHamil as traitDeleteIbuHamil;
+    }
+    use OrangtuaCrud;
+    use PosyanduHelper, SasaranHelper, ModalHelper, PosyanduCrudTrait;
 
     // Search properties for each sasaran type
     public $search_bayibalita = '';
@@ -124,41 +84,8 @@ class PosyanduSasaran extends Component
 
     public function mount()
     {
-        // Ambil posyandu dari kader yang login
-        $user = Auth::user();
-        $kader = Kader::where('id_users', $user->id)->first();
-
-        if (!$kader) {
-            abort(403, 'Anda bukan kader terdaftar.');
-        }
-
-        $this->posyanduId = $kader->id_posyandu;
-        $this->loadPosyandu();
-    }
-
-    /**
-     * Load data posyandu dengan relasi
-     */
-    private function loadPosyandu()
-    {
-        $relations = [
-            'sasaran_bayibalita.user',
-            'sasaran_bayibalita.orangtua',
-            'sasaran_remaja.user',
-            'sasaran_remaja.orangtua',
-            'sasaran_dewasa.user',
-            'sasaran_pralansia.user',
-            'sasaran_lansia.user',
-            'sasaran_ibuhamil',
-        ];
-
-        $posyandu = Posyandu::with($relations)->find($this->posyanduId);
-
-        if (!$posyandu) {
-            abort(404, 'Posyandu tidak ditemukan');
-        }
-
-        $this->posyandu = $posyandu;
+        $this->initializePosyandu();
+        $this->loadPosyanduWithRelations();
     }
 
     /**
@@ -166,7 +93,7 @@ class PosyanduSasaran extends Component
      */
     protected function refreshPosyandu()
     {
-        $this->loadPosyandu();
+        $this->refreshPosyanduWithRelations();
     }
 
     /**
@@ -178,7 +105,6 @@ class PosyanduSasaran extends Component
             $this->editBalita($id);
         } else {
             $this->resetBalitaFields();
-            // Set posyandu otomatis dari kader
             $this->id_posyandu_sasaran = $this->posyanduId;
             $this->isSasaranBalitaModalOpen = true;
         }
@@ -254,105 +180,205 @@ class PosyanduSasaran extends Component
      */
     public function updatedSearchBayibalita()
     {
-        $this->page_bayibalita = 1;
+        $this->resetPaginationOnSearch('search_bayibalita', 'page_bayibalita');
     }
 
     public function updatedSearchRemaja()
     {
-        $this->page_remaja = 1;
+        $this->resetPaginationOnSearch('search_remaja', 'page_remaja');
     }
 
     public function updatedSearchDewasa()
     {
-        $this->page_dewasa = 1;
+        $this->resetPaginationOnSearch('search_dewasa', 'page_dewasa');
     }
 
     public function updatedSearchPralansia()
     {
-        $this->page_pralansia = 1;
+        $this->resetPaginationOnSearch('search_pralansia', 'page_pralansia');
     }
 
     public function updatedSearchLansia()
     {
-        $this->page_lansia = 1;
+        $this->resetPaginationOnSearch('search_lansia', 'page_lansia');
     }
 
     public function updatedSearchIbuhamil()
     {
-        $this->page_ibuhamil = 1;
+        $this->resetPaginationOnSearch('search_ibuhamil', 'page_ibuhamil');
     }
 
     /**
-     * Get filtered and paginated sasaran data
+     * Override storeBalita untuk validasi posyandu
      */
-    public function getFilteredSasaran($sasaranCollection, $search, $page)
+    public function storeBalita()
     {
-        $query = $sasaranCollection;
+        // Set posyandu otomatis dari kader
+        $this->id_posyandu_sasaran = $this->validatePosyanduAccess($this->id_posyandu_sasaran ?? null);
 
-        if (!empty($search)) {
-            $query = $query->filter(function ($item) use ($search) {
-                return stripos($item->nama_sasaran ?? '', $search) !== false;
-            })->values();
-        } else {
-            $query = $query->values();
+        // Jika edit, validasi akses
+        if ($this->id_sasaran_bayi_balita) {
+            $balita = SasaranBayibalita::findOrFail($this->id_sasaran_bayi_balita);
+            $this->validateSasaranPosyanduAccess($balita, 'id_posyandu');
         }
 
-        $total = $query->count();
-        $totalPages = $total > 0 ? ceil($total / $this->perPage) : 1;
-
-        $paginated = $query->slice(($page - 1) * $this->perPage, $this->perPage);
-
-        return [
-            'data' => $paginated,
-            'total' => $total,
-            'current_page' => $page,
-            'total_pages' => $totalPages,
-            'per_page' => $this->perPage,
-        ];
+        // Panggil method dari trait menggunakan alias
+        $this->traitStoreBalita();
     }
 
     /**
-     * Get orangtua data by age range and format as sasaran
+     * Override editBalita untuk validasi posyandu
      */
-    public function getOrangtuaByUmur($minAge, $maxAge = null, $search = '', $page = 1, $type = 'dewasa')
+    public function editBalita($id)
     {
-        $query = Orangtua::query();
+        $balita = SasaranBayibalita::findOrFail($id);
+        $this->validateSasaranPosyanduAccess($balita, 'id_posyandu');
+        $this->traitEditBalita($id);
+    }
 
-        // Filter by age
-        if ($maxAge !== null) {
-            $query->byAgeRange($minAge, $maxAge);
-        } else {
-            $query->byMinAge($minAge);
+    /**
+     * Override deleteBalita untuk validasi posyandu
+     */
+    public function deleteBalita($id)
+    {
+        $balita = SasaranBayibalita::findOrFail($id);
+        $this->validateSasaranPosyanduAccess($balita, 'id_posyandu');
+        $this->traitDeleteBalita($id);
+    }
+
+    /**
+     * Override storeRemaja untuk validasi posyandu
+     */
+    public function storeRemaja()
+    {
+        $this->id_posyandu_sasaran = $this->validatePosyanduAccess($this->id_posyandu_sasaran ?? null);
+        if ($this->id_sasaran_remaja) {
+            $remaja = SasaranRemaja::findOrFail($this->id_sasaran_remaja);
+            $this->validateSasaranPosyanduAccess($remaja, 'id_posyandu');
         }
+        $this->traitStoreRemaja();
+    }
 
-        // Filter by search
-        if (!empty($search)) {
-            $query->where(function($q) use ($search) {
-                $q->where('nama', 'like', '%' . $search . '%')
-                  ->orWhere('nik', 'like', '%' . $search . '%');
-            });
+    public function editRemaja($id)
+    {
+        $remaja = SasaranRemaja::findOrFail($id);
+        $this->validateSasaranPosyanduAccess($remaja, 'id_posyandu');
+        $this->traitEditRemaja($id);
+    }
+
+    public function deleteRemaja($id)
+    {
+        $remaja = SasaranRemaja::findOrFail($id);
+        $this->validateSasaranPosyanduAccess($remaja, 'id_posyandu');
+        $this->traitDeleteRemaja($id);
+    }
+
+    /**
+     * Override storeDewasa untuk validasi posyandu
+     */
+    public function storeDewasa()
+    {
+        $this->id_posyandu_sasaran = $this->validatePosyanduAccess($this->id_posyandu_sasaran ?? null);
+        if ($this->id_sasaran_dewasa) {
+            $dewasa = SasaranDewasa::findOrFail($this->id_sasaran_dewasa);
+            $this->validateSasaranPosyanduAccess($dewasa, 'id_posyandu');
         }
+        $this->traitStoreDewasa();
+    }
 
-        // Get all results
-        $allOrangtua = $query->get();
+    public function editDewasa($id)
+    {
+        $dewasa = SasaranDewasa::findOrFail($id);
+        $this->validateSasaranPosyanduAccess($dewasa, 'id_posyandu');
+        $this->traitEditDewasa($id);
+    }
 
-        // Format data to match sasaran structure
-        $formattedData = $allOrangtua->map(function($orangtua) use ($type) {
-            return $this->createPseudoSasaran($orangtua, $type);
-        });
+    public function deleteDewasa($id)
+    {
+        $dewasa = SasaranDewasa::findOrFail($id);
+        $this->validateSasaranPosyanduAccess($dewasa, 'id_posyandu');
+        $this->traitDeleteDewasa($id);
+    }
 
-        $total = $formattedData->count();
-        $totalPages = $total > 0 ? ceil($total / $this->perPage) : 1;
+    /**
+     * Override storePralansia untuk validasi posyandu
+     */
+    public function storePralansia()
+    {
+        $this->id_posyandu_sasaran = $this->validatePosyanduAccess($this->id_posyandu_sasaran ?? null);
+        if ($this->id_sasaran_pralansia) {
+            $pralansia = SasaranPralansia::findOrFail($this->id_sasaran_pralansia);
+            $this->validateSasaranPosyanduAccess($pralansia, 'id_posyandu');
+        }
+        $this->traitStorePralansia();
+    }
 
-        $paginated = $formattedData->slice(($page - 1) * $this->perPage, $this->perPage);
+    public function editPralansia($id)
+    {
+        $pralansia = SasaranPralansia::findOrFail($id);
+        $this->validateSasaranPosyanduAccess($pralansia, 'id_posyandu');
+        $this->traitEditPralansia($id);
+    }
 
-        return [
-            'data' => $paginated,
-            'total' => $total,
-            'current_page' => $page,
-            'total_pages' => $totalPages,
-            'per_page' => $this->perPage,
-        ];
+    public function deletePralansia($id)
+    {
+        $pralansia = SasaranPralansia::findOrFail($id);
+        $this->validateSasaranPosyanduAccess($pralansia, 'id_posyandu');
+        $this->traitDeletePralansia($id);
+    }
+
+    /**
+     * Override storeLansia untuk validasi posyandu
+     */
+    public function storeLansia()
+    {
+        $this->id_posyandu_sasaran = $this->validatePosyanduAccess($this->id_posyandu_sasaran ?? null);
+        if ($this->id_sasaran_lansia) {
+            $lansia = SasaranLansia::findOrFail($this->id_sasaran_lansia);
+            $this->validateSasaranPosyanduAccess($lansia, 'id_posyandu');
+        }
+        $this->traitStoreLansia();
+    }
+
+    public function editLansia($id)
+    {
+        $lansia = SasaranLansia::findOrFail($id);
+        $this->validateSasaranPosyanduAccess($lansia, 'id_posyandu');
+        $this->traitEditLansia($id);
+    }
+
+    public function deleteLansia($id)
+    {
+        $lansia = SasaranLansia::findOrFail($id);
+        $this->validateSasaranPosyanduAccess($lansia, 'id_posyandu');
+        $this->traitDeleteLansia($id);
+    }
+
+    /**
+     * Override storeIbuHamil untuk validasi posyandu
+     */
+    public function storeIbuHamil()
+    {
+        $this->id_posyandu_sasaran = $this->validatePosyanduAccess($this->id_posyandu_sasaran ?? null);
+        if ($this->id_sasaran_ibuhamil) {
+            $ibuhamil = SasaranIbuhamil::findOrFail($this->id_sasaran_ibuhamil);
+            $this->validateSasaranPosyanduAccess($ibuhamil, 'id_posyandu');
+        }
+        $this->traitStoreIbuHamil();
+    }
+
+    public function editIbuHamil($id)
+    {
+        $ibuhamil = SasaranIbuhamil::findOrFail($id);
+        $this->validateSasaranPosyanduAccess($ibuhamil, 'id_posyandu');
+        $this->traitEditIbuHamil($id);
+    }
+
+    public function deleteIbuHamil($id)
+    {
+        $ibuhamil = SasaranIbuhamil::findOrFail($id);
+        $this->validateSasaranPosyanduAccess($ibuhamil, 'id_posyandu');
+        $this->traitDeleteIbuHamil($id);
     }
 
     public function render()

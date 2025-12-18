@@ -14,6 +14,7 @@ return new class extends Migration
         Schema::create('orangtua', function (Blueprint $table) {
             $table->unsignedBigInteger('nik')->primary();
             $table->string('nama');
+            $table->unsignedBigInteger('no_kk')->nullable();
             $table->string('tempat_lahir');
             $table->date('tanggal_lahir');
             $table->enum('pekerjaan', [
@@ -107,7 +108,20 @@ return new class extends Migration
                 'Wiraswasta',
                 'Lainnya'
             ]);
+            $table->enum('pendidikan', [
+                'Tidak/Belum Sekolah',
+                'Tidak Tamat SD/Sederajat',
+                'Tamat SD/Sederajat',
+                'SLTP/Sederajat',
+                'SLTA/Sederajat',
+                'Diploma I/II',
+                'Akademi/Diploma III/Sarjana Muda',
+                'Diploma IV/Strata I',
+                'Strata II',
+                'Strata III'
+            ])->nullable();
             $table->enum('kelamin', ['Laki-laki', 'Perempuan']);
+            $table->text('alamat')->nullable();
             $table->enum('kepersertaan_bpjs', ['PBI', 'NON PBI'])->default('NON PBI')->nullable();
             $table->string('nomor_bpjs')->nullable();
             $table->string('nomor_telepon')->nullable();

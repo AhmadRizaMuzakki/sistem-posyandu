@@ -34,12 +34,12 @@ class LaporanController extends Controller
             ->orderBy('tanggal_imunisasi', 'desc')
             ->get();
 
-        $fileName = 'Laporan-Imunisasi-'.$posyandu->nama_posyandu.'-'.now()->format('Ymd_His').'.pdf';
+        $fileName = 'Laporan-Imunisasi-'.$posyandu->nama_posyandu.'-'.now('Asia/Jakarta')->format('Ymd_His').'.pdf';
 
         return $this->renderPdf('pdf.laporan-posyandu-imunisasi', [
             'posyandu' => $posyandu,
             'imunisasiList' => $imunisasiList,
-            'generatedAt' => now(),
+            'generatedAt' => now('Asia/Jakarta'),
             'user' => $user,
         ], $fileName);
     }
@@ -58,12 +58,12 @@ class LaporanController extends Controller
 
         $user = Auth::user();
 
-        $fileName = 'Laporan-Imunisasi-'.$posyandu->nama_posyandu.'-'.now()->format('Ymd_His').'.pdf';
+        $fileName = 'Laporan-Imunisasi-'.$posyandu->nama_posyandu.'-'.now('Asia/Jakarta')->format('Ymd_His').'.pdf';
 
         return $this->renderPdf('pdf.laporan-posyandu-imunisasi', [
             'posyandu' => $posyandu,
             'imunisasiList' => $imunisasiList,
-            'generatedAt' => now(),
+            'generatedAt' => now('Asia/Jakarta'),
             'user' => $user,
         ], $fileName);
     }
@@ -86,6 +86,44 @@ class LaporanController extends Controller
         $sasaranList = $query->orderBy('nama_sasaran')->get();
 
         $user = Auth::user();
+
+        $fileName = 'Laporan-Sasaran-'.$config['label'].'-'.$posyandu->nama_posyandu.'-'.now()->format('Ymd_His').'.pdf';
+
+        return $this->renderPdf('pdf.sasaran-per-kategori', [
+            'posyandu' => $posyandu,
+            'sasaranList' => $sasaranList,
+            'kategori' => $kategori,
+            'kategoriLabel' => $config['label'],
+            'generatedAt' => now(),
+            'user' => $user,
+        ], $fileName, 'landscape');
+    }
+
+    /**
+     * Generate laporan sasaran per kategori untuk Posyandu (admin Posyandu).
+     */
+    public function posyanduSasaranPdf(string $kategori): Response
+    {
+        $user = Auth::user();
+
+        $kader = Kader::with('posyandu')
+            ->where('id_users', $user->id)
+            ->first();
+
+        if (! $kader || ! $kader->posyandu) {
+            abort(403, 'Posyandu untuk akun ini tidak ditemukan.');
+        }
+
+        $posyandu = $kader->posyandu;
+        $config = $this->getSasaranKategoriConfig($kategori);
+
+        $query = $posyandu->{$config['relation']}();
+
+        if (! empty($config['with'])) {
+            $query->with($config['with']);
+        }
+
+        $sasaranList = $query->orderBy('nama_sasaran')->get();
 
         $fileName = 'Laporan-Sasaran-'.$config['label'].'-'.$posyandu->nama_posyandu.'-'.now()->format('Ymd_His').'.pdf';
 

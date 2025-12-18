@@ -23,6 +23,8 @@ return new class extends Migration
             // Data Imunisasi dibuat per baris (Vertical Structure)
             $table->string('jenis_imunisasi')->nullable(); // Contoh: BCG, Polio 1, DPT 1, Booster COVID, dll
             $table->date('tanggal_imunisasi')->nullable();
+            $table->decimal('tinggi_badan', 5, 2)->nullable(); // Tinggi badan dalam sentimeter
+            $table->decimal('berat_badan', 5, 2)->nullable(); // Berat badan dalam kilogram
             $table->text('keterangan')->nullable();
             
             $table->timestamps();

@@ -109,10 +109,10 @@
 
     <table class="meta-table">
         <tr>
-            <td class="meta-label">Tanggal Cetak</td>
-            <td>: {{ $generatedAt->format('d F Y H:i') }}</td>
             <td class="meta-label">Dicetak oleh</td>
             <td>: {{ $user->name ?? '-' }}</td>
+            <td class="meta-label">Tanggal Cetak</td>
+            <td>: {{ Carbon::now('Asia/Jakarta')->format('d F Y H:i') }}</td>
         </tr>
         <tr>
             <td class="meta-label">Total Data Imunisasi</td>

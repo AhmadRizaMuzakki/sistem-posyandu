@@ -17,11 +17,19 @@
                     <i class="ph ph-syringe text-2xl mr-3 text-primary"></i>
                     Daftar Imunisasi
                 </h2>
-                <button wire:click="openImunisasiModal"
-                        class="flex items-center px-4 py-2 bg-primary text-white rounded-lg hover:bg-indigo-700 transition-colors">
-                    <i class="ph ph-plus text-lg mr-2"></i>
-                    Tambah Imunisasi
-                </button>
+                <div class="flex items-center gap-3">
+                    <a href="{{ route('adminPosyandu.laporan.pdf') }}"
+                       target="_blank"
+                       class="flex items-center px-4 py-2 text-sm font-medium text-primary border border-primary rounded-lg hover:bg-primary hover:text-white transition-colors">
+                        <i class="ph ph-file-pdf text-lg mr-2"></i>
+                        Export PDF
+                    </a>
+                    <button wire:click="openImunisasiModal"
+                            class="flex items-center px-4 py-2 bg-primary text-white rounded-lg hover:bg-indigo-700 transition-colors">
+                        <i class="ph ph-plus text-lg mr-2"></i>
+                        Tambah Imunisasi
+                    </button>
+                </div>
             </div>
 
             {{-- Search Bar --}}
@@ -127,21 +135,116 @@
                             </h3>
 
                             <div class="grid grid-cols-1 gap-4">
-                                {{-- Pilih Sasaran --}}
+                                {{-- Pilih Sasaran (Searchable) --}}
                                 <div>
                                     <label class="block text-gray-700 text-sm font-bold mb-2">Sasaran <span class="text-red-500">*</span></label>
-                                    <select wire:model="id_sasaran_imunisasi"
+                                    <div class="relative" x-data="{
+                                        open: false,
+                                        searchText: '',
+                                        selectedId: @entangle('id_sasaran_imunisasi'),
+                                        selectedKategori: @entangle('kategori_sasaran_imunisasi'),
+                                        selectedName: '',
+                                        sasaranList: @js($sasaranList)
+                                    }" x-init="
+                                        // Fungsi untuk mencari sasaran berdasarkan ID dan kategori
+                                        function findSasaran(id, kategori) {
+                                            if (!id) return null;
+                                            // Jika ada kategori, cari yang sesuai dengan ID dan kategori
+                                            if (kategori) {
+                                                return sasaranList.find(s => s.id == id && s.kategori == kategori);
+                                            }
+                                            // Jika tidak ada kategori, ambil yang pertama dengan ID tersebut
+                                            return sasaranList.find(s => s.id == id);
+                                        }
+
+                                        $watch('selectedId', value => {
+                                            if (value) {
+                                                const sasaran = findSasaran(value, selectedKategori);
+                                                if (sasaran) {
+                                                    selectedName = sasaran.nama + ' (' + sasaran.nik + ') - ' + sasaran.kategori.charAt(0).toUpperCase() + sasaran.kategori.slice(1);
+                                                    searchText = selectedName;
+                                                    // Pastikan kategori sesuai
+                                                    if (sasaran.kategori !== selectedKategori) {
+                                                        $wire.set('kategori_sasaran_imunisasi', sasaran.kategori);
+                                                    }
+                                                }
+                                            } else {
+                                                selectedName = '';
+                                                searchText = '';
+                                            }
+                                        });
+
+                                        $watch('selectedKategori', value => {
+                                            if (selectedId && value) {
+                                                const sasaran = findSasaran(selectedId, value);
+                                                if (sasaran) {
+                                                    selectedName = sasaran.nama + ' (' + sasaran.nik + ') - ' + sasaran.kategori.charAt(0).toUpperCase() + sasaran.kategori.slice(1);
+                                                    searchText = selectedName;
+                                                }
+                                            }
+                                        });
+
+                                        // Inisialisasi saat pertama kali load
+                                        if (selectedId) {
+                                            const sasaran = findSasaran(selectedId, selectedKategori);
+                                            if (sasaran) {
+                                                selectedName = sasaran.nama + ' (' + sasaran.nik + ') - ' + sasaran.kategori.charAt(0).toUpperCase() + sasaran.kategori.slice(1);
+                                                searchText = selectedName;
+                                            }
+                                        }
+                                    ">
+                                        <input
+                                            type="text"
+                                            x-model="searchText"
+                                            @focus="open = true"
+                                            @input="open = true"
+                                            @keydown.escape="open = false"
                                             class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-primary focus:border-primary"
+                                            placeholder="Ketik untuk mencari sasaran (Balita, Remaja, Dewasa, Pralansia, Lansia)..."
+                                            autocomplete="off"
                                             @if(empty($sasaranList)) disabled @endif>
-                                        <option value="">Pilih Sasaran...</option>
-                                        @foreach($sasaranList as $sasaran)
-                                            <option value="{{ $sasaran['id'] }}" data-kategori="{{ $sasaran['kategori'] }}">
-                                                {{ $sasaran['nama'] }} ({{ $sasaran['nik'] }}) - {{ ucfirst($sasaran['kategori']) }}
-                                            </option>
-                                        @endforeach
-                                    </select>
+                                        <div x-show="open"
+                                             @click.outside="open = false"
+                                             x-transition:enter="transition ease-out duration-100"
+                                             x-transition:enter-start="opacity-0 scale-95"
+                                             x-transition:enter-end="opacity-100 scale-100"
+                                             x-transition:leave="transition ease-in duration-75"
+                                             x-transition:leave-start="opacity-100 scale-100"
+                                             x-transition:leave-end="opacity-0 scale-95"
+                                             class="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-auto"
+                                             style="display: none;">
+                                            <ul class="py-1">
+                                                <li @click="selectedId = ''; searchText = ''; open = false; $wire.set('id_sasaran_imunisasi', '')"
+                                                    class="px-4 py-2 text-sm text-gray-500 hover:bg-gray-100 cursor-pointer">
+                                                    -- Pilih Sasaran --
+                                                </li>
+                                                @if(!empty($sasaranList))
+                                                    @foreach($sasaranList as $sasaran)
+                                                        <li @click="
+                                                            // Update UI state
+                                                            selectedId = '{{ $sasaran['id'] }}';
+                                                            selectedKategori = '{{ $sasaran['kategori'] }}';
+                                                            selectedName = '{{ $sasaran['nama'] }} ({{ $sasaran['nik'] }}) - {{ ucfirst($sasaran['kategori']) }}';
+                                                            searchText = selectedName;
+                                                            open = false;
+                                                            // Set kategori dan ID secara bersamaan - kategori dulu untuk menghindari konflik
+                                                            $wire.set('kategori_sasaran_imunisasi', '{{ $sasaran['kategori'] }}');
+                                                            $wire.set('id_sasaran_imunisasi', '{{ $sasaran['id'] }}');
+                                                        "
+                                                            x-show="!searchText || '{{ strtolower($sasaran['nama'] . ' ' . $sasaran['nik'] . ' ' . $sasaran['kategori']) }}'.includes(searchText.toLowerCase())"
+                                                            class="px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer"
+                                                            :class="selectedId == '{{ $sasaran['id'] }}' && selectedKategori == '{{ $sasaran['kategori'] }}' ? 'bg-blue-50 font-medium' : ''">
+                                                            {{ $sasaran['nama'] }} ({{ $sasaran['nik'] }}) - {{ ucfirst($sasaran['kategori']) }}
+                                                        </li>
+                                                    @endforeach
+                                                @else
+                                                    <li class="px-4 py-2 text-sm text-gray-500">Tidak ada sasaran ditemukan</li>
+                                                @endif
+                                            </ul>
+                                        </div>
+                                    </div>
                                     @error('id_sasaran_imunisasi') <span class="text-red-500 text-xs">{{ $message }}</span>@enderror
-                                    @if(empty($sasaranList))
+                                    @if(empty($sasaranList) && $id_posyandu_imunisasi)
                                         <p class="text-xs text-gray-500 mt-1">Belum ada sasaran terdaftar di posyandu ini</p>
                                     @endif
                                 </div>
