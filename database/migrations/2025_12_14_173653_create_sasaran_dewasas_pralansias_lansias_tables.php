@@ -28,7 +28,7 @@ return new class extends Migration
             $table->text('alamat_sasaran')->nullable();
             $table->string('rt')->nullable();
             $table->string('rw')->nullable();
-            $table->enum('kepersertaan_bpjs', ['PBI','NON PBI'])->default('NON PBI')->nullable();
+            $table->enum('kepersertaan_bpjs', ['PBI', 'NON PBI'])->default('NON PBI')->nullable();
             $table->string('nomor_bpjs')->nullable();
             $table->string('nomor_telepon')->nullable();
 
@@ -55,7 +55,7 @@ return new class extends Migration
             $table->text('alamat_sasaran')->nullable();
             $table->string('rt')->nullable();
             $table->string('rw')->nullable();
-            $table->enum('kepersertaan_bpjs', ['PBI','NON PBI'])->default('NON PBI')->nullable();
+            $table->enum('kepersertaan_bpjs', ['PBI', 'NON PBI'])->default('NON PBI')->nullable();
             $table->string('nomor_bpjs')->nullable();
             $table->string('nomor_telepon')->nullable();
 
@@ -82,7 +82,7 @@ return new class extends Migration
             $table->text('alamat_sasaran')->nullable();
             $table->string('rt')->nullable();
             $table->string('rw')->nullable();
-            $table->enum('kepersertaan_bpjs', ['PBI','NON PBI'])->default('NON PBI')->nullable();
+            $table->enum('kepersertaan_bpjs', ['PBI', 'NON PBI'])->default('NON PBI')->nullable();
             $table->string('nomor_bpjs')->nullable();
             $table->string('nomor_telepon')->nullable();
 

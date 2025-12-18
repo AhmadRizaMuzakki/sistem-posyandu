@@ -2,7 +2,7 @@
 
 namespace App\Livewire\SuperAdmin\Traits;
 
-use App\Models\sasaran_ibuhamil;
+use App\Models\SasaranIbuhamil;
 use Carbon\Carbon;
 
 trait IbuHamilCrud
@@ -170,12 +170,12 @@ trait IbuHamilCrud
 
         if ($this->id_sasaran_ibuhamil) {
             // UPDATE
-            $ibuhamil = sasaran_ibuhamil::findOrFail($this->id_sasaran_ibuhamil);
+            $ibuhamil = SasaranIbuhamil::findOrFail($this->id_sasaran_ibuhamil);
             $ibuhamil->update($data);
             session()->flash('message', 'Data Ibu Hamil berhasil diperbarui.');
         } else {
             // CREATE
-            sasaran_ibuhamil::create($data);
+            SasaranIbuhamil::create($data);
             session()->flash('message', 'Data Ibu Hamil berhasil ditambahkan.');
         }
 
@@ -188,7 +188,7 @@ trait IbuHamilCrud
      */
     public function editIbuHamil($id)
     {
-        $ibuhamil = sasaran_ibuhamil::findOrFail($id);
+        $ibuhamil = SasaranIbuhamil::findOrFail($id);
 
         $this->id_sasaran_ibuhamil = $ibuhamil->id_sasaran_ibuhamil;
         $this->nama_sasaran_ibuhamil = $ibuhamil->nama_sasaran;
@@ -244,7 +244,7 @@ trait IbuHamilCrud
      */
     public function deleteIbuHamil($id)
     {
-        $ibuhamil = sasaran_ibuhamil::findOrFail($id);
+        $ibuhamil = SasaranIbuhamil::findOrFail($id);
         $ibuhamil->delete();
         $this->refreshPosyandu();
         session()->flash('message', 'Data Ibu Hamil berhasil dihapus.');

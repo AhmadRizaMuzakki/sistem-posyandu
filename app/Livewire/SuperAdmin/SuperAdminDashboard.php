@@ -7,7 +7,7 @@ use Livewire\Component;
 use Livewire\Attributes\Layout;
 use App\Models\Posyandu;
 use App\Models\User;
-use App\Models\Sasaran_Bayibalita;
+use App\Models\SasaranBayibalita;
 use App\Models\Orangtua;
 use Illuminate\Support\Facades\Schema;
 
@@ -49,12 +49,12 @@ class SuperAdminDashboard extends Component
      */
     private function getTotalSasaran()
     {
-        $bayibalita = Sasaran_Bayibalita::count();
-        $remaja = \App\Models\sasaran_remaja::count();
-        $ibuhamil = \App\Models\sasaran_ibuhamil::count();
-        $dewasa = \App\Models\sasaran_dewasa::count();
-        $pralansia = \App\Models\sasaran_pralansia::count();
-        $lansia = \App\Models\sasaran_lansia::count();
+        $bayibalita = SasaranBayibalita::count();
+        $remaja = \App\Models\SasaranRemaja::count();
+        $ibuhamil = \App\Models\SasaranIbuhamil::count();
+        $dewasa = \App\Models\SasaranDewasa::count();
+        $pralansia = \App\Models\SasaranPralansia::count();
+        $lansia = \App\Models\SasaranLansia::count();
 
         return $bayibalita + $remaja + $ibuhamil + $dewasa + $pralansia + $lansia;
     }
@@ -99,12 +99,12 @@ class SuperAdminDashboard extends Component
     private function getSasaranByCategory()
     {
         return [
-            'bayibalita' => Sasaran_Bayibalita::count(),
-            'remaja' => \App\Models\sasaran_remaja::count(),
-            'ibuhamil' => \App\Models\sasaran_ibuhamil::count(),
-            'dewasa' => \App\Models\sasaran_dewasa::count(),
-            'pralansia' => \App\Models\sasaran_pralansia::count(),
-            'lansia' => \App\Models\sasaran_lansia::count(),
+            'bayibalita' => SasaranBayibalita::count(),
+            'remaja' => \App\Models\SasaranRemaja::count(),
+            'ibuhamil' => \App\Models\SasaranIbuhamil::count(),
+            'dewasa' => \App\Models\SasaranDewasa::count(),
+            'pralansia' => \App\Models\SasaranPralansia::count(),
+            'lansia' => \App\Models\SasaranLansia::count(),
         ];
     }
 
@@ -134,27 +134,27 @@ class SuperAdminDashboard extends Component
 
             // Remaja
             if (Schema::hasTable('sasaran_remajas') && Schema::hasColumn('sasaran_remajas', 'pendidikan')) {
-                $counts[$level] += \App\Models\sasaran_remaja::where('pendidikan', $level)->count();
+                $counts[$level] += \App\Models\SasaranRemaja::where('pendidikan', $level)->count();
             }
 
             // Dewasa
             if (Schema::hasTable('sasaran_dewasas') && Schema::hasColumn('sasaran_dewasas', 'pendidikan')) {
-                $counts[$level] += \App\Models\sasaran_dewasa::where('pendidikan', $level)->count();
+                $counts[$level] += \App\Models\SasaranDewasa::where('pendidikan', $level)->count();
             }
 
             // Pralansia
             if (Schema::hasTable('sasaran_pralansias') && Schema::hasColumn('sasaran_pralansias', 'pendidikan')) {
-                $counts[$level] += \App\Models\sasaran_pralansia::where('pendidikan', $level)->count();
+                $counts[$level] += \App\Models\SasaranPralansia::where('pendidikan', $level)->count();
             }
 
             // Lansia
             if (Schema::hasTable('sasaran_lansias') && Schema::hasColumn('sasaran_lansias', 'pendidikan')) {
-                $counts[$level] += \App\Models\sasaran_lansia::where('pendidikan', $level)->count();
+                $counts[$level] += \App\Models\SasaranLansia::where('pendidikan', $level)->count();
             }
 
             // Ibu Hamil (opsional, jika kolom sudah ada)
             if (Schema::hasTable('sasaran_ibuhamils') && Schema::hasColumn('sasaran_ibuhamils', 'pendidikan')) {
-                $counts[$level] += \App\Models\sasaran_ibuhamil::where('pendidikan', $level)->count();
+                $counts[$level] += \App\Models\SasaranIbuhamil::where('pendidikan', $level)->count();
             }
         }
 

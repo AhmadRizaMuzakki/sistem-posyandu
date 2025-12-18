@@ -3,11 +3,11 @@
 namespace App\Livewire\Orangtua;
 
 use App\Models\Imunisasi;
-use App\Models\Sasaran_Bayibalita;
-use App\Models\sasaran_remaja;
-use App\Models\sasaran_dewasa;
-use App\Models\sasaran_pralansia;
-use App\Models\sasaran_lansia;
+use App\Models\SasaranBayibalita;
+use App\Models\SasaranRemaja;
+use App\Models\SasaranDewasa;
+use App\Models\SasaranPralansia;
+use App\Models\SasaranLansia;
 use Livewire\Component;
 use Livewire\Attributes\Layout;
 use Illuminate\Support\Facades\Auth;
@@ -25,11 +25,11 @@ class OrangtuaImunisasi extends Component
     public function render()
     {
         // Ambil semua sasaran milik user dari semua kategori
-        $sasaranBayi = Sasaran_Bayibalita::where('id_users', $this->userId)->get();
-        $sasaranRemaja = sasaran_remaja::where('id_users', $this->userId)->get();
-        $sasaranDewasa = sasaran_dewasa::where('id_users', $this->userId)->get();
-        $sasaranPralansia = sasaran_pralansia::where('id_users', $this->userId)->get();
-        $sasaranLansia = sasaran_lansia::where('id_users', $this->userId)->get();
+        $sasaranBayi = SasaranBayibalita::where('id_users', $this->userId)->get();
+        $sasaranRemaja = SasaranRemaja::where('id_users', $this->userId)->get();
+        $sasaranDewasa = SasaranDewasa::where('id_users', $this->userId)->get();
+        $sasaranPralansia = SasaranPralansia::where('id_users', $this->userId)->get();
+        $sasaranLansia = SasaranLansia::where('id_users', $this->userId)->get();
 
         // Kumpulkan semua ID sasaran dengan kategorinya
         $allSasaran = collect();

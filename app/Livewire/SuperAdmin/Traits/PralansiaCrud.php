@@ -2,8 +2,8 @@
 
 namespace App\Livewire\SuperAdmin\Traits;
 
-use App\Models\sasaran_pralansia;
-use App\Models\Sasaran_Bayibalita;
+use App\Models\SasaranPralansia;
+use App\Models\SasaranBayibalita;
 use Carbon\Carbon;
 
 trait PralansiaCrud
@@ -139,7 +139,7 @@ trait PralansiaCrud
         
         // Jika update, cek apakah sudah ada nik_orangtua
         if ($this->id_sasaran_pralansia) {
-            $pralansia = sasaran_pralansia::find($this->id_sasaran_pralansia);
+            $pralansia = SasaranPralansia::find($this->id_sasaran_pralansia);
             if ($pralansia && $pralansia->nik_orangtua) {
                 $nik_orangtua = $pralansia->nik_orangtua;
             }
@@ -147,7 +147,7 @@ trait PralansiaCrud
         
         // Jika belum ada nik_orangtua, cari dari sasaran balita
         if (!$nik_orangtua && $this->no_kk_sasaran_pralansia && $this->alamat_sasaran_pralansia) {
-            $existingBalita = Sasaran_Bayibalita::where('no_kk_sasaran', $this->no_kk_sasaran_pralansia)
+            $existingBalita = SasaranBayibalita::where('no_kk_sasaran', $this->no_kk_sasaran_pralansia)
                 ->where('alamat_sasaran', $this->alamat_sasaran_pralansia)
                 ->whereNotNull('nik_orangtua')
                 ->first();
@@ -181,13 +181,13 @@ trait PralansiaCrud
         if ($this->id_sasaran_pralansia) {
             // UPDATE
             if (!$pralansia) {
-                $pralansia = sasaran_pralansia::findOrFail($this->id_sasaran_pralansia);
+                $pralansia = SasaranPralansia::findOrFail($this->id_sasaran_pralansia);
             }
             $pralansia->update($data);
             session()->flash('message', 'Data Pralansia berhasil diperbarui.');
         } else {
             // CREATE
-            sasaran_pralansia::create($data);
+            SasaranPralansia::create($data);
             session()->flash('message', 'Data Pralansia berhasil ditambahkan.');
         }
 
@@ -201,7 +201,7 @@ trait PralansiaCrud
     public function editPralansia($id)
     {
         $this->searchUser = ''; // Reset search user
-        $pralansia = sasaran_pralansia::findOrFail($id);
+        $pralansia = SasaranPralansia::findOrFail($id);
 
         $this->id_sasaran_pralansia = $pralansia->id_sasaran_pralansia;
         $this->nama_sasaran_pralansia = $pralansia->nama_sasaran;
@@ -242,7 +242,7 @@ trait PralansiaCrud
      */
     public function deletePralansia($id)
     {
-        $pralansia = sasaran_pralansia::findOrFail($id);
+        $pralansia = SasaranPralansia::findOrFail($id);
         $pralansia->delete();
         $this->refreshPosyandu();
         session()->flash('message', 'Data Pralansia berhasil dihapus.');

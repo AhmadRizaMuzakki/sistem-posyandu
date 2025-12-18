@@ -12,10 +12,10 @@ use App\Livewire\SuperAdmin\Traits\IbuHamilCrud;
 use App\Models\Posyandu;
 use App\Models\User;
 use App\Models\Orangtua;
-use App\Models\Sasaran_Bayibalita;
-use App\Models\sasaran_dewasa;
-use App\Models\sasaran_pralansia;
-use App\Models\sasaran_lansia;
+use App\Models\SasaranBayibalita;
+use App\Models\SasaranDewasa;
+use App\Models\SasaranPralansia;
+use App\Models\SasaranLansia;
 use Carbon\Carbon;
 use Livewire\Component;
 use Livewire\Attributes\Layout;
@@ -340,7 +340,7 @@ class PosyanduDetail extends Component
 
             // Cek apakah orangtua ini juga ada di tabel sasaran dengan nik_orangtua
             $orangtuaData = null;
-            $sasaranDewasa = \App\Models\sasaran_dewasa::where('nik_sasaran', $orangtua->nik)
+            $sasaranDewasa = \App\Models\SasaranDewasa::where('nik_sasaran', $orangtua->nik)
                 ->whereNotNull('nik_orangtua')
                 ->where('nik_orangtua', '!=', '-')
                 ->with('orangtua')
@@ -348,7 +348,7 @@ class PosyanduDetail extends Component
             if ($sasaranDewasa && $sasaranDewasa->orangtua) {
                 $orangtuaData = $sasaranDewasa->orangtua;
             } else {
-                $sasaranPralansia = \App\Models\sasaran_pralansia::where('nik_sasaran', $orangtua->nik)
+                $sasaranPralansia = \App\Models\SasaranPralansia::where('nik_sasaran', $orangtua->nik)
                     ->whereNotNull('nik_orangtua')
                     ->where('nik_orangtua', '!=', '-')
                     ->with('orangtua')
@@ -356,7 +356,7 @@ class PosyanduDetail extends Component
                 if ($sasaranPralansia && $sasaranPralansia->orangtua) {
                     $orangtuaData = $sasaranPralansia->orangtua;
                 } else {
-                    $sasaranLansia = \App\Models\sasaran_lansia::where('nik_sasaran', $orangtua->nik)
+                    $sasaranLansia = \App\Models\SasaranLansia::where('nik_sasaran', $orangtua->nik)
                         ->whereNotNull('nik_orangtua')
                         ->where('nik_orangtua', '!=', '-')
                         ->with('orangtua')

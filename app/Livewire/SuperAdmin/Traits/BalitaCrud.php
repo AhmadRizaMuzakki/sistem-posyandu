@@ -2,12 +2,12 @@
 
 namespace App\Livewire\SuperAdmin\Traits;
 
-use App\Models\Sasaran_Bayibalita;
+use App\Models\SasaranBayibalita;
 use App\Models\Orangtua;
 use App\Models\User;
-use App\Models\sasaran_dewasa;
-use App\Models\sasaran_pralansia;
-use App\Models\sasaran_lansia;
+use App\Models\SasaranDewasa;
+use App\Models\SasaranPralansia;
+use App\Models\SasaranLansia;
 use Illuminate\Support\Facades\Hash;
 use Carbon\Carbon;
 
@@ -220,7 +220,7 @@ trait BalitaCrud
 
         // Update atau create orangtua berdasarkan nik, no_kk, dan alamat
         // Jika ada balita dengan no_kk dan alamat yang sama, gunakan data orangtua dari balita tersebut
-        $existingBalita = Sasaran_Bayibalita::where('no_kk_sasaran', $this->no_kk_sasaran)
+        $existingBalita = SasaranBayibalita::where('no_kk_sasaran', $this->no_kk_sasaran)
             ->where('alamat_sasaran', $this->alamat_sasaran)
             ->whereNotNull('nik_orangtua')
             ->first();
@@ -306,12 +306,12 @@ trait BalitaCrud
 
         if ($this->id_sasaran_bayi_balita) {
             // UPDATE
-            $balita = Sasaran_Bayibalita::findOrFail($this->id_sasaran_bayi_balita);
+            $balita = SasaranBayibalita::findOrFail($this->id_sasaran_bayi_balita);
             $balita->update($data);
             session()->flash('message', 'Data Balita berhasil diperbarui.');
         } else {
             // CREATE
-            Sasaran_Bayibalita::create($data);
+            SasaranBayibalita::create($data);
             session()->flash('message', 'Data Balita berhasil ditambahkan.');
         }
 
@@ -324,7 +324,7 @@ trait BalitaCrud
      */
     public function editBalita($id)
     {
-        $balita = Sasaran_Bayibalita::findOrFail($id);
+        $balita = SasaranBayibalita::findOrFail($id);
 
         $this->id_sasaran_bayi_balita = $balita->id_sasaran_bayibalita;
         $this->id_posyandu_sasaran = $balita->id_posyandu ?? $this->posyanduId;
@@ -416,7 +416,7 @@ trait BalitaCrud
      */
     public function deleteBalita($id)
     {
-        $balita = Sasaran_Bayibalita::findOrFail($id);
+        $balita = SasaranBayibalita::findOrFail($id);
         $balita->delete();
         $this->refreshPosyandu();
         session()->flash('message', 'Data Balita berhasil dihapus.');
@@ -545,7 +545,7 @@ trait BalitaCrud
         // Tentukan kategori berdasarkan umur
         if ($umur >= 18 && $umur <= 45) {
             // Dewasa (18-45 tahun)
-            $existing = sasaran_dewasa::where('nik_sasaran', $orangtua->nik)
+            $existing = SasaranDewasa::where('nik_sasaran', $orangtua->nik)
                 ->where('id_posyandu', $idPosyandu)
                 ->first();
             
@@ -554,29 +554,29 @@ trait BalitaCrud
                 $existing->update($sasaranData);
             } else {
                 $sasaranData['pendidikan'] = $orangtua->pendidikan;
-                sasaran_dewasa::create($sasaranData);
+                SasaranDewasa::create($sasaranData);
             }
         } elseif ($umur >= 46 && $umur <= 59) {
             // Pralansia (46-59 tahun)
-            $existing = sasaran_pralansia::where('nik_sasaran', $orangtua->nik)
+            $existing = SasaranPralansia::where('nik_sasaran', $orangtua->nik)
                 ->where('id_posyandu', $idPosyandu)
                 ->first();
             
             if ($existing) {
                 $existing->update($sasaranData);
             } else {
-                sasaran_pralansia::create($sasaranData);
+                SasaranPralansia::create($sasaranData);
             }
         } elseif ($umur >= 60) {
             // Lansia (60+ tahun)
-            $existing = sasaran_lansia::where('nik_sasaran', $orangtua->nik)
+            $existing = SasaranLansia::where('nik_sasaran', $orangtua->nik)
                 ->where('id_posyandu', $idPosyandu)
                 ->first();
             
             if ($existing) {
                 $existing->update($sasaranData);
             } else {
-                sasaran_lansia::create($sasaranData);
+                SasaranLansia::create($sasaranData);
             }
         }
     }

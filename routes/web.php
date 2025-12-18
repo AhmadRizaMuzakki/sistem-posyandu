@@ -1,7 +1,5 @@
 <?php
 
-
-
 use App\Models\Posyandu;
 use App\Livewire\Posyandu\Kaders;
 use App\Livewire\Posyandu\Laporan as PosyanduLaporan;
@@ -36,7 +34,7 @@ Route::prefix('supervisor')->middleware(['auth', 'verified', 'role:superadmin'])
 
     // Route detail posyandu (default ke info)
     Route::get('/posyandu/{id}', PosyanduInfo::class)->name('posyandu.detail');
-    
+
     // Route halaman terpisah untuk posyandu
     Route::get('/posyandu/{id}/info', PosyanduInfo::class)->name('posyandu.info');
     Route::get('/posyandu/{id}/kader', PosyanduKader::class)->name('posyandu.kader');
@@ -45,7 +43,6 @@ Route::prefix('supervisor')->middleware(['auth', 'verified', 'role:superadmin'])
     Route::get('/posyandu/{id}/laporan', SuperadminPosyanduLaporan::class)->name('posyandu.laporan');
     Route::get('/posyandu/{id}/laporan/pdf', [LaporanController::class, 'superadminPosyanduImunisasiPdf'])->name('superadmin.posyandu.laporan.pdf');
     Route::get('/posyandu/{id}/sasaran/{kategori}/pdf', [LaporanController::class, 'superadminPosyanduSasaranPdf'])->name('superadmin.posyandu.sasaran.pdf');
-    
 });
 
 
@@ -55,7 +52,6 @@ Route::prefix('posyandu')->middleware(['auth', 'verified', 'role:adminPosyandu|s
     Route::get('/laporan', PosyanduLaporan::class)->name('adminPosyandu.laporan');
     Route::get('/laporan/pdf', [LaporanController::class, 'posyanduImunisasiPdf'])->name('adminPosyandu.laporan.pdf');
 });
-
 
 Route::prefix('orangtua')->middleware(['auth', 'verified', 'role:orangtua|superadmin'])->group(function () {
     Route::get('/', OrangtuaDashboard::class)->name('orangtua.dashboard');

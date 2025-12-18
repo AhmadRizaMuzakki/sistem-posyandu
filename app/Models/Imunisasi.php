@@ -47,11 +47,11 @@ class Imunisasi extends Model
         }
 
         $modelClass = match($this->kategori_sasaran) {
-            'bayibalita' => Sasaran_Bayibalita::class,
-            'remaja' => sasaran_remaja::class,
-            'dewasa' => sasaran_dewasa::class,
-            'pralansia' => sasaran_pralansia::class,
-            'lansia' => sasaran_lansia::class,
+            'bayibalita' => SasaranBayibalita::class,
+            'remaja' => SasaranRemaja::class,
+            'dewasa' => SasaranDewasa::class,
+            'pralansia' => SasaranPralansia::class,
+            'lansia' => SasaranLansia::class,
             default => null,
         };
 

@@ -3,11 +3,11 @@
 namespace App\Livewire\SuperAdmin\Traits;
 
 use App\Models\Imunisasi;
-use App\Models\Sasaran_Bayibalita;
-use App\Models\sasaran_remaja;
-use App\Models\sasaran_dewasa;
-use App\Models\sasaran_pralansia;
-use App\Models\sasaran_lansia;
+use App\Models\SasaranBayibalita;
+use App\Models\SasaranRemaja;
+use App\Models\SasaranDewasa;
+use App\Models\SasaranPralansia;
+use App\Models\SasaranLansia;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
 
@@ -93,7 +93,7 @@ trait ImunisasiCrud
         $sasaranList = collect();
 
         // Ambil sasaran dari semua kategori
-        $bayi = Sasaran_Bayibalita::where('id_posyandu', $this->id_posyandu_imunisasi)->get();
+        $bayi = SasaranBayibalita::where('id_posyandu', $this->id_posyandu_imunisasi)->get();
         foreach ($bayi as $s) {
             $sasaranList->push([
                 'id' => $s->id_sasaran_bayibalita,
@@ -103,7 +103,7 @@ trait ImunisasiCrud
             ]);
         }
 
-        $remaja = sasaran_remaja::where('id_posyandu', $this->id_posyandu_imunisasi)->get();
+        $remaja = SasaranRemaja::where('id_posyandu', $this->id_posyandu_imunisasi)->get();
         foreach ($remaja as $s) {
             $sasaranList->push([
                 'id' => $s->id_sasaran_remaja,
@@ -113,7 +113,7 @@ trait ImunisasiCrud
             ]);
         }
 
-        $dewasa = sasaran_dewasa::where('id_posyandu', $this->id_posyandu_imunisasi)->get();
+        $dewasa = SasaranDewasa::where('id_posyandu', $this->id_posyandu_imunisasi)->get();
         foreach ($dewasa as $s) {
             $sasaranList->push([
                 'id' => $s->id_sasaran_dewasa,
@@ -123,7 +123,7 @@ trait ImunisasiCrud
             ]);
         }
 
-        $pralansia = sasaran_pralansia::where('id_posyandu', $this->id_posyandu_imunisasi)->get();
+        $pralansia = SasaranPralansia::where('id_posyandu', $this->id_posyandu_imunisasi)->get();
         foreach ($pralansia as $s) {
             $sasaranList->push([
                 'id' => $s->id_sasaran_pralansia,
@@ -133,7 +133,7 @@ trait ImunisasiCrud
             ]);
         }
 
-        $lansia = sasaran_lansia::where('id_posyandu', $this->id_posyandu_imunisasi)->get();
+        $lansia = SasaranLansia::where('id_posyandu', $this->id_posyandu_imunisasi)->get();
         foreach ($lansia as $s) {
             $sasaranList->push([
                 'id' => $s->id_sasaran_lansia,

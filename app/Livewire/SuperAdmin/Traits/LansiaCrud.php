@@ -2,8 +2,8 @@
 
 namespace App\Livewire\SuperAdmin\Traits;
 
-use App\Models\sasaran_lansia;
-use App\Models\Sasaran_Bayibalita;
+use App\Models\SasaranLansia;
+use App\Models\SasaranBayibalita;
 use Carbon\Carbon;
 
 trait LansiaCrud
@@ -139,7 +139,7 @@ trait LansiaCrud
         
         // Jika update, cek apakah sudah ada nik_orangtua
         if ($this->id_sasaran_lansia) {
-            $lansia = sasaran_lansia::find($this->id_sasaran_lansia);
+            $lansia = SasaranLansia::find($this->id_sasaran_lansia);
             if ($lansia && $lansia->nik_orangtua) {
                 $nik_orangtua = $lansia->nik_orangtua;
             }
@@ -147,7 +147,7 @@ trait LansiaCrud
         
         // Jika belum ada nik_orangtua, cari dari sasaran balita
         if (!$nik_orangtua && $this->no_kk_sasaran_lansia && $this->alamat_sasaran_lansia) {
-            $existingBalita = Sasaran_Bayibalita::where('no_kk_sasaran', $this->no_kk_sasaran_lansia)
+            $existingBalita = SasaranBayibalita::where('no_kk_sasaran', $this->no_kk_sasaran_lansia)
                 ->where('alamat_sasaran', $this->alamat_sasaran_lansia)
                 ->whereNotNull('nik_orangtua')
                 ->first();
@@ -181,13 +181,13 @@ trait LansiaCrud
         if ($this->id_sasaran_lansia) {
             // UPDATE
             if (!$lansia) {
-                $lansia = sasaran_lansia::findOrFail($this->id_sasaran_lansia);
+                $lansia = SasaranLansia::findOrFail($this->id_sasaran_lansia);
             }
             $lansia->update($data);
             session()->flash('message', 'Data Lansia berhasil diperbarui.');
         } else {
             // CREATE
-            sasaran_lansia::create($data);
+            SasaranLansia::create($data);
             session()->flash('message', 'Data Lansia berhasil ditambahkan.');
         }
 
@@ -201,7 +201,7 @@ trait LansiaCrud
     public function editLansia($id)
     {
         $this->searchUser = ''; // Reset search user
-        $lansia = sasaran_lansia::findOrFail($id);
+        $lansia = SasaranLansia::findOrFail($id);
 
         $this->id_sasaran_lansia = $lansia->id_sasaran_lansia;
         $this->nama_sasaran_lansia = $lansia->nama_sasaran;
@@ -242,7 +242,7 @@ trait LansiaCrud
      */
     public function deleteLansia($id)
     {
-        $lansia = sasaran_lansia::findOrFail($id);
+        $lansia = SasaranLansia::findOrFail($id);
         $lansia->delete();
         $this->refreshPosyandu();
         session()->flash('message', 'Data Lansia berhasil dihapus.');

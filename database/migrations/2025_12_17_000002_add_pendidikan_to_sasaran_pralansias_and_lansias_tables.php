@@ -24,7 +24,7 @@ return new class extends Migration
                     'Akademi/Diploma III/Sarjana Muda',
                     'Diploma IV/Strata I',
                     'Strata II',
-                    'Strata III',
+                    'Strata III'
                 ])->nullable()->after('pekerjaan');
             });
         }
@@ -42,7 +42,7 @@ return new class extends Migration
                     'Akademi/Diploma III/Sarjana Muda',
                     'Diploma IV/Strata I',
                     'Strata II',
-                    'Strata III',
+                    'Strata III'
                 ])->nullable()->after('pekerjaan');
             });
         }

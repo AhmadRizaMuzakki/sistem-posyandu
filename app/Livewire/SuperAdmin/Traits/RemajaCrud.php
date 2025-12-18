@@ -2,7 +2,7 @@
 
 namespace App\Livewire\SuperAdmin\Traits;
 
-use App\Models\sasaran_remaja;
+use App\Models\SasaranRemaja;
 use App\Models\Orangtua;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
@@ -273,12 +273,12 @@ trait RemajaCrud
 
         if ($this->id_sasaran_remaja) {
             // UPDATE
-            $remaja = sasaran_remaja::findOrFail($this->id_sasaran_remaja);
+            $remaja = SasaranRemaja::findOrFail($this->id_sasaran_remaja);
             $remaja->update($data);
             session()->flash('message', 'Data Remaja berhasil diperbarui.');
         } else {
             // CREATE
-            sasaran_remaja::create($data);
+            SasaranRemaja::create($data);
             session()->flash('message', 'Data Remaja berhasil ditambahkan.');
         }
 
@@ -291,7 +291,7 @@ trait RemajaCrud
      */
     public function editRemaja($id)
     {
-        $remaja = sasaran_remaja::findOrFail($id);
+        $remaja = SasaranRemaja::findOrFail($id);
 
         $this->id_sasaran_remaja = $remaja->id_sasaran_remaja;
         $this->nama_sasaran_remaja = $remaja->nama_sasaran;
@@ -383,7 +383,7 @@ trait RemajaCrud
      */
     public function deleteRemaja($id)
     {
-        $remaja = sasaran_remaja::findOrFail($id);
+        $remaja = SasaranRemaja::findOrFail($id);
         $remaja->delete();
         $this->refreshPosyandu();
         session()->flash('message', 'Data Remaja berhasil dihapus.');

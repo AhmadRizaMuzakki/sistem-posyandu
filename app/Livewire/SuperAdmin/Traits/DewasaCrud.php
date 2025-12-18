@@ -2,8 +2,8 @@
 
 namespace App\Livewire\SuperAdmin\Traits;
 
-use App\Models\sasaran_dewasa;
-use App\Models\Sasaran_Bayibalita;
+use App\Models\SasaranDewasa;
+use App\Models\SasaranBayibalita;
 use Carbon\Carbon;
 
 trait DewasaCrud
@@ -137,7 +137,7 @@ trait DewasaCrud
         
         // Jika update, cek apakah sudah ada nik_orangtua
         if ($this->id_sasaran_dewasa) {
-            $dewasa = sasaran_dewasa::find($this->id_sasaran_dewasa);
+            $dewasa = SasaranDewasa::find($this->id_sasaran_dewasa);
             if ($dewasa && $dewasa->nik_orangtua) {
                 $nik_orangtua = $dewasa->nik_orangtua;
             }
@@ -145,7 +145,7 @@ trait DewasaCrud
         
         // Jika belum ada nik_orangtua, cari dari sasaran balita
         if (!$nik_orangtua && $this->no_kk_sasaran_dewasa && $this->alamat_sasaran_dewasa) {
-            $existingBalita = Sasaran_Bayibalita::where('no_kk_sasaran', $this->no_kk_sasaran_dewasa)
+            $existingBalita = SasaranBayibalita::where('no_kk_sasaran', $this->no_kk_sasaran_dewasa)
                 ->where('alamat_sasaran', $this->alamat_sasaran_dewasa)
                 ->whereNotNull('nik_orangtua')
                 ->first();
@@ -179,13 +179,13 @@ trait DewasaCrud
         if ($this->id_sasaran_dewasa) {
             // UPDATE
             if (!$dewasa) {
-                $dewasa = sasaran_dewasa::findOrFail($this->id_sasaran_dewasa);
+                $dewasa = SasaranDewasa::findOrFail($this->id_sasaran_dewasa);
             }
             $dewasa->update($data);
             session()->flash('message', 'Data Dewasa berhasil diperbarui.');
         } else {
             // CREATE
-            sasaran_dewasa::create($data);
+            SasaranDewasa::create($data);
             session()->flash('message', 'Data Dewasa berhasil ditambahkan.');
         }
 
@@ -199,7 +199,7 @@ trait DewasaCrud
     public function editDewasa($id)
     {
         $this->searchUser = ''; // Reset search user
-        $dewasa = sasaran_dewasa::findOrFail($id);
+        $dewasa = SasaranDewasa::findOrFail($id);
 
         $this->id_sasaran_dewasa = $dewasa->id_sasaran_dewasa;
         $this->nama_sasaran_dewasa = $dewasa->nama_sasaran;
@@ -240,7 +240,7 @@ trait DewasaCrud
      */
     public function deleteDewasa($id)
     {
-        $dewasa = sasaran_dewasa::findOrFail($id);
+        $dewasa = SasaranDewasa::findOrFail($id);
         $dewasa->delete();
         $this->refreshPosyandu();
         session()->flash('message', 'Data Dewasa berhasil dihapus.');

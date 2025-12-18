@@ -49,7 +49,7 @@ return new class extends Migration
             if (Schema::hasTable($table)) {
                 Schema::table($table, function (Blueprint $table) {
                     $table->dropColumn(['rt', 'rw']);
-        });
+                });
             }
         }
     }
