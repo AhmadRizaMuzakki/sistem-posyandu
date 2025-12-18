@@ -13,6 +13,7 @@ class Kader extends Model
 
     protected $fillable = [
         'nik_kader',
+        'nama_kader',
         'id_users',
         'tanggal_lahir',
         'alamat_kader',

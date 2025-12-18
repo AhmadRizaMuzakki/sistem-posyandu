@@ -70,6 +70,11 @@ trait KaderCrud
      */
     public function storeKader()
     {
+        // Set posyandu_id_kader dari posyandu yang sedang dibuka jika tidak terisi
+        if (empty($this->posyandu_id_kader) && isset($this->posyanduId)) {
+            $this->posyandu_id_kader = $this->posyanduId;
+        }
+        
         // Cek apakah user memiliki hak untuk menambah kader (hanya Ketua dan Superadmin)
         /** @var \App\Models\User|null $user */
         $user = Auth::user();
@@ -92,13 +97,6 @@ trait KaderCrud
             $isKetua = $kaderUser !== null;
         }
 
-        // Jika bukan superadmin dan bukan ketua, tolak akses
-        if (!$isSuperadmin && !$isKetua) {
-            session()->flash('message', 'Anda tidak memiliki hak untuk menambah anggota kader. Hanya Ketua dan Superadmin yang dapat menambah anggota.');
-            session()->flash('messageType', 'error');
-            return;
-        }
-
         // Get user ID for unique email validation if editing
         $userId = null;
         if ($this->id_kader) {
@@ -106,22 +104,27 @@ trait KaderCrud
             $userId = $kader->id_users;
         }
 
-        $this->validate([
+        // Jika password diisi, hanya ketua atau superadmin yang bisa membuat user
+        if (!empty($this->password_kader) && !$this->id_kader) {
+            if (!$isSuperadmin && !$isKetua) {
+                session()->flash('message', 'Hanya Ketua dan Superadmin yang dapat membuat akun user untuk kader.');
+                session()->flash('messageType', 'error');
+                return;
+            }
+        }
+
+        // Validasi: email dan password hanya required jika password diisi (untuk membuat user)
+        $rules = [
             'nama_kader' => 'required|string|max:255',
-            'email_kader' => 'required|string|email|max:255|unique:users,email' . ($userId ? ',' . $userId : ''),
-            'password_kader' => $this->id_kader ? 'nullable|min:8' : 'required|min:8',
             'posyandu_id_kader' => 'required|exists:posyandu,id_posyandu',
             'nik_kader' => 'required|string|max:50',
             'tanggal_lahir' => 'required|date',
             'alamat_kader' => 'required|string|max:255',
             'jabatan_kader' => 'required|string|max:100',
-        ], [
+        ];
+
+        $messages = [
             'nama_kader.required' => 'Nama kader wajib diisi.',
-            'email_kader.required' => 'Email wajib diisi.',
-            'email_kader.email' => 'Format email tidak valid.',
-            'email_kader.unique' => 'Email sudah terdaftar.',
-            'password_kader.required' => 'Password wajib diisi.',
-            'password_kader.min' => 'Password minimal 8 karakter.',
             'posyandu_id_kader.required' => 'Posyandu wajib dipilih.',
             'posyandu_id_kader.exists' => 'Posyandu yang dipilih tidak valid.',
             'nik_kader.required' => 'NIK kader wajib diisi.',
@@ -129,21 +132,64 @@ trait KaderCrud
             'tanggal_lahir.date' => 'Tanggal lahir tidak valid.',
             'alamat_kader.required' => 'Alamat kader wajib diisi.',
             'jabatan_kader.required' => 'Jabatan kader wajib diisi.',
-        ]);
+        ];
+
+        // Jika sedang edit dan kader sudah punya user, email wajib
+        if ($this->id_kader && $userId) {
+            $rules['email_kader'] = 'required|string|email|max:255|unique:users,email,' . $userId;
+            $rules['password_kader'] = 'nullable|min:8';
+            $messages['email_kader.required'] = 'Email wajib diisi.';
+            $messages['email_kader.email'] = 'Format email tidak valid.';
+            $messages['email_kader.unique'] = 'Email sudah terdaftar.';
+            $messages['password_kader.min'] = 'Password minimal 8 karakter.';
+        }
+        // Jika password diisi (untuk create user baru atau tambah user ke kader yang belum punya), email wajib
+        elseif (!empty($this->password_kader)) {
+            $rules['email_kader'] = 'required|string|email|max:255|unique:users,email' . ($userId ? ',' . $userId : '');
+            $rules['password_kader'] = 'required|min:8';
+            $messages['email_kader.required'] = 'Email wajib diisi jika ingin membuat akun user.';
+            $messages['email_kader.email'] = 'Format email tidak valid.';
+            $messages['email_kader.unique'] = 'Email sudah terdaftar.';
+            $messages['password_kader.required'] = 'Password wajib diisi jika ingin membuat akun user.';
+            $messages['password_kader.min'] = 'Password minimal 8 karakter.';
+        }
+
+        $this->validate($rules, $messages);
 
         if ($this->id_kader) {
             // UPDATE
             $kader = Kader::findOrFail($this->id_kader);
-            $user = $kader->user;
-
-            $user->name = $this->nama_kader;
-            $user->email = $this->email_kader;
-            if ($this->password_kader) {
-                $user->password = Hash::make($this->password_kader);
+            
+            // Jika kader sudah punya user, update user
+            if ($kader->id_users) {
+                $user = $kader->user;
+                $user->name = $this->nama_kader;
+                $user->email = $this->email_kader;
+                if ($this->password_kader) {
+                    $user->password = Hash::make($this->password_kader);
+                }
+                $user->save();
             }
-            $user->save();
+            // Jika kader belum punya user dan password diisi, buat user baru
+            elseif (!empty($this->password_kader)) {
+                // Cek apakah user yang login adalah ketua atau superadmin
+                if (!$isSuperadmin && !$isKetua) {
+                    session()->flash('message', 'Hanya Ketua dan Superadmin yang dapat membuat akun user untuk kader.');
+                    session()->flash('messageType', 'error');
+                    return;
+                }
+                
+                $user = User::create([
+                    'name' => $this->nama_kader,
+                    'email' => $this->email_kader,
+                    'password' => Hash::make($this->password_kader),
+                ]);
+                $user->assignRole('adminPosyandu');
+                $kader->id_users = $user->id;
+            }
 
             $kader->id_posyandu = $this->posyandu_id_kader;
+            $kader->nama_kader = $this->nama_kader;
             $kader->nik_kader = $this->nik_kader;
             $kader->tanggal_lahir = $this->tanggal_lahir;
             $kader->alamat_kader = $this->alamat_kader;
@@ -152,19 +198,26 @@ trait KaderCrud
 
             session()->flash('message', 'Data Kader berhasil diperbarui.');
         } else {
-            // CREATE - Buat User baru
-            $user = User::create([
-                'name' => $this->nama_kader,
-                'email' => $this->email_kader,
-                'password' => Hash::make($this->password_kader),
-            ]);
+            // CREATE
+            $userId = null;
+            
+            // Hanya buat user jika password diisi
+            if (!empty($this->password_kader)) {
+                $user = User::create([
+                    'name' => $this->nama_kader,
+                    'email' => $this->email_kader,
+                    'password' => Hash::make($this->password_kader),
+                ]);
 
-            // Assign role kader
-            $user->assignRole('adminPosyandu');
+                // Assign role kader
+                $user->assignRole('adminPosyandu');
+                $userId = $user->id;
+            }
 
-            // Buat record Kader
+            // Buat record Kader (dengan atau tanpa id_users)
             Kader::create([
-                'id_users' => $user->id,
+                'id_users' => $userId,
+                'nama_kader' => $this->nama_kader,
                 'id_posyandu' => $this->posyandu_id_kader,
                 'nik_kader' => $this->nik_kader,
                 'tanggal_lahir' => $this->tanggal_lahir,
@@ -172,7 +225,11 @@ trait KaderCrud
                 'jabatan_kader' => $this->jabatan_kader,
             ]);
 
-            session()->flash('message', 'Data Kader berhasil ditambahkan.');
+            if ($userId) {
+                session()->flash('message', 'Data Kader dan akun user berhasil ditambahkan.');
+            } else {
+                session()->flash('message', 'Data Kader berhasil ditambahkan (tanpa akun user).');
+            }
         }
 
         $this->refreshPosyandu();
@@ -187,7 +244,8 @@ trait KaderCrud
         $kader = Kader::with('user')->findOrFail($id);
 
         $this->id_kader = $kader->id_kader;
-        $this->nama_kader = $kader->user->name ?? '';
+        // Ambil nama dari nama_kader, jika tidak ada fallback ke user->name
+        $this->nama_kader = $kader->nama_kader ?? $kader->user->name ?? '';
         $this->email_kader = $kader->user->email ?? '';
         $this->posyandu_id_kader = $kader->id_posyandu;
         $this->nik_kader = $kader->nik_kader ?? '';

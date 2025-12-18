@@ -45,7 +45,7 @@
                     @foreach($posyandu->kader as $kader)
                     <tr class="bg-white border-b hover:bg-gray-50">
                         <td class="px-6 py-4 font-medium text-gray-900">{{ $kader->nik_kader ?? '-' }}</td>
-                        <td class="px-6 py-4">{{ $kader->user->name ?? '-' }}</td>
+                        <td class="px-6 py-4">{{ $kader->nama_kader ?? $kader->user->name ?? '-' }}</td>
                         <td class="px-6 py-4">{{ $kader->tanggal_lahir ? \Carbon\Carbon::parse($kader->tanggal_lahir)->format('d/m/Y') : '-' }}</td>
                         <td class="px-6 py-4">{{ $kader->alamat_kader ?? '-' }}</td>
                         @if($kader->jabatan_kader)

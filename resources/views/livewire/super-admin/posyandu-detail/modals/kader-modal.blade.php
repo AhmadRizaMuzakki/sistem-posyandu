@@ -22,16 +22,18 @@
                             <input type="text" wire:model="nama_kader" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-primary focus:border-primary" placeholder="Nama Lengkap Kader">
                             @error('nama_kader') <span class="text-red-500 text-xs">{{ $message }}</span>@enderror
                         </div>
-                        {{-- Email Kader (User) --}}
+                        {{-- Email Kader (User) - Opsional --}}
                         <div>
-                            <label class="block text-gray-700 text-sm font-bold mb-2">Email (Untuk Login) <span class="text-red-500">*</span></label>
-                            <input type="email" wire:model="email_kader" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-primary focus:border-primary" placeholder="Email">
+                            <label class="block text-gray-700 text-sm font-bold mb-2">Email (Untuk Login)</label>
+                            <input type="email" wire:model="email_kader" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-primary focus:border-primary" placeholder="Email (Opsional - hanya jika ingin buat akun)">
+                            <p class="text-xs text-gray-500 mt-1">Hanya Ketua yang dapat membuat akun user. Kosongkan jika tidak ingin membuat akun.</p>
                             @error('email_kader') <span class="text-red-500 text-xs">{{ $message }}</span>@enderror
                         </div>
-                        {{-- Password (User) --}}
+                        {{-- Password (User) - Opsional --}}
                         <div>
-                            <label class="block text-gray-700 text-sm font-bold mb-2">Password <span class="text-red-500">*</span></label>
-                            <input type="password" wire:model="password_kader" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-primary focus:border-primary" placeholder="Password">
+                            <label class="block text-gray-700 text-sm font-bold mb-2">Password</label>
+                            <input type="password" wire:model="password_kader" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-primary focus:border-primary" placeholder="Password (Opsional - hanya jika ingin buat akun)">
+                            <p class="text-xs text-gray-500 mt-1">Isi jika ingin membuat akun user. Jika tidak diisi, kader akan dibuat tanpa akun.</p>
                             @error('password_kader') <span class="text-red-500 text-xs">{{ $message }}</span>@enderror
                         </div>
                         <hr class="my-2" />
@@ -70,17 +72,14 @@
                             @error('jabatan_kader') <span class="text-red-500 text-xs">{{ $message }}</span>@enderror
                         </div>
 
-                        {{-- Pilih Posyandu --}}
+                        {{-- Pilih Posyandu (Read-only) --}}
                         <div>
                             <label class="block text-gray-700 text-sm font-bold mb-2">Tugaskan di Posyandu Mana? <span class="text-red-500">*</span></label>
-                            <select wire:model="posyandu_id_kader" class="shadow border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-primary focus:border-primary">
-                                <option value="">Pilih Posyandu...</option>
-                                @foreach($dataPosyandu as $posyanduOpt)
-                                    <option value="{{ is_array($posyanduOpt) ? ($posyanduOpt['id_posyandu'] ?? $posyanduOpt['id'] ?? '') : ($posyanduOpt->id_posyandu ?? $posyanduOpt->id ?? '') }}">
-                                        {{ is_array($posyanduOpt) ? ($posyanduOpt['nama_posyandu'] ?? '') : ($posyanduOpt->nama_posyandu ?? '') }}
-                                    </option>
-                                @endforeach
-                            </select>
+                            <input type="text" 
+                                   value="{{ $posyandu->nama_posyandu ?? '' }}" 
+                                   readonly
+                                   class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 bg-gray-100 leading-tight focus:outline-none focus:ring-primary focus:border-primary cursor-not-allowed">
+                            <input type="hidden" wire:model="posyandu_id_kader" value="{{ $posyandu->id_posyandu ?? $posyanduId ?? '' }}">
                             @error('posyandu_id_kader') <span class="text-red-500 text-xs">{{ $message }}</span>@enderror
                         </div>
                     </div>
