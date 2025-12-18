@@ -69,18 +69,18 @@
                     </a>
                 @endif
 
-                {{-- 3. DATA IMUNISASI --}}
+                {{-- 3. DATA SASARAN --}}
+                <a href="{{ route('adminPosyandu.sasaran') }}"
+                    class="flex items-center px-4 py-3 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
+                    <i class="ph ph-baby text-xl mr-3"></i>
+                    <span class="font-medium">Sasaran & Anak</span>
+                </a>
+
+                {{-- 4. DATA IMUNISASI --}}
                 <a href="{{ route('adminPosyandu.imunisasi') }}"
                     class="flex items-center px-4 py-3 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
                     <i class="ph ph-syringe text-xl mr-3"></i>
                     <span class="font-medium">Imunisasi</span>
-                </a>
-
-                {{-- 4. DATA SASARAN --}}
-                <a href="{{ route('login') }}"
-                    class="flex items-center px-4 py-3 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
-                    <i class="ph ph-baby text-xl mr-3"></i>
-                    <span class="font-medium">Sasaran & Anak</span>
                 </a>
 
                 {{-- 5. LAPORAN --}}
@@ -121,16 +121,52 @@
                 </div>
 
                 <div class="flex items-center space-x-4">
-                    <button class="relative p-1 text-gray-400 hover:text-gray-500">
+                    <button class="relative p-1 text-gray-400 hover:text-gray-500 focus:outline-none">
                         <i class="ph ph-bell text-xl"></i>
                         <span
                             class="absolute top-0 right-0 block w-2 h-2 bg-red-500 rounded-full ring-2 ring-white"></span>
                     </button>
-                    <div class="relative flex items-center space-x-2 cursor-pointer">
+                    <div class="relative flex items-center space-x-2">
                         <img class="w-8 h-8 rounded-full"
-                            src="https://ui-avatars.com/api/?name=Admin+User&background=0D8ABC&color=fff"
+                            src="https://ui-avatars.com/api/?name={{ urlencode(Auth::user()->name ?? 'Admin') }}&background=0D8ABC&color=fff"
                             alt="Admin">
-                        <span class="hidden md:block text-sm font-medium text-gray-700">Admin User</span>
+                        <span class="hidden md:block text-sm font-medium text-gray-700">{{ Auth::user()->name ?? 'Admin User' }}</span>
+                        <!-- Dropdown -->
+                        <div class="relative group">
+                            <button id="userDropdownBtn" class="ml-2 p-1 rounded-full text-gray-400 hover:text-gray-700 focus:outline-none focus:ring-2 focus:ring-primary">
+                                <i class="ph ph-caret-down text-xl"></i>
+                            </button>
+                            <div id="userDropdownMenu" class="hidden group-hover:block absolute right-0 mt-2 w-40 bg-white border border-gray-200 rounded-lg shadow-md z-50">
+                                <a href="{{ route('profile.edit') }}"
+                                    class="block px-4 py-2 text-gray-700 hover:bg-gray-100 hover:text-primary text-sm">
+                                    <i class="ph ph-pencil-line mr-2"></i> Update Profil
+                                </a>
+                                <form method="POST" action="{{ route('logout') }}">
+                                    @csrf
+                                    <button type="submit"
+                                        class="w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100 hover:text-primary text-sm">
+                                        <i class="ph ph-sign-out mr-2"></i> Logout
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                        <script>
+                            document.addEventListener('DOMContentLoaded', function() {
+                                const btn = document.getElementById('userDropdownBtn');
+                                const menu = document.getElementById('userDropdownMenu');
+                                if (btn && menu) {
+                                    btn.addEventListener('click', function(e) {
+                                        e.stopPropagation();
+                                        menu.classList.toggle('hidden');
+                                    });
+                                    document.addEventListener('click', function(e) {
+                                        if (!btn.contains(e.target) && !menu.contains(e.target)) {
+                                            menu.classList.add('hidden');
+                                        }
+                                    });
+                                }
+                            });
+                        </script>
                     </div>
                 </div>
             </header>
@@ -163,6 +199,7 @@
         });
     </script>
 
+    @stack('scripts')
     @livewireScripts
 </body>
 

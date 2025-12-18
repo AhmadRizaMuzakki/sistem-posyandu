@@ -73,6 +73,37 @@ class KaderImunisasi extends Component
     }
 
     /**
+     * Override updatedIdSasaranImunisasi untuk memastikan method bisa dipanggil
+     * Method ini dipanggil otomatis oleh Livewire ketika id_sasaran_imunisasi berubah
+     */
+    public function updatedIdSasaranImunisasi($value)
+    {
+        if ($value && !empty($this->sasaranList)) {
+            // Cari sasaran dari list berdasarkan ID
+            $sasaran = null;
+            
+            // Jika sudah ada kategori, cari yang sesuai dengan ID dan kategori
+            if ($this->kategori_sasaran_imunisasi) {
+                $sasaran = collect($this->sasaranList)->first(function($s) use ($value) {
+                    return $s['id'] == $value && $s['kategori'] == $this->kategori_sasaran_imunisasi;
+                });
+            }
+            
+            // Jika tidak ditemukan dengan kategori, cari berdasarkan ID saja
+            if (!$sasaran) {
+                $sasaran = collect($this->sasaranList)->firstWhere('id', $value);
+            }
+            
+            if ($sasaran && isset($sasaran['kategori'])) {
+                // Set kategori langsung dari list untuk menghindari konflik ID
+                $this->kategori_sasaran_imunisasi = $sasaran['kategori'];
+            }
+        } else {
+            $this->kategori_sasaran_imunisasi = '';
+        }
+    }
+
+    /**
      * Override storeImunisasi untuk validasi posyandu kader
      */
     public function storeImunisasi()

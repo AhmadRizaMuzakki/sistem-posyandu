@@ -17,7 +17,7 @@
                     <i class="ph ph-syringe text-2xl mr-3 text-primary"></i>
                     Daftar Imunisasi
                 </h2>
-                <button wire:click="openImunisasiModal" 
+                <button wire:click="openImunisasiModal"
                         class="flex items-center px-4 py-2 bg-primary text-white rounded-lg hover:bg-indigo-700 transition-colors">
                     <i class="ph ph-plus text-lg mr-2"></i>
                     Tambah Imunisasi
@@ -30,7 +30,7 @@
                     <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
                         <i class="ph ph-magnifying-glass text-lg"></i>
                     </span>
-                    <input type="text" 
+                    <input type="text"
                            wire:model.live.debounce.300ms="search"
                            class="w-full py-2 pl-10 pr-4 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
                            placeholder="Cari berdasarkan jenis imunisasi, kategori, atau keterangan...">
@@ -75,11 +75,11 @@
                                         {{ $imunisasi->keterangan ?? '-' }}
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                        <button wire:click="openImunisasiModal({{ $imunisasi->id_imunisasi }})" 
+                                        <button wire:click="openImunisasiModal({{ $imunisasi->id_imunisasi }})"
                                                 class="text-indigo-600 hover:text-indigo-900 mr-3">
                                             <i class="ph ph-pencil"></i>
                                         </button>
-                                        <button wire:click="deleteImunisasi({{ $imunisasi->id_imunisasi }})" 
+                                        <button wire:click="deleteImunisasi({{ $imunisasi->id_imunisasi }})"
                                                 wire:confirm="Apakah Anda yakin ingin menghapus data imunisasi ini?"
                                                 class="text-red-600 hover:text-red-900">
                                             <i class="ph ph-trash"></i>
@@ -94,7 +94,7 @@
                 <div class="text-center py-12 text-gray-500">
                     <i class="ph ph-syringe text-4xl mb-2"></i>
                     <p>Belum ada data imunisasi</p>
-                    <button wire:click="openImunisasiModal" 
+                    <button wire:click="openImunisasiModal"
                             class="mt-4 px-4 py-2 bg-primary text-white rounded-lg hover:bg-indigo-700 transition-colors">
                         Tambah Imunisasi Pertama
                     </button>
@@ -130,8 +130,7 @@
                                 {{-- Pilih Sasaran --}}
                                 <div>
                                     <label class="block text-gray-700 text-sm font-bold mb-2">Sasaran <span class="text-red-500">*</span></label>
-                                    <select wire:model="id_sasaran_imunisasi" 
-                                            wire:change="updatedIdSasaranImunisasi"
+                                    <select wire:model="id_sasaran_imunisasi"
                                             class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-primary focus:border-primary"
                                             @if(empty($sasaranList)) disabled @endif>
                                         <option value="">Pilih Sasaran...</option>
@@ -150,8 +149,8 @@
                                 {{-- Kategori Sasaran (Auto-filled) --}}
                                 <div>
                                     <label class="block text-gray-700 text-sm font-bold mb-2">Kategori Sasaran <span class="text-red-500">*</span></label>
-                                    <input type="text" 
-                                           wire:model="kategori_sasaran_imunisasi" 
+                                    <input type="text"
+                                           wire:model="kategori_sasaran_imunisasi"
                                            readonly
                                            class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 bg-gray-100 leading-tight focus:outline-none focus:ring-primary focus:border-primary"
                                            placeholder="Akan terisi otomatis">
@@ -161,7 +160,7 @@
                                 {{-- Jenis Imunisasi --}}
                                 <div>
                                     <label class="block text-gray-700 text-sm font-bold mb-2">Jenis Imunisasi <span class="text-red-500">*</span></label>
-                                    <select wire:model="jenis_imunisasi" 
+                                    <select wire:model="jenis_imunisasi"
                                             class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-primary focus:border-primary">
                                         <option value="">Pilih Jenis Imunisasi...</option>
                                         <optgroup label="Imunisasi Dasar Bayi">
@@ -298,9 +297,9 @@
                                 {{-- Keterangan --}}
                                 <div>
                                     <label class="block text-gray-700 text-sm font-bold mb-2">Keterangan</label>
-                                    <textarea wire:model="keterangan" 
+                                    <textarea wire:model="keterangan"
                                               rows="3"
-                                              class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-primary focus:border-primary" 
+                                              class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-primary focus:border-primary"
                                               placeholder="Keterangan tambahan (opsional)"></textarea>
                                     @error('keterangan') <span class="text-red-500 text-xs">{{ $message }}</span>@enderror
                                 </div>
@@ -312,8 +311,8 @@
                                     class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-primary text-base font-medium text-white hover:bg-indigo-700 focus:outline-none sm:ml-3 sm:w-auto sm:text-sm">
                                 Simpan Data
                             </button>
-                            <button type="button" 
-                                    wire:click="closeImunisasiModal" 
+                            <button type="button"
+                                    wire:click="closeImunisasiModal"
                                     class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
                                 Batal
                             </button>
