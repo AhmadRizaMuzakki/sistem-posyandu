@@ -12,7 +12,7 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         // 1. Panggil RolePermissionSeeder dulu (Wajib)
-        $this->call([RolePermissionSeeder::class, PosyanduSeeder::class, OrangtuaSeeder::class]);
+        $this->call([RolePermissionSeeder::class, PosyanduSeeder::class]);
 
         /*
         |--------------------------------------------------------------------------

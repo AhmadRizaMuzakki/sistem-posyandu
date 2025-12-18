@@ -217,6 +217,10 @@ trait RemajaCrud
             // Gunakan nik orangtua yang sudah ada dari remaja dengan no_kk dan alamat yang sama
             $orangtuaData['nik'] = $existingRemaja->nik_orangtua;
             $this->nik_orangtua_remaja = $existingRemaja->nik_orangtua;
+            
+            // Pastikan no_kk selalu diambil dari remaja
+            $orangtuaData['no_kk'] = $existingRemaja->no_kk_sasaran ?? $this->no_kk_sasaran_remaja;
+            $orangtuaData['alamat'] = $existingRemaja->alamat_sasaran ?? $this->alamat_sasaran_remaja;
 
             // Update data orangtua jika ada perubahan
             $existingOrangtua = Orangtua::find($existingRemaja->nik_orangtua);
