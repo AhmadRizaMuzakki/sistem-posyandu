@@ -52,6 +52,80 @@
             </div>
         </div>
 
+        {{-- Daftar Anak --}}
+        <div class="bg-white rounded-lg shadow-sm p-6">
+            <div class="flex items-center justify-between mb-6">
+                <div>
+                    <h2 class="text-xl font-bold text-gray-800">Daftar Anak</h2>
+                    <p class="text-sm text-gray-600 mt-1">Data sasaran yang terdaftar di posyandu</p>
+                </div>
+                <div class="bg-primary bg-opacity-10 rounded-full p-3">
+                    <i class="ph ph-users text-2xl text-primary"></i>
+                </div>
+            </div>
+
+            @if($allAnak->count() > 0)
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">No</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nama</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">NIK</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Kategori</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tanggal Lahir</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Umur</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Jenis Kelamin</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Alamat</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            @foreach($allAnak as $index => $anak)
+                                <tr class="hover:bg-gray-50 transition-colors">
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ $index + 1 }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="text-sm font-medium text-gray-900">{{ $anak['nama'] }}</div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{{ $anak['nik'] }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full
+                                            @if($anak['kategori'] == 'Bayi/Balita') bg-blue-100 text-blue-800
+                                            @elseif($anak['kategori'] == 'Remaja') bg-green-100 text-green-800
+                                            @elseif($anak['kategori'] == 'Dewasa') bg-yellow-100 text-yellow-800
+                                            @elseif($anak['kategori'] == 'Pralansia') bg-orange-100 text-orange-800
+                                            @else bg-purple-100 text-purple-800
+                                            @endif">
+                                            {{ $anak['kategori'] }}
+                                        </span>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                                        {{ $anak['tanggal_lahir'] ? \Carbon\Carbon::parse($anak['tanggal_lahir'])->format('d/m/Y') : '-' }}
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                                        {{ $anak['umur'] ? $anak['umur'] . ' tahun' : '-' }}
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                                        {{ $anak['jenis_kelamin'] == 'L' ? 'Laki-laki' : ($anak['jenis_kelamin'] == 'P' ? 'Perempuan' : '-') }}
+                                    </td>
+                                    <td class="px-6 py-4 text-sm text-gray-600">
+                                        {{ $anak['alamat'] ?? '-' }}
+                                    </td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            @else
+                <div class="text-center py-12">
+                    <div class="bg-gray-100 rounded-full p-4 w-16 h-16 mx-auto mb-4 flex items-center justify-center">
+                        <i class="ph ph-users text-3xl text-gray-400"></i>
+                    </div>
+                    <p class="text-gray-600 font-medium">Belum ada data anak terdaftar</p>
+                    <p class="text-sm text-gray-500 mt-2">Silakan hubungi kader posyandu untuk mendaftarkan anak Anda</p>
+                </div>
+            @endif
+        </div>
+
         {{-- Informasi Penting --}}
         <div class="bg-blue-50 border border-blue-200 rounded-lg p-6">
             <div class="flex items-start">
