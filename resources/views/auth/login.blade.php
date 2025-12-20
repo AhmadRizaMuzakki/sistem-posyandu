@@ -45,14 +45,17 @@
 						</div>
 					@endif
 
-					<!-- Email Address -->
-					<div class="wrap-input100 validate-input @error('email') alert-validate @enderror" data-validate="@error('email') {{ $message }} @else Valid email is required: ex@abc.xyz @enderror">
-						<input class="input100" type="email" name="email" placeholder="Email" value="{{ old('email') }}" required autofocus autocomplete="username">
+					<!-- Email/No KK Address -->
+					<div class="wrap-input100 validate-input @error('email') alert-validate @enderror" data-validate="@error('email') {{ $message }} @else Email atau No KK wajib diisi @enderror">
+						<input class="input100" type="text" name="email" placeholder="Email atau No KK" value="{{ old('email') }}" required autofocus autocomplete="username">
 						<span class="focus-input100"></span>
 						<span class="symbol-input100">
 							<i class="fa fa-envelope" aria-hidden="true"></i>
 						</span>
 					</div>
+					<small class="text-muted" style="display: block; margin-top: -10px; margin-bottom: 10px; padding-left: 20px; font-size: 12px;">
+						Untuk Orangtua: Gunakan No KK | Untuk Admin: Gunakan Email
+					</small>
 
 					<!-- Password -->
 					<div class="wrap-input100 validate-input @error('password') alert-validate @enderror" data-validate="@error('password') {{ $message }} @else Password is required @enderror">

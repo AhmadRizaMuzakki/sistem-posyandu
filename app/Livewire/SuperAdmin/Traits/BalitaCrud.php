@@ -125,6 +125,7 @@ trait BalitaCrud
             'id_posyandu_sasaran' => 'required|exists:posyandu,id_posyandu',
             'nama_sasaran' => 'required|string|max:100',
             'nik_sasaran' => 'required|numeric',
+            'no_kk_sasaran' => 'required|numeric',
             'hari_lahir_sasaran' => 'required|numeric|min:1|max:31',
             'bulan_lahir_sasaran' => 'required|numeric|min:1|max:12',
             'tahun_lahir_sasaran' => 'required|numeric|min:1900|max:' . date('Y'),
@@ -150,6 +151,8 @@ trait BalitaCrud
             'nama_sasaran.required' => 'Nama sasaran wajib diisi.',
             'nik_sasaran.required' => 'NIK wajib diisi.',
             'nik_sasaran.numeric' => 'NIK harus berupa angka.',
+            'no_kk_sasaran.required' => 'No KK wajib diisi.',
+            'no_kk_sasaran.numeric' => 'No KK harus berupa angka.',
             'hari_lahir_sasaran.required' => 'Hari lahir wajib diisi.',
             'hari_lahir_sasaran.numeric' => 'Hari harus berupa angka.',
             'hari_lahir_sasaran.min' => 'Hari minimal 1.',
@@ -251,14 +254,19 @@ trait BalitaCrud
             $orangtuaData
         );
 
-        // Buat atau update user untuk orangtua
-        $email = $this->nik_orangtua . '@gmail.com';
+        // Buat atau update user untuk orangtua berdasarkan No KK
+        // Pastikan no_kk tersedia
+        if (empty($this->no_kk_sasaran)) {
+            throw new \Exception('No KK wajib diisi untuk membuat akun.');
+        }
+
+        $email = $this->no_kk_sasaran . '@gmail.com';
         $userExists = User::where('email', $email)->first();
 
         if ($userExists) {
-            // Update user yang sudah ada
+            // Update user yang sudah ada (timpa data jika No KK sama)
             $userExists->name = $this->nama_orangtua;
-            $userExists->password = Hash::make($this->nik_orangtua);
+            $userExists->password = Hash::make($this->no_kk_sasaran);
             $userExists->save();
             $user = $userExists;
         } else {
@@ -266,7 +274,7 @@ trait BalitaCrud
             $user = User::create([
                 'name' => $this->nama_orangtua,
                 'email' => $email,
-                'password' => Hash::make($this->nik_orangtua),
+                'password' => Hash::make($this->no_kk_sasaran),
                 'email_verified_at' => now(),
             ]);
         }
@@ -538,7 +546,16 @@ trait BalitaCrud
                 $countRemaja = \App\Models\SasaranRemaja::where('id_posyandu', $posyanduId)
                     ->where('no_kk_sasaran', $noKk)
                     ->count();
-                $totalAnggota = $countBalita + $countRemaja;
+                $countDewasa = SasaranDewasa::where('id_posyandu', $posyanduId)
+                    ->where('no_kk_sasaran', $noKk)
+                    ->count();
+                $countPralansia = SasaranPralansia::where('id_posyandu', $posyanduId)
+                    ->where('no_kk_sasaran', $noKk)
+                    ->count();
+                $countLansia = SasaranLansia::where('id_posyandu', $posyanduId)
+                    ->where('no_kk_sasaran', $noKk)
+                    ->count();
+                $totalAnggota = $countBalita + $countRemaja + $countDewasa + $countPralansia + $countLansia;
                 
                 $noKkList[$noKk] = [
                     'no_kk' => $noKk,
@@ -584,7 +601,16 @@ trait BalitaCrud
                 $countRemaja = \App\Models\SasaranRemaja::where('id_posyandu', $posyanduId)
                     ->where('no_kk_sasaran', $noKk)
                     ->count();
-                $totalAnggota = $countBalita + $countRemaja;
+                $countDewasa = SasaranDewasa::where('id_posyandu', $posyanduId)
+                    ->where('no_kk_sasaran', $noKk)
+                    ->count();
+                $countPralansia = SasaranPralansia::where('id_posyandu', $posyanduId)
+                    ->where('no_kk_sasaran', $noKk)
+                    ->count();
+                $countLansia = SasaranLansia::where('id_posyandu', $posyanduId)
+                    ->where('no_kk_sasaran', $noKk)
+                    ->count();
+                $totalAnggota = $countBalita + $countRemaja + $countDewasa + $countPralansia + $countLansia;
                 
                 $noKkList[$noKk] = [
                     'no_kk' => $noKk,
@@ -606,6 +632,156 @@ trait BalitaCrud
                         'nomor_bpjs' => $orangtua->nomor_bpjs,
                         'nomor_telepon' => $orangtua->nomor_telepon,
                     ] : null
+                ];
+            }
+        }
+        
+        // Get from dewasa (dewasa/pralansia/lansia adalah orangtua itu sendiri)
+        $dewasaList = SasaranDewasa::where('id_posyandu', $posyanduId)
+            ->whereNotNull('no_kk_sasaran')
+            ->get();
+            
+        foreach ($dewasaList as $dewasa) {
+            $noKk = $dewasa->no_kk_sasaran;
+            if (!isset($noKkList[$noKk])) {
+                // Count anggota keluarga dengan no_kk yang sama
+                $countBalita = SasaranBayibalita::where('id_posyandu', $posyanduId)
+                    ->where('no_kk_sasaran', $noKk)
+                    ->count();
+                $countRemaja = \App\Models\SasaranRemaja::where('id_posyandu', $posyanduId)
+                    ->where('no_kk_sasaran', $noKk)
+                    ->count();
+                $countDewasa = SasaranDewasa::where('id_posyandu', $posyanduId)
+                    ->where('no_kk_sasaran', $noKk)
+                    ->count();
+                $countPralansia = SasaranPralansia::where('id_posyandu', $posyanduId)
+                    ->where('no_kk_sasaran', $noKk)
+                    ->count();
+                $countLansia = SasaranLansia::where('id_posyandu', $posyanduId)
+                    ->where('no_kk_sasaran', $noKk)
+                    ->count();
+                $totalAnggota = $countBalita + $countRemaja + $countDewasa + $countPralansia + $countLansia;
+                
+                $noKkList[$noKk] = [
+                    'no_kk' => $noKk,
+                    'nama_orangtua' => $dewasa->nama_sasaran,
+                    'jumlah_anggota' => $totalAnggota,
+                    'nik_orangtua' => $dewasa->nik_sasaran,
+                    'orangtua_data' => [
+                        'nik' => $dewasa->nik_sasaran,
+                        'nama' => $dewasa->nama_sasaran,
+                        'tempat_lahir' => $dewasa->tempat_lahir,
+                        'tanggal_lahir' => $dewasa->tanggal_lahir ? (is_string($dewasa->tanggal_lahir) ? Carbon::parse($dewasa->tanggal_lahir)->format('Y-m-d') : $dewasa->tanggal_lahir->format('Y-m-d')) : null,
+                        'hari_lahir' => $dewasa->tanggal_lahir ? (is_string($dewasa->tanggal_lahir) ? Carbon::parse($dewasa->tanggal_lahir)->day : $dewasa->tanggal_lahir->day) : null,
+                        'bulan_lahir' => $dewasa->tanggal_lahir ? (is_string($dewasa->tanggal_lahir) ? Carbon::parse($dewasa->tanggal_lahir)->month : $dewasa->tanggal_lahir->month) : null,
+                        'tahun_lahir' => $dewasa->tanggal_lahir ? (is_string($dewasa->tanggal_lahir) ? Carbon::parse($dewasa->tanggal_lahir)->year : $dewasa->tanggal_lahir->year) : null,
+                        'pekerjaan' => $dewasa->pekerjaan,
+                        'pendidikan' => $dewasa->pendidikan,
+                        'kelamin' => $dewasa->jenis_kelamin,
+                        'kepersertaan_bpjs' => $dewasa->kepersertaan_bpjs,
+                        'nomor_bpjs' => $dewasa->nomor_bpjs,
+                        'nomor_telepon' => $dewasa->nomor_telepon,
+                    ]
+                ];
+            }
+        }
+        
+        // Get from pralansia
+        $pralansiaList = SasaranPralansia::where('id_posyandu', $posyanduId)
+            ->whereNotNull('no_kk_sasaran')
+            ->get();
+            
+        foreach ($pralansiaList as $pralansia) {
+            $noKk = $pralansia->no_kk_sasaran;
+            if (!isset($noKkList[$noKk])) {
+                // Count anggota keluarga dengan no_kk yang sama
+                $countBalita = SasaranBayibalita::where('id_posyandu', $posyanduId)
+                    ->where('no_kk_sasaran', $noKk)
+                    ->count();
+                $countRemaja = \App\Models\SasaranRemaja::where('id_posyandu', $posyanduId)
+                    ->where('no_kk_sasaran', $noKk)
+                    ->count();
+                $countDewasa = SasaranDewasa::where('id_posyandu', $posyanduId)
+                    ->where('no_kk_sasaran', $noKk)
+                    ->count();
+                $countPralansia = SasaranPralansia::where('id_posyandu', $posyanduId)
+                    ->where('no_kk_sasaran', $noKk)
+                    ->count();
+                $countLansia = SasaranLansia::where('id_posyandu', $posyanduId)
+                    ->where('no_kk_sasaran', $noKk)
+                    ->count();
+                $totalAnggota = $countBalita + $countRemaja + $countDewasa + $countPralansia + $countLansia;
+                
+                $noKkList[$noKk] = [
+                    'no_kk' => $noKk,
+                    'nama_orangtua' => $pralansia->nama_sasaran,
+                    'jumlah_anggota' => $totalAnggota,
+                    'nik_orangtua' => $pralansia->nik_sasaran,
+                    'orangtua_data' => [
+                        'nik' => $pralansia->nik_sasaran,
+                        'nama' => $pralansia->nama_sasaran,
+                        'tempat_lahir' => $pralansia->tempat_lahir,
+                        'tanggal_lahir' => $pralansia->tanggal_lahir ? (is_string($pralansia->tanggal_lahir) ? Carbon::parse($pralansia->tanggal_lahir)->format('Y-m-d') : $pralansia->tanggal_lahir->format('Y-m-d')) : null,
+                        'hari_lahir' => $pralansia->tanggal_lahir ? (is_string($pralansia->tanggal_lahir) ? Carbon::parse($pralansia->tanggal_lahir)->day : $pralansia->tanggal_lahir->day) : null,
+                        'bulan_lahir' => $pralansia->tanggal_lahir ? (is_string($pralansia->tanggal_lahir) ? Carbon::parse($pralansia->tanggal_lahir)->month : $pralansia->tanggal_lahir->month) : null,
+                        'tahun_lahir' => $pralansia->tanggal_lahir ? (is_string($pralansia->tanggal_lahir) ? Carbon::parse($pralansia->tanggal_lahir)->year : $pralansia->tanggal_lahir->year) : null,
+                        'pekerjaan' => $pralansia->pekerjaan,
+                        'pendidikan' => $pralansia->pendidikan,
+                        'kelamin' => $pralansia->jenis_kelamin,
+                        'kepersertaan_bpjs' => $pralansia->kepersertaan_bpjs,
+                        'nomor_bpjs' => $pralansia->nomor_bpjs,
+                        'nomor_telepon' => $pralansia->nomor_telepon,
+                    ]
+                ];
+            }
+        }
+        
+        // Get from lansia
+        $lansiaList = SasaranLansia::where('id_posyandu', $posyanduId)
+            ->whereNotNull('no_kk_sasaran')
+            ->get();
+            
+        foreach ($lansiaList as $lansia) {
+            $noKk = $lansia->no_kk_sasaran;
+            if (!isset($noKkList[$noKk])) {
+                // Count anggota keluarga dengan no_kk yang sama
+                $countBalita = SasaranBayibalita::where('id_posyandu', $posyanduId)
+                    ->where('no_kk_sasaran', $noKk)
+                    ->count();
+                $countRemaja = \App\Models\SasaranRemaja::where('id_posyandu', $posyanduId)
+                    ->where('no_kk_sasaran', $noKk)
+                    ->count();
+                $countDewasa = SasaranDewasa::where('id_posyandu', $posyanduId)
+                    ->where('no_kk_sasaran', $noKk)
+                    ->count();
+                $countPralansia = SasaranPralansia::where('id_posyandu', $posyanduId)
+                    ->where('no_kk_sasaran', $noKk)
+                    ->count();
+                $countLansia = SasaranLansia::where('id_posyandu', $posyanduId)
+                    ->where('no_kk_sasaran', $noKk)
+                    ->count();
+                $totalAnggota = $countBalita + $countRemaja + $countDewasa + $countPralansia + $countLansia;
+                
+                $noKkList[$noKk] = [
+                    'no_kk' => $noKk,
+                    'nama_orangtua' => $lansia->nama_sasaran,
+                    'jumlah_anggota' => $totalAnggota,
+                    'nik_orangtua' => $lansia->nik_sasaran,
+                    'orangtua_data' => [
+                        'nik' => $lansia->nik_sasaran,
+                        'nama' => $lansia->nama_sasaran,
+                        'tempat_lahir' => $lansia->tempat_lahir,
+                        'tanggal_lahir' => $lansia->tanggal_lahir ? (is_string($lansia->tanggal_lahir) ? Carbon::parse($lansia->tanggal_lahir)->format('Y-m-d') : $lansia->tanggal_lahir->format('Y-m-d')) : null,
+                        'hari_lahir' => $lansia->tanggal_lahir ? (is_string($lansia->tanggal_lahir) ? Carbon::parse($lansia->tanggal_lahir)->day : $lansia->tanggal_lahir->day) : null,
+                        'bulan_lahir' => $lansia->tanggal_lahir ? (is_string($lansia->tanggal_lahir) ? Carbon::parse($lansia->tanggal_lahir)->month : $lansia->tanggal_lahir->month) : null,
+                        'tahun_lahir' => $lansia->tanggal_lahir ? (is_string($lansia->tanggal_lahir) ? Carbon::parse($lansia->tanggal_lahir)->year : $lansia->tanggal_lahir->year) : null,
+                        'pekerjaan' => $lansia->pekerjaan,
+                        'pendidikan' => $lansia->pendidikan,
+                        'kelamin' => $lansia->jenis_kelamin,
+                        'kepersertaan_bpjs' => $lansia->kepersertaan_bpjs,
+                        'nomor_bpjs' => $lansia->nomor_bpjs,
+                        'nomor_telepon' => $lansia->nomor_telepon,
+                    ]
                 ];
             }
         }
@@ -688,6 +864,72 @@ trait BalitaCrud
                 if (empty($this->alamat_sasaran) && $sasaran->alamat_sasaran) {
                     $this->alamat_sasaran = $sasaran->alamat_sasaran;
                 }
+                
+                // Update RT dan RW jika kosong
+                if (empty($this->rt_sasaran) && $sasaran->rt) {
+                    $this->rt_sasaran = $sasaran->rt;
+                }
+                if (empty($this->rw_sasaran) && $sasaran->rw) {
+                    $this->rw_sasaran = $sasaran->rw;
+                }
+            }
+        } else {
+            // Jika tidak ditemukan di balita/remaja, coba dari dewasa/pralansia/lansia
+            // (mereka adalah orangtua itu sendiri)
+            $sasaranDewasa = SasaranDewasa::where('id_posyandu', $posyanduId)
+                ->where('no_kk_sasaran', $noKk)
+                ->first();
+            
+            if (!$sasaranDewasa) {
+                $sasaranDewasa = SasaranPralansia::where('id_posyandu', $posyanduId)
+                    ->where('no_kk_sasaran', $noKk)
+                    ->first();
+            }
+            
+            if (!$sasaranDewasa) {
+                $sasaranDewasa = SasaranLansia::where('id_posyandu', $posyanduId)
+                    ->where('no_kk_sasaran', $noKk)
+                    ->first();
+            }
+            
+            if ($sasaranDewasa) {
+                // Gunakan data sasaran dewasa/pralansia/lansia sebagai data orangtua
+                $this->nik_orangtua = $sasaranDewasa->nik_sasaran;
+                $this->nama_orangtua = $sasaranDewasa->nama_sasaran;
+                $this->tempat_lahir_orangtua = $sasaranDewasa->tempat_lahir ?? '';
+                
+                if ($sasaranDewasa->tanggal_lahir) {
+                    $date = is_string($sasaranDewasa->tanggal_lahir) ? Carbon::parse($sasaranDewasa->tanggal_lahir) : $sasaranDewasa->tanggal_lahir;
+                    $this->tanggal_lahir_orangtua = $date->format('Y-m-d');
+                    $this->hari_lahir_orangtua = $date->day;
+                    $this->bulan_lahir_orangtua = $date->month;
+                    $this->tahun_lahir_orangtua = $date->year;
+                } else {
+                    $this->tanggal_lahir_orangtua = '';
+                    $this->hari_lahir_orangtua = '';
+                    $this->bulan_lahir_orangtua = '';
+                    $this->tahun_lahir_orangtua = '';
+                }
+                
+                $this->pekerjaan_orangtua = $sasaranDewasa->pekerjaan ?? '';
+                $this->pendidikan_orangtua = $sasaranDewasa->pendidikan ?? '';
+                $this->kelamin_orangtua = $sasaranDewasa->jenis_kelamin ?? '';
+                $this->kepersertaan_bpjs_orangtua = $sasaranDewasa->kepersertaan_bpjs ?? '';
+                $this->nomor_bpjs_orangtua = $sasaranDewasa->nomor_bpjs ?? '';
+                $this->nomor_telepon_orangtua = $sasaranDewasa->nomor_telepon ?? '';
+                
+                // Update alamat sasaran jika kosong
+                if (empty($this->alamat_sasaran) && $sasaranDewasa->alamat_sasaran) {
+                    $this->alamat_sasaran = $sasaranDewasa->alamat_sasaran;
+                }
+                
+                // Update RT dan RW jika kosong
+                if (empty($this->rt_sasaran) && $sasaranDewasa->rt) {
+                    $this->rt_sasaran = $sasaranDewasa->rt;
+                }
+                if (empty($this->rw_sasaran) && $sasaranDewasa->rw) {
+                    $this->rw_sasaran = $sasaranDewasa->rw;
+                }
             }
         }
         
@@ -705,7 +947,11 @@ trait BalitaCrud
         }
 
         $umur = $orangtua->umur;
-        $email = $orangtua->nik . '@gmail.com';
+        // Gunakan No KK untuk email, bukan NIK
+        if (empty($orangtua->no_kk)) {
+            return; // Skip jika tidak ada No KK
+        }
+        $email = $orangtua->no_kk . '@gmail.com';
         $user = User::where('email', $email)->first();
 
         if (!$user) {

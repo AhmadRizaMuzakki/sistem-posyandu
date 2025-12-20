@@ -27,7 +27,7 @@ class LoginRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'email' => ['required', 'string', 'email'],
+            'email' => ['required', 'string'],
             'password' => ['required', 'string'],
         ];
     }
@@ -41,7 +41,21 @@ class LoginRequest extends FormRequest
     {
         $this->ensureIsNotRateLimited();
 
-        if (! Auth::attempt($this->only('email', 'password'), $this->boolean('remember'))) {
+        $email = $this->input('email');
+        $password = $this->input('password');
+
+        // Cek apakah input adalah No KK (numeric) atau email
+        // Jika numeric, berarti user ingin login dengan No KK untuk role orangtua
+        if (is_numeric($email)) {
+            // Login menggunakan No KK untuk user dengan role orangtua
+            // Email user adalah: no_kk + '@gmail.com'
+            // Password user adalah: no_kk (di-hash)
+            $email = $email . '@gmail.com';
+        }
+
+        $credentials = ['email' => $email, 'password' => $password];
+
+        if (! Auth::attempt($credentials, $this->boolean('remember'))) {
             RateLimiter::hit($this->throttleKey());
 
             throw ValidationException::withMessages([
@@ -80,6 +94,9 @@ class LoginRequest extends FormRequest
      */
     public function throttleKey(): string
     {
-        return Str::transliterate(Str::lower($this->string('email')).'|'.$this->ip());
+        $email = $this->input('email');
+        // Jika No KK, gunakan No KK untuk throttle key
+        $key = is_numeric($email) ? $email : Str::lower($email);
+        return Str::transliterate($key . '|' . $this->ip());
     }
 }

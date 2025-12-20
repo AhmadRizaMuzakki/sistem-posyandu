@@ -52,19 +52,28 @@
             </div>
         </div>
 
-        {{-- Daftar Anak --}}
+        {{-- Daftar Keluarga --}}
         <div class="bg-white rounded-lg shadow-sm p-6">
             <div class="flex items-center justify-between mb-6">
                 <div>
-                    <h2 class="text-xl font-bold text-gray-800">Daftar Anak</h2>
-                    <p class="text-sm text-gray-600 mt-1">Data sasaran yang terdaftar di posyandu</p>
+                    <h2 class="text-xl font-bold text-gray-800">Daftar Keluarga</h2>
+                    <p class="text-sm text-gray-600 mt-1">Data anggota keluarga yang terdaftar di posyandu berdasarkan No. KK</p>
                 </div>
-                <div class="bg-primary bg-opacity-10 rounded-full p-3">
-                    <i class="ph ph-users text-2xl text-primary"></i>
+                <div class="flex items-center gap-3">
+                    @if($allKeluarga->count() > 0)
+                        <button wire:click="exportKeluarga" 
+                           class="inline-flex items-center px-5 py-2.5 bg-red-600 hover:bg-red-700 text-white text-sm font-semibold rounded-lg shadow-md transition-all duration-200 transform hover:scale-105">
+                            <i class="ph ph-file-pdf text-lg mr-2"></i>
+                            Export PDF
+                        </button>
+                    @endif
+                    <div class="bg-primary bg-opacity-10 rounded-full p-3">
+                        <i class="ph ph-users text-2xl text-primary"></i>
+                    </div>
                 </div>
             </div>
 
-            @if($allAnak->count() > 0)
+            @if($allKeluarga->count() > 0)
                 <div class="overflow-x-auto">
                     <table class="min-w-full divide-y divide-gray-200">
                         <thead class="bg-gray-50">
@@ -80,35 +89,41 @@
                             </tr>
                         </thead>
                         <tbody class="bg-white divide-y divide-gray-200">
-                            @foreach($allAnak as $index => $anak)
+                            @foreach($allKeluarga as $index => $anggota)
                                 <tr class="hover:bg-gray-50 transition-colors">
                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ $index + 1 }}</td>
                                     <td class="px-6 py-4 whitespace-nowrap">
-                                        <div class="text-sm font-medium text-gray-900">{{ $anak['nama'] }}</div>
+                                        <div class="text-sm font-medium text-gray-900">{{ $anggota['nama'] }}</div>
                                     </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{{ $anak['nik'] }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{{ $anggota['nik'] }}</td>
                                     <td class="px-6 py-4 whitespace-nowrap">
                                         <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full
-                                            @if($anak['kategori'] == 'Bayi/Balita') bg-blue-100 text-blue-800
-                                            @elseif($anak['kategori'] == 'Remaja') bg-green-100 text-green-800
-                                            @elseif($anak['kategori'] == 'Dewasa') bg-yellow-100 text-yellow-800
-                                            @elseif($anak['kategori'] == 'Pralansia') bg-orange-100 text-orange-800
+                                            @if($anggota['kategori'] == 'Bayi/Balita') bg-blue-100 text-blue-800
+                                            @elseif($anggota['kategori'] == 'Remaja') bg-green-100 text-green-800
+                                            @elseif($anggota['kategori'] == 'Dewasa') bg-yellow-100 text-yellow-800
+                                            @elseif($anggota['kategori'] == 'Pralansia') bg-orange-100 text-orange-800
                                             @else bg-purple-100 text-purple-800
                                             @endif">
-                                            {{ $anak['kategori'] }}
+                                            {{ $anggota['kategori'] }}
                                         </span>
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                                        {{ $anak['tanggal_lahir'] ? \Carbon\Carbon::parse($anak['tanggal_lahir'])->format('d/m/Y') : '-' }}
+                                        {{ $anggota['tanggal_lahir'] ? \Carbon\Carbon::parse($anggota['tanggal_lahir'])->format('d/m/Y') : '-' }}
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                                        {{ $anak['umur'] ? $anak['umur'] . ' tahun' : '-' }}
+                                        {{ $anggota['umur'] ? $anggota['umur'] . ' tahun' : '-' }}
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                                        {{ $anak['jenis_kelamin'] == 'L' ? 'Laki-laki' : ($anak['jenis_kelamin'] == 'P' ? 'Perempuan' : '-') }}
+                                        @if($anggota['jenis_kelamin'] == 'Laki-laki' || $anggota['jenis_kelamin'] == 'L')
+                                            Laki-laki
+                                        @elseif($anggota['jenis_kelamin'] == 'Perempuan' || $anggota['jenis_kelamin'] == 'P')
+                                            Perempuan
+                                        @else
+                                            {{ $anggota['jenis_kelamin'] ?? '-' }}
+                                        @endif
                                     </td>
                                     <td class="px-6 py-4 text-sm text-gray-600">
-                                        {{ $anak['alamat'] ?? '-' }}
+                                        {{ $anggota['alamat'] ?? '-' }}
                                     </td>
                                 </tr>
                             @endforeach
@@ -120,8 +135,8 @@
                     <div class="bg-gray-100 rounded-full p-4 w-16 h-16 mx-auto mb-4 flex items-center justify-center">
                         <i class="ph ph-users text-3xl text-gray-400"></i>
                     </div>
-                    <p class="text-gray-600 font-medium">Belum ada data anak terdaftar</p>
-                    <p class="text-sm text-gray-500 mt-2">Silakan hubungi kader posyandu untuk mendaftarkan anak Anda</p>
+                    <p class="text-gray-600 font-medium">Belum ada data anggota keluarga terdaftar</p>
+                    <p class="text-sm text-gray-500 mt-2">Silakan hubungi kader posyandu untuk mendaftarkan anggota keluarga Anda</p>
                 </div>
             @endif
         </div>

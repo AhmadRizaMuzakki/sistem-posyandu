@@ -23,7 +23,109 @@
                         </div>
                         <div>
                             <label class="block text-gray-700 text-sm font-bold mb-2">No. KK</label>
-                            <input type="number" wire:model="no_kk_sasaran_lansia" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-primary focus:border-primary" placeholder="No. KK (opsional)">
+                            <div class="relative" x-data="{
+                                open: false,
+                                searchText: '',
+                                selectedNoKk: @entangle('no_kk_sasaran_lansia'),
+                                noKkList: @js($this->getNoKkListLansia())
+                            }" x-init="
+                                $watch('selectedNoKk', value => {
+                                    if (value) {
+                                        const item = noKkList.find(item => item.no_kk == value);
+                                        if (item) {
+                                            searchText = item.no_kk + ' (' + item.nama_orangtua + ') - ' + item.jumlah_anggota + ' anggota';
+                                            setTimeout(() => {
+                                                $wire.call('loadDataByNoKkLansia', value);
+                                            }, 150);
+                                        } else {
+                                            searchText = value;
+                                        }
+                                    } else {
+                                        searchText = '';
+                                    }
+                                });
+                                if (selectedNoKk) {
+                                    const item = noKkList.find(item => item.no_kk == selectedNoKk);
+                                    if (item) {
+                                        searchText = item.no_kk + ' (' + item.nama_orangtua + ') - ' + item.jumlah_anggota + ' anggota';
+                                    } else {
+                                        searchText = selectedNoKk;
+                                    }
+                                }
+                            ">
+                                <input
+                                    type="text"
+                                    x-model="searchText"
+                                    @focus="open = true"
+                                    @input="
+                                        open = true;
+                                        const match = searchText.match(/^\d+/);
+                                        if (match && !noKkList.find(item => item.no_kk == match[0])) {
+                                            selectedNoKk = match[0];
+                                            $wire.set('no_kk_sasaran_lansia', match[0]);
+                                        }
+                                    "
+                                    @keydown.enter.prevent="
+                                        const match = searchText.match(/^\d+/);
+                                        if (match) {
+                                            selectedNoKk = match[0];
+                                            $wire.set('no_kk_sasaran_lansia', match[0]);
+                                            open = false;
+                                        }
+                                    "
+                                    @keydown.escape="open = false"
+                                    @blur="setTimeout(() => {
+                                        open = false;
+                                        if (selectedNoKk && searchText) {
+                                            const match = searchText.match(/^\d+/);
+                                            if (match && match[0] != selectedNoKk) {
+                                                selectedNoKk = match[0];
+                                                $wire.set('no_kk_sasaran_lansia', match[0]);
+                                            }
+                                        }
+                                    }, 200)"
+                                    class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-primary focus:border-primary"
+                                    placeholder="Ketik untuk mencari No. KK atau pilih dari dropdown..."
+                                    autocomplete="off">
+                                <div x-show="open"
+                                     @click.outside="open = false"
+                                     x-transition:enter="transition ease-out duration-100"
+                                     x-transition:enter-start="opacity-0 scale-95"
+                                     x-transition:enter-end="opacity-100 scale-100"
+                                     x-transition:leave="transition ease-in duration-75"
+                                     x-transition:leave-start="opacity-100 scale-100"
+                                     x-transition:leave-end="opacity-0 scale-95"
+                                     class="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-auto"
+                                     style="display: none;">
+                                    <ul class="py-1">
+                                        <li @click="selectedNoKk = ''; searchText = ''; open = false; $wire.set('no_kk_sasaran_lansia', '')"
+                                            class="px-4 py-2 text-sm text-gray-500 hover:bg-gray-100 cursor-pointer">
+                                            -- Pilih No. KK --
+                                        </li>
+                                        @if(count($this->getNoKkListLansia()) > 0)
+                                            @foreach($this->getNoKkListLansia() as $item)
+                                                <li @click="
+                                                    const noKk = '{{ $item['no_kk'] }}';
+                                                    selectedNoKk = noKk;
+                                                    searchText = '{{ $item['no_kk'] }} ({{ $item['nama_orangtua'] }}) - {{ $item['jumlah_anggota'] }} anggota';
+                                                    open = false;
+                                                    $wire.set('no_kk_sasaran_lansia', noKk);
+                                                    setTimeout(() => {
+                                                        $wire.call('loadDataByNoKkLansia', noKk);
+                                                    }, 200);
+                                                "
+                                                    x-show="!searchText || '{{ strtolower($item['no_kk'] . ' ' . $item['nama_orangtua']) }}'.includes(searchText.toLowerCase())"
+                                                    class="px-4 py-2 text-sm hover:bg-gray-100 cursor-pointer">
+                                                    <div class="font-medium">{{ $item['no_kk'] }}</div>
+                                                    <div class="text-xs text-gray-500">{{ $item['nama_orangtua'] }} - {{ $item['jumlah_anggota'] }} anggota</div>
+                                                </li>
+                                            @endforeach
+                                        @else
+                                            <li class="px-4 py-2 text-sm text-gray-500">Tidak ada data No. KK</li>
+                                        @endif
+                                    </ul>
+                                </div>
+                            </div>
                             @error('no_kk_sasaran_lansia') <span class="text-red-500 text-xs">{{ $message }}</span>@enderror
                         </div>
                         <div>

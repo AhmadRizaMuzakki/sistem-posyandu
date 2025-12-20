@@ -23,7 +23,115 @@
                         </div>
                         <div>
                             <label class="block text-gray-700 text-sm font-bold mb-2">No. KK</label>
-                            <input type="number" wire:model="no_kk_sasaran_dewasa" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-primary focus:border-primary" placeholder="No. KK (opsional)">
+                            <div class="relative" x-data="{
+                                open: false,
+                                searchText: '',
+                                selectedNoKk: @entangle('no_kk_sasaran_dewasa'),
+                                noKkList: @js($this->getNoKkListDewasa())
+                            }" x-init="
+                                $watch('selectedNoKk', value => {
+                                    if (value) {
+                                        const item = noKkList.find(item => item.no_kk == value);
+                                        if (item) {
+                                            searchText = item.no_kk + ' (' + item.nama_orangtua + ') - ' + item.jumlah_anggota + ' anggota';
+                                            // Auto-fill data ketika No KK dipilih
+                                            setTimeout(() => {
+                                                $wire.call('loadDataByNoKkDewasa', value);
+                                            }, 150);
+                                        } else {
+                                            searchText = value;
+                                        }
+                                    } else {
+                                        searchText = '';
+                                    }
+                                });
+                                
+                                // Inisialisasi saat pertama kali load
+                                if (selectedNoKk) {
+                                    const item = noKkList.find(item => item.no_kk == selectedNoKk);
+                                    if (item) {
+                                        searchText = item.no_kk + ' (' + item.nama_orangtua + ') - ' + item.jumlah_anggota + ' anggota';
+                                    } else {
+                                        searchText = selectedNoKk;
+                                    }
+                                }
+                            ">
+                                <input
+                                    type="text"
+                                    x-model="searchText"
+                                    @focus="open = true"
+                                    @input="
+                                        open = true;
+                                        // Jika user mengetik manual, ekstrak hanya angka (No KK)
+                                        const match = searchText.match(/^\d+/);
+                                        if (match && !noKkList.find(item => item.no_kk == match[0])) {
+                                            selectedNoKk = match[0];
+                                            $wire.set('no_kk_sasaran_dewasa', match[0]);
+                                        }
+                                    "
+                                    @keydown.enter.prevent="
+                                        const match = searchText.match(/^\d+/);
+                                        if (match) {
+                                            selectedNoKk = match[0];
+                                            $wire.set('no_kk_sasaran_dewasa', match[0]);
+                                            open = false;
+                                        }
+                                    "
+                                    @keydown.escape="open = false"
+                                    @blur="setTimeout(() => {
+                                        open = false;
+                                        // Pastikan nilai yang tersimpan hanya No KK
+                                        if (selectedNoKk && searchText) {
+                                            const match = searchText.match(/^\d+/);
+                                            if (match && match[0] != selectedNoKk) {
+                                                selectedNoKk = match[0];
+                                                $wire.set('no_kk_sasaran_dewasa', match[0]);
+                                            }
+                                        }
+                                    }, 200)"
+                                    class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-primary focus:border-primary"
+                                    placeholder="Ketik untuk mencari No. KK atau pilih dari dropdown..."
+                                    autocomplete="off">
+                                <div x-show="open"
+                                     @click.outside="open = false"
+                                     x-transition:enter="transition ease-out duration-100"
+                                     x-transition:enter-start="opacity-0 scale-95"
+                                     x-transition:enter-end="opacity-100 scale-100"
+                                     x-transition:leave="transition ease-in duration-75"
+                                     x-transition:leave-start="opacity-100 scale-100"
+                                     x-transition:leave-end="opacity-0 scale-95"
+                                     class="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-auto"
+                                     style="display: none;">
+                                    <ul class="py-1">
+                                        <li @click="selectedNoKk = ''; searchText = ''; open = false; $wire.set('no_kk_sasaran_dewasa', '')"
+                                            class="px-4 py-2 text-sm text-gray-500 hover:bg-gray-100 cursor-pointer">
+                                            -- Pilih No. KK --
+                                        </li>
+                                        @if(count($this->getNoKkListDewasa()) > 0)
+                                            @foreach($this->getNoKkListDewasa() as $item)
+                                                <li @click="
+                                                    const noKk = '{{ $item['no_kk'] }}';
+                                                    selectedNoKk = noKk;
+                                                    searchText = '{{ $item['no_kk'] }} ({{ $item['nama_orangtua'] }}) - {{ $item['jumlah_anggota'] }} anggota';
+                                                    open = false;
+                                                    $wire.set('no_kk_sasaran_dewasa', noKk);
+                                                    // Panggil method untuk auto-fill data
+                                                    setTimeout(() => {
+                                                        $wire.call('loadDataByNoKkDewasa', noKk);
+                                                    }, 200);
+                                                "
+                                                    x-show="!searchText || '{{ strtolower($item['no_kk'] . ' ' . $item['nama_orangtua']) }}'.includes(searchText.toLowerCase())"
+                                                    class="px-4 py-2 text-sm hover:bg-gray-100 cursor-pointer">
+                                                    <div class="font-medium">{{ $item['no_kk'] }}</div>
+                                                    <div class="text-xs text-gray-500">{{ $item['nama_orangtua'] }} - {{ $item['jumlah_anggota'] }} anggota</div>
+                                                </li>
+                                            @endforeach
+                                        @else
+                                            <li class="px-4 py-2 text-sm text-gray-500">Tidak ada data No. KK</li>
+                                        @endif
+                                    </ul>
+                                </div>
+                            </div>
                             @error('no_kk_sasaran_dewasa') <span class="text-red-500 text-xs">{{ $message }}</span>@enderror
                         </div>
                         <div>
@@ -84,7 +192,97 @@
                         </div>
                         <div>
                             <label class="block text-gray-700 text-sm font-bold mb-2">Pekerjaan</label>
-                            <input type="text" wire:model="pekerjaan_dewasa" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-primary focus:border-primary" placeholder="Masukkan pekerjaan">
+                            <select wire:model="pekerjaan_dewasa" class="shadow border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-primary focus:border-primary">
+                                <option value="">Pilih Pekerjaan...</option>
+                                <option value="Belum/Tidak Bekerja">Belum/Tidak Bekerja</option>
+                                <option value="Mengurus Rumah Tangga">Mengurus Rumah Tangga</option>
+                                <option value="Pelajar/Mahasiswa">Pelajar/Mahasiswa</option>
+                                <option value="Pensiunan">Pensiunan</option>
+                                <option value="Pegawai Negeri Sipil">Pegawai Negeri Sipil</option>
+                                <option value="Tentara Nasional Indonesia">Tentara Nasional Indonesia</option>
+                                <option value="Kepolisian RI">Kepolisian RI</option>
+                                <option value="Perdagangan">Perdagangan</option>
+                                <option value="Petani/Pekebun">Petani/Pekebun</option>
+                                <option value="Peternak">Peternak</option>
+                                <option value="Nelayan/Perikanan">Nelayan/Perikanan</option>
+                                <option value="Industri">Industri</option>
+                                <option value="Konstruksi">Konstruksi</option>
+                                <option value="Transportasi">Transportasi</option>
+                                <option value="Karyawan Swasta">Karyawan Swasta</option>
+                                <option value="Karyawan BUMN">Karyawan BUMN</option>
+                                <option value="Karyawan BUMD">Karyawan BUMD</option>
+                                <option value="Karyawan Honorer">Karyawan Honorer</option>
+                                <option value="Buruh Harian Lepas">Buruh Harian Lepas</option>
+                                <option value="Buruh Tani/Perkebunan">Buruh Tani/Perkebunan</option>
+                                <option value="Buruh Nelayan/Perikanan">Buruh Nelayan/Perikanan</option>
+                                <option value="Buruh Peternakan">Buruh Peternakan</option>
+                                <option value="Pembantu Rumah Tangga">Pembantu Rumah Tangga</option>
+                                <option value="Tukang Cukur">Tukang Cukur</option>
+                                <option value="Tukang Listrik">Tukang Listrik</option>
+                                <option value="Tukang Batu">Tukang Batu</option>
+                                <option value="Tukang Kayu">Tukang Kayu</option>
+                                <option value="Tukang Sol Sepatu">Tukang Sol Sepatu</option>
+                                <option value="Tukang Las/Pandai Besi">Tukang Las/Pandai Besi</option>
+                                <option value="Tukang Jahit">Tukang Jahit</option>
+                                <option value="Tukang Gigi">Tukang Gigi</option>
+                                <option value="Penata Rias">Penata Rias</option>
+                                <option value="Penata Busana">Penata Busana</option>
+                                <option value="Penata Rambut">Penata Rambut</option>
+                                <option value="Mekanik">Mekanik</option>
+                                <option value="Seniman">Seniman</option>
+                                <option value="Tabib">Tabib</option>
+                                <option value="Paraji">Paraji</option>
+                                <option value="Perawat">Perawat</option>
+                                <option value="Bidan">Bidan</option>
+                                <option value="Dukun Tradisional">Dukun Tradisional</option>
+                                <option value="Dokter">Dokter</option>
+                                <option value="Dokter Gigi">Dokter Gigi</option>
+                                <option value="Dokter Hewan">Dokter Hewan</option>
+                                <option value="Dosen">Dosen</option>
+                                <option value="Guru">Guru</option>
+                                <option value="Pilot">Pilot</option>
+                                <option value="Pengacara">Pengacara</option>
+                                <option value="Notaris">Notaris</option>
+                                <option value="Arsitek">Arsitek</option>
+                                <option value="Akuntan">Akuntan</option>
+                                <option value="Konsultan">Konsultan</option>
+                                <option value="Duta Besar">Duta Besar</option>
+                                <option value="Gubernur">Gubernur</option>
+                                <option value="Wakil Gubernur">Wakil Gubernur</option>
+                                <option value="Bupati">Bupati</option>
+                                <option value="Wakil Bupati">Wakil Bupati</option>
+                                <option value="Walikota">Walikota</option>
+                                <option value="Wakil Walikota">Wakil Walikota</option>
+                                <option value="Anggota DPR-RI">Anggota DPR-RI</option>
+                                <option value="Anggota DPD">Anggota DPD</option>
+                                <option value="Anggota DPRD Provinsi">Anggota DPRD Provinsi</option>
+                                <option value="Anggota DPRD Kabupaten/Kota">Anggota DPRD Kabupaten/Kota</option>
+                                <option value="Dosen Swasta">Dosen Swasta</option>
+                                <option value="Guru Swasta">Guru Swasta</option>
+                                <option value="Penyiar Televisi">Penyiar Televisi</option>
+                                <option value="Penyiar Radio">Penyiar Radio</option>
+                                <option value="Pelaut">Pelaut</option>
+                                <option value="Peneliti">Peneliti</option>
+                                <option value="Sopir">Sopir</option>
+                                <option value="Pialang">Pialang</option>
+                                <option value="Paranormal">Paranormal</option>
+                                <option value="Pedagang">Pedagang</option>
+                                <option value="Perangkat Desa">Perangkat Desa</option>
+                                <option value="Kepala Desa">Kepala Desa</option>
+                                <option value="Biarawati">Biarawati</option>
+                                <option value="Wartawan">Wartawan</option>
+                                <option value="Ustadz/Mubaligh">Ustadz/Mubaligh</option>
+                                <option value="Juru Masak">Juru Masak</option>
+                                <option value="Promotor Acara">Promotor Acara</option>
+                                <option value="Anggota BPK">Anggota BPK</option>
+                                <option value="Anggota Mahkamah Konstitusi">Anggota Mahkamah Konstitusi</option>
+                                <option value="Anggota Kabinet/Kementerian">Anggota Kabinet/Kementerian</option>
+                                <option value="Duta Besar">Duta Besar</option>
+                                <option value="Gubernur Bank Indonesia">Gubernur Bank Indonesia</option>
+                                <option value="Staf Ahli Presiden">Staf Ahli Presiden</option>
+                                <option value="Staf Ahli Menteri">Staf Ahli Menteri</option>
+                                <option value="Lainnya">Lainnya</option>
+                            </select>
                             @error('pekerjaan_dewasa') <span class="text-red-500 text-xs">{{ $message }}</span>@enderror
                         </div>
                         <div>

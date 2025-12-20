@@ -98,6 +98,7 @@ trait DewasaCrud
         $this->validate([
             'nama_sasaran_dewasa' => 'required|string|max:100',
             'nik_sasaran_dewasa' => 'required|numeric',
+            'no_kk_sasaran_dewasa' => 'required|numeric',
             'hari_lahir_dewasa' => 'required|numeric|min:1|max:31',
             'bulan_lahir_dewasa' => 'required|numeric|min:1|max:12',
             'tahun_lahir_dewasa' => 'required|numeric|min:1900|max:' . date('Y'),
@@ -108,6 +109,8 @@ trait DewasaCrud
             'nama_sasaran_dewasa.required' => 'Nama sasaran wajib diisi.',
             'nik_sasaran_dewasa.required' => 'NIK wajib diisi.',
             'nik_sasaran_dewasa.numeric' => 'NIK harus berupa angka.',
+            'no_kk_sasaran_dewasa.required' => 'No KK wajib diisi.',
+            'no_kk_sasaran_dewasa.numeric' => 'No KK harus berupa angka.',
             'hari_lahir_dewasa.required' => 'Hari lahir wajib diisi.',
             'hari_lahir_dewasa.numeric' => 'Hari harus berupa angka.',
             'hari_lahir_dewasa.min' => 'Hari minimal 1.',
@@ -158,20 +161,25 @@ trait DewasaCrud
             }
         }
 
-        // Buat atau update user untuk sasaran dewasa berdasarkan NIK
+        // Buat atau update user untuk sasaran dewasa berdasarkan No KK
         $userId = null;
         if ($this->id_users_sasaran_dewasa !== '') {
             // Jika user sudah dipilih manual, gunakan itu
             $userId = $this->id_users_sasaran_dewasa;
         } else {
-            // Buat akun otomatis berdasarkan NIK sasaran
-            $email = $this->nik_sasaran_dewasa . '@gmail.com';
+            // Pastikan no_kk tersedia
+            if (empty($this->no_kk_sasaran_dewasa)) {
+                throw new \Exception('No KK wajib diisi untuk membuat akun.');
+            }
+
+            // Buat akun otomatis berdasarkan No KK sasaran
+            $email = $this->no_kk_sasaran_dewasa . '@gmail.com';
             $userExists = User::where('email', $email)->first();
 
             if ($userExists) {
-                // Update user yang sudah ada
+                // Update user yang sudah ada (timpa data jika No KK sama)
                 $userExists->name = $this->nama_sasaran_dewasa;
-                $userExists->password = Hash::make($this->nik_sasaran_dewasa);
+                $userExists->password = Hash::make($this->no_kk_sasaran_dewasa);
                 $userExists->save();
                 $userId = $userExists->id;
             } else {
@@ -179,7 +187,7 @@ trait DewasaCrud
                 $user = User::create([
                     'name' => $this->nama_sasaran_dewasa,
                     'email' => $email,
-                    'password' => Hash::make($this->nik_sasaran_dewasa),
+                    'password' => Hash::make($this->no_kk_sasaran_dewasa),
                     'email_verified_at' => now(),
                 ]);
                 $userId = $user->id;

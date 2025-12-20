@@ -98,6 +98,7 @@ trait LansiaCrud
         $this->validate([
             'nama_sasaran_lansia' => 'required|string|max:100',
             'nik_sasaran_lansia' => 'required|numeric',
+            'no_kk_sasaran_lansia' => 'required|numeric',
             'hari_lahir_lansia' => 'required|numeric|min:1|max:31',
             'bulan_lahir_lansia' => 'required|numeric|min:1|max:12',
             'tahun_lahir_lansia' => 'required|numeric|min:1900|max:' . date('Y'),
@@ -109,6 +110,8 @@ trait LansiaCrud
             'nama_sasaran_lansia.required' => 'Nama sasaran wajib diisi.',
             'nik_sasaran_lansia.required' => 'NIK wajib diisi.',
             'nik_sasaran_lansia.numeric' => 'NIK harus berupa angka.',
+            'no_kk_sasaran_lansia.required' => 'No KK wajib diisi.',
+            'no_kk_sasaran_lansia.numeric' => 'No KK harus berupa angka.',
             'hari_lahir_lansia.required' => 'Hari lahir wajib diisi.',
             'hari_lahir_lansia.numeric' => 'Hari harus berupa angka.',
             'hari_lahir_lansia.min' => 'Hari minimal 1.',
@@ -160,20 +163,25 @@ trait LansiaCrud
             }
         }
 
-        // Buat atau update user untuk sasaran lansia berdasarkan NIK
+        // Buat atau update user untuk sasaran lansia berdasarkan No KK
         $userId = null;
         if ($this->id_users_sasaran_lansia !== '') {
             // Jika user sudah dipilih manual, gunakan itu
             $userId = $this->id_users_sasaran_lansia;
         } else {
-            // Buat akun otomatis berdasarkan NIK sasaran
-            $email = $this->nik_sasaran_lansia . '@gmail.com';
+            // Pastikan no_kk tersedia
+            if (empty($this->no_kk_sasaran_lansia)) {
+                throw new \Exception('No KK wajib diisi untuk membuat akun.');
+            }
+
+            // Buat akun otomatis berdasarkan No KK sasaran
+            $email = $this->no_kk_sasaran_lansia . '@gmail.com';
             $userExists = User::where('email', $email)->first();
 
             if ($userExists) {
-                // Update user yang sudah ada
+                // Update user yang sudah ada (timpa data jika No KK sama)
                 $userExists->name = $this->nama_sasaran_lansia;
-                $userExists->password = Hash::make($this->nik_sasaran_lansia);
+                $userExists->password = Hash::make($this->no_kk_sasaran_lansia);
                 $userExists->save();
                 $userId = $userExists->id;
             } else {
@@ -181,7 +189,7 @@ trait LansiaCrud
                 $user = User::create([
                     'name' => $this->nama_sasaran_lansia,
                     'email' => $email,
-                    'password' => Hash::make($this->nik_sasaran_lansia),
+                    'password' => Hash::make($this->no_kk_sasaran_lansia),
                     'email_verified_at' => now(),
                 ]);
                 $userId = $user->id;
