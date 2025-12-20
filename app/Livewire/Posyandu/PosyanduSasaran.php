@@ -4,9 +4,9 @@ namespace App\Livewire\Posyandu;
 
 use App\Livewire\SuperAdmin\Traits\BalitaCrud;
 use App\Livewire\SuperAdmin\Traits\RemajaCrud;
-use App\Livewire\SuperAdmin\Traits\DewasaCrud;
-use App\Livewire\SuperAdmin\Traits\PralansiaCrud;
-use App\Livewire\SuperAdmin\Traits\LansiaCrud;
+use App\Livewire\Posyandu\Traits\DewasaCrud;
+use App\Livewire\Posyandu\Traits\PralansiaCrud;
+use App\Livewire\Posyandu\Traits\LansiaCrud;
 use App\Livewire\SuperAdmin\Traits\IbuHamilCrud;
 use App\Livewire\SuperAdmin\Traits\OrangtuaCrud;
 use App\Livewire\Posyandu\Traits\PosyanduHelper;
@@ -283,6 +283,7 @@ class PosyanduSasaran extends Component
             $dewasa = SasaranDewasa::findOrFail($this->id_sasaran_dewasa);
             $this->validateSasaranPosyanduAccess($dewasa, 'id_posyandu');
         }
+        // Panggil method dari trait DewasaCrud
         $this->traitStoreDewasa();
     }
 

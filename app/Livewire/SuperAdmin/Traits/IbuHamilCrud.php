@@ -22,6 +22,7 @@ trait IbuHamilCrud
     public $tahun_lahir_ibuhamil;
     public $jenis_kelamin_ibuhamil;
     public $umur_sasaran_ibuhamil;
+    public $bulan_kandungan_ibuhamil;
     public $pekerjaan_ibuhamil;
     public $alamat_sasaran_ibuhamil;
     public $rt_ibuhamil;
@@ -78,6 +79,7 @@ trait IbuHamilCrud
         $this->tahun_lahir_ibuhamil = '';
         $this->jenis_kelamin_ibuhamil = '';
         $this->umur_sasaran_ibuhamil = '';
+        $this->bulan_kandungan_ibuhamil = '';
         $this->pekerjaan_ibuhamil = '';
         $this->alamat_sasaran_ibuhamil = '';
         $this->rt_ibuhamil = '';
@@ -154,6 +156,7 @@ trait IbuHamilCrud
             'tanggal_lahir' => $this->tanggal_lahir_ibuhamil,
             'jenis_kelamin' => $this->jenis_kelamin_ibuhamil,
             'umur_sasaran' => $umur,
+            'bulan_kandungan' => $this->bulan_kandungan_ibuhamil ?: null,
             'pekerjaan' => $this->pekerjaan_ibuhamil ?: null,
             'alamat_sasaran' => $this->alamat_sasaran_ibuhamil,
             'rt' => $this->rt_ibuhamil ?: null,
@@ -211,6 +214,7 @@ trait IbuHamilCrud
         $this->umur_sasaran_ibuhamil = $ibuhamil->tanggal_lahir
             ? Carbon::parse($ibuhamil->tanggal_lahir)->age
             : $ibuhamil->umur_sasaran;
+        $this->bulan_kandungan_ibuhamil = $ibuhamil->bulan_kandungan ?? '';
         $this->pekerjaan_ibuhamil = $ibuhamil->pekerjaan ?? '';
         $this->alamat_sasaran_ibuhamil = $ibuhamil->alamat_sasaran ?? '';
         $this->rt_ibuhamil = $ibuhamil->rt ?? '';

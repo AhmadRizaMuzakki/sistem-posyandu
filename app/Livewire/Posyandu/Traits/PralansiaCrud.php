@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Livewire\SuperAdmin\Traits;
+namespace App\Livewire\Posyandu\Traits;
 
 use App\Models\SasaranPralansia;
 use App\Models\SasaranBayibalita;
@@ -34,6 +34,7 @@ trait PralansiaCrud
     public $nomor_bpjs_pralansia;
     public $nomor_telepon_pralansia;
     public $id_users_sasaran_pralansia;
+    public $id_posyandu_sasaran;
 
     /**
      * Buka modal tambah/edit Sasaran Pralansia
@@ -192,9 +193,12 @@ trait PralansiaCrud
             }
         }
 
+        // Gunakan id_posyandu_sasaran jika ada, jika tidak gunakan posyanduId dari kader
+        $posyanduId = $this->id_posyandu_sasaran ?? $this->setPosyanduFromKader();
+
         $data = [
             'id_users' => $userId,
-            'id_posyandu' => $this->posyanduId,
+            'id_posyandu' => $posyanduId,
             'nama_sasaran' => $this->nama_sasaran_pralansia,
             'nik_sasaran' => $this->nik_sasaran_pralansia,
             'no_kk_sasaran' => $this->no_kk_sasaran_pralansia ?: null,
@@ -268,6 +272,7 @@ trait PralansiaCrud
         $this->nomor_bpjs_pralansia = $pralansia->nomor_bpjs ?? '';
         $this->nomor_telepon_pralansia = $pralansia->nomor_telepon ?? '';
         $this->id_users_sasaran_pralansia = $pralansia->id_users ?? '';
+        $this->id_posyandu_sasaran = $pralansia->id_posyandu ?? '';
 
         $this->isSasaranPralansiaModalOpen = true;
     }

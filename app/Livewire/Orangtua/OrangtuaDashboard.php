@@ -18,32 +18,21 @@ class OrangtuaDashboard extends Component
     public function render()
     {
         $user = Auth::user();
-        
+
         // Cari orangtua berdasarkan nama user yang login
         $orangtua = Orangtua::where('nama', $user->name)->first();
-        
+
         $allAnak = collect();
-        
+
         if ($orangtua) {
-            $nikOrangtua = $orangtua->nik;
-            
-            // Ambil semua sasaran (anak) berdasarkan nik_orangtua
-            // Pastikan NIK sasaran tidak sama dengan NIK orangtua (agar orangtua tidak masuk)
-            $sasaranBayi = SasaranBayibalita::where('nik_orangtua', $nikOrangtua)
-                ->where('nik_sasaran', '!=', $nikOrangtua)
-                ->get();
-            $sasaranRemaja = SasaranRemaja::where('nik_orangtua', $nikOrangtua)
-                ->where('nik_sasaran', '!=', $nikOrangtua)
-                ->get();
-            $sasaranDewasa = SasaranDewasa::where('nik_orangtua', $nikOrangtua)
-                ->where('nik_sasaran', '!=', $nikOrangtua)
-                ->get();
-            $sasaranPralansia = SasaranPralansia::where('nik_orangtua', $nikOrangtua)
-                ->where('nik_sasaran', '!=', $nikOrangtua)
-                ->get();
-            $sasaranLansia = SasaranLansia::where('nik_orangtua', $nikOrangtua)
-                ->where('nik_sasaran', '!=', $nikOrangtua)
-                ->get();
+            $noKkSasaran = $orangtua->no_kk_sasaran;
+
+            // Ambil semua sasaran Bayi/Balita, Remaja, Dewasa, Pralansia, dan Lansia berdasarkan no_kk_sasaran
+            $sasaranBayi = SasaranBayibalita::where('no_kk_sasaran', $noKkSasaran)->get();
+            $sasaranRemaja = SasaranRemaja::where('no_kk_sasaran', $noKkSasaran)->get();
+            $sasaranDewasa = SasaranDewasa::where('no_kk_sasaran', $noKkSasaran)->get();
+            $sasaranPralansia = SasaranPralansia::where('no_kk_sasaran', $noKkSasaran)->get();
+            $sasaranLansia = SasaranLansia::where('no_kk_sasaran', $noKkSasaran)->get();
 
             // Kumpulkan semua sasaran dengan informasi lengkap
             foreach ($sasaranBayi as $sasaran) {

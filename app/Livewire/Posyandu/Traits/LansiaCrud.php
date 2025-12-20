@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Livewire\SuperAdmin\Traits;
+namespace App\Livewire\Posyandu\Traits;
 
 use App\Models\SasaranLansia;
 use App\Models\SasaranBayibalita;
@@ -34,6 +34,7 @@ trait LansiaCrud
     public $nomor_bpjs_lansia;
     public $nomor_telepon_lansia;
     public $id_users_sasaran_lansia;
+    public $id_posyandu_sasaran;
 
     /**
      * Buka modal tambah/edit Sasaran Lansia
@@ -192,9 +193,12 @@ trait LansiaCrud
             }
         }
 
+        // Gunakan id_posyandu_sasaran jika ada, jika tidak gunakan posyanduId dari kader
+        $posyanduId = $this->id_posyandu_sasaran ?? $this->setPosyanduFromKader();
+
         $data = [
             'id_users' => $userId,
-            'id_posyandu' => $this->posyanduId,
+            'id_posyandu' => $posyanduId,
             'nama_sasaran' => $this->nama_sasaran_lansia,
             'nik_sasaran' => $this->nik_sasaran_lansia,
             'no_kk_sasaran' => $this->no_kk_sasaran_lansia ?: null,
@@ -268,6 +272,7 @@ trait LansiaCrud
         $this->nomor_bpjs_lansia = $lansia->nomor_bpjs ?? '';
         $this->nomor_telepon_lansia = $lansia->nomor_telepon ?? '';
         $this->id_users_sasaran_lansia = $lansia->id_users ?? '';
+        $this->id_posyandu_sasaran = $lansia->id_posyandu ?? '';
 
         $this->isSasaranLansiaModalOpen = true;
     }

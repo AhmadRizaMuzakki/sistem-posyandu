@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Livewire\SuperAdmin\Traits;
+namespace App\Livewire\Posyandu\Traits;
 
 use App\Models\SasaranDewasa;
 use App\Models\SasaranBayibalita;
@@ -34,6 +34,7 @@ trait DewasaCrud
     public $nomor_bpjs_dewasa;
     public $nomor_telepon_dewasa;
     public $id_users_sasaran_dewasa;
+    public $id_posyandu_sasaran;
 
     /**
      * Buka modal tambah/edit Sasaran Dewasa
@@ -190,9 +191,12 @@ trait DewasaCrud
             }
         }
 
+        // Gunakan id_posyandu_sasaran jika ada, jika tidak gunakan posyanduId dari kader
+        $posyanduId = $this->id_posyandu_sasaran ?? $this->setPosyanduFromKader();
+
         $data = [
             'id_users' => $userId,
-            'id_posyandu' => $this->posyanduId,
+            'id_posyandu' => $posyanduId,
             'nama_sasaran' => $this->nama_sasaran_dewasa,
             'nik_sasaran' => $this->nik_sasaran_dewasa,
             'no_kk_sasaran' => $this->no_kk_sasaran_dewasa ?: null,
@@ -266,6 +270,7 @@ trait DewasaCrud
         $this->nomor_bpjs_dewasa = $dewasa->nomor_bpjs ?? '';
         $this->nomor_telepon_dewasa = $dewasa->nomor_telepon ?? '';
         $this->id_users_sasaran_dewasa = $dewasa->id_users ?? '';
+        $this->id_posyandu_sasaran = $dewasa->id_posyandu ?? '';
 
         $this->isSasaranDewasaModalOpen = true;
     }

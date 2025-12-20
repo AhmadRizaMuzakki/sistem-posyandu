@@ -18,6 +18,7 @@ class SasaranIbuhamil extends Model
         'tanggal_lahir',
         'jenis_kelamin',
         'umur_sasaran',
+        'bulan_kandungan',
         'pekerjaan',
         'nik_orangtua',
         'alamat_sasaran',

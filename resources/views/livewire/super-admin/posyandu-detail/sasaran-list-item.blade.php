@@ -62,8 +62,8 @@
                 <thead class="text-xs text-gray-700 uppercase bg-gray-50">
                     <tr>
                         <th class="px-6 py-3">NIK</th>
-                        <th class="px-6 py-3">Nama</th>
                         <th class="px-6 py-3">No KK</th>
+                        <th class="px-6 py-3">Nama</th>
                         <th class="px-6 py-3">Tanggal Lahir</th>
                         <th class="px-6 py-3">Jenis Kelamin</th>
                         <th class="px-6 py-3">Umur</th>
@@ -83,6 +83,7 @@
 
                         {{-- Kolom Khusus Ibu Hamil - Data Suami dan BPJS --}}
                         @if($isIbuHamil)
+                            <th class="px-6 py-3">Bulan Kandungan</th>
                             <th class="px-6 py-3">Pekerjaan</th>
                             <th class="px-6 py-3">Alamat</th>
                             <th class="px-6 py-3">RT</th>
@@ -116,8 +117,8 @@
                     @forelse($sasaran as $item)
                     <tr class="bg-white border-b hover:bg-gray-50">
                         <td class="px-6 py-4 font-medium text-gray-900">{{ $item->nik_sasaran ?? '-' }}</td>
-                        <td class="px-6 py-4">{{ $item->nama_sasaran ?? '-' }}</td>
                         <td class="px-6 py-4">{{ $item->no_kk_sasaran ?? '-' }}</td>
+                        <td class="px-6 py-4">{{ $item->nama_sasaran ?? '-' }}</td>
                         <td class="px-6 py-4">{{ $item->tanggal_lahir ? \Carbon\Carbon::parse($item->tanggal_lahir)->format('d/m/Y') : '-' }}</td>
                         <td class="px-6 py-4">{{ $item->jenis_kelamin ?? '-' }}</td>
                         <td class="px-6 py-4">
@@ -128,7 +129,8 @@
                                     $now = \Carbon\Carbon::now();
                                     // Pastikan tahun & bulan selalu integer
                                     $tahun = (int) $dob->diffInYears($now);
-                                    if ($isBalitaList && $tahun < 1) {
+                                    if ($isBalitaList) {
+                                        // Untuk balita, hitung umur dalam bulan berdasarkan tanggal lahir
                                         $bulan = (int) $dob->diffInMonths($now);
                                         $umurLabel = $bulan . ' bln';
                                     } else {
@@ -164,6 +166,7 @@
 
                         {{-- Isi Kolom Khusus Ibu Hamil - Data Suami dan BPJS --}}
                         @if($isIbuHamil)
+                            <td class="px-6 py-4">{{ $item->bulan_kandungan ? $item->bulan_kandungan . ' bln' : '-' }}</td>
                             <td class="px-6 py-4">{{ $item->pekerjaan ?? '-' }}</td>
                             <td class="px-6 py-4">{{ $item->alamat_sasaran ?? '-' }}</td>
                             <td class="px-6 py-4">{{ $item->rt ?? '-' }}</td>
@@ -301,7 +304,7 @@
                                 $colspan += 4; // Nama Orang Tua, Tempat Lahir Orang Tua, Pekerjaan Orang Tua, Pendidikan Orang Tua
                             }
                             if ($isIbuHamil) {
-                                $colspan += 9; // Pekerjaan, Alamat, RT, RW, Nama Suami, NIK Suami, Pekerjaan Suami, Kepersertaan BPJS, Nomor Telepon
+                                $colspan += 10; // Bulan Kandungan, Pekerjaan, Alamat, RT, RW, Nama Suami, NIK Suami, Pekerjaan Suami, Kepersertaan BPJS, Nomor Telepon
                             } elseif (!$isDetailed) {
                                 if ($showPendidikanColumn) {
                                     $colspan += 1; // Pendidikan

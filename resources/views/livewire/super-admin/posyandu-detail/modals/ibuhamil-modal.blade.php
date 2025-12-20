@@ -83,6 +83,11 @@
                             @error('umur_sasaran_ibuhamil') <span class="text-red-500 text-xs">{{ $message }}</span>@enderror
                         </div>
                         <div>
+                            <label class="block text-gray-700 text-sm font-bold mb-2">Bulan Kandungan</label>
+                            <input type="number" wire:model="bulan_kandungan_ibuhamil" min="1" max="9" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-primary focus:border-primary" placeholder="Masukkan bulan kandungan (1-9)">
+                            @error('bulan_kandungan_ibuhamil') <span class="text-red-500 text-xs">{{ $message }}</span>@enderror
+                        </div>
+                        <div>
                             <label class="block text-gray-700 text-sm font-bold mb-2">Pekerjaan</label>
                             <select wire:model="pekerjaan_ibuhamil" class="shadow border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-primary focus:border-primary">
                                 <option value="">Pilih Pekerjaan...</option>

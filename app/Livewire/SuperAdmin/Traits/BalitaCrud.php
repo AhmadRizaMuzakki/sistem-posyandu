@@ -505,6 +505,197 @@ trait BalitaCrud
     }
 
     /**
+     * Get list of existing No KK with detailed information for autocomplete
+     */
+    public function getNoKkList()
+    {
+        $posyanduId = $this->id_posyandu_sasaran ?? $this->posyanduId ?? null;
+        
+        if (!$posyanduId) {
+            return [];
+        }
+        
+        // Get all no_kk from balita and remaja in the same posyandu with orangtua info
+        $noKkList = [];
+        
+        // Get from balita
+        $balitaList = SasaranBayibalita::where('id_posyandu', $posyanduId)
+            ->whereNotNull('no_kk_sasaran')
+            ->whereNotNull('nik_orangtua')
+            ->with('orangtua')
+            ->get();
+            
+        foreach ($balitaList as $balita) {
+            $noKk = $balita->no_kk_sasaran;
+            if (!isset($noKkList[$noKk])) {
+                $orangtua = $balita->orangtua;
+                $namaOrtu = $orangtua ? $orangtua->nama : '-';
+                
+                // Count anggota keluarga dengan no_kk yang sama
+                $countBalita = SasaranBayibalita::where('id_posyandu', $posyanduId)
+                    ->where('no_kk_sasaran', $noKk)
+                    ->count();
+                $countRemaja = \App\Models\SasaranRemaja::where('id_posyandu', $posyanduId)
+                    ->where('no_kk_sasaran', $noKk)
+                    ->count();
+                $totalAnggota = $countBalita + $countRemaja;
+                
+                $noKkList[$noKk] = [
+                    'no_kk' => $noKk,
+                    'nama_orangtua' => $namaOrtu,
+                    'jumlah_anggota' => $totalAnggota,
+                    'nik_orangtua' => $orangtua ? $orangtua->nik : null,
+                    'orangtua_data' => $orangtua ? [
+                        'nik' => $orangtua->nik,
+                        'nama' => $orangtua->nama,
+                        'tempat_lahir' => $orangtua->tempat_lahir,
+                        'tanggal_lahir' => $orangtua->tanggal_lahir ? $orangtua->tanggal_lahir->format('Y-m-d') : null,
+                        'hari_lahir' => $orangtua->tanggal_lahir ? $orangtua->tanggal_lahir->day : null,
+                        'bulan_lahir' => $orangtua->tanggal_lahir ? $orangtua->tanggal_lahir->month : null,
+                        'tahun_lahir' => $orangtua->tanggal_lahir ? $orangtua->tanggal_lahir->year : null,
+                        'pekerjaan' => $orangtua->pekerjaan,
+                        'pendidikan' => $orangtua->pendidikan,
+                        'kelamin' => $orangtua->kelamin,
+                        'kepersertaan_bpjs' => $orangtua->kepersertaan_bpjs,
+                        'nomor_bpjs' => $orangtua->nomor_bpjs,
+                        'nomor_telepon' => $orangtua->nomor_telepon,
+                    ] : null
+                ];
+            }
+        }
+        
+        // Get from remaja
+        $remajaList = \App\Models\SasaranRemaja::where('id_posyandu', $posyanduId)
+            ->whereNotNull('no_kk_sasaran')
+            ->whereNotNull('nik_orangtua')
+            ->with('orangtua')
+            ->get();
+            
+        foreach ($remajaList as $remaja) {
+            $noKk = $remaja->no_kk_sasaran;
+            if (!isset($noKkList[$noKk])) {
+                $orangtua = $remaja->orangtua;
+                $namaOrtu = $orangtua ? $orangtua->nama : '-';
+                
+                // Count anggota keluarga dengan no_kk yang sama
+                $countBalita = SasaranBayibalita::where('id_posyandu', $posyanduId)
+                    ->where('no_kk_sasaran', $noKk)
+                    ->count();
+                $countRemaja = \App\Models\SasaranRemaja::where('id_posyandu', $posyanduId)
+                    ->where('no_kk_sasaran', $noKk)
+                    ->count();
+                $totalAnggota = $countBalita + $countRemaja;
+                
+                $noKkList[$noKk] = [
+                    'no_kk' => $noKk,
+                    'nama_orangtua' => $namaOrtu,
+                    'jumlah_anggota' => $totalAnggota,
+                    'nik_orangtua' => $orangtua ? $orangtua->nik : null,
+                    'orangtua_data' => $orangtua ? [
+                        'nik' => $orangtua->nik,
+                        'nama' => $orangtua->nama,
+                        'tempat_lahir' => $orangtua->tempat_lahir,
+                        'tanggal_lahir' => $orangtua->tanggal_lahir ? $orangtua->tanggal_lahir->format('Y-m-d') : null,
+                        'hari_lahir' => $orangtua->tanggal_lahir ? $orangtua->tanggal_lahir->day : null,
+                        'bulan_lahir' => $orangtua->tanggal_lahir ? $orangtua->tanggal_lahir->month : null,
+                        'tahun_lahir' => $orangtua->tanggal_lahir ? $orangtua->tanggal_lahir->year : null,
+                        'pekerjaan' => $orangtua->pekerjaan,
+                        'pendidikan' => $orangtua->pendidikan,
+                        'kelamin' => $orangtua->kelamin,
+                        'kepersertaan_bpjs' => $orangtua->kepersertaan_bpjs,
+                        'nomor_bpjs' => $orangtua->nomor_bpjs,
+                        'nomor_telepon' => $orangtua->nomor_telepon,
+                    ] : null
+                ];
+            }
+        }
+        
+        // Sort by no_kk
+        ksort($noKkList);
+        
+        return array_values($noKkList);
+    }
+
+    /**
+     * Auto-fill data orangtua ketika No KK berubah
+     */
+    public function updatedNoKkSasaran($value)
+    {
+        if ($value) {
+            $this->loadOrangtuaByNoKk($value);
+        }
+    }
+
+    /**
+     * Load data orangtua berdasarkan No KK
+     */
+    public function loadOrangtuaByNoKk($noKk)
+    {
+        if (!$noKk) {
+            return;
+        }
+
+        // Pastikan posyanduId tersedia
+        $posyanduId = $this->id_posyandu_sasaran ?? $this->posyanduId ?? null;
+        
+        if (!$posyanduId) {
+            return;
+        }
+
+        // Cari NIK orangtua dari balita atau remaja dengan no_kk yang sama
+        $sasaran = SasaranBayibalita::where('id_posyandu', $posyanduId)
+            ->where('no_kk_sasaran', $noKk)
+            ->whereNotNull('nik_orangtua')
+            ->first();
+
+        if (!$sasaran) {
+            // Coba dari remaja
+            $sasaran = \App\Models\SasaranRemaja::where('id_posyandu', $posyanduId)
+                ->where('no_kk_sasaran', $noKk)
+                ->whereNotNull('nik_orangtua')
+                ->first();
+        }
+
+        if ($sasaran && $sasaran->nik_orangtua) {
+            // Cari data orangtua langsung dari tabel orangtua
+            $orangtua = Orangtua::find($sasaran->nik_orangtua);
+            
+            if ($orangtua) {
+                $this->nik_orangtua = $orangtua->nik;
+                $this->nama_orangtua = $orangtua->nama;
+                $this->tempat_lahir_orangtua = $orangtua->tempat_lahir ?? '';
+                $this->tanggal_lahir_orangtua = $orangtua->tanggal_lahir ? $orangtua->tanggal_lahir->format('Y-m-d') : '';
+                
+                if ($orangtua->tanggal_lahir) {
+                    $date = Carbon::parse($orangtua->tanggal_lahir);
+                    $this->hari_lahir_orangtua = $date->day;
+                    $this->bulan_lahir_orangtua = $date->month;
+                    $this->tahun_lahir_orangtua = $date->year;
+                } else {
+                    $this->hari_lahir_orangtua = '';
+                    $this->bulan_lahir_orangtua = '';
+                    $this->tahun_lahir_orangtua = '';
+                }
+                
+                $this->pekerjaan_orangtua = $orangtua->pekerjaan ?? '';
+                $this->pendidikan_orangtua = $orangtua->pendidikan ?? '';
+                $this->kelamin_orangtua = $orangtua->kelamin ?? '';
+                $this->kepersertaan_bpjs_orangtua = $orangtua->kepersertaan_bpjs ?? '';
+                $this->nomor_bpjs_orangtua = $orangtua->nomor_bpjs ?? '';
+                $this->nomor_telepon_orangtua = $orangtua->nomor_telepon ?? '';
+                
+                // Update alamat sasaran jika kosong
+                if (empty($this->alamat_sasaran) && $sasaran->alamat_sasaran) {
+                    $this->alamat_sasaran = $sasaran->alamat_sasaran;
+                }
+            }
+        }
+        
+        // Dispatch event untuk memastikan UI ter-update
+        $this->dispatch('orangtua-loaded');
+    }
+
+    /**
      * Buat atau update record sasaran dewasa/pralansia/lansia dari data orangtua
      */
     private function createOrUpdateSasaranFromOrangtua($orangtua, $idPosyandu, $rt = null, $rw = null)

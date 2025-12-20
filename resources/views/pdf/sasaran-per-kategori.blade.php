@@ -134,8 +134,8 @@
                 <tr>
                     <th>No</th>
                     <th>NIK</th>
-                    <th>Nama</th>
                     <th>No KK</th>
+                    <th>Nama</th>
                     <th>Tanggal Lahir</th>
                     <th>Jenis Kelamin</th>
                     <th>Umur</th>
@@ -177,8 +177,8 @@
                     <tr>
                         <td class="text-center">{{ $index + 1 }}</td>
                         <td>{{ $item->nik_sasaran ?? '-' }}</td>
-                        <td>{{ $item->nama_sasaran ?? '-' }}</td>
                         <td>{{ $item->no_kk_sasaran ?? '-' }}</td>
+                        <td>{{ $item->nama_sasaran ?? '-' }}</td>
                         <td class="text-center">
                             @if (! empty($item->tanggal_lahir))
                                 {{ Carbon::parse($item->tanggal_lahir)->format('d/m/Y') }}
@@ -194,7 +194,8 @@
                                     $dob = Carbon::parse($item->tanggal_lahir);
                                     $now = Carbon::now();
                                     $tahun = (int) $dob->diffInYears($now);
-                                    if ($kategori === 'bayibalita' && $tahun < 1) {
+                                    if ($kategori === 'bayibalita') {
+                                        // Untuk balita, hitung umur dalam bulan berdasarkan tanggal lahir
                                         $bulan = (int) $dob->diffInMonths($now);
                                         $umurLabel = $bulan . ' bln';
                                     } else {
