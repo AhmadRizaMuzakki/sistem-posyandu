@@ -76,14 +76,6 @@
                     <span class="font-medium">Laporan</span>
                 </a>
 
-                <div class="pt-4 mt-4 border-t border-gray-100">
-                    {{-- PENGATURAN --}}
-                    <a href="{{ route('profile.edit') }}"
-                        class="flex items-center px-4 py-3 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
-                        <i class="ph ph-gear text-xl mr-3"></i>
-                        <span class="font-medium">Pengaturan</span>
-                    </a>
-                </div>
             </nav>
         </aside>
 
@@ -123,10 +115,6 @@
                                 <i class="ph ph-caret-down text-xl"></i>
                             </button>
                             <div id="userDropdownMenu" class="hidden group-hover:block absolute right-0 mt-2 w-40 bg-white border border-gray-200 rounded-lg shadow-md z-50">
-                                <a href="{{ route('profile.edit') }}"
-                                    class="block px-4 py-2 text-gray-700 hover:bg-gray-100 hover:text-primary text-sm">
-                                    <i class="ph ph-pencil-line mr-2"></i> Update Profil
-                                </a>
                                 <form method="POST" action="{{ route('logout') }}">
                                     @csrf
                                     <button type="submit"

@@ -253,10 +253,6 @@
                                 <i class="ph ph-caret-down text-xl"></i>
                             </button>
                             <div id="userDropdownMenu" class="hidden group-hover:block absolute right-0 mt-2 w-40 bg-white border border-gray-200 rounded-lg shadow-md z-50">
-                                <a href="{{ route('profile.edit') }}"
-                                    class="block px-4 py-2 text-gray-700 hover:bg-gray-100 hover:text-primary text-sm">
-                                    <i class="ph ph-pencil-line mr-2"></i> Update Profil
-                                </a>
                                 <form method="POST" action="{{ route('logout') }}">
                                     @csrf
                                     <button type="submit"

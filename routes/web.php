@@ -8,7 +8,6 @@ use App\Http\Controllers\LaporanController;
 use App\Livewire\SuperAdmin\Kader\Edit;
 use App\Livewire\SuperAdmin\Kader\Create;
 use App\Livewire\SuperAdmin\Kader\Destroy;
-use App\Http\Controllers\ProfileController;
 use App\Livewire\SuperAdmin\PosyanduDetail;
 use App\Livewire\SuperAdmin\PosyanduInfo;
 use App\Livewire\SuperAdmin\PosyanduKader;
@@ -60,14 +59,5 @@ Route::prefix('orangtua')->middleware(['auth', 'verified', 'role:orangtua|supera
     Route::get('/imunisasi', OrangtuaImunisasi::class)->name('orangtua.imunisasi');
 });
 
-Route::get('/dashboard', function () {
-    return view('dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
-
-Route::middleware('auth')->group(function () {
-    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
-    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
-    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
-});
 
 require __DIR__.'/auth.php';
