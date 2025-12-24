@@ -41,7 +41,7 @@
                     <input type="text"
                            wire:model.live.debounce.300ms="search"
                            class="w-full py-2 pl-10 pr-4 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
-                           placeholder="Cari berdasarkan jenis imunisasi, kategori, atau keterangan...">
+                           placeholder="Cari berdasarkan nama sasaran, jenis imunisasi, kategori, atau keterangan...">
                 </div>
             </div>
 

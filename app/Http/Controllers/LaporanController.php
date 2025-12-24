@@ -15,7 +15,7 @@ class LaporanController extends Controller
     /**
      * Generate laporan imunisasi Posyandu (admin Posyandu) dalam bentuk PDF.
      */
-    public function posyanduImunisasiPdf(): Response
+    public function posyanduImunisasiPdf(?string $kategori = null): Response
     {
         $user = Auth::user();
 
@@ -29,42 +29,58 @@ class LaporanController extends Controller
 
         $posyandu = $kader->posyandu;
 
-        $imunisasiList = Imunisasi::with(['user'])
-            ->where('id_posyandu', $posyandu->id_posyandu)
-            ->orderBy('tanggal_imunisasi', 'desc')
-            ->get();
+        $query = Imunisasi::with(['user'])
+            ->where('id_posyandu', $posyandu->id_posyandu);
 
-        $fileName = 'Laporan-Imunisasi-'.$posyandu->nama_posyandu.'-'.now('Asia/Jakarta')->format('Ymd_His').'.pdf';
+        // Filter berdasarkan kategori sasaran jika ada
+        if ($kategori && $kategori !== 'semua') {
+            $query->where('kategori_sasaran', $kategori);
+        }
+
+        $imunisasiList = $query->orderBy('tanggal_imunisasi', 'desc')->get();
+
+        $kategoriLabel = $kategori && $kategori !== 'semua' ? $this->getKategoriLabel($kategori) : 'Semua';
+        $fileName = 'Laporan-Imunisasi-'.str_replace(['/', ' '], ['-', '-'], $kategoriLabel).'-'.$posyandu->nama_posyandu.'-'.now('Asia/Jakarta')->format('Ymd_His').'.pdf';
 
         return $this->renderPdf('pdf.laporan-posyandu-imunisasi', [
             'posyandu' => $posyandu,
             'imunisasiList' => $imunisasiList,
             'generatedAt' => now('Asia/Jakarta'),
             'user' => $user,
+            'kategoriSasaran' => $kategori && $kategori !== 'semua' ? $kategori : null,
+            'kategoriLabel' => $kategoriLabel,
         ], $fileName);
     }
 
     /**
      * Generate laporan imunisasi Posyandu untuk Super Admin (berdasarkan ID Posyandu).
      */
-    public function superadminPosyanduImunisasiPdf(int $id): Response
+    public function superadminPosyanduImunisasiPdf(int $id, ?string $kategori = null): Response
     {
         $posyandu = Posyandu::findOrFail($id);
 
-        $imunisasiList = Imunisasi::with(['user'])
-            ->where('id_posyandu', $posyandu->id_posyandu)
-            ->orderBy('tanggal_imunisasi', 'desc')
-            ->get();
+        $query = Imunisasi::with(['user'])
+            ->where('id_posyandu', $posyandu->id_posyandu);
+
+        // Filter berdasarkan kategori sasaran jika ada
+        if ($kategori && $kategori !== 'semua') {
+            $query->where('kategori_sasaran', $kategori);
+        }
+
+        $imunisasiList = $query->orderBy('tanggal_imunisasi', 'desc')->get();
 
         $user = Auth::user();
 
-        $fileName = 'Laporan-Imunisasi-'.$posyandu->nama_posyandu.'-'.now('Asia/Jakarta')->format('Ymd_His').'.pdf';
+        $kategoriLabel = $kategori && $kategori !== 'semua' ? $this->getKategoriLabel($kategori) : 'Semua';
+        $fileName = 'Laporan-Imunisasi-'.str_replace(['/', ' '], ['-', '-'], $kategoriLabel).'-'.$posyandu->nama_posyandu.'-'.now('Asia/Jakarta')->format('Ymd_His').'.pdf';
 
         return $this->renderPdf('pdf.laporan-posyandu-imunisasi', [
             'posyandu' => $posyandu,
             'imunisasiList' => $imunisasiList,
             'generatedAt' => now('Asia/Jakarta'),
             'user' => $user,
+            'kategoriSasaran' => $kategori && $kategori !== 'semua' ? $kategori : null,
+            'kategoriLabel' => $kategoriLabel,
         ], $fileName);
     }
 
@@ -135,6 +151,23 @@ class LaporanController extends Controller
             'generatedAt' => now(),
             'user' => $user,
         ], $fileName, 'landscape');
+    }
+
+    /**
+     * Get label kategori sasaran.
+     */
+    protected function getKategoriLabel(string $kategori): string
+    {
+        $labels = [
+            'bayibalita' => 'Bayi dan Balita',
+            'remaja' => 'Remaja',
+            'dewasa' => 'Dewasa',
+            'pralansia' => 'Pralansia',
+            'lansia' => 'Lansia',
+            'ibuhamil' => 'Ibu Hamil',
+        ];
+
+        return $labels[$kategori] ?? ucfirst($kategori);
     }
 
     /**

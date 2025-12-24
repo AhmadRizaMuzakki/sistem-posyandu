@@ -149,6 +149,8 @@
                         <th>Kepersertaan BPJS</th>
                         <th>Nomor BPJS</th>
                         <th>Nomor Telepon</th>
+                        <th>NIK Orang Tua</th>
+                        <th>Nama Orang Tua</th>
                     @elseif (! $isIbuHamil)
                         <th class="col-alamat">Alamat</th>
                         <th>Kepersertaan BPJS</th>
@@ -171,9 +173,6 @@
             </thead>
             <tbody>
                 @foreach ($sasaranList as $index => $item)
-                    @php
-                        // Kolom orangtua sengaja tidak ditampilkan di laporan PDF
-                    @endphp
                     <tr>
                         <td class="text-center">{{ $index + 1 }}</td>
                         <td>{{ $item->nik_sasaran ?? '-' }}</td>
@@ -223,6 +222,8 @@
                             </td>
                             <td>{{ $item->nomor_bpjs ?? '-' }}</td>
                             <td>{{ $item->nomor_telepon ?? '-' }}</td>
+                            <td>{{ $item->orangtua->nik ?? ($item->nik_orangtua ?? '-') }}</td>
+                            <td>{{ $item->orangtua->nama ?? '-' }}</td>
                         @elseif (! $isIbuHamil)
                             <td class="col-alamat">{{ $item->alamat_sasaran ?? '-' }}</td>
                             <td>

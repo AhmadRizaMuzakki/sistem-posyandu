@@ -133,6 +133,14 @@
                 @endif
             </td>
         </tr>
+        @if (isset($kategoriSasaran) && $kategoriSasaran)
+        <tr>
+            <td class="meta-label">Kategori Sasaran</td>
+            <td>: {{ $kategoriLabel ?? ucfirst($kategoriSasaran) }}</td>
+            <td></td>
+            <td></td>
+        </tr>
+        @endif
     </table>
 
     <h3>Daftar Data Imunisasi</h3>

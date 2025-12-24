@@ -5,6 +5,11 @@ namespace App\Livewire\SuperAdmin;
 use App\Livewire\SuperAdmin\Traits\ImunisasiCrud;
 use App\Models\Imunisasi;
 use App\Models\Posyandu;
+use App\Models\SasaranBayibalita;
+use App\Models\SasaranRemaja;
+use App\Models\SasaranDewasa;
+use App\Models\SasaranPralansia;
+use App\Models\SasaranLansia;
 use Livewire\Component;
 use Livewire\Attributes\Layout;
 
@@ -52,6 +57,53 @@ class PosyanduImunisasi extends Component
         $this->loadPosyandu();
     }
 
+    /**
+     * Cari sasaran berdasarkan nama di semua kategori
+     */
+    private function searchSasaranByNama($searchTerm)
+    {
+        $results = [];
+
+        // Cari di setiap kategori sasaran
+        $kategoriConfig = [
+            'bayibalita' => [
+                'model' => SasaranBayibalita::class,
+                'primaryKey' => 'id_sasaran_bayibalita',
+            ],
+            'remaja' => [
+                'model' => SasaranRemaja::class,
+                'primaryKey' => 'id_sasaran_remaja',
+            ],
+            'dewasa' => [
+                'model' => SasaranDewasa::class,
+                'primaryKey' => 'id_sasaran_dewasa',
+            ],
+            'pralansia' => [
+                'model' => SasaranPralansia::class,
+                'primaryKey' => 'id_sasaran_pralansia',
+            ],
+            'lansia' => [
+                'model' => SasaranLansia::class,
+                'primaryKey' => 'id_sasaran_lansia',
+            ],
+        ];
+
+        foreach ($kategoriConfig as $kategori => $config) {
+            $sasarans = $config['model']::where('id_posyandu', $this->posyanduId)
+                ->where('nama_sasaran', 'like', '%' . $searchTerm . '%')
+                ->get();
+
+            foreach ($sasarans as $sasaran) {
+                $results[] = [
+                    'id' => $sasaran->{$config['primaryKey']},
+                    'kategori' => $kategori,
+                ];
+            }
+        }
+
+        return $results;
+    }
+
     public function render()
     {
         $daftarPosyandu = Posyandu::select('id_posyandu', 'nama_posyandu')->get();
@@ -62,10 +114,24 @@ class PosyanduImunisasi extends Component
 
         // Filter berdasarkan search
         if (!empty($this->search)) {
-            $query->where(function($q) {
+            // Cari sasaran berdasarkan nama
+            $sasaranResults = $this->searchSasaranByNama($this->search);
+
+            $query->where(function($q) use ($sasaranResults) {
+                // Pencarian berdasarkan field imunisasi (jenis, keterangan, kategori)
                 $q->where('jenis_imunisasi', 'like', '%' . $this->search . '%')
                   ->orWhere('keterangan', 'like', '%' . $this->search . '%')
                   ->orWhere('kategori_sasaran', 'like', '%' . $this->search . '%');
+
+                // Pencarian berdasarkan nama sasaran
+                if (!empty($sasaranResults)) {
+                    foreach ($sasaranResults as $sasaran) {
+                        $q->orWhere(function($subQ) use ($sasaran) {
+                            $subQ->where('id_sasaran', $sasaran['id'])
+                                 ->where('kategori_sasaran', $sasaran['kategori']);
+                        });
+                    }
+                }
             });
         }
 

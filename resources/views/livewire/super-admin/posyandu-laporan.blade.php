@@ -35,18 +35,33 @@
                 </div>
             </div>
 
-            <div class="pt-4 border-t border-dashed border-gray-200 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mt-4">
-                <p class="text-sm text-gray-500 max-w-xl">
+            <div class="pt-4 border-t border-dashed border-gray-200 space-y-4 mt-4">
+                <p class="text-sm text-gray-500">
                     Laporan PDF akan berisi daftar lengkap data imunisasi pada Posyandu ini,
                     termasuk tanggal, jenis imunisasi, kategori sasaran, nama sasaran, tinggi/berat badan, petugas, dan keterangan.
                 </p>
 
-                <a href="{{ route('superadmin.posyandu.laporan.pdf', $posyandu->id_posyandu) }}"
-                   target="_blank"
-                   class="inline-flex items-center px-5 py-2.5 rounded-lg bg-primary text-white text-sm font-semibold shadow-sm hover:bg-indigo-700 transition-colors">
-                    <i class="ph ph-file-pdf text-lg mr-2"></i>
-                    Download Laporan PDF
-                </a>
+                <div class="flex flex-col md:flex-row items-start md:items-center gap-4">
+                    <div class="flex-1">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Export berdasarkan Kategori Sasaran:</label>
+                        <div class="flex flex-wrap gap-2">
+                            <a href="{{ route('superadmin.posyandu.laporan.pdf', $posyandu->id_posyandu) }}"
+                               target="_blank"
+                               class="inline-flex items-center px-4 py-2 rounded-lg bg-primary text-white text-sm font-medium shadow-sm hover:bg-indigo-700 transition-colors">
+                                <i class="ph ph-file-pdf text-lg mr-2"></i>
+                                Semua Kategori
+                            </a>
+                            @foreach($kategoriSasaranList as $kategori)
+                                <a href="{{ route('superadmin.posyandu.laporan.pdf.kategori', ['id' => $posyandu->id_posyandu, 'kategori' => $kategori]) }}"
+                                   target="_blank"
+                                   class="inline-flex items-center px-4 py-2 rounded-lg bg-gray-100 text-gray-700 text-sm font-medium shadow-sm hover:bg-gray-200 transition-colors border border-gray-300">
+                                    <i class="ph ph-file-pdf text-lg mr-2"></i>
+                                    {{ $kategoriLabels[$kategori] ?? ucfirst($kategori) }}
+                                </a>
+                            @endforeach
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
 

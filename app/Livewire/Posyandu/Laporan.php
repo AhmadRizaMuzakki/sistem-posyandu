@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Posyandu;
 
+use App\Models\Imunisasi;
 use App\Models\Kader;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Layout;
@@ -29,9 +30,28 @@ class Laporan extends Component
 
     public function render()
     {
+        // Ambil daftar kategori sasaran yang unik dari database
+        $kategoriSasaranList = Imunisasi::where('id_posyandu', $this->posyandu->id_posyandu)
+            ->distinct()
+            ->orderBy('kategori_sasaran')
+            ->pluck('kategori_sasaran')
+            ->toArray();
+
+        // Mapping label kategori
+        $kategoriLabels = [
+            'bayibalita' => 'Bayi dan Balita',
+            'remaja' => 'Remaja',
+            'dewasa' => 'Dewasa',
+            'pralansia' => 'Pralansia',
+            'lansia' => 'Lansia',
+            'ibuhamil' => 'Ibu Hamil',
+        ];
+
         return view('livewire.posyandu.laporan', [
             'title' => 'Laporan - '.$this->posyandu->nama_posyandu,
             'posyandu' => $this->posyandu,
+            'kategoriSasaranList' => $kategoriSasaranList,
+            'kategoriLabels' => $kategoriLabels,
         ]);
     }
 }

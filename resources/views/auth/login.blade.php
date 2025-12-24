@@ -53,9 +53,6 @@
 							<i class="fa fa-envelope" aria-hidden="true"></i>
 						</span>
 					</div>
-					<small class="text-muted" style="display: block; margin-top: -10px; margin-bottom: 10px; padding-left: 20px; font-size: 12px;">
-						Untuk Orangtua: Gunakan No KK | Untuk Admin: Gunakan Email
-					</small>
 
 					<!-- Password -->
 					<div class="wrap-input100 validate-input @error('password') alert-validate @enderror" data-validate="@error('password') {{ $message }} @else Password is required @enderror">
