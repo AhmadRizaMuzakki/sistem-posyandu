@@ -43,19 +43,30 @@
             </div>
         </div>
 
-        {{-- Card Export berdasarkan Kategori Sasaran --}}
+        {{-- Card Export Semua --}}
         <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
             <div class="flex items-center gap-2 mb-4">
-                <i class="ph ph-users text-xl text-primary"></i>
-                <h3 class="text-lg font-semibold text-gray-800">Export berdasarkan Kategori Sasaran</h3>
+                <i class="ph ph-file-pdf text-xl text-primary"></i>
+                <h3 class="text-lg font-semibold text-gray-800">Export Semua Data</h3>
             </div>
             <div class="flex flex-wrap gap-2">
                 <a href="{{ route('superadmin.posyandu.laporan.pdf', $posyandu->id_posyandu) }}"
                    target="_blank"
                    class="inline-flex items-center px-4 py-2 rounded-lg bg-primary text-white text-sm font-medium shadow-sm hover:bg-indigo-700 transition-colors">
                     <i class="ph ph-file-pdf text-lg mr-2"></i>
-                    Semua Kategori
+                    Export Semua Data Imunisasi
                 </a>
+            </div>
+        </div>
+
+        {{-- Card Export berdasarkan Kategori Sasaran --}}
+        @if(!empty($kategoriSasaranList))
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+            <div class="flex items-center gap-2 mb-4">
+                <i class="ph ph-users text-xl text-primary"></i>
+                <h3 class="text-lg font-semibold text-gray-800">Export berdasarkan Kategori Sasaran</h3>
+            </div>
+            <div class="flex flex-wrap gap-2">
                 @foreach($kategoriSasaranList as $kategori)
                     <a href="{{ route('superadmin.posyandu.laporan.pdf.kategori', ['id' => $posyandu->id_posyandu, 'kategori' => $kategori]) }}"
                        target="_blank"
@@ -66,6 +77,7 @@
                 @endforeach
             </div>
         </div>
+        @endif
 
         {{-- Card Export berdasarkan Jenis Vaksin --}}
         @if(!empty($jenisVaksinList))

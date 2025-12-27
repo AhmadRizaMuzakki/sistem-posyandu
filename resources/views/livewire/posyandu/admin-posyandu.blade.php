@@ -30,6 +30,56 @@
             </div>
         </div>
 
+        <!-- Informasi Posyandu dengan Grafik Pendidikan -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+            <!-- Card Informasi Posyandu -->
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h2 class="text-xl font-semibold text-gray-800 mb-4 flex items-center">
+                    <i class="ph ph-info text-2xl mr-3 text-primary"></i>
+                    Informasi Posyandu
+                </h2>
+                <div class="space-y-4">
+                    <div>
+                        <label class="text-sm font-medium text-gray-500">Nama Posyandu</label>
+                        <p class="text-gray-800 mt-1">{{ $posyandu->nama_posyandu }}</p>
+                    </div>
+                    @if($posyandu->alamat_posyandu)
+                    <div>
+                        <label class="text-sm font-medium text-gray-500">Alamat</label>
+                        <p class="text-gray-800 mt-1">{{ $posyandu->alamat_posyandu }}</p>
+                    </div>
+                    @endif
+                    @if($posyandu->domisili_posyandu)
+                    <div>
+                        <label class="text-sm font-medium text-gray-500">Domisili</label>
+                        <p class="text-gray-800 mt-1">{{ $posyandu->domisili_posyandu }}</p>
+                    </div>
+                    @endif
+                    <div>
+                        <label class="text-sm font-medium text-gray-500">Jumlah Sasaran</label>
+                        <p class="text-gray-800 mt-1">{{ number_format($totalSasaran ?? 0, 0, ',', '.') }} orang</p>
+                    </div>
+                    @if($posyandu->sk_posyandu)
+                    <div>
+                        <label class="text-sm font-medium text-gray-500">SK Posyandu</label>
+                        <p class="text-gray-800 mt-1">{{ $posyandu->sk_posyandu }}</p>
+                    </div>
+                    @endif
+                </div>
+            </div>
+
+            <!-- Card Grafik Pendidikan -->
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h2 class="text-xl font-semibold text-gray-800 mb-4 flex items-center">
+                    <i class="ph ph-graduation-cap text-2xl mr-3 text-primary"></i>
+                    Grafik Pendidikan Sasaran
+                </h2>
+                <div class="h-80">
+                    <canvas id="pendidikanInfoChart"></canvas>
+                </div>
+            </div>
+        </div>
+
         <!-- Grafik Jumlah Sasaran per Kategori -->
         <div class="bg-white rounded-lg shadow-md p-6 mb-6">
             <h2 class="text-xl font-semibold text-gray-800 mb-4 flex items-center">
@@ -143,10 +193,78 @@
             });
         }
 
-        // Grafik Pendidikan Sasaran (gabungan)
+        // Grafik Pendidikan Sasaran di bagian Informasi Posyandu
         const pendidikanLabels = pendidikanData.labels || [];
         const pendidikanCounts = pendidikanData.data || [];
 
+        const pendidikanInfoCtx = document.getElementById('pendidikanInfoChart');
+        if (pendidikanInfoCtx) {
+            new Chart(pendidikanInfoCtx.getContext('2d'), {
+                type: 'doughnut',
+                data: {
+                    labels: pendidikanLabels,
+                    datasets: [{
+                        label: 'Jumlah Sasaran',
+                        data: pendidikanCounts,
+                        backgroundColor: [
+                            'rgba(59, 130, 246, 0.8)',
+                            'rgba(16, 185, 129, 0.8)',
+                            'rgba(251, 191, 36, 0.8)',
+                            'rgba(239, 68, 68, 0.8)',
+                            'rgba(168, 85, 247, 0.8)',
+                            'rgba(236, 72, 153, 0.8)',
+                            'rgba(34, 197, 94, 0.8)',
+                            'rgba(249, 115, 22, 0.8)',
+                            'rgba(139, 92, 246, 0.8)',
+                            'rgba(20, 184, 166, 0.8)',
+                        ],
+                        borderColor: [
+                            'rgba(59, 130, 246, 1)',
+                            'rgba(16, 185, 129, 1)',
+                            'rgba(251, 191, 36, 1)',
+                            'rgba(239, 68, 68, 1)',
+                            'rgba(168, 85, 247, 1)',
+                            'rgba(236, 72, 153, 1)',
+                            'rgba(34, 197, 94, 1)',
+                            'rgba(249, 115, 22, 1)',
+                            'rgba(139, 92, 246, 1)',
+                            'rgba(20, 184, 166, 1)',
+                        ],
+                        borderWidth: 2,
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'bottom',
+                            labels: {
+                                boxWidth: 12,
+                                padding: 10,
+                                font: {
+                                    size: 11
+                                }
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const label = context.label || '';
+                                    const value = context.parsed || 0;
+                                    const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                    const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : 0;
+                                    return label + ': ' + value + ' orang (' + percentage + '%)';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Grafik Pendidikan Sasaran (gabungan) - di bagian bawah
         const pendidikanCtx = document.getElementById('pendidikanChart');
         if (pendidikanCtx) {
             new Chart(pendidikanCtx.getContext('2d'), {
