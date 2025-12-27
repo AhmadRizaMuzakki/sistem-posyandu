@@ -53,6 +53,85 @@ class LaporanController extends Controller
     }
 
     /**
+     * Generate laporan imunisasi Posyandu berdasarkan jenis vaksin (admin Posyandu).
+     */
+    public function posyanduImunisasiPdfByJenisVaksin(string $jenisVaksin): Response
+    {
+        $user = Auth::user();
+
+        $kader = Kader::with('posyandu')
+            ->where('id_users', $user->id)
+            ->first();
+
+        if (! $kader || ! $kader->posyandu) {
+            abort(403, 'Posyandu untuk akun ini tidak ditemukan.');
+        }
+
+        $posyandu = $kader->posyandu;
+
+        $imunisasiList = Imunisasi::with(['user'])
+            ->where('id_posyandu', $posyandu->id_posyandu)
+            ->where('jenis_imunisasi', urldecode($jenisVaksin))
+            ->orderBy('tanggal_imunisasi', 'desc')
+            ->get();
+
+        $jenisVaksinLabel = urldecode($jenisVaksin);
+        $fileName = 'Laporan-Imunisasi-'.str_replace(['/', ' '], ['-', '-'], $jenisVaksinLabel).'-'.$posyandu->nama_posyandu.'-'.now('Asia/Jakarta')->format('Ymd_His').'.pdf';
+
+        return $this->renderPdf('pdf.laporan-posyandu-imunisasi', [
+            'posyandu' => $posyandu,
+            'imunisasiList' => $imunisasiList,
+            'generatedAt' => now('Asia/Jakarta'),
+            'user' => $user,
+            'kategoriSasaran' => null,
+            'kategoriLabel' => 'Jenis Vaksin: '.$jenisVaksinLabel,
+            'jenisVaksin' => $jenisVaksinLabel,
+        ], $fileName);
+    }
+
+    /**
+     * Generate laporan imunisasi Posyandu berdasarkan nama sasaran (admin Posyandu).
+     */
+    public function posyanduImunisasiPdfByNama(string $nama): Response
+    {
+        $user = Auth::user();
+
+        $kader = Kader::with('posyandu')
+            ->where('id_users', $user->id)
+            ->first();
+
+        if (! $kader || ! $kader->posyandu) {
+            abort(403, 'Posyandu untuk akun ini tidak ditemukan.');
+        }
+
+        $posyandu = $kader->posyandu;
+        $namaDecoded = urldecode($nama);
+
+        // Get all imunisasi for this posyandu
+        $imunisasiList = Imunisasi::with(['user'])
+            ->where('id_posyandu', $posyandu->id_posyandu)
+            ->orderBy('tanggal_imunisasi', 'desc')
+            ->get()
+            ->filter(function ($imunisasi) use ($namaDecoded) {
+                $sasaran = $imunisasi->sasaran;
+                return $sasaran && $sasaran->nama_sasaran === $namaDecoded;
+            })
+            ->values();
+
+        $fileName = 'Laporan-Imunisasi-'.str_replace(['/', ' '], ['-', '-'], $namaDecoded).'-'.$posyandu->nama_posyandu.'-'.now('Asia/Jakarta')->format('Ymd_His').'.pdf';
+
+        return $this->renderPdf('pdf.laporan-posyandu-imunisasi', [
+            'posyandu' => $posyandu,
+            'imunisasiList' => $imunisasiList,
+            'generatedAt' => now('Asia/Jakarta'),
+            'user' => $user,
+            'kategoriSasaran' => null,
+            'kategoriLabel' => 'Nama: '.$namaDecoded,
+            'namaSasaran' => $namaDecoded,
+        ], $fileName);
+    }
+
+    /**
      * Generate laporan imunisasi Posyandu untuk Super Admin (berdasarkan ID Posyandu).
      */
     public function superadminPosyanduImunisasiPdf(int $id, ?string $kategori = null): Response
@@ -81,6 +160,67 @@ class LaporanController extends Controller
             'user' => $user,
             'kategoriSasaran' => $kategori && $kategori !== 'semua' ? $kategori : null,
             'kategoriLabel' => $kategoriLabel,
+        ], $fileName);
+    }
+
+    /**
+     * Generate laporan imunisasi Posyandu berdasarkan jenis vaksin untuk Super Admin.
+     */
+    public function superadminPosyanduImunisasiPdfByJenisVaksin(int $id, string $jenisVaksin): Response
+    {
+        $posyandu = Posyandu::findOrFail($id);
+
+        $imunisasiList = Imunisasi::with(['user'])
+            ->where('id_posyandu', $posyandu->id_posyandu)
+            ->where('jenis_imunisasi', urldecode($jenisVaksin))
+            ->orderBy('tanggal_imunisasi', 'desc')
+            ->get();
+
+        $user = Auth::user();
+        $jenisVaksinLabel = urldecode($jenisVaksin);
+        $fileName = 'Laporan-Imunisasi-'.str_replace(['/', ' '], ['-', '-'], $jenisVaksinLabel).'-'.$posyandu->nama_posyandu.'-'.now('Asia/Jakarta')->format('Ymd_His').'.pdf';
+
+        return $this->renderPdf('pdf.laporan-posyandu-imunisasi', [
+            'posyandu' => $posyandu,
+            'imunisasiList' => $imunisasiList,
+            'generatedAt' => now('Asia/Jakarta'),
+            'user' => $user,
+            'kategoriSasaran' => null,
+            'kategoriLabel' => 'Jenis Vaksin: '.$jenisVaksinLabel,
+            'jenisVaksin' => $jenisVaksinLabel,
+        ], $fileName);
+    }
+
+    /**
+     * Generate laporan imunisasi Posyandu berdasarkan nama sasaran untuk Super Admin.
+     */
+    public function superadminPosyanduImunisasiPdfByNama(int $id, string $nama): Response
+    {
+        $posyandu = Posyandu::findOrFail($id);
+        $namaDecoded = urldecode($nama);
+
+        // Get all imunisasi for this posyandu
+        $imunisasiList = Imunisasi::with(['user'])
+            ->where('id_posyandu', $posyandu->id_posyandu)
+            ->orderBy('tanggal_imunisasi', 'desc')
+            ->get()
+            ->filter(function ($imunisasi) use ($namaDecoded) {
+                $sasaran = $imunisasi->sasaran;
+                return $sasaran && $sasaran->nama_sasaran === $namaDecoded;
+            })
+            ->values();
+
+        $user = Auth::user();
+        $fileName = 'Laporan-Imunisasi-'.str_replace(['/', ' '], ['-', '-'], $namaDecoded).'-'.$posyandu->nama_posyandu.'-'.now('Asia/Jakarta')->format('Ymd_His').'.pdf';
+
+        return $this->renderPdf('pdf.laporan-posyandu-imunisasi', [
+            'posyandu' => $posyandu,
+            'imunisasiList' => $imunisasiList,
+            'generatedAt' => now('Asia/Jakarta'),
+            'user' => $user,
+            'kategoriSasaran' => null,
+            'kategoriLabel' => 'Nama: '.$namaDecoded,
+            'namaSasaran' => $namaDecoded,
         ], $fileName);
     }
 

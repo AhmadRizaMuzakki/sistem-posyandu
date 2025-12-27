@@ -47,6 +47,24 @@ class PosyanduLaporan extends Component
             ->pluck('kategori_sasaran')
             ->toArray();
 
+        // Ambil daftar jenis vaksin yang unik dari database
+        $jenisVaksinList = Imunisasi::where('id_posyandu', $this->posyandu->id_posyandu)
+            ->distinct()
+            ->orderBy('jenis_imunisasi')
+            ->pluck('jenis_imunisasi')
+            ->toArray();
+
+        // Ambil daftar nama sasaran yang unik dari database
+        $imunisasiList = Imunisasi::where('id_posyandu', $this->posyandu->id_posyandu)->get();
+        $namaSasaranList = collect();
+        foreach ($imunisasiList as $imunisasi) {
+            $sasaran = $imunisasi->sasaran;
+            if ($sasaran && $sasaran->nama_sasaran) {
+                $namaSasaranList->push($sasaran->nama_sasaran);
+            }
+        }
+        $namaSasaranList = $namaSasaranList->unique()->sort()->values()->toArray();
+
         // Mapping label kategori
         $kategoriLabels = [
             'bayibalita' => 'Bayi dan Balita',
@@ -64,6 +82,8 @@ class PosyanduLaporan extends Component
             'posyandu' => $this->posyandu,
             'kategoriSasaranList' => $kategoriSasaranList,
             'kategoriLabels' => $kategoriLabels,
+            'jenisVaksinList' => $jenisVaksinList,
+            'namaSasaranList' => $namaSasaranList,
         ]);
     }
 }
