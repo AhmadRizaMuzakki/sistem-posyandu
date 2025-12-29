@@ -3,6 +3,7 @@
 namespace App\Livewire\SuperAdmin;
 
 use App\Models\Imunisasi;
+use App\Models\Pendidikan;
 use App\Models\Posyandu;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
@@ -75,6 +76,14 @@ class PosyanduLaporan extends Component
             'ibuhamil' => 'Ibu Hamil',
         ];
 
+        // Ambil daftar kategori pendidikan yang unik dari database
+        $kategoriPendidikanList = Pendidikan::where('id_posyandu', $this->posyandu->id_posyandu)
+            ->distinct()
+            ->orderBy('pendidikan_terakhir')
+            ->pluck('pendidikan_terakhir')
+            ->filter()
+            ->toArray();
+
         return view('livewire.super-admin.posyandu-laporan', [
             'title' => 'Laporan - '.$this->posyandu->nama_posyandu,
             'daftarPosyandu' => $daftarPosyandu,
@@ -84,6 +93,7 @@ class PosyanduLaporan extends Component
             'kategoriLabels' => $kategoriLabels,
             'jenisVaksinList' => $jenisVaksinList,
             'namaSasaranList' => $namaSasaranList,
+            'kategoriPendidikanList' => $kategoriPendidikanList,
         ]);
     }
 }

@@ -69,7 +69,14 @@
                     <span class="font-medium">Imunisasi</span>
                 </a>
 
-                {{-- 5. LAPORAN --}}
+                {{-- 5. DATA PENDIDIKAN --}}
+                <a href="{{ route('adminPosyandu.pendidikan') }}"
+                    class="flex items-center px-4 py-3 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
+                    <i class="ph ph-graduation-cap text-xl mr-3"></i>
+                    <span class="font-medium">Pendidikan</span>
+                </a>
+
+                {{-- 6. LAPORAN --}}
                 <a href="{{ route('adminPosyandu.laporan') }}"
                     class="flex items-center px-4 py-3 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
                     <i class="ph ph-chart-bar text-xl mr-3"></i>

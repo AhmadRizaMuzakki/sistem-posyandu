@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Imunisasi;
 use App\Models\Kader;
 use App\Models\Posyandu;
+use App\Models\Pendidikan;
 use Dompdf\Dompdf;
 use Dompdf\Options;
 use Illuminate\Http\Response;
@@ -353,6 +354,46 @@ class LaporanController extends Controller
         }
 
         return $map[$kategori];
+    }
+
+    /**
+     * Generate laporan pendidikan Posyandu untuk Super Admin (berdasarkan ID Posyandu).
+     */
+    public function superadminPosyanduPendidikanPdf(string $id, ?string $kategoriPendidikan = null): Response
+    {
+        try {
+            $decryptedId = decrypt($id);
+        } catch (\Illuminate\Contracts\Encryption\DecryptException $e) {
+            abort(404, 'ID tidak valid');
+        }
+
+        $posyandu = Posyandu::findOrFail($decryptedId);
+
+        $query = Pendidikan::with(['user'])
+            ->where('id_posyandu', $posyandu->id_posyandu);
+
+        // Filter berdasarkan kategori pendidikan jika ada
+        if ($kategoriPendidikan && $kategoriPendidikan !== 'semua') {
+            $query->where('pendidikan_terakhir', urldecode($kategoriPendidikan));
+        }
+
+        $pendidikanList = $query->orderBy('tanggal_lahir', 'desc')->get();
+
+        $user = Auth::user();
+
+        $kategoriLabel = $kategoriPendidikan && $kategoriPendidikan !== 'semua' 
+            ? urldecode($kategoriPendidikan) 
+            : 'Semua';
+        $fileName = 'Laporan-Pendidikan-'.str_replace(['/', ' '], ['-', '-'], $kategoriLabel).'-'.$posyandu->nama_posyandu.'-'.now('Asia/Jakarta')->format('Ymd_His').'.pdf';
+
+        return $this->renderPdf('pdf.laporan-posyandu-pendidikan', [
+            'posyandu' => $posyandu,
+            'pendidikanList' => $pendidikanList,
+            'generatedAt' => now('Asia/Jakarta'),
+            'user' => $user,
+            'kategoriPendidikan' => $kategoriPendidikan && $kategoriPendidikan !== 'semua' ? urldecode($kategoriPendidikan) : null,
+            'kategoriLabel' => $kategoriLabel,
+        ], $fileName);
     }
 
     /**

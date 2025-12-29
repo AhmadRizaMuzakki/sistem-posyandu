@@ -183,6 +183,8 @@
                             <select wire:model="pendidikan_pralansia" class="shadow border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-primary focus:border-primary">
                                 <option value="">Pilih Pendidikan...</option>
                                 <option value="Tidak/Belum Sekolah">Tidak/Belum Sekolah</option>
+                                <option value="PAUD">PAUD</option>
+                                <option value="TK">TK</option>
                                 <option value="Tidak Tamat SD/Sederajat">Tidak Tamat SD/Sederajat</option>
                                 <option value="Tamat SD/Sederajat">Tamat SD/Sederajat</option>
                                 <option value="SLTP/Sederajat">SLTP/Sederajat</option>

@@ -11,7 +11,7 @@
                         Laporan Posyandu
                     </h1>
                     <p class="mt-1 text-sm text-gray-500">
-                        Super Admin dapat mencetak laporan kegiatan imunisasi Posyandu ini dalam bentuk PDF.
+                        Super Admin dapat mencetak laporan kegiatan imunisasi dan pendidikan Posyandu ini dalam bentuk PDF.
                     </p>
                 </div>
             </div>
@@ -37,87 +37,138 @@
 
             <div class="pt-4 border-t border-dashed border-gray-200">
                 <p class="text-sm text-gray-500 mb-6">
-                    Laporan PDF akan berisi daftar lengkap data imunisasi pada Posyandu ini,
-                    termasuk tanggal, jenis imunisasi, kategori sasaran, nama sasaran, tinggi/berat badan, petugas, dan keterangan.
+                    Laporan PDF akan berisi daftar lengkap data imunisasi dan pendidikan pada Posyandu ini.
                 </p>
             </div>
         </div>
 
-        {{-- Card Export Semua --}}
+        {{-- Grup Laporan Imunisasi --}}
         <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-            <div class="flex items-center gap-2 mb-4">
-                <i class="ph ph-file-pdf text-xl text-primary"></i>
-                <h3 class="text-lg font-semibold text-gray-800">Export Semua Data</h3>
+            <div class="flex items-center gap-2 mb-4 pb-3 border-b border-gray-200">
+                <i class="ph ph-syringe text-2xl text-blue-600"></i>
+                <h2 class="text-xl font-semibold text-gray-800">Laporan Imunisasi</h2>
             </div>
-            <div class="flex flex-wrap gap-2">
-                <a href="{{ route('superadmin.posyandu.laporan.pdf', $posyandu->id_posyandu) }}"
-                   target="_blank"
-                   class="inline-flex items-center px-4 py-2 rounded-lg bg-primary text-white text-sm font-medium shadow-sm hover:bg-indigo-700 transition-colors">
-                    <i class="ph ph-file-pdf text-lg mr-2"></i>
-                    Export Semua Data Imunisasi
-                </a>
+
+            {{-- Card Export Semua Imunisasi --}}
+            <div class="mb-6">
+                <div class="flex items-center gap-2 mb-3">
+                    <i class="ph ph-file-pdf text-lg text-primary"></i>
+                    <h3 class="text-base font-semibold text-gray-800">Export Semua Data</h3>
+                </div>
+                <div class="flex flex-wrap gap-2">
+                    <a href="{{ route('superadmin.posyandu.laporan.pdf', encrypt($posyandu->id_posyandu)) }}"
+                       target="_blank"
+                       class="inline-flex items-center px-4 py-2 rounded-lg bg-primary text-white text-sm font-medium shadow-sm hover:bg-indigo-700 transition-colors">
+                        <i class="ph ph-file-pdf text-lg mr-2"></i>
+                        Export Semua Data Imunisasi
+                    </a>
+                </div>
             </div>
+
+            {{-- Card Export berdasarkan Kategori Sasaran --}}
+            @if(!empty($kategoriSasaranList))
+            <div class="mb-6">
+                <div class="flex items-center gap-2 mb-3">
+                    <i class="ph ph-users text-lg text-primary"></i>
+                    <h3 class="text-base font-semibold text-gray-800">Export berdasarkan Kategori Sasaran</h3>
+                </div>
+                <div class="flex flex-wrap gap-2">
+                    @foreach($kategoriSasaranList as $kategori)
+                        <a href="{{ route('superadmin.posyandu.laporan.pdf.kategori', ['id' => encrypt($posyandu->id_posyandu), 'kategori' => $kategori]) }}"
+                           target="_blank"
+                           class="inline-flex items-center px-4 py-2 rounded-lg bg-gray-100 text-gray-700 text-sm font-medium shadow-sm hover:bg-gray-200 transition-colors border border-gray-300">
+                            <i class="ph ph-file-pdf text-lg mr-2"></i>
+                            {{ $kategoriLabels[$kategori] ?? ucfirst($kategori) }}
+                        </a>
+                    @endforeach
+                </div>
+            </div>
+            @endif
+
+            {{-- Card Export berdasarkan Jenis Vaksin --}}
+            @if(!empty($jenisVaksinList))
+            <div class="mb-6">
+                <div class="flex items-center gap-2 mb-3">
+                    <i class="ph ph-syringe text-lg text-blue-600"></i>
+                    <h3 class="text-base font-semibold text-gray-800">Export berdasarkan Jenis Vaksin</h3>
+                </div>
+                <div class="flex flex-wrap gap-2">
+                    @foreach($jenisVaksinList as $jenisVaksin)
+                        <a href="{{ route('superadmin.posyandu.laporan.pdf.jenis-vaksin', ['id' => encrypt($posyandu->id_posyandu), 'jenisVaksin' => urlencode($jenisVaksin)]) }}"
+                           target="_blank"
+                           class="inline-flex items-center px-4 py-2 rounded-lg bg-blue-100 text-blue-700 text-sm font-medium shadow-sm hover:bg-blue-200 transition-colors border border-blue-300">
+                            <i class="ph ph-file-pdf text-lg mr-2"></i>
+                            {{ $jenisVaksin }}
+                        </a>
+                    @endforeach
+                </div>
+            </div>
+            @endif
+
+            {{-- Card Export berdasarkan Nama Sasaran --}}
+            @if(!empty($namaSasaranList))
+            <div>
+                <div class="flex items-center gap-2 mb-3">
+                    <i class="ph ph-user text-lg text-green-600"></i>
+                    <h3 class="text-base font-semibold text-gray-800">Export berdasarkan Nama Sasaran</h3>
+                </div>
+                <div class="flex flex-wrap gap-2">
+                    @foreach($namaSasaranList as $nama)
+                        <a href="{{ route('superadmin.posyandu.laporan.pdf.nama', ['id' => encrypt($posyandu->id_posyandu), 'nama' => urlencode($nama)]) }}"
+                           target="_blank"
+                           class="inline-flex items-center px-4 py-2 rounded-lg bg-green-100 text-green-700 text-sm font-medium shadow-sm hover:bg-green-200 transition-colors border border-green-300">
+                            <i class="ph ph-file-pdf text-lg mr-2"></i>
+                            {{ $nama }}
+                        </a>
+                    @endforeach
+                </div>
+            </div>
+            @endif
         </div>
 
-        {{-- Card Export berdasarkan Kategori Sasaran --}}
-        @if(!empty($kategoriSasaranList))
+        {{-- Grup Laporan Pendidikan --}}
         <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-            <div class="flex items-center gap-2 mb-4">
-                <i class="ph ph-users text-xl text-primary"></i>
-                <h3 class="text-lg font-semibold text-gray-800">Export berdasarkan Kategori Sasaran</h3>
+            <div class="flex items-center gap-2 mb-4 pb-3 border-b border-gray-200">
+                <i class="ph ph-graduation-cap text-2xl text-purple-600"></i>
+                <h2 class="text-xl font-semibold text-gray-800">Laporan Pendidikan</h2>
             </div>
-            <div class="flex flex-wrap gap-2">
-                @foreach($kategoriSasaranList as $kategori)
-                    <a href="{{ route('superadmin.posyandu.laporan.pdf.kategori', ['id' => $posyandu->id_posyandu, 'kategori' => $kategori]) }}"
-                       target="_blank"
-                       class="inline-flex items-center px-4 py-2 rounded-lg bg-gray-100 text-gray-700 text-sm font-medium shadow-sm hover:bg-gray-200 transition-colors border border-gray-300">
-                        <i class="ph ph-file-pdf text-lg mr-2"></i>
-                        {{ $kategoriLabels[$kategori] ?? ucfirst($kategori) }}
-                    </a>
-                @endforeach
-            </div>
-        </div>
-        @endif
 
-        {{-- Card Export berdasarkan Jenis Vaksin --}}
-        @if(!empty($jenisVaksinList))
-        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-            <div class="flex items-center gap-2 mb-4">
-                <i class="ph ph-syringe text-xl text-blue-600"></i>
-                <h3 class="text-lg font-semibold text-gray-800">Export berdasarkan Jenis Vaksin</h3>
-            </div>
-            <div class="flex flex-wrap gap-2">
-                @foreach($jenisVaksinList as $jenisVaksin)
-                    <a href="{{ route('superadmin.posyandu.laporan.pdf.jenis-vaksin', ['id' => $posyandu->id_posyandu, 'jenisVaksin' => urlencode($jenisVaksin)]) }}"
+            {{-- Card Export Semua Pendidikan --}}
+            <div class="mb-6">
+                <div class="flex items-center gap-2 mb-3">
+                    <i class="ph ph-file-pdf text-lg text-primary"></i>
+                    <h3 class="text-base font-semibold text-gray-800">Export Semua Data</h3>
+                </div>
+                <div class="flex flex-wrap gap-2">
+                    <a href="{{ route('superadmin.posyandu.pendidikan.pdf', encrypt($posyandu->id_posyandu)) }}"
                        target="_blank"
-                       class="inline-flex items-center px-4 py-2 rounded-lg bg-blue-100 text-blue-700 text-sm font-medium shadow-sm hover:bg-blue-200 transition-colors border border-blue-300">
+                       class="inline-flex items-center px-4 py-2 rounded-lg bg-purple-600 text-white text-sm font-medium shadow-sm hover:bg-purple-700 transition-colors">
                         <i class="ph ph-file-pdf text-lg mr-2"></i>
-                        {{ $jenisVaksin }}
+                        Export Semua Data Pendidikan
                     </a>
-                @endforeach
+                </div>
             </div>
-        </div>
-        @endif
 
-        {{-- Card Export berdasarkan Nama Sasaran --}}
-        @if(!empty($namaSasaranList))
-        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-            <div class="flex items-center gap-2 mb-4">
-                <i class="ph ph-user text-xl text-green-600"></i>
-                <h3 class="text-lg font-semibold text-gray-800">Export berdasarkan Nama Sasaran</h3>
+            {{-- Card Export berdasarkan Kategori Pendidikan --}}
+            @if(!empty($kategoriPendidikanList))
+            <div>
+                <div class="flex items-center gap-2 mb-3">
+                    <i class="ph ph-graduation-cap text-lg text-purple-600"></i>
+                    <h3 class="text-base font-semibold text-gray-800">Export berdasarkan Kategori Pendidikan</h3>
+                </div>
+                <div class="flex flex-wrap gap-2">
+                    @foreach($kategoriPendidikanList as $kategoriPendidikan)
+                        <a href="{{ route('superadmin.posyandu.pendidikan.pdf.kategori', ['id' => encrypt($posyandu->id_posyandu), 'kategori' => urlencode($kategoriPendidikan)]) }}"
+                           target="_blank"
+                           class="inline-flex items-center px-4 py-2 rounded-lg bg-purple-100 text-purple-700 text-sm font-medium shadow-sm hover:bg-purple-200 transition-colors border border-purple-300">
+                            <i class="ph ph-file-pdf text-lg mr-2"></i>
+                            {{ $kategoriPendidikan }}
+                        </a>
+                    @endforeach
+                </div>
             </div>
-            <div class="flex flex-wrap gap-2">
-                @foreach($namaSasaranList as $nama)
-                    <a href="{{ route('superadmin.posyandu.laporan.pdf.nama', ['id' => $posyandu->id_posyandu, 'nama' => urlencode($nama)]) }}"
-                       target="_blank"
-                       class="inline-flex items-center px-4 py-2 rounded-lg bg-green-100 text-green-700 text-sm font-medium shadow-sm hover:bg-green-200 transition-colors border border-green-300">
-                        <i class="ph ph-file-pdf text-lg mr-2"></i>
-                        {{ $nama }}
-                    </a>
-                @endforeach
-            </div>
+            @endif
         </div>
-        @endif
 
         {{-- Pesan Sukses --}}
         @include('livewire.super-admin.posyandu-detail.message-alert')
