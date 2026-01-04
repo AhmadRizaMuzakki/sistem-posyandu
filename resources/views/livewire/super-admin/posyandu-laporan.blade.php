@@ -49,81 +49,53 @@
                 <h2 class="text-xl font-semibold text-gray-800">Laporan Imunisasi</h2>
             </div>
 
-            {{-- Card Export Semua Imunisasi --}}
+            {{-- Card Export dengan Dropdown Filter Imunisasi --}}
             <div class="mb-6">
                 <div class="flex items-center gap-2 mb-3">
                     <i class="ph ph-file-pdf text-lg text-primary"></i>
-                    <h3 class="text-base font-semibold text-gray-800">Export Semua Data</h3>
+                    <h3 class="text-base font-semibold text-gray-800">Export dengan Filter</h3>
                 </div>
-                <div class="flex flex-wrap gap-2">
-                    <a href="{{ route('superadmin.posyandu.laporan.pdf', encrypt($posyandu->id_posyandu)) }}"
-                       target="_blank"
-                       class="inline-flex items-center px-4 py-2 rounded-lg bg-primary text-white text-sm font-medium shadow-sm hover:bg-indigo-700 transition-colors">
-                        <i class="ph ph-file-pdf text-lg mr-2"></i>
-                        Export Semua Data Imunisasi
-                    </a>
+                <div class="space-y-4">
+                    {{-- Filter Kategori Sasaran --}}
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Filter berdasarkan Kategori Sasaran</label>
+                        <select id="filterKategori" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-primary focus:border-primary">
+                            <option value="">Semua Kategori</option>
+                            @foreach($kategoriSasaranList as $kategori)
+                                <option value="{{ route('superadmin.posyandu.laporan.pdf.kategori', ['id' => encrypt($posyandu->id_posyandu), 'kategori' => $kategori]) }}">{{ $kategoriLabels[$kategori] ?? ucfirst($kategori) }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    {{-- Filter Jenis Vaksin --}}
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Filter berdasarkan Jenis Vaksin</label>
+                        <select id="filterJenisVaksin" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-primary focus:border-primary">
+                            <option value="">Semua Jenis Vaksin</option>
+                            @foreach($jenisVaksinList as $jenisVaksin)
+                                <option value="{{ route('superadmin.posyandu.laporan.pdf.jenis-vaksin', ['id' => encrypt($posyandu->id_posyandu), 'jenisVaksin' => urlencode($jenisVaksin)]) }}">{{ $jenisVaksin }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    {{-- Filter Nama Sasaran --}}
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Filter berdasarkan Nama Sasaran</label>
+                        <select id="filterNamaSasaran" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-primary focus:border-primary">
+                            <option value="">Semua Nama Sasaran</option>
+                            @foreach($namaSasaranList as $nama)
+                                <option value="{{ route('superadmin.posyandu.laporan.pdf.nama', ['id' => encrypt($posyandu->id_posyandu), 'nama' => urlencode($nama)]) }}">{{ $nama }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div>
+                        <button onclick="exportFilteredImunisasi()" class="w-full inline-flex items-center justify-center px-4 py-2 rounded-lg bg-primary text-white text-sm font-medium shadow-sm hover:bg-indigo-700 transition-colors">
+                            <i class="ph ph-file-pdf text-lg mr-2"></i>
+                            Export dengan Filter
+                        </button>
+                    </div>
                 </div>
             </div>
 
-            {{-- Card Export berdasarkan Kategori Sasaran --}}
-            @if(!empty($kategoriSasaranList))
-            <div class="mb-6">
-                <div class="flex items-center gap-2 mb-3">
-                    <i class="ph ph-users text-lg text-primary"></i>
-                    <h3 class="text-base font-semibold text-gray-800">Export berdasarkan Kategori Sasaran</h3>
-                </div>
-                <div class="flex flex-wrap gap-2">
-                    @foreach($kategoriSasaranList as $kategori)
-                        <a href="{{ route('superadmin.posyandu.laporan.pdf.kategori', ['id' => encrypt($posyandu->id_posyandu), 'kategori' => $kategori]) }}"
-                           target="_blank"
-                           class="inline-flex items-center px-4 py-2 rounded-lg bg-gray-100 text-gray-700 text-sm font-medium shadow-sm hover:bg-gray-200 transition-colors border border-gray-300">
-                            <i class="ph ph-file-pdf text-lg mr-2"></i>
-                            {{ $kategoriLabels[$kategori] ?? ucfirst($kategori) }}
-                        </a>
-                    @endforeach
-                </div>
-            </div>
-            @endif
 
-            {{-- Card Export berdasarkan Jenis Vaksin --}}
-            @if(!empty($jenisVaksinList))
-            <div class="mb-6">
-                <div class="flex items-center gap-2 mb-3">
-                    <i class="ph ph-syringe text-lg text-blue-600"></i>
-                    <h3 class="text-base font-semibold text-gray-800">Export berdasarkan Jenis Vaksin</h3>
-                </div>
-                <div class="flex flex-wrap gap-2">
-                    @foreach($jenisVaksinList as $jenisVaksin)
-                        <a href="{{ route('superadmin.posyandu.laporan.pdf.jenis-vaksin', ['id' => encrypt($posyandu->id_posyandu), 'jenisVaksin' => urlencode($jenisVaksin)]) }}"
-                           target="_blank"
-                           class="inline-flex items-center px-4 py-2 rounded-lg bg-blue-100 text-blue-700 text-sm font-medium shadow-sm hover:bg-blue-200 transition-colors border border-blue-300">
-                            <i class="ph ph-file-pdf text-lg mr-2"></i>
-                            {{ $jenisVaksin }}
-                        </a>
-                    @endforeach
-                </div>
-            </div>
-            @endif
-
-            {{-- Card Export berdasarkan Nama Sasaran --}}
-            @if(!empty($namaSasaranList))
-            <div>
-                <div class="flex items-center gap-2 mb-3">
-                    <i class="ph ph-user text-lg text-green-600"></i>
-                    <h3 class="text-base font-semibold text-gray-800">Export berdasarkan Nama Sasaran</h3>
-                </div>
-                <div class="flex flex-wrap gap-2">
-                    @foreach($namaSasaranList as $nama)
-                        <a href="{{ route('superadmin.posyandu.laporan.pdf.nama', ['id' => encrypt($posyandu->id_posyandu), 'nama' => urlencode($nama)]) }}"
-                           target="_blank"
-                           class="inline-flex items-center px-4 py-2 rounded-lg bg-green-100 text-green-700 text-sm font-medium shadow-sm hover:bg-green-200 transition-colors border border-green-300">
-                            <i class="ph ph-file-pdf text-lg mr-2"></i>
-                            {{ $nama }}
-                        </a>
-                    @endforeach
-                </div>
-            </div>
-            @endif
         </div>
 
         {{-- Grup Laporan Pendidikan --}}
@@ -133,41 +105,35 @@
                 <h2 class="text-xl font-semibold text-gray-800">Laporan Pendidikan</h2>
             </div>
 
-            {{-- Card Export Semua Pendidikan --}}
+            {{-- Card Export dengan Dropdown Filter Pendidikan --}}
             <div class="mb-6">
                 <div class="flex items-center gap-2 mb-3">
                     <i class="ph ph-file-pdf text-lg text-primary"></i>
-                    <h3 class="text-base font-semibold text-gray-800">Export Semua Data</h3>
+                    <h3 class="text-base font-semibold text-gray-800">Export dengan Filter</h3>
                 </div>
-                <div class="flex flex-wrap gap-2">
-                    <a href="{{ route('superadmin.posyandu.pendidikan.pdf', encrypt($posyandu->id_posyandu)) }}"
-                       target="_blank"
-                       class="inline-flex items-center px-4 py-2 rounded-lg bg-purple-600 text-white text-sm font-medium shadow-sm hover:bg-purple-700 transition-colors">
-                        <i class="ph ph-file-pdf text-lg mr-2"></i>
-                        Export Semua Data Pendidikan
-                    </a>
+                <div class="space-y-4">
+                    {{-- Filter Pendidikan --}}
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Filter berdasarkan Pendidikan</label>
+                        <select id="filterPendidikan" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-primary focus:border-primary">
+                            <option value="">Semua Pendidikan</option>
+                            @foreach($kategoriPendidikanList as $pendidikan)
+                                <option value="{{ route('superadmin.posyandu.pendidikan.pdf.kategori', ['id' => encrypt($posyandu->id_posyandu), 'kategori' => urlencode($pendidikan)]) }}">{{ $pendidikan }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div>
+                        <button onclick="exportFilteredPendidikan()" class="w-full inline-flex items-center justify-center px-4 py-2 rounded-lg bg-purple-600 text-white text-sm font-medium shadow-sm hover:bg-purple-700 transition-colors">
+                            <i class="ph ph-file-pdf text-lg mr-2"></i>
+                            Export dengan Filter
+                        </button>
+                    </div>
                 </div>
             </div>
 
+
             {{-- Card Export berdasarkan Kategori Pendidikan --}}
-            @if(!empty($kategoriPendidikanList))
-            <div>
-                <div class="flex items-center gap-2 mb-3">
-                    <i class="ph ph-graduation-cap text-lg text-purple-600"></i>
-                    <h3 class="text-base font-semibold text-gray-800">Export berdasarkan Kategori Pendidikan</h3>
-                </div>
-                <div class="flex flex-wrap gap-2">
-                    @foreach($kategoriPendidikanList as $kategoriPendidikan)
-                        <a href="{{ route('superadmin.posyandu.pendidikan.pdf.kategori', ['id' => encrypt($posyandu->id_posyandu), 'kategori' => urlencode($kategoriPendidikan)]) }}"
-                           target="_blank"
-                           class="inline-flex items-center px-4 py-2 rounded-lg bg-purple-100 text-purple-700 text-sm font-medium shadow-sm hover:bg-purple-200 transition-colors border border-purple-300">
-                            <i class="ph ph-file-pdf text-lg mr-2"></i>
-                            {{ $kategoriPendidikan }}
-                        </a>
-                    @endforeach
-                </div>
-            </div>
-            @endif
+           
         </div>
 
         {{-- Pesan Sukses --}}
@@ -177,5 +143,33 @@
 
 {{-- Scripts --}}
 @include('livewire.super-admin.posyandu-detail.scripts')
+
+<script>
+    function exportFilteredImunisasi() {
+        const kategori = document.getElementById('filterKategori').value;
+        const jenisVaksin = document.getElementById('filterJenisVaksin').value;
+        const namaSasaran = document.getElementById('filterNamaSasaran').value;
+        
+        if (kategori) {
+            window.open(kategori, '_blank');
+        } else if (jenisVaksin) {
+            window.open(jenisVaksin, '_blank');
+        } else if (namaSasaran) {
+            window.open(namaSasaran, '_blank');
+        } else {
+            alert('Pilih salah satu filter terlebih dahulu');
+        }
+    }
+
+    function exportFilteredPendidikan() {
+        const pendidikan = document.getElementById('filterPendidikan').value;
+        
+        if (pendidikan) {
+            window.open(pendidikan, '_blank');
+        } else {
+            alert('Pilih filter pendidikan terlebih dahulu');
+        }
+    }
+</script>
 
 

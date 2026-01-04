@@ -66,25 +66,69 @@ return new class extends Migration
         });
 
         // Tambahkan foreign keys hanya jika belum ada
-        Schema::table('pendidikans', function (Blueprint $table) {
-            // Cek apakah foreign key sudah ada
-            $foreignKeys = DB::select("
-                SELECT CONSTRAINT_NAME 
-                FROM information_schema.KEY_COLUMN_USAGE 
-                WHERE TABLE_SCHEMA = DATABASE() 
-                AND TABLE_NAME = 'pendidikans' 
-                AND CONSTRAINT_NAME LIKE 'pendidikans_%_foreign'
-            ");
-            
-            $existingForeignKeys = array_column($foreignKeys, 'CONSTRAINT_NAME');
-            
-            if (!in_array('pendidikans_id_posyandu_foreign', $existingForeignKeys)) {
-                $table->foreign('id_posyandu')->references('id_posyandu')->on('posyandu')->cascadeOnDelete();
+        $driver = DB::connection()->getDriverName();
+        
+        if ($driver === 'sqlite') {
+            // SQLite tidak memiliki information_schema
+            // Untuk SQLite, langsung tambahkan foreign key tanpa pengecekan
+            // Jika sudah ada, akan error, tapi kita tangani dengan try-catch
+            if (Schema::hasColumn('pendidikans', 'id_posyandu')) {
+                try {
+                    Schema::table('pendidikans', function (Blueprint $table) {
+                        $table->foreign('id_posyandu')->references('id_posyandu')->on('posyandu')->cascadeOnDelete();
+                    });
+                } catch (\Exception $e) {
+                    // Foreign key mungkin sudah ada, skip
+                }
             }
-            if (!in_array('pendidikans_id_users_foreign', $existingForeignKeys)) {
-                $table->foreign('id_users')->references('id')->on('users')->cascadeOnDelete();
+            if (Schema::hasColumn('pendidikans', 'id_users')) {
+                try {
+                    Schema::table('pendidikans', function (Blueprint $table) {
+                        $table->foreign('id_users')->references('id')->on('users')->cascadeOnDelete();
+                    });
+                } catch (\Exception $e) {
+                    // Foreign key mungkin sudah ada, skip
+                }
             }
-        });
+        } else {
+            // Untuk MySQL/MariaDB, cek dulu menggunakan information_schema
+            try {
+                $foreignKeys = DB::select("
+                    SELECT CONSTRAINT_NAME 
+                    FROM information_schema.KEY_COLUMN_USAGE 
+                    WHERE TABLE_SCHEMA = DATABASE() 
+                    AND TABLE_NAME = 'pendidikans' 
+                    AND CONSTRAINT_NAME LIKE 'pendidikans_%_foreign'
+                ");
+                
+                $existingForeignKeys = array_column($foreignKeys, 'CONSTRAINT_NAME');
+                
+                Schema::table('pendidikans', function (Blueprint $table) use ($existingForeignKeys) {
+                    if (!in_array('pendidikans_id_posyandu_foreign', $existingForeignKeys)) {
+                        $table->foreign('id_posyandu')->references('id_posyandu')->on('posyandu')->cascadeOnDelete();
+                    }
+                    if (!in_array('pendidikans_id_users_foreign', $existingForeignKeys)) {
+                        $table->foreign('id_users')->references('id')->on('users')->cascadeOnDelete();
+                    }
+                });
+            } catch (\Exception $e) {
+                // Jika error, coba tambahkan langsung tanpa pengecekan
+                try {
+                    Schema::table('pendidikans', function (Blueprint $table) {
+                        $table->foreign('id_posyandu')->references('id_posyandu')->on('posyandu')->cascadeOnDelete();
+                    });
+                } catch (\Exception $e2) {
+                    // Skip jika sudah ada
+                }
+                try {
+                    Schema::table('pendidikans', function (Blueprint $table) {
+                        $table->foreign('id_users')->references('id')->on('users')->cascadeOnDelete();
+                    });
+                } catch (\Exception $e2) {
+                    // Skip jika sudah ada
+                }
+            }
+        }
     }
 
     /**

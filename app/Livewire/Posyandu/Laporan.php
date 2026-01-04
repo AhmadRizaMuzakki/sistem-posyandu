@@ -4,6 +4,7 @@ namespace App\Livewire\Posyandu;
 
 use App\Models\Imunisasi;
 use App\Models\Kader;
+use App\Models\Pendidikan;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
@@ -55,6 +56,13 @@ class Laporan extends Component
         }
         $namaSasaranList = $namaSasaranList->unique()->sort()->values()->toArray();
 
+        // Ambil daftar pendidikan yang unik dari database
+        $kategoriPendidikanList = Pendidikan::where('id_posyandu', $this->posyandu->id_posyandu)
+            ->distinct()
+            ->orderBy('pendidikan_terakhir')
+            ->pluck('pendidikan_terakhir')
+            ->toArray();
+
         // Mapping label kategori
         $kategoriLabels = [
             'bayibalita' => 'Bayi dan Balita',
@@ -72,6 +80,7 @@ class Laporan extends Component
             'kategoriLabels' => $kategoriLabels,
             'jenisVaksinList' => $jenisVaksinList,
             'namaSasaranList' => $namaSasaranList,
+            'kategoriPendidikanList' => $kategoriPendidikanList,
         ]);
     }
 }

@@ -54,13 +54,110 @@
         </div>
 
         <!-- Grafik Pendidikan Sasaran -->
-        <div class="bg-white rounded-lg shadow-md p-6">
+        <div class="bg-white rounded-lg shadow-md p-6 mb-6">
             <h2 class="text-xl font-semibold text-gray-800 mb-4 flex items-center">
                 <i class="ph ph-graduation-cap text-2xl mr-3 text-primary"></i>
                 Grafik Pendidikan Sasaran (Remaja, Dewasa, Ibu Hamil, Pralansia, Lansia)
             </h2>
             <div class="h-96">
                 <canvas id="pendidikanChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Section Export Laporan -->
+        <div class="space-y-6">
+            <!-- Export Laporan Imunisasi -->
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <div class="flex items-center gap-2 mb-4 pb-3 border-b border-gray-200">
+                    <i class="ph ph-syringe text-2xl text-blue-600"></i>
+                    <h2 class="text-xl font-semibold text-gray-800">Export Laporan Imunisasi</h2>
+                </div>
+
+                <div class="space-y-4">
+                    {{-- Pilih Posyandu --}}
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Pilih Posyandu</label>
+                        <select id="posyanduSelectImunisasi" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-primary focus:border-primary">
+                            <option value="">Semua Posyandu</option>
+                            @foreach($posyanduList ?? [] as $posyandu)
+                                <option value="{{ encrypt($posyandu->id_posyandu) }}">{{ $posyandu->nama_posyandu }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    {{-- Filter Kategori Sasaran --}}
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Filter berdasarkan Kategori Sasaran</label>
+                        <select id="filterKategoriImunisasi" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-primary focus:border-primary">
+                            <option value="">Semua Kategori</option>
+                            @foreach($kategoriSasaranList ?? [] as $kategori)
+                                <option value="{{ $kategori }}" data-route="kategori">{{ $kategoriLabels[$kategori] ?? ucfirst($kategori) }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    {{-- Filter Jenis Vaksin --}}
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Filter berdasarkan Jenis Vaksin</label>
+                        <select id="filterJenisVaksinImunisasi" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-primary focus:border-primary">
+                            <option value="">Semua Jenis Vaksin</option>
+                            @foreach($jenisVaksinList ?? [] as $jenisVaksin)
+                                <option value="{{ urlencode($jenisVaksin) }}" data-route="jenis-vaksin">{{ $jenisVaksin }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    {{-- Filter Nama Sasaran --}}
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Filter berdasarkan Nama Sasaran</label>
+                        <select id="filterNamaSasaranImunisasi" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-primary focus:border-primary">
+                            <option value="">Semua Nama Sasaran</option>
+                            @foreach($namaSasaranList ?? [] as $nama)
+                                <option value="{{ urlencode($nama) }}" data-route="nama">{{ $nama }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="flex gap-2">
+                        <button onclick="exportFilteredImunisasiSuperAdmin()" class="flex-1 inline-flex items-center justify-center px-4 py-2 rounded-lg bg-blue-600 text-white text-sm font-medium shadow-sm hover:bg-blue-700 transition-colors">
+                            <i class="ph ph-file-pdf text-lg mr-2"></i>
+                            Export dengan Filter
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Export Laporan Pendidikan -->
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <div class="flex items-center gap-2 mb-4 pb-3 border-b border-gray-200">
+                    <i class="ph ph-graduation-cap text-2xl text-purple-600"></i>
+                    <h2 class="text-xl font-semibold text-gray-800">Export Laporan Pendidikan</h2>
+                </div>
+
+                <div class="space-y-4">
+                    {{-- Pilih Posyandu --}}
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Pilih Posyandu</label>
+                        <select id="posyanduSelectPendidikan" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-primary focus:border-primary">
+                            <option value="">Semua Posyandu</option>
+                            @foreach($posyanduList ?? [] as $posyandu)
+                                <option value="{{ encrypt($posyandu->id_posyandu) }}">{{ $posyandu->nama_posyandu }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    {{-- Filter Pendidikan --}}
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Filter berdasarkan Pendidikan</label>
+                        <select id="filterPendidikanSuperAdmin" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-primary focus:border-primary">
+                            <option value="">Semua Pendidikan</option>
+                            @foreach($kategoriPendidikanList ?? [] as $pendidikan)
+                                <option value="{{ urlencode($pendidikan) }}">{{ $pendidikan }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="flex gap-2">
+                        <button onclick="exportFilteredPendidikanSuperAdmin()" class="flex-1 inline-flex items-center justify-center px-4 py-2 rounded-lg bg-purple-600 text-white text-sm font-medium shadow-sm hover:bg-purple-700 transition-colors">
+                            <i class="ph ph-file-pdf text-lg mr-2"></i>
+                            Export dengan Filter
+                        </button>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -237,16 +334,37 @@
 
         const pendidikanCtx = document.getElementById('pendidikanChart').getContext('2d');
         new Chart(pendidikanCtx, {
-            type: 'bar',
+            type: 'pie',
             data: {
                 labels: pendidikanLabels,
                 datasets: [{
                     label: 'Jumlah Sasaran',
                     data: pendidikanCounts,
-                    backgroundColor: 'rgba(56, 189, 248, 0.8)',
-                    borderColor: 'rgba(56, 189, 248, 1)',
+                    backgroundColor: [
+                        'rgba(59, 130, 246, 0.8)',
+                        'rgba(16, 185, 129, 0.8)',
+                        'rgba(251, 191, 36, 0.8)',
+                        'rgba(239, 68, 68, 0.8)',
+                        'rgba(168, 85, 247, 0.8)',
+                        'rgba(236, 72, 153, 0.8)',
+                        'rgba(34, 197, 94, 0.8)',
+                        'rgba(249, 115, 22, 0.8)',
+                        'rgba(139, 92, 246, 0.8)',
+                        'rgba(20, 184, 166, 0.8)',
+                    ],
+                    borderColor: [
+                        'rgba(59, 130, 246, 1)',
+                        'rgba(16, 185, 129, 1)',
+                        'rgba(251, 191, 36, 1)',
+                        'rgba(239, 68, 68, 1)',
+                        'rgba(168, 85, 247, 1)',
+                        'rgba(236, 72, 153, 1)',
+                        'rgba(34, 197, 94, 1)',
+                        'rgba(249, 115, 22, 1)',
+                        'rgba(139, 92, 246, 1)',
+                        'rgba(20, 184, 166, 1)',
+                    ],
                     borderWidth: 2,
-                    borderRadius: 8,
                 }]
             },
             options: {
@@ -255,43 +373,81 @@
                 plugins: {
                     legend: {
                         display: true,
-                        position: 'top',
+                        position: 'bottom',
+                        labels: {
+                            boxWidth: 12,
+                            padding: 10,
+                            font: {
+                                size: 11
+                            }
+                        }
                     },
                     tooltip: {
                         callbacks: {
                             label: function(context) {
-                                return context.label + ': ' + context.parsed.y + ' orang';
+                                const label = context.label || '';
+                                const value = context.parsed || 0;
+                                const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : 0;
+                                return label + ': ' + value + ' orang (' + percentage + '%)';
                             }
-                        }
-                    }
-                },
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        ticks: {
-                            stepSize: 1,
-                            callback: function(value) {
-                                return value + ' orang';
-                            }
-                        },
-                        title: {
-                            display: true,
-                            text: 'Jumlah Sasaran'
-                        }
-                    },
-                    x: {
-                        title: {
-                            display: true,
-                            text: 'Pendidikan'
-                        },
-                        ticks: {
-                            maxRotation: 45,
-                            minRotation: 45
                         }
                     }
                 }
             }
         });
     });
+
+    function exportFilteredImunisasiSuperAdmin() {
+        const posyanduId = document.getElementById('posyanduSelectImunisasi').value;
+        const kategori = document.getElementById('filterKategoriImunisasi').value;
+        const jenisVaksin = document.getElementById('filterJenisVaksinImunisasi').value;
+        const namaSasaran = document.getElementById('filterNamaSasaranImunisasi').value;
+        
+        if (!posyanduId) {
+            alert('Pilih Posyandu terlebih dahulu');
+            return;
+        }
+        
+        let url = '';
+        if (kategori) {
+            url = '{{ url("/supervisor/posyandu") }}/' + posyanduId + '/laporan/pdf/' + kategori;
+        } else if (jenisVaksin) {
+            url = '{{ url("/supervisor/posyandu") }}/' + posyanduId + '/laporan/pdf/jenis-vaksin/' + jenisVaksin;
+        } else if (namaSasaran) {
+            url = '{{ url("/supervisor/posyandu") }}/' + posyanduId + '/laporan/pdf/nama/' + namaSasaran;
+        } else {
+            url = '{{ url("/supervisor/posyandu") }}/' + posyanduId + '/laporan/pdf';
+        }
+        
+        if (url) {
+            window.open(url, '_blank');
+        } else {
+            alert('Pilih salah satu filter terlebih dahulu');
+        }
+    }
+
+    function exportFilteredPendidikanSuperAdmin() {
+        const posyanduId = document.getElementById('posyanduSelectPendidikan').value;
+        const pendidikan = document.getElementById('filterPendidikanSuperAdmin').value;
+        
+        if (!posyanduId) {
+            alert('Pilih Posyandu terlebih dahulu');
+            return;
+        }
+        
+        let url = '';
+        if (pendidikan) {
+            url = '{{ url("/supervisor/posyandu") }}/' + posyanduId + '/pendidikan/pdf/' + pendidikan;
+        } else {
+            url = '{{ url("/supervisor/posyandu") }}/' + posyanduId + '/pendidikan/pdf';
+        }
+        
+        if (url) {
+            window.open(url, '_blank');
+        } else {
+            alert('Pilih filter pendidikan terlebih dahulu');
+        }
+    }
 </script>
 @endpush

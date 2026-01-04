@@ -58,4 +58,9 @@ class Posyandu extends Model
         return $this->hasMany(Imunisasi::class, 'id_posyandu');
     }
 
+    public function petugas_kesehatan()
+    {
+        return $this->hasMany(PetugasKesehatan::class, 'id_posyandu');
+    }
+
 }

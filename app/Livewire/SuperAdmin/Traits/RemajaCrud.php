@@ -13,6 +13,7 @@ use Carbon\Carbon;
 
 trait RemajaCrud
 {
+    use AutoSavePendidikan;
     // Modal State
     public $isSasaranRemajaModalOpen = false;
 
@@ -320,10 +321,46 @@ trait RemajaCrud
             // UPDATE
             $remaja = SasaranRemaja::findOrFail($this->id_sasaran_remaja);
             $remaja->update($data);
+            
+            // Auto-save pendidikan
+            if (!empty($this->pendidikan_remaja)) {
+                $this->autoSavePendidikan(
+                    $remaja->id_sasaran_remaja,
+                    'remaja',
+                    $this->posyanduId,
+                    $this->pendidikan_remaja,
+                    [
+                        'nik' => $remaja->nik_sasaran,
+                        'nama' => $remaja->nama_sasaran,
+                        'tanggal_lahir' => $remaja->tanggal_lahir,
+                        'jenis_kelamin' => $remaja->jenis_kelamin,
+                        'umur' => $remaja->umur_sasaran,
+                    ]
+                );
+            }
+            
             session()->flash('message', 'Data Remaja berhasil diperbarui.');
         } else {
             // CREATE
-            SasaranRemaja::create($data);
+            $remaja = SasaranRemaja::create($data);
+            
+            // Auto-save pendidikan
+            if (!empty($this->pendidikan_remaja)) {
+                $this->autoSavePendidikan(
+                    $remaja->id_sasaran_remaja,
+                    'remaja',
+                    $this->posyanduId,
+                    $this->pendidikan_remaja,
+                    [
+                        'nik' => $remaja->nik_sasaran,
+                        'nama' => $remaja->nama_sasaran,
+                        'tanggal_lahir' => $remaja->tanggal_lahir,
+                        'jenis_kelamin' => $remaja->jenis_kelamin,
+                        'umur' => $remaja->umur_sasaran,
+                    ]
+                );
+            }
+            
             session()->flash('message', 'Data Remaja berhasil ditambahkan.');
         }
 

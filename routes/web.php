@@ -38,6 +38,7 @@ Route::prefix('supervisor')->middleware(['auth', 'verified', 'role:superadmin'])
     // Route halaman terpisah untuk posyandu
     Route::get('/posyandu/{id}/info', PosyanduInfo::class)->name('posyandu.info');
     Route::get('/posyandu/{id}/kader', PosyanduKader::class)->name('posyandu.kader');
+    Route::get('/posyandu/{id}/petugas-kesehatan', \App\Livewire\SuperAdmin\PosyanduPetugasKesehatan::class)->name('posyandu.petugas-kesehatan');
     Route::get('/posyandu/{id}/sasaran', PosyanduSasaran::class)->name('posyandu.sasaran');
     Route::get('/posyandu/{id}/imunisasi', PosyanduImunisasi::class)->name('posyandu.imunisasi');
     Route::get('/posyandu/{id}/pendidikan', PosyanduPendidikan::class)->name('posyandu.pendidikan');
@@ -54,6 +55,7 @@ Route::prefix('supervisor')->middleware(['auth', 'verified', 'role:superadmin'])
 
 Route::prefix('posyandu')->middleware(['auth', 'verified', 'role:adminPosyandu|superadmin'])->group(function () {
     Route::get('/', PosyanduDashboard::class)->name('adminPosyandu.dashboard');
+    Route::get('/petugas-kesehatan', \App\Livewire\Posyandu\PosyanduPetugasKesehatan::class)->name('adminPosyandu.petugas-kesehatan');
     Route::get('/sasaran', \App\Livewire\Posyandu\PosyanduSasaran::class)->name('adminPosyandu.sasaran');
     Route::get('/sasaran/{kategori}/pdf', [LaporanController::class, 'posyanduSasaranPdf'])->name('adminPosyandu.sasaran.pdf');
     Route::get('/imunisasi', KaderImunisasi::class)->name('adminPosyandu.imunisasi');
@@ -63,6 +65,8 @@ Route::prefix('posyandu')->middleware(['auth', 'verified', 'role:adminPosyandu|s
     Route::get('/laporan/pdf/nama/{nama}', [LaporanController::class, 'posyanduImunisasiPdfByNama'])->name('adminPosyandu.laporan.pdf.nama');
     Route::get('/laporan/pdf/{kategori}', [LaporanController::class, 'posyanduImunisasiPdf'])->name('adminPosyandu.laporan.pdf.kategori');
     Route::get('/laporan/pdf', [LaporanController::class, 'posyanduImunisasiPdf'])->name('adminPosyandu.laporan.pdf');
+    Route::get('/pendidikan/pdf/{kategori}', [LaporanController::class, 'posyanduPendidikanPdf'])->name('adminPosyandu.pendidikan.pdf.kategori');
+    Route::get('/pendidikan/pdf', [LaporanController::class, 'posyanduPendidikanPdf'])->name('adminPosyandu.pendidikan.pdf');
 });
 
 Route::prefix('orangtua')->middleware(['auth', 'verified', 'role:orangtua|superadmin'])->group(function () {

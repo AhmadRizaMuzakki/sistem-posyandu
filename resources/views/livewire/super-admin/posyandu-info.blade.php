@@ -8,9 +8,6 @@
 
         {{-- Pesan Sukses --}}
         @include('livewire.super-admin.posyandu-detail.message-alert')
-
-        {{-- Modal Upload SK --}}
-        @include('livewire.super-admin.posyandu-detail.partials.upload-sk')
     </div>
 </div>
 

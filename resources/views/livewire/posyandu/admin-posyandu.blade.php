@@ -30,53 +30,39 @@
             </div>
         </div>
 
-        <!-- Informasi Posyandu dengan Grafik Pendidikan -->
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-            <!-- Card Informasi Posyandu -->
-            <div class="bg-white rounded-lg shadow-md p-6">
-                <h2 class="text-xl font-semibold text-gray-800 mb-4 flex items-center">
-                    <i class="ph ph-info text-2xl mr-3 text-primary"></i>
-                    Informasi Posyandu
-                </h2>
-                <div class="space-y-4">
-                    <div>
-                        <label class="text-sm font-medium text-gray-500">Nama Posyandu</label>
-                        <p class="text-gray-800 mt-1">{{ $posyandu->nama_posyandu }}</p>
-                    </div>
-                    @if($posyandu->alamat_posyandu)
-                    <div>
-                        <label class="text-sm font-medium text-gray-500">Alamat</label>
-                        <p class="text-gray-800 mt-1">{{ $posyandu->alamat_posyandu }}</p>
-                    </div>
-                    @endif
-                    @if($posyandu->domisili_posyandu)
-                    <div>
-                        <label class="text-sm font-medium text-gray-500">Domisili</label>
-                        <p class="text-gray-800 mt-1">{{ $posyandu->domisili_posyandu }}</p>
-                    </div>
-                    @endif
-                    <div>
-                        <label class="text-sm font-medium text-gray-500">Jumlah Sasaran</label>
-                        <p class="text-gray-800 mt-1">{{ number_format($totalSasaran ?? 0, 0, ',', '.') }} orang</p>
-                    </div>
-                    @if($posyandu->sk_posyandu)
-                    <div>
-                        <label class="text-sm font-medium text-gray-500">SK Posyandu</label>
-                        <p class="text-gray-800 mt-1">{{ $posyandu->sk_posyandu }}</p>
-                    </div>
-                    @endif
+        <!-- Informasi Posyandu -->
+        <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+            <h2 class="text-xl font-semibold text-gray-800 mb-4 flex items-center">
+                <i class="ph ph-info text-2xl mr-3 text-primary"></i>
+                Informasi Posyandu
+            </h2>
+            <div class="space-y-4">
+                <div>
+                    <label class="text-sm font-medium text-gray-500">Nama Posyandu</label>
+                    <p class="text-gray-800 mt-1">{{ $posyandu->nama_posyandu }}</p>
                 </div>
-            </div>
-
-            <!-- Card Grafik Pendidikan -->
-            <div class="bg-white rounded-lg shadow-md p-6">
-                <h2 class="text-xl font-semibold text-gray-800 mb-4 flex items-center">
-                    <i class="ph ph-graduation-cap text-2xl mr-3 text-primary"></i>
-                    Grafik Pendidikan Sasaran
-                </h2>
-                <div class="h-80">
-                    <canvas id="pendidikanInfoChart"></canvas>
+                @if($posyandu->alamat_posyandu)
+                <div>
+                    <label class="text-sm font-medium text-gray-500">Alamat</label>
+                    <p class="text-gray-800 mt-1">{{ $posyandu->alamat_posyandu }}</p>
                 </div>
+                @endif
+                @if($posyandu->domisili_posyandu)
+                <div>
+                    <label class="text-sm font-medium text-gray-500">Domisili</label>
+                    <p class="text-gray-800 mt-1">{{ $posyandu->domisili_posyandu }}</p>
+                </div>
+                @endif
+                <div>
+                    <label class="text-sm font-medium text-gray-500">Jumlah Sasaran</label>
+                    <p class="text-gray-800 mt-1">{{ number_format($totalSasaran ?? 0, 0, ',', '.') }} orang</p>
+                </div>
+                @if($posyandu->sk_posyandu)
+                <div>
+                    <label class="text-sm font-medium text-gray-500">SK Posyandu</label>
+                    <p class="text-gray-800 mt-1">{{ $posyandu->sk_posyandu }}</p>
+                </div>
+                @endif
             </div>
         </div>
 
@@ -193,14 +179,13 @@
             });
         }
 
-        // Grafik Pendidikan Sasaran di bagian Informasi Posyandu
+        // Grafik Pendidikan Sasaran (gabungan) - di bagian bawah
         const pendidikanLabels = pendidikanData.labels || [];
         const pendidikanCounts = pendidikanData.data || [];
-
-        const pendidikanInfoCtx = document.getElementById('pendidikanInfoChart');
-        if (pendidikanInfoCtx) {
-            new Chart(pendidikanInfoCtx.getContext('2d'), {
-                type: 'doughnut',
+        const pendidikanCtx = document.getElementById('pendidikanChart');
+        if (pendidikanCtx) {
+            new Chart(pendidikanCtx.getContext('2d'), {
+                type: 'pie',
                 data: {
                     labels: pendidikanLabels,
                     datasets: [{
@@ -263,67 +248,8 @@
                 }
             });
         }
-
-        // Grafik Pendidikan Sasaran (gabungan) - di bagian bawah
-        const pendidikanCtx = document.getElementById('pendidikanChart');
-        if (pendidikanCtx) {
-            new Chart(pendidikanCtx.getContext('2d'), {
-                type: 'bar',
-                data: {
-                    labels: pendidikanLabels,
-                    datasets: [{
-                        label: 'Jumlah Sasaran',
-                        data: pendidikanCounts,
-                        backgroundColor: 'rgba(56, 189, 248, 0.8)',
-                        borderColor: 'rgba(56, 189, 248, 1)',
-                        borderWidth: 2,
-                        borderRadius: 8,
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            display: true,
-                            position: 'top',
-                        },
-                        tooltip: {
-                            callbacks: {
-                                label: function(context) {
-                                    return context.label + ': ' + context.parsed.y + ' orang';
-                                }
-                            }
-                        }
-                    },
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            ticks: {
-                                stepSize: 1,
-                                callback: function(value) {
-                                    return value + ' orang';
-                                }
-                            },
-                            title: {
-                                display: true,
-                                text: 'Jumlah Sasaran'
-                            }
-                        },
-                        x: {
-                            title: {
-                                display: true,
-                                text: 'Pendidikan'
-                            },
-                            ticks: {
-                                maxRotation: 45,
-                                minRotation: 45
-                            }
-                        }
-                    }
-                }
-            });
-        }
     });
 </script>
 @endpush
+
+

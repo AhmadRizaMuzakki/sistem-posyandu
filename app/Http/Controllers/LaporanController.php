@@ -135,9 +135,15 @@ class LaporanController extends Controller
     /**
      * Generate laporan imunisasi Posyandu untuk Super Admin (berdasarkan ID Posyandu).
      */
-    public function superadminPosyanduImunisasiPdf(int $id, ?string $kategori = null): Response
+    public function superadminPosyanduImunisasiPdf(string $id, ?string $kategori = null): Response
     {
-        $posyandu = Posyandu::findOrFail($id);
+        try {
+            $decryptedId = decrypt($id);
+        } catch (\Illuminate\Contracts\Encryption\DecryptException $e) {
+            abort(404, 'ID tidak valid');
+        }
+
+        $posyandu = Posyandu::findOrFail($decryptedId);
 
         $query = Imunisasi::with(['user'])
             ->where('id_posyandu', $posyandu->id_posyandu);
@@ -167,9 +173,15 @@ class LaporanController extends Controller
     /**
      * Generate laporan imunisasi Posyandu berdasarkan jenis vaksin untuk Super Admin.
      */
-    public function superadminPosyanduImunisasiPdfByJenisVaksin(int $id, string $jenisVaksin): Response
+    public function superadminPosyanduImunisasiPdfByJenisVaksin(string $id, string $jenisVaksin): Response
     {
-        $posyandu = Posyandu::findOrFail($id);
+        try {
+            $decryptedId = decrypt($id);
+        } catch (\Illuminate\Contracts\Encryption\DecryptException $e) {
+            abort(404, 'ID tidak valid');
+        }
+
+        $posyandu = Posyandu::findOrFail($decryptedId);
 
         $imunisasiList = Imunisasi::with(['user'])
             ->where('id_posyandu', $posyandu->id_posyandu)
@@ -195,9 +207,15 @@ class LaporanController extends Controller
     /**
      * Generate laporan imunisasi Posyandu berdasarkan nama sasaran untuk Super Admin.
      */
-    public function superadminPosyanduImunisasiPdfByNama(int $id, string $nama): Response
+    public function superadminPosyanduImunisasiPdfByNama(string $id, string $nama): Response
     {
-        $posyandu = Posyandu::findOrFail($id);
+        try {
+            $decryptedId = decrypt($id);
+        } catch (\Illuminate\Contracts\Encryption\DecryptException $e) {
+            abort(404, 'ID tidak valid');
+        }
+
+        $posyandu = Posyandu::findOrFail($decryptedId);
         $namaDecoded = urldecode($nama);
 
         // Get all imunisasi for this posyandu
@@ -228,11 +246,17 @@ class LaporanController extends Controller
     /**
      * Generate laporan sasaran per kategori untuk Super Admin.
      */
-    public function superadminPosyanduSasaranPdf(int $id, string $kategori): Response
+    public function superadminPosyanduSasaranPdf(string $id, string $kategori): Response
     {
+        try {
+            $decryptedId = decrypt($id);
+        } catch (\Illuminate\Contracts\Encryption\DecryptException $e) {
+            abort(404, 'ID tidak valid');
+        }
+
         $config = $this->getSasaranKategoriConfig($kategori);
 
-        $posyandu = Posyandu::findOrFail($id);
+        $posyandu = Posyandu::findOrFail($decryptedId);
 
         $query = $posyandu->{$config['relation']}();
 
@@ -392,6 +416,46 @@ class LaporanController extends Controller
             'generatedAt' => now('Asia/Jakarta'),
             'user' => $user,
             'kategoriPendidikan' => $kategoriPendidikan && $kategoriPendidikan !== 'semua' ? urldecode($kategoriPendidikan) : null,
+            'kategoriLabel' => $kategoriLabel,
+        ], $fileName);
+    }
+
+    /**
+     * Generate laporan pendidikan Posyandu (admin Posyandu) dalam bentuk PDF.
+     */
+    public function posyanduPendidikanPdf(?string $kategori = null): Response
+    {
+        $user = Auth::user();
+
+        $kader = Kader::with('posyandu')
+            ->where('id_users', $user->id)
+            ->first();
+
+        if (! $kader || ! $kader->posyandu) {
+            abort(403, 'Posyandu untuk akun ini tidak ditemukan.');
+        }
+
+        $posyandu = $kader->posyandu;
+
+        $query = Pendidikan::with(['user'])
+            ->where('id_posyandu', $posyandu->id_posyandu);
+
+        // Filter berdasarkan kategori pendidikan jika ada
+        if ($kategori && $kategori !== 'semua') {
+            $query->where('pendidikan_terakhir', urldecode($kategori));
+        }
+
+        $pendidikanList = $query->orderBy('tanggal_lahir', 'desc')->get();
+
+        $kategoriLabel = $kategori && $kategori !== 'semua' ? urldecode($kategori) : 'Semua';
+        $fileName = 'Laporan-Pendidikan-'.str_replace(['/', ' '], ['-', '-'], $kategoriLabel).'-'.$posyandu->nama_posyandu.'-'.now('Asia/Jakarta')->format('Ymd_His').'.pdf';
+
+        return $this->renderPdf('pdf.laporan-posyandu-pendidikan', [
+            'posyandu' => $posyandu,
+            'pendidikanList' => $pendidikanList,
+            'generatedAt' => now('Asia/Jakarta'),
+            'user' => $user,
+            'kategoriPendidikan' => $kategori && $kategori !== 'semua' ? urldecode($kategori) : null,
             'kategoriLabel' => $kategoriLabel,
         ], $fileName);
     }

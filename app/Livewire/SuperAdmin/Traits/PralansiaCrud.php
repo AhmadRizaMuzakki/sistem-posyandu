@@ -10,9 +10,11 @@ use App\Models\SasaranLansia;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 use Carbon\Carbon;
+use App\Livewire\SuperAdmin\Traits\AutoSavePendidikan;
 
 trait PralansiaCrud
 {
+    use AutoSavePendidikan;
     // Modal State
     public $isSasaranPralansiaModalOpen = false;
 
@@ -230,10 +232,46 @@ trait PralansiaCrud
                 $pralansia = SasaranPralansia::findOrFail($this->id_sasaran_pralansia);
             }
             $pralansia->update($data);
+            
+            // Auto-save pendidikan
+            if (!empty($this->pendidikan_pralansia)) {
+                $this->autoSavePendidikan(
+                    $pralansia->id_sasaran_pralansia,
+                    'pralansia',
+                    $this->posyanduId,
+                    $this->pendidikan_pralansia,
+                    [
+                        'nik' => $pralansia->nik_sasaran,
+                        'nama' => $pralansia->nama_sasaran,
+                        'tanggal_lahir' => $pralansia->tanggal_lahir,
+                        'jenis_kelamin' => $pralansia->jenis_kelamin,
+                        'umur' => $pralansia->umur_sasaran,
+                    ]
+                );
+            }
+            
             session()->flash('message', 'Data Pralansia berhasil diperbarui.');
         } else {
             // CREATE
-            SasaranPralansia::create($data);
+            $pralansia = SasaranPralansia::create($data);
+            
+            // Auto-save pendidikan
+            if (!empty($this->pendidikan_pralansia)) {
+                $this->autoSavePendidikan(
+                    $pralansia->id_sasaran_pralansia,
+                    'pralansia',
+                    $this->posyanduId,
+                    $this->pendidikan_pralansia,
+                    [
+                        'nik' => $pralansia->nik_sasaran,
+                        'nama' => $pralansia->nama_sasaran,
+                        'tanggal_lahir' => $pralansia->tanggal_lahir,
+                        'jenis_kelamin' => $pralansia->jenis_kelamin,
+                        'umur' => $pralansia->umur_sasaran,
+                    ]
+                );
+            }
+            
             session()->flash('message', 'Data Pralansia berhasil ditambahkan.');
         }
 

@@ -2,13 +2,14 @@
 
 namespace App\Livewire\SuperAdmin;
 
+use App\Livewire\SuperAdmin\Traits\PetugasKesehatanCrud;
 use App\Models\Posyandu;
-use App\Models\Orangtua;
 use Livewire\Component;
 use Livewire\Attributes\Layout;
 
-class PosyanduInfo extends Component
+class PosyanduPetugasKesehatan extends Component
 {
+    use PetugasKesehatanCrud;
 
     public $posyandu;
     public $posyanduId;
@@ -32,17 +33,7 @@ class PosyanduInfo extends Component
      */
     private function loadPosyandu()
     {
-        $relations = [
-            'kader.user',
-            'sasaran_bayibalita.user',
-            'sasaran_remaja.user',
-            'sasaran_dewasa.user',
-            'sasaran_pralansia.user',
-            'sasaran_lansia.user',
-            'sasaran_ibuhamil',
-        ];
-
-        $posyandu = Posyandu::with($relations)->find($this->posyanduId);
+        $posyandu = Posyandu::with('petugas_kesehatan.user')->find($this->posyanduId);
 
         if (!$posyandu) {
             abort(404, 'Posyandu tidak ditemukan');
@@ -51,32 +42,24 @@ class PosyanduInfo extends Component
         $this->posyandu = $posyandu;
     }
 
-
     /**
-     * Get count of orangtua by age range (for statistics)
+     * Refresh data posyandu + relasi (agar Livewire view update)
      */
-    public function getOrangtuaCountByUmur($minAge, $maxAge = null)
+    protected function refreshPosyandu()
     {
-        $query = Orangtua::query();
-
-        // Filter by age
-        if ($maxAge !== null) {
-            $query->byAgeRange($minAge, $maxAge);
-        } else {
-            $query->byMinAge($minAge);
-        }
-
-        return $query->count();
+        $this->loadPosyandu();
     }
 
     public function render()
     {
         $daftarPosyandu = Posyandu::select('id_posyandu', 'nama_posyandu')->get();
 
-        return view('livewire.super-admin.posyandu-info', [
-            'title' => 'Info Posyandu - ' . $this->posyandu->nama_posyandu,
+        return view('livewire.super-admin.posyandu-petugas-kesehatan', [
+            'title' => 'Petugas Kesehatan - ' . $this->posyandu->nama_posyandu,
             'daftarPosyandu' => $daftarPosyandu,
+            'dataPosyandu' => $daftarPosyandu,
+            'isPetugasKesehatanModalOpen' => $this->isPetugasKesehatanModalOpen,
+            'id_petugas_kesehatan' => $this->id_petugas_kesehatan,
         ]);
     }
 }
-

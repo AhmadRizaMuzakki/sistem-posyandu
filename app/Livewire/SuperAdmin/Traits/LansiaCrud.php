@@ -10,9 +10,11 @@ use App\Models\SasaranPralansia;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 use Carbon\Carbon;
+use App\Livewire\SuperAdmin\Traits\AutoSavePendidikan;
 
 trait LansiaCrud
 {
+    use AutoSavePendidikan;
     // Modal State
     public $isSasaranLansiaModalOpen = false;
 
@@ -230,10 +232,46 @@ trait LansiaCrud
                 $lansia = SasaranLansia::findOrFail($this->id_sasaran_lansia);
             }
             $lansia->update($data);
+            
+            // Auto-save pendidikan
+            if (!empty($this->pendidikan_lansia)) {
+                $this->autoSavePendidikan(
+                    $lansia->id_sasaran_lansia,
+                    'lansia',
+                    $this->posyanduId,
+                    $this->pendidikan_lansia,
+                    [
+                        'nik' => $lansia->nik_sasaran,
+                        'nama' => $lansia->nama_sasaran,
+                        'tanggal_lahir' => $lansia->tanggal_lahir,
+                        'jenis_kelamin' => $lansia->jenis_kelamin,
+                        'umur' => $lansia->umur_sasaran,
+                    ]
+                );
+            }
+            
             session()->flash('message', 'Data Lansia berhasil diperbarui.');
         } else {
             // CREATE
-            SasaranLansia::create($data);
+            $lansia = SasaranLansia::create($data);
+            
+            // Auto-save pendidikan
+            if (!empty($this->pendidikan_lansia)) {
+                $this->autoSavePendidikan(
+                    $lansia->id_sasaran_lansia,
+                    'lansia',
+                    $this->posyanduId,
+                    $this->pendidikan_lansia,
+                    [
+                        'nik' => $lansia->nik_sasaran,
+                        'nama' => $lansia->nama_sasaran,
+                        'tanggal_lahir' => $lansia->tanggal_lahir,
+                        'jenis_kelamin' => $lansia->jenis_kelamin,
+                        'umur' => $lansia->umur_sasaran,
+                    ]
+                );
+            }
+            
             session()->flash('message', 'Data Lansia berhasil ditambahkan.');
         }
 

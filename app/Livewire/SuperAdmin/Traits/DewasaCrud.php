@@ -10,9 +10,11 @@ use App\Models\SasaranLansia;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 use Carbon\Carbon;
+use App\Livewire\SuperAdmin\Traits\AutoSavePendidikan;
 
 trait DewasaCrud
 {
+    use AutoSavePendidikan;
     // Modal State
     public $isSasaranDewasaModalOpen = false;
 

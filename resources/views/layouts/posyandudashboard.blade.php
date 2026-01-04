@@ -55,28 +55,35 @@
                     </a>
                 @endif
 
-                {{-- 3. DATA SASARAN --}}
+                {{-- 3. DATA PETUGAS KESEHATAN --}}
+                <a href="{{ route('adminPosyandu.petugas-kesehatan') }}"
+                    class="flex items-center px-4 py-3 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
+                    <i class="ph ph-user-nurse text-xl mr-3"></i>
+                    <span class="font-medium">Petugas Kesehatan</span>
+                </a>
+
+                {{-- 4. DATA SASARAN --}}
                 <a href="{{ route('adminPosyandu.sasaran') }}"
                     class="flex items-center px-4 py-3 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
                     <i class="ph ph-baby text-xl mr-3"></i>
                     <span class="font-medium">Sasaran & Anak</span>
                 </a>
 
-                {{-- 4. DATA IMUNISASI --}}
+                {{-- 5. DATA IMUNISASI --}}
                 <a href="{{ route('adminPosyandu.imunisasi') }}"
                     class="flex items-center px-4 py-3 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
                     <i class="ph ph-syringe text-xl mr-3"></i>
                     <span class="font-medium">Imunisasi</span>
                 </a>
 
-                {{-- 5. DATA PENDIDIKAN --}}
+                {{-- 6. DATA PENDIDIKAN --}}
                 <a href="{{ route('adminPosyandu.pendidikan') }}"
                     class="flex items-center px-4 py-3 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
                     <i class="ph ph-graduation-cap text-xl mr-3"></i>
                     <span class="font-medium">Pendidikan</span>
                 </a>
 
-                {{-- 6. LAPORAN --}}
+                {{-- 7. LAPORAN --}}
                 <a href="{{ route('adminPosyandu.laporan') }}"
                     class="flex items-center px-4 py-3 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
                     <i class="ph ph-chart-bar text-xl mr-3"></i>

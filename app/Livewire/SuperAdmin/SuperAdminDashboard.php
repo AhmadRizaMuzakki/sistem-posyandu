@@ -9,6 +9,8 @@ use App\Models\Posyandu;
 use App\Models\User;
 use App\Models\SasaranBayibalita;
 use App\Models\Orangtua;
+use App\Models\Imunisasi;
+use App\Models\Pendidikan;
 use Illuminate\Support\Facades\Schema;
 
 class SuperAdminDashboard extends Component
@@ -34,6 +36,45 @@ class SuperAdminDashboard extends Component
         // Ambil data pendidikan gabungan untuk grafik pendidikan
         $pendidikanData = $this->getPendidikanData();
 
+        // Ambil semua posyandu untuk dropdown
+        $posyanduList = Posyandu::select('id_posyandu', 'nama_posyandu')->orderBy('nama_posyandu')->get();
+
+        // Data untuk dropdown filter (untuk semua posyandu atau posyandu pertama sebagai contoh)
+        $allKategoriSasaranList = Imunisasi::distinct()
+            ->orderBy('kategori_sasaran')
+            ->pluck('kategori_sasaran')
+            ->toArray();
+
+        $allJenisVaksinList = Imunisasi::distinct()
+            ->orderBy('jenis_imunisasi')
+            ->pluck('jenis_imunisasi')
+            ->toArray();
+
+        $allImunisasiList = Imunisasi::get();
+        $allNamaSasaranList = collect();
+        foreach ($allImunisasiList as $imunisasi) {
+            $sasaran = $imunisasi->sasaran;
+            if ($sasaran && $sasaran->nama_sasaran) {
+                $allNamaSasaranList->push($sasaran->nama_sasaran);
+            }
+        }
+        $allNamaSasaranList = $allNamaSasaranList->unique()->sort()->values()->toArray();
+
+        $allKategoriPendidikanList = Pendidikan::distinct()
+            ->orderBy('pendidikan_terakhir')
+            ->pluck('pendidikan_terakhir')
+            ->toArray();
+
+        // Mapping label kategori
+        $kategoriLabels = [
+            'bayibalita' => 'Bayi dan Balita',
+            'remaja' => 'Remaja',
+            'dewasa' => 'Dewasa',
+            'pralansia' => 'Pralansia',
+            'lansia' => 'Lansia',
+            'ibuhamil' => 'Ibu Hamil',
+        ];
+
         return view('livewire.super-admin.super-admin', [
             'totalPosyandu' => $totalPosyandu,
             'totalKader' => $totalKader,
@@ -41,6 +82,12 @@ class SuperAdminDashboard extends Component
             'posyanduData' => $posyanduData,
             'sasaranByCategory' => $sasaranByCategory,
             'pendidikanData' => $pendidikanData,
+            'posyanduList' => $posyanduList,
+            'kategoriSasaranList' => $allKategoriSasaranList,
+            'kategoriLabels' => $kategoriLabels,
+            'jenisVaksinList' => $allJenisVaksinList,
+            'namaSasaranList' => $allNamaSasaranList,
+            'kategoriPendidikanList' => $allKategoriPendidikanList,
         ]);
     }
 

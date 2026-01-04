@@ -12,6 +12,14 @@ return new class extends Migration
      */
     public function up(): void
     {
+        $driver = DB::connection()->getDriverName();
+        
+        // SQLite tidak mendukung MODIFY COLUMN dan tidak benar-benar memvalidasi ENUM
+        // Untuk SQLite, kita skip karena ENUM hanya disimpan sebagai string
+        if ($driver === 'sqlite') {
+            return;
+        }
+
         $enumValues = "ENUM(
             'Tidak/Belum Sekolah',
             'PAUD',
@@ -47,6 +55,13 @@ return new class extends Migration
      */
     public function down(): void
     {
+        $driver = DB::connection()->getDriverName();
+        
+        // SQLite tidak mendukung MODIFY COLUMN
+        if ($driver === 'sqlite') {
+            return;
+        }
+
         $enumValues = "ENUM(
             'Tidak/Belum Sekolah',
             'Tidak Tamat SD/Sederajat',
