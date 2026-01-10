@@ -183,6 +183,25 @@
                             </select>
                             @error('pekerjaan_ibuhamil') <span class="text-red-500 text-xs">{{ $message }}</span>@enderror
                         </div>
+                        <div>
+                            <label class="block text-gray-700 text-sm font-bold mb-2">Pendidikan</label>
+                            <select wire:model="pendidikan_ibuhamil" class="shadow border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-primary focus:border-primary">
+                                <option value="">Pilih Pendidikan...</option>
+                                <option value="Tidak/Belum Sekolah">Tidak/Belum Sekolah</option>
+                                <option value="PAUD">PAUD</option>
+                                <option value="TK">TK</option>
+                                <option value="Tidak Tamat SD/Sederajat">Tidak Tamat SD/Sederajat</option>
+                                <option value="Tamat SD/Sederajat">Tamat SD/Sederajat</option>
+                                <option value="SLTP/Sederajat">SLTP/Sederajat</option>
+                                <option value="SLTA/Sederajat">SLTA/Sederajat</option>
+                                <option value="Diploma I/II">Diploma I/II</option>
+                                <option value="Akademi/Diploma III/Sarjana Muda">Akademi/Diploma III/Sarjana Muda</option>
+                                <option value="Diploma IV/Strata I">Diploma IV/Strata I</option>
+                                <option value="Strata II">Strata II</option>
+                                <option value="Strata III">Strata III</option>
+                            </select>
+                            @error('pendidikan_ibuhamil') <span class="text-red-500 text-xs">{{ $message }}</span>@enderror
+                        </div>
                         <div class="md:col-span-2">
                             <label class="block text-gray-700 text-sm font-bold mb-2">Alamat Lengkap <span class="text-red-500">*</span></label>
                             <textarea wire:model="alamat_sasaran_ibuhamil" rows="3" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-primary focus:border-primary" placeholder="Alamat lengkap sasaran"></textarea>

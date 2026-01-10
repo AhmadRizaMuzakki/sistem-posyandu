@@ -24,6 +24,7 @@ trait IbuHamilCrud
     public $umur_sasaran_ibuhamil;
     public $bulan_kandungan_ibuhamil;
     public $pekerjaan_ibuhamil;
+    public $pendidikan_ibuhamil;
     public $alamat_sasaran_ibuhamil;
     public $rt_ibuhamil;
     public $rw_ibuhamil;
@@ -81,6 +82,7 @@ trait IbuHamilCrud
         $this->umur_sasaran_ibuhamil = '';
         $this->bulan_kandungan_ibuhamil = '';
         $this->pekerjaan_ibuhamil = '';
+        $this->pendidikan_ibuhamil = '';
         $this->alamat_sasaran_ibuhamil = '';
         $this->rt_ibuhamil = '';
         $this->rw_ibuhamil = '';
@@ -158,6 +160,7 @@ trait IbuHamilCrud
             'umur_sasaran' => $umur,
             'bulan_kandungan' => $this->bulan_kandungan_ibuhamil ?: null,
             'pekerjaan' => $this->pekerjaan_ibuhamil ?: null,
+            'pendidikan' => $this->pendidikan_ibuhamil ?: null,
             'alamat_sasaran' => $this->alamat_sasaran_ibuhamil,
             'rt' => $this->rt_ibuhamil ?: null,
             'rw' => $this->rw_ibuhamil ?: null,
@@ -216,6 +219,7 @@ trait IbuHamilCrud
             : $ibuhamil->umur_sasaran;
         $this->bulan_kandungan_ibuhamil = $ibuhamil->bulan_kandungan ?? '';
         $this->pekerjaan_ibuhamil = $ibuhamil->pekerjaan ?? '';
+        $this->pendidikan_ibuhamil = $ibuhamil->pendidikan ?? '';
         $this->alamat_sasaran_ibuhamil = $ibuhamil->alamat_sasaran ?? '';
         $this->rt_ibuhamil = $ibuhamil->rt ?? '';
         $this->rw_ibuhamil = $ibuhamil->rw ?? '';

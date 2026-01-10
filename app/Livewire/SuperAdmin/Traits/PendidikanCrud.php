@@ -8,6 +8,7 @@ use App\Models\SasaranRemaja;
 use App\Models\SasaranDewasa;
 use App\Models\SasaranPralansia;
 use App\Models\SasaranLansia;
+use App\Models\SasaranIbuhamil;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
 
@@ -104,6 +105,7 @@ trait PendidikanCrud
             [SasaranDewasa::class, 'id_sasaran_dewasa', 'dewasa'],
             [SasaranPralansia::class, 'id_sasaran_pralansia', 'pralansia'],
             [SasaranLansia::class, 'id_sasaran_lansia', 'lansia'],
+            [SasaranIbuhamil::class, 'id_sasaran_ibuhamil', 'ibuhamil'],
         ];
 
         $sasaranList = collect();
@@ -310,7 +312,7 @@ trait PendidikanCrud
         return [
             'id_posyandu_pendidikan' => 'required|exists:posyandu,id_posyandu',
             'id_sasaran_pendidikan' => 'required',
-            'kategori_sasaran_pendidikan' => 'required|in:bayibalita,remaja,dewasa,pralansia,lansia',
+            'kategori_sasaran_pendidikan' => 'required|in:bayibalita,remaja,dewasa,pralansia,lansia,ibuhamil',
             'nama_pendidikan' => 'required|string|max:255',
             'nik_pendidikan' => 'nullable|string|max:255',
             'hari_lahir_pendidikan' => 'required|numeric|min:1|max:31',

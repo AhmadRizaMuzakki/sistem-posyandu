@@ -33,6 +33,57 @@
         </div>
     </div>
 
+    {{-- Card SK Posyandu --}}
+    <div class="bg-white rounded-lg shadow-sm p-6">
+        <h2 class="text-xl font-semibold text-gray-800 mb-4 flex items-center justify-between">
+            <div class="flex items-center">
+                <i class="ph ph-file-text text-2xl mr-3 text-primary"></i>
+                SK Posyandu
+            </div>
+            <div class="flex items-center space-x-2">
+                <button 
+                    wire:click="$set('showUploadModal', true)"
+                    class="px-3 py-1.5 text-sm bg-primary text-white rounded-lg hover:bg-primary-dark transition-colors flex items-center space-x-1">
+                    <i class="ph ph-upload text-sm"></i>
+                    <span>Upload</span>
+                </button>
+                @if($posyandu->sk_posyandu)
+                <button 
+                    wire:click="deleteSk"
+                    wire:confirm="Apakah Anda yakin ingin menghapus file SK ini?"
+                    class="px-3 py-1.5 text-sm bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors flex items-center space-x-1">
+                    <i class="ph ph-trash text-sm"></i>
+                    <span>Hapus</span>
+                </button>
+                @endif
+            </div>
+        </h2>
+        <div class="flex flex-col items-center justify-center py-6">
+            @if($posyandu->sk_posyandu)
+                <div class="relative group w-full">
+                    <div class="p-6 bg-gray-50 rounded-lg border-2 border-gray-200 hover:border-primary transition-colors">
+                        <div class="flex flex-col items-center space-y-3">
+                            <i class="ph ph-file-pdf text-6xl text-red-500"></i>
+                            <div class="text-center">
+                                <a href="{{ asset($posyandu->sk_posyandu) }}" target="_blank" 
+                                   class="text-primary hover:underline font-medium text-sm flex items-center justify-center space-x-2">
+                                    <i class="ph ph-eye text-lg"></i>
+                                    <span>Lihat File SK</span>
+                                </a>
+                                <p class="text-xs text-gray-500 mt-2">{{ basename($posyandu->sk_posyandu) }}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            @else
+                <div class="w-full p-6 bg-gray-100 rounded-lg border-2 border-dashed border-gray-300 flex flex-col items-center justify-center">
+                    <i class="ph ph-file-x text-6xl text-gray-400 mb-3"></i>
+                    <p class="text-sm text-gray-500 text-center px-4">Belum ada file SK posyandu</p>
+                </div>
+            @endif
+        </div>
+    </div>
+
     {{-- Grid Informasi dan Statistik --}}
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
     {{-- Card Informasi Posyandu --}}
