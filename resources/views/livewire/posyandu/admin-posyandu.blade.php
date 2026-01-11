@@ -68,6 +68,13 @@
                     SK Posyandu
                 </div>
                 <div class="flex items-center space-x-2">
+                    <a 
+                        href="{{ route('adminPosyandu.sk.pdf') }}"
+                        target="_blank"
+                        class="px-4 py-2 text-sm bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center space-x-2">
+                        <i class="ph ph-download text-sm"></i>
+                        <span>Download SK</span>
+                    </a>
                     <button 
                         wire:click="$set('showUploadModal', true)"
                         class="px-4 py-2 text-sm bg-primary text-white rounded-lg hover:bg-primary-dark transition-colors flex items-center space-x-2">

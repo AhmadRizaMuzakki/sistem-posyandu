@@ -461,6 +461,92 @@ class LaporanController extends Controller
     }
 
     /**
+     * Generate SK Posyandu untuk Super Admin (berdasarkan ID Posyandu).
+     */
+    public function superadminPosyanduSkPdf(string $id): Response
+    {
+        try {
+            $decryptedId = decrypt($id);
+        } catch (\Illuminate\Contracts\Encryption\DecryptException $e) {
+            abort(404, 'ID tidak valid');
+        }
+
+        $posyandu = Posyandu::with([
+            'kader.user',
+            'sasaran_bayibalita',
+            'sasaran_remaja',
+            'sasaran_dewasa',
+            'sasaran_ibuhamil',
+            'sasaran_pralansia',
+            'sasaran_lansia',
+        ])->findOrFail($decryptedId);
+
+        $user = Auth::user();
+
+        // Hitung total sasaran
+        $totalSasaran = $posyandu->sasaran_bayibalita->count() +
+                        $posyandu->sasaran_remaja->count() +
+                        $posyandu->sasaran_dewasa->count() +
+                        $posyandu->sasaran_ibuhamil->count() +
+                        $posyandu->sasaran_pralansia->count() +
+                        $posyandu->sasaran_lansia->count();
+
+        $fileName = 'SK-Posyandu-'.$posyandu->nama_posyandu.'-'.now('Asia/Jakarta')->format('Ymd_His').'.pdf';
+
+        return $this->renderPdf('pdf.sk-posyandu', [
+            'posyandu' => $posyandu,
+            'totalSasaran' => $totalSasaran,
+            'totalKader' => $posyandu->kader->count(),
+            'generatedAt' => now('Asia/Jakarta'),
+            'user' => $user,
+        ], $fileName);
+    }
+
+    /**
+     * Generate SK Posyandu untuk Admin Posyandu.
+     */
+    public function posyanduSkPdf(): Response
+    {
+        $user = Auth::user();
+
+        $kader = Kader::with('posyandu')
+            ->where('id_users', $user->id)
+            ->first();
+
+        if (! $kader || ! $kader->posyandu) {
+            abort(403, 'Posyandu untuk akun ini tidak ditemukan.');
+        }
+
+        $posyandu = Posyandu::with([
+            'kader.user',
+            'sasaran_bayibalita',
+            'sasaran_remaja',
+            'sasaran_dewasa',
+            'sasaran_ibuhamil',
+            'sasaran_pralansia',
+            'sasaran_lansia',
+        ])->findOrFail($kader->posyandu->id_posyandu);
+
+        // Hitung total sasaran
+        $totalSasaran = $posyandu->sasaran_bayibalita->count() +
+                        $posyandu->sasaran_remaja->count() +
+                        $posyandu->sasaran_dewasa->count() +
+                        $posyandu->sasaran_ibuhamil->count() +
+                        $posyandu->sasaran_pralansia->count() +
+                        $posyandu->sasaran_lansia->count();
+
+        $fileName = 'SK-Posyandu-'.$posyandu->nama_posyandu.'-'.now('Asia/Jakarta')->format('Ymd_His').'.pdf';
+
+        return $this->renderPdf('pdf.sk-posyandu', [
+            'posyandu' => $posyandu,
+            'totalSasaran' => $totalSasaran,
+            'totalKader' => $posyandu->kader->count(),
+            'generatedAt' => now('Asia/Jakarta'),
+            'user' => $user,
+        ], $fileName);
+    }
+
+    /**
      * Helper umum untuk render view Blade menjadi PDF dengan Dompdf.
      */
     protected function renderPdf(string $view, array $data, string $fileName, string $orientation = 'portrait'): Response
