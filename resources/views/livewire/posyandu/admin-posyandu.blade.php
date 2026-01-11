@@ -131,9 +131,17 @@
 
         <!-- Grafik Pendidikan Sasaran -->
         <div class="bg-white rounded-lg shadow-md p-6">
-            <h2 class="text-xl font-semibold text-gray-800 mb-4 flex items-center">
-                <i class="ph ph-graduation-cap text-2xl mr-3 text-primary"></i>
-                Grafik Pendidikan Sasaran (Remaja, Dewasa, Ibu Hamil, Pralansia, Lansia)
+            <h2 class="text-xl font-semibold text-gray-800 mb-4 flex items-center justify-between">
+                <div class="flex items-center">
+                    <i class="ph ph-graduation-cap text-2xl mr-3 text-primary"></i>
+                    Grafik Pendidikan Sasaran (Remaja, Dewasa, Ibu Hamil, Pralansia, Lansia)
+                </div>
+                <button 
+                    wire:click="openPendidikanModal"
+                    class="px-4 py-2 text-sm bg-primary text-white rounded-lg hover:bg-primary-dark transition-colors flex items-center space-x-2">
+                    <i class="ph ph-plus text-sm"></i>
+                    <span>Update Pendidikan Semua Sasaran</span>
+                </button>
             </h2>
             <div class="h-96">
                 <canvas id="pendidikanChart"></canvas>
@@ -332,6 +340,105 @@
                                 </span>
                                 <span wire:loading wire:target="uploadSk">
                                     <i class="ph ph-spinner ph-spin mr-2"></i> Mengupload...
+                                </span>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {{-- Modal Input Pendidikan Semua Sasaran --}}
+    <div x-data="{ 
+        show: @entangle('showPendidikanModal')
+    }" 
+    x-show="show"
+    x-cloak
+    class="fixed inset-0 z-50 overflow-y-auto"
+    style="display: none;"
+    x-on:close-modal.window="show = false">
+        <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+            {{-- Overlay --}}
+            <div x-show="show" 
+                 x-transition:enter="ease-out duration-300"
+                 x-transition:enter-start="opacity-0"
+                 x-transition:enter-end="opacity-100"
+                 x-transition:leave="ease-in duration-200"
+                 x-transition:leave-start="opacity-100"
+                 x-transition:leave-end="opacity-0"
+                 class="fixed inset-0 transition-opacity bg-gray-500 bg-opacity-75"
+                 x-on:click="show = false"></div>
+
+            {{-- Modal Panel --}}
+            <div x-show="show"
+                 x-transition:enter="ease-out duration-300"
+                 x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                 x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100"
+                 x-transition:leave="ease-in duration-200"
+                 x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100"
+                 x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                 class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full"
+                 x-on:click.away="show = false">
+                
+                {{-- Header --}}
+                <div class="bg-primary px-6 py-4 flex items-center justify-between">
+                    <h3 class="text-lg font-semibold text-white">Update Pendidikan Semua Sasaran</h3>
+                    <button wire:click="closePendidikanModal" class="text-white hover:text-gray-200">
+                        <i class="ph ph-x text-xl"></i>
+                    </button>
+                </div>
+
+                {{-- Body --}}
+                <div class="bg-white px-6 py-4">
+                    <form wire:submit.prevent="updatePendidikanSemuaSasaran">
+                        <div class="mb-4">
+                            <p class="text-sm text-gray-600 mb-4">
+                                Pilih pendidikan yang akan diterapkan ke <strong>semua sasaran</strong> (Remaja, Dewasa, Pralansia, Lansia, Ibu Hamil) di posyandu ini. 
+                                Data akan otomatis tersimpan di menu Pendidikan.
+                            </p>
+                            
+                            <label class="block text-gray-700 text-sm font-bold mb-2">
+                                Pendidikan Terakhir <span class="text-red-500">*</span>
+                            </label>
+                            <select wire:model="pendidikan_terakhir"
+                                    class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-primary focus:border-primary">
+                                <option value="">Pilih Pendidikan Terakhir...</option>
+                                <option value="Tidak/Belum Sekolah">Tidak/Belum Sekolah</option>
+                                <option value="PAUD">PAUD</option>
+                                <option value="TK">TK</option>
+                                <option value="Tidak Tamat SD/Sederajat">Tidak Tamat SD/Sederajat</option>
+                                <option value="Tamat SD/Sederajat">Tamat SD/Sederajat</option>
+                                <option value="SLTP/Sederajat">SLTP/Sederajat</option>
+                                <option value="SLTA/Sederajat">SLTA/Sederajat</option>
+                                <option value="Diploma I/II">Diploma I/II</option>
+                                <option value="Akademi/Diploma III/Sarjana Muda">Akademi/Diploma III/Sarjana Muda</option>
+                                <option value="Diploma IV/Strata I">Diploma IV/Strata I</option>
+                                <option value="Strata II">Strata II</option>
+                                <option value="Strata III">Strata III</option>
+                            </select>
+                            @error('pendidikan_terakhir') 
+                                <span class="text-red-500 text-xs">{{ $message }}</span>
+                            @enderror
+                        </div>
+
+                        {{-- Actions --}}
+                        <div class="mt-6 flex justify-end space-x-3">
+                            <button 
+                                type="button"
+                                wire:click="closePendidikanModal"
+                                class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors">
+                                Batal
+                            </button>
+                            <button 
+                                type="submit"
+                                class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                wire:loading.attr="disabled">
+                                <span wire:loading.remove wire:target="updatePendidikanSemuaSasaran">
+                                    <i class="ph ph-check mr-2"></i> Update Semua
+                                </span>
+                                <span wire:loading wire:target="updatePendidikanSemuaSasaran">
+                                    <i class="ph ph-spinner ph-spin mr-2"></i> Memproses...
                                 </span>
                             </button>
                         </div>

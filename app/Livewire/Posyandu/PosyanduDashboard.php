@@ -7,10 +7,16 @@ use App\Livewire\Posyandu\Traits\DashboardHelper;
 use App\Models\Kader;
 use App\Models\Imunisasi;
 use App\Models\Pendidikan;
+use App\Models\SasaranRemaja;
+use App\Models\SasaranDewasa;
+use App\Models\SasaranPralansia;
+use App\Models\SasaranLansia;
+use App\Models\SasaranIbuhamil;
 use Livewire\Component;
 use Livewire\Attributes\Layout;
 use Livewire\WithFileUploads;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 
 class PosyanduDashboard extends Component
@@ -19,6 +25,10 @@ class PosyanduDashboard extends Component
 
     public $skFile;
     public $showUploadModal = false;
+    
+    // Pendidikan properties
+    public $showPendidikanModal = false;
+    public $pendidikan_terakhir = '';
 
     #[Layout('layouts.posyandudashboard')]
 
@@ -195,6 +205,178 @@ class PosyanduDashboard extends Component
             session()->flash('messageType', 'success');
         } catch (\Exception $e) {
             session()->flash('message', 'Gagal menghapus file SK: ' . $e->getMessage());
+            session()->flash('messageType', 'error');
+        }
+    }
+
+    /**
+     * Buka modal input pendidikan
+     */
+    public function openPendidikanModal()
+    {
+        $this->pendidikan_terakhir = '';
+        $this->showPendidikanModal = true;
+    }
+
+    /**
+     * Tutup modal pendidikan
+     */
+    public function closePendidikanModal()
+    {
+        $this->showPendidikanModal = false;
+        $this->pendidikan_terakhir = '';
+    }
+
+    /**
+     * Update pendidikan ke semua sasaran di posyandu ini
+     */
+    public function updatePendidikanSemuaSasaran()
+    {
+        $this->validate([
+            'pendidikan_terakhir' => 'required|in:Tidak/Belum Sekolah,PAUD,TK,Tidak Tamat SD/Sederajat,Tamat SD/Sederajat,SLTP/Sederajat,SLTA/Sederajat,Diploma I/II,Akademi/Diploma III/Sarjana Muda,Diploma IV/Strata I,Strata II,Strata III',
+        ], [
+            'pendidikan_terakhir.required' => 'Pendidikan terakhir wajib dipilih.',
+            'pendidikan_terakhir.in' => 'Pendidikan terakhir tidak valid.',
+        ]);
+
+        try {
+            $posyanduId = $this->posyanduId;
+            $pendidikanValue = $this->pendidikan_terakhir;
+            $userId = Auth::id();
+            $updatedCount = 0;
+
+            // Update Remaja
+            $remajaList = SasaranRemaja::where('id_posyandu', $posyanduId)->get();
+            foreach ($remajaList as $remaja) {
+                $remaja->update(['pendidikan' => $pendidikanValue]);
+                
+                // Simpan ke tabel pendidikan
+                Pendidikan::updateOrCreate(
+                    [
+                        'id_posyandu' => $posyanduId,
+                        'id_sasaran' => $remaja->id_sasaran_remaja,
+                        'kategori_sasaran' => 'remaja',
+                    ],
+                    [
+                        'id_users' => $userId,
+                        'nik' => $remaja->nik_sasaran,
+                        'nama' => $remaja->nama_sasaran,
+                        'tanggal_lahir' => $remaja->tanggal_lahir,
+                        'jenis_kelamin' => $remaja->jenis_kelamin,
+                        'umur' => $remaja->umur_sasaran,
+                        'pendidikan_terakhir' => $pendidikanValue,
+                    ]
+                );
+                $updatedCount++;
+            }
+
+            // Update Dewasa
+            $dewasaList = SasaranDewasa::where('id_posyandu', $posyanduId)->get();
+            foreach ($dewasaList as $dewasa) {
+                $dewasa->update(['pendidikan' => $pendidikanValue]);
+                
+                // Simpan ke tabel pendidikan
+                Pendidikan::updateOrCreate(
+                    [
+                        'id_posyandu' => $posyanduId,
+                        'id_sasaran' => $dewasa->id_sasaran_dewasa,
+                        'kategori_sasaran' => 'dewasa',
+                    ],
+                    [
+                        'id_users' => $userId,
+                        'nik' => $dewasa->nik_sasaran,
+                        'nama' => $dewasa->nama_sasaran,
+                        'tanggal_lahir' => $dewasa->tanggal_lahir,
+                        'jenis_kelamin' => $dewasa->jenis_kelamin,
+                        'umur' => $dewasa->umur_sasaran,
+                        'pendidikan_terakhir' => $pendidikanValue,
+                    ]
+                );
+                $updatedCount++;
+            }
+
+            // Update Pralansia
+            $pralansiaList = SasaranPralansia::where('id_posyandu', $posyanduId)->get();
+            foreach ($pralansiaList as $pralansia) {
+                $pralansia->update(['pendidikan' => $pendidikanValue]);
+                
+                // Simpan ke tabel pendidikan
+                Pendidikan::updateOrCreate(
+                    [
+                        'id_posyandu' => $posyanduId,
+                        'id_sasaran' => $pralansia->id_sasaran_pralansia,
+                        'kategori_sasaran' => 'pralansia',
+                    ],
+                    [
+                        'id_users' => $userId,
+                        'nik' => $pralansia->nik_sasaran,
+                        'nama' => $pralansia->nama_sasaran,
+                        'tanggal_lahir' => $pralansia->tanggal_lahir,
+                        'jenis_kelamin' => $pralansia->jenis_kelamin,
+                        'umur' => $pralansia->umur_sasaran,
+                        'pendidikan_terakhir' => $pendidikanValue,
+                    ]
+                );
+                $updatedCount++;
+            }
+
+            // Update Lansia
+            $lansiaList = SasaranLansia::where('id_posyandu', $posyanduId)->get();
+            foreach ($lansiaList as $lansia) {
+                $lansia->update(['pendidikan' => $pendidikanValue]);
+                
+                // Simpan ke tabel pendidikan
+                Pendidikan::updateOrCreate(
+                    [
+                        'id_posyandu' => $posyanduId,
+                        'id_sasaran' => $lansia->id_sasaran_lansia,
+                        'kategori_sasaran' => 'lansia',
+                    ],
+                    [
+                        'id_users' => $userId,
+                        'nik' => $lansia->nik_sasaran,
+                        'nama' => $lansia->nama_sasaran,
+                        'tanggal_lahir' => $lansia->tanggal_lahir,
+                        'jenis_kelamin' => $lansia->jenis_kelamin,
+                        'umur' => $lansia->umur_sasaran,
+                        'pendidikan_terakhir' => $pendidikanValue,
+                    ]
+                );
+                $updatedCount++;
+            }
+
+            // Update Ibu Hamil
+            $ibuhamilList = SasaranIbuhamil::where('id_posyandu', $posyanduId)->get();
+            foreach ($ibuhamilList as $ibuhamil) {
+                $ibuhamil->update(['pendidikan' => $pendidikanValue]);
+                
+                // Simpan ke tabel pendidikan
+                Pendidikan::updateOrCreate(
+                    [
+                        'id_posyandu' => $posyanduId,
+                        'id_sasaran' => $ibuhamil->id_sasaran_ibuhamil,
+                        'kategori_sasaran' => 'ibuhamil',
+                    ],
+                    [
+                        'id_users' => $userId,
+                        'nik' => $ibuhamil->nik_sasaran,
+                        'nama' => $ibuhamil->nama_sasaran,
+                        'tanggal_lahir' => $ibuhamil->tanggal_lahir,
+                        'jenis_kelamin' => $ibuhamil->jenis_kelamin,
+                        'umur' => $ibuhamil->umur_sasaran,
+                        'pendidikan_terakhir' => $pendidikanValue,
+                    ]
+                );
+                $updatedCount++;
+            }
+
+            $this->closePendidikanModal();
+            $this->refreshPosyandu();
+
+            session()->flash('message', "Pendidikan berhasil diupdate ke {$updatedCount} sasaran (Remaja, Dewasa, Pralansia, Lansia, Ibu Hamil) dan tersimpan di menu Pendidikan.");
+            session()->flash('messageType', 'success');
+        } catch (\Exception $e) {
+            session()->flash('message', 'Gagal mengupdate pendidikan: ' . $e->getMessage());
             session()->flash('messageType', 'error');
         }
     }
