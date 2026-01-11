@@ -230,10 +230,46 @@ trait DewasaCrud
                 $dewasa = SasaranDewasa::findOrFail($this->id_sasaran_dewasa);
             }
             $dewasa->update($data);
+            
+            // Auto-save pendidikan
+            if (!empty($this->pendidikan_dewasa)) {
+                $this->autoSavePendidikan(
+                    $dewasa->id_sasaran_dewasa,
+                    'dewasa',
+                    $this->posyanduId,
+                    $this->pendidikan_dewasa,
+                    [
+                        'nik' => $dewasa->nik_sasaran,
+                        'nama' => $dewasa->nama_sasaran,
+                        'tanggal_lahir' => $dewasa->tanggal_lahir,
+                        'jenis_kelamin' => $dewasa->jenis_kelamin,
+                        'umur' => $dewasa->umur_sasaran,
+                    ]
+                );
+            }
+            
             session()->flash('message', 'Data Dewasa berhasil diperbarui.');
         } else {
             // CREATE
-            SasaranDewasa::create($data);
+            $dewasa = SasaranDewasa::create($data);
+            
+            // Auto-save pendidikan
+            if (!empty($this->pendidikan_dewasa)) {
+                $this->autoSavePendidikan(
+                    $dewasa->id_sasaran_dewasa,
+                    'dewasa',
+                    $this->posyanduId,
+                    $this->pendidikan_dewasa,
+                    [
+                        'nik' => $dewasa->nik_sasaran,
+                        'nama' => $dewasa->nama_sasaran,
+                        'tanggal_lahir' => $dewasa->tanggal_lahir,
+                        'jenis_kelamin' => $dewasa->jenis_kelamin,
+                        'umur' => $dewasa->umur_sasaran,
+                    ]
+                );
+            }
+            
             session()->flash('message', 'Data Dewasa berhasil ditambahkan.');
         }
 
