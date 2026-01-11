@@ -21,11 +21,12 @@ jobs:
           cd /var/www/html
           echo "📍 Current directory: $(pwd)"
           echo "📦 Current branch: $(git branch --show-current)"
-          echo "🔄 Fetching latest changes..."
+          
+          # Tambahkan langkah pembersihan ini
+          echo "🧹 Cleaning up local changes..."
           git fetch origin main
-          echo "⬇️ Pulling changes from main branch..."
-          git pull origin main || { echo "❌ Git pull failed!"; exit 1; }
-          echo "✅ Git pull successful!"
+          git reset --hard origin/main # Memaksa kondisi file lokal sama persis dengan GitHub
+          echo "✅ Git reset successful!"
           
           echo "📦 Installing Composer dependencies..."
           composer install --no-interaction --prefer-dist --optimize-autoloader
