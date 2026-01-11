@@ -31,12 +31,7 @@ trait AutoSavePendidikan
                 return;
             }
 
-            // Cari atau buat record pendidikan
-            $pendidikan = Pendidikan::where('id_sasaran', $sasaranId)
-                ->where('kategori_sasaran', $kategoriSasaran)
-                ->where('id_posyandu', $posyanduId)
-                ->first();
-
+            // Siapkan data untuk insert/update
             $data = [
                 'id_posyandu' => $posyanduId,
                 'id_users' => Auth::id(),
@@ -54,11 +49,15 @@ trait AutoSavePendidikan
                 $data['umur'] = $sasaranData['umur'] ?? null;
             }
 
-            if ($pendidikan) {
-                $pendidikan->update($data);
-            } else {
-                Pendidikan::create($data);
-            }
+            // Gunakan updateOrCreate untuk mengurangi query (1 query instead of 2)
+            Pendidikan::updateOrCreate(
+                [
+                    'id_sasaran' => $sasaranId,
+                    'kategori_sasaran' => $kategoriSasaran,
+                    'id_posyandu' => $posyanduId,
+                ],
+                $data
+            );
         } catch (\Exception $e) {
             // Log error tetapi jangan ganggu proses penyimpanan sasaran
             Log::error('Error auto-saving pendidikan: ' . $e->getMessage(), [

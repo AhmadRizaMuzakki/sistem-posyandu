@@ -393,7 +393,7 @@ trait DewasaCrud
     }
 
     /**
-     * Get list of No KK untuk autocomplete
+     * Get list of No KK untuk autocomplete (Optimized dengan aggregate query)
      */
     public function getNoKkListDewasa()
     {
@@ -403,171 +403,140 @@ trait DewasaCrud
             return [];
         }
 
+        // Ambil semua no_kk unik dari semua tabel sasaran sekaligus
+        $allNoKk = collect();
+        
+        $allNoKk = $allNoKk->merge(
+            SasaranBayibalita::where('id_posyandu', $posyanduId)
+                ->whereNotNull('no_kk_sasaran')
+                ->select('no_kk_sasaran')
+                ->distinct()
+                ->pluck('no_kk_sasaran')
+        );
+        
+        $allNoKk = $allNoKk->merge(
+            SasaranRemaja::where('id_posyandu', $posyanduId)
+                ->whereNotNull('no_kk_sasaran')
+                ->select('no_kk_sasaran')
+                ->distinct()
+                ->pluck('no_kk_sasaran')
+        );
+        
+        $allNoKk = $allNoKk->merge(
+            SasaranDewasa::where('id_posyandu', $posyanduId)
+                ->whereNotNull('no_kk_sasaran')
+                ->select('no_kk_sasaran')
+                ->distinct()
+                ->pluck('no_kk_sasaran')
+        );
+        
+        $allNoKk = $allNoKk->merge(
+            SasaranPralansia::where('id_posyandu', $posyanduId)
+                ->whereNotNull('no_kk_sasaran')
+                ->select('no_kk_sasaran')
+                ->distinct()
+                ->pluck('no_kk_sasaran')
+        );
+        
+        $allNoKk = $allNoKk->merge(
+            SasaranLansia::where('id_posyandu', $posyanduId)
+                ->whereNotNull('no_kk_sasaran')
+                ->select('no_kk_sasaran')
+                ->distinct()
+                ->pluck('no_kk_sasaran')
+        );
+        
+        $uniqueNoKk = $allNoKk->unique()->values();
+        
+        if ($uniqueNoKk->isEmpty()) {
+            return [];
+        }
+        
+        // Hitung jumlah anggota per no_kk dengan aggregate query (lebih efisien)
+        $countBalita = SasaranBayibalita::where('id_posyandu', $posyanduId)
+            ->whereIn('no_kk_sasaran', $uniqueNoKk)
+            ->whereNotNull('no_kk_sasaran')
+            ->selectRaw('no_kk_sasaran, COUNT(*) as count')
+            ->groupBy('no_kk_sasaran')
+            ->pluck('count', 'no_kk_sasaran');
+        
+        $countRemaja = SasaranRemaja::where('id_posyandu', $posyanduId)
+            ->whereIn('no_kk_sasaran', $uniqueNoKk)
+            ->whereNotNull('no_kk_sasaran')
+            ->selectRaw('no_kk_sasaran, COUNT(*) as count')
+            ->groupBy('no_kk_sasaran')
+            ->pluck('count', 'no_kk_sasaran');
+        
+        $countDewasa = SasaranDewasa::where('id_posyandu', $posyanduId)
+            ->whereIn('no_kk_sasaran', $uniqueNoKk)
+            ->whereNotNull('no_kk_sasaran')
+            ->selectRaw('no_kk_sasaran, COUNT(*) as count')
+            ->groupBy('no_kk_sasaran')
+            ->pluck('count', 'no_kk_sasaran');
+        
+        $countPralansia = SasaranPralansia::where('id_posyandu', $posyanduId)
+            ->whereIn('no_kk_sasaran', $uniqueNoKk)
+            ->whereNotNull('no_kk_sasaran')
+            ->selectRaw('no_kk_sasaran, COUNT(*) as count')
+            ->groupBy('no_kk_sasaran')
+            ->pluck('count', 'no_kk_sasaran');
+        
+        $countLansia = SasaranLansia::where('id_posyandu', $posyanduId)
+            ->whereIn('no_kk_sasaran', $uniqueNoKk)
+            ->whereNotNull('no_kk_sasaran')
+            ->selectRaw('no_kk_sasaran, COUNT(*) as count')
+            ->groupBy('no_kk_sasaran')
+            ->pluck('count', 'no_kk_sasaran');
+        
+        // Ambil nama orangtua dari dewasa/pralansia/lansia (prioritas)
+        $namaOrangtua = SasaranDewasa::where('id_posyandu', $posyanduId)
+            ->whereIn('no_kk_sasaran', $uniqueNoKk)
+            ->whereNotNull('no_kk_sasaran')
+            ->select('no_kk_sasaran', 'nama_sasaran')
+            ->get()
+            ->keyBy('no_kk_sasaran');
+        
+        // Jika tidak ada di dewasa, ambil dari pralansia
+        $namaOrangtuaPralansia = SasaranPralansia::where('id_posyandu', $posyanduId)
+            ->whereIn('no_kk_sasaran', $uniqueNoKk)
+            ->whereNotNull('no_kk_sasaran')
+            ->whereNotIn('no_kk_sasaran', $namaOrangtua->keys())
+            ->select('no_kk_sasaran', 'nama_sasaran')
+            ->get()
+            ->keyBy('no_kk_sasaran');
+        
+        $namaOrangtua = $namaOrangtua->merge($namaOrangtuaPralansia);
+        
+        // Jika masih tidak ada, ambil dari lansia
+        $namaOrangtuaLansia = SasaranLansia::where('id_posyandu', $posyanduId)
+            ->whereIn('no_kk_sasaran', $uniqueNoKk)
+            ->whereNotNull('no_kk_sasaran')
+            ->whereNotIn('no_kk_sasaran', $namaOrangtua->keys())
+            ->select('no_kk_sasaran', 'nama_sasaran')
+            ->get()
+            ->keyBy('no_kk_sasaran');
+        
+        $namaOrangtua = $namaOrangtua->merge($namaOrangtuaLansia);
+        
+        // Build hasil
         $noKkList = [];
-        
-        // Get from balita
-        $balitaList = SasaranBayibalita::where('id_posyandu', $posyanduId)
-            ->whereNotNull('no_kk_sasaran')
-            ->get();
+        foreach ($uniqueNoKk as $noKk) {
+            $totalAnggota = ($countBalita[$noKk] ?? 0) + 
+                          ($countRemaja[$noKk] ?? 0) + 
+                          ($countDewasa[$noKk] ?? 0) + 
+                          ($countPralansia[$noKk] ?? 0) + 
+                          ($countLansia[$noKk] ?? 0);
             
-        foreach ($balitaList as $balita) {
-            $noKk = $balita->no_kk_sasaran;
-            if (!isset($noKkList[$noKk])) {
-                $countBalita = SasaranBayibalita::where('id_posyandu', $posyanduId)
-                    ->where('no_kk_sasaran', $noKk)
-                    ->count();
-                $countRemaja = SasaranRemaja::where('id_posyandu', $posyanduId)
-                    ->where('no_kk_sasaran', $noKk)
-                    ->count();
-                $countDewasa = SasaranDewasa::where('id_posyandu', $posyanduId)
-                    ->where('no_kk_sasaran', $noKk)
-                    ->count();
-                $countPralansia = SasaranPralansia::where('id_posyandu', $posyanduId)
-                    ->where('no_kk_sasaran', $noKk)
-                    ->count();
-                $countLansia = SasaranLansia::where('id_posyandu', $posyanduId)
-                    ->where('no_kk_sasaran', $noKk)
-                    ->count();
-                $totalAnggota = $countBalita + $countRemaja + $countDewasa + $countPralansia + $countLansia;
-                
-                $noKkList[$noKk] = [
-                    'no_kk' => $noKk,
-                    'nama_orangtua' => '-',
-                    'jumlah_anggota' => $totalAnggota,
-                ];
+            $namaOrtu = '-';
+            if (isset($namaOrangtua[$noKk])) {
+                $namaOrtu = $namaOrangtua[$noKk]->nama_sasaran;
             }
-        }
-        
-        // Get from remaja
-        $remajaList = SasaranRemaja::where('id_posyandu', $posyanduId)
-            ->whereNotNull('no_kk_sasaran')
-            ->get();
             
-        foreach ($remajaList as $remaja) {
-            $noKk = $remaja->no_kk_sasaran;
-            if (!isset($noKkList[$noKk])) {
-                $countBalita = SasaranBayibalita::where('id_posyandu', $posyanduId)
-                    ->where('no_kk_sasaran', $noKk)
-                    ->count();
-                $countRemaja = SasaranRemaja::where('id_posyandu', $posyanduId)
-                    ->where('no_kk_sasaran', $noKk)
-                    ->count();
-                $countDewasa = SasaranDewasa::where('id_posyandu', $posyanduId)
-                    ->where('no_kk_sasaran', $noKk)
-                    ->count();
-                $countPralansia = SasaranPralansia::where('id_posyandu', $posyanduId)
-                    ->where('no_kk_sasaran', $noKk)
-                    ->count();
-                $countLansia = SasaranLansia::where('id_posyandu', $posyanduId)
-                    ->where('no_kk_sasaran', $noKk)
-                    ->count();
-                $totalAnggota = $countBalita + $countRemaja + $countDewasa + $countPralansia + $countLansia;
-                
-                $noKkList[$noKk] = [
-                    'no_kk' => $noKk,
-                    'nama_orangtua' => '-',
-                    'jumlah_anggota' => $totalAnggota,
-                ];
-            }
-        }
-        
-        // Get from dewasa
-        $dewasaList = SasaranDewasa::where('id_posyandu', $posyanduId)
-            ->whereNotNull('no_kk_sasaran')
-            ->get();
-            
-        foreach ($dewasaList as $dewasa) {
-            $noKk = $dewasa->no_kk_sasaran;
-            if (!isset($noKkList[$noKk])) {
-                $countBalita = SasaranBayibalita::where('id_posyandu', $posyanduId)
-                    ->where('no_kk_sasaran', $noKk)
-                    ->count();
-                $countRemaja = SasaranRemaja::where('id_posyandu', $posyanduId)
-                    ->where('no_kk_sasaran', $noKk)
-                    ->count();
-                $countDewasa = SasaranDewasa::where('id_posyandu', $posyanduId)
-                    ->where('no_kk_sasaran', $noKk)
-                    ->count();
-                $countPralansia = SasaranPralansia::where('id_posyandu', $posyanduId)
-                    ->where('no_kk_sasaran', $noKk)
-                    ->count();
-                $countLansia = SasaranLansia::where('id_posyandu', $posyanduId)
-                    ->where('no_kk_sasaran', $noKk)
-                    ->count();
-                $totalAnggota = $countBalita + $countRemaja + $countDewasa + $countPralansia + $countLansia;
-                
-                $noKkList[$noKk] = [
-                    'no_kk' => $noKk,
-                    'nama_orangtua' => $dewasa->nama_sasaran,
-                    'jumlah_anggota' => $totalAnggota,
-                ];
-            }
-        }
-        
-        // Get from pralansia
-        $pralansiaList = SasaranPralansia::where('id_posyandu', $posyanduId)
-            ->whereNotNull('no_kk_sasaran')
-            ->get();
-            
-        foreach ($pralansiaList as $pralansia) {
-            $noKk = $pralansia->no_kk_sasaran;
-            if (!isset($noKkList[$noKk])) {
-                $countBalita = SasaranBayibalita::where('id_posyandu', $posyanduId)
-                    ->where('no_kk_sasaran', $noKk)
-                    ->count();
-                $countRemaja = SasaranRemaja::where('id_posyandu', $posyanduId)
-                    ->where('no_kk_sasaran', $noKk)
-                    ->count();
-                $countDewasa = SasaranDewasa::where('id_posyandu', $posyanduId)
-                    ->where('no_kk_sasaran', $noKk)
-                    ->count();
-                $countPralansia = SasaranPralansia::where('id_posyandu', $posyanduId)
-                    ->where('no_kk_sasaran', $noKk)
-                    ->count();
-                $countLansia = SasaranLansia::where('id_posyandu', $posyanduId)
-                    ->where('no_kk_sasaran', $noKk)
-                    ->count();
-                $totalAnggota = $countBalita + $countRemaja + $countDewasa + $countPralansia + $countLansia;
-                
-                $noKkList[$noKk] = [
-                    'no_kk' => $noKk,
-                    'nama_orangtua' => $pralansia->nama_sasaran,
-                    'jumlah_anggota' => $totalAnggota,
-                ];
-            }
-        }
-        
-        // Get from lansia
-        $lansiaList = SasaranLansia::where('id_posyandu', $posyanduId)
-            ->whereNotNull('no_kk_sasaran')
-            ->get();
-            
-        foreach ($lansiaList as $lansia) {
-            $noKk = $lansia->no_kk_sasaran;
-            if (!isset($noKkList[$noKk])) {
-                $countBalita = SasaranBayibalita::where('id_posyandu', $posyanduId)
-                    ->where('no_kk_sasaran', $noKk)
-                    ->count();
-                $countRemaja = SasaranRemaja::where('id_posyandu', $posyanduId)
-                    ->where('no_kk_sasaran', $noKk)
-                    ->count();
-                $countDewasa = SasaranDewasa::where('id_posyandu', $posyanduId)
-                    ->where('no_kk_sasaran', $noKk)
-                    ->count();
-                $countPralansia = SasaranPralansia::where('id_posyandu', $posyanduId)
-                    ->where('no_kk_sasaran', $noKk)
-                    ->count();
-                $countLansia = SasaranLansia::where('id_posyandu', $posyanduId)
-                    ->where('no_kk_sasaran', $noKk)
-                    ->count();
-                $totalAnggota = $countBalita + $countRemaja + $countDewasa + $countPralansia + $countLansia;
-                
-                $noKkList[$noKk] = [
-                    'no_kk' => $noKk,
-                    'nama_orangtua' => $lansia->nama_sasaran,
-                    'jumlah_anggota' => $totalAnggota,
-                ];
-            }
+            $noKkList[$noKk] = [
+                'no_kk' => $noKk,
+                'nama_orangtua' => $namaOrtu,
+                'jumlah_anggota' => $totalAnggota,
+            ];
         }
         
         // Sort by no_kk
