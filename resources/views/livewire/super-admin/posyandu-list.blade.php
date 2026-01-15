@@ -26,15 +26,8 @@
             </div>
         </div>
 
-        {{-- Pesan Sukses/Error --}}
-        @if(session()->has('message'))
-            <div class="mb-6 p-4 rounded-lg {{ session('messageType') === 'success' ? 'bg-green-50 text-green-800 border border-green-200' : 'bg-red-50 text-red-800 border border-red-200' }}">
-                <div class="flex items-center space-x-2">
-                    <i class="ph {{ session('messageType') === 'success' ? 'ph-check-circle' : 'ph-x-circle' }} text-xl"></i>
-                    <span>{{ session('message') }}</span>
-                </div>
-            </div>
-        @endif
+        {{-- Notification Modal --}}
+        @include('components.notification-modal')
 
         {{-- Tabel List Posyandu --}}
         <div class="bg-white rounded-lg shadow-sm overflow-hidden">

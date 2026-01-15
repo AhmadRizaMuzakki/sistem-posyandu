@@ -78,7 +78,9 @@
                             <th class="px-6 py-3">Alamat</th>
                             <th class="px-6 py-3">Kepersertaan BPJS</th>
                             <th class="px-6 py-3">Nomor BPJS</th>
-                            <th class="px-6 py-3">Nomor Telepon</th>
+                            @if(!$isBalitaList)
+                                <th class="px-6 py-3">Nomor Telepon</th>
+                            @endif
                         @endif
 
                         {{-- Kolom Khusus Ibu Hamil - Data Suami dan BPJS --}}
@@ -161,7 +163,9 @@
                                 @endif
                             </td>
                             <td class="px-6 py-4">{{ $item->nomor_bpjs ?? '-' }}</td>
-                            <td class="px-6 py-4">{{ $item->nomor_telepon ?? '-' }}</td>
+                            @if(!$isBalitaList)
+                                <td class="px-6 py-4">{{ $item->nomor_telepon ?? '-' }}</td>
+                            @endif
                         @endif
 
                         {{-- Isi Kolom Khusus Ibu Hamil - Data Suami dan BPJS --}}
@@ -300,7 +304,10 @@
                                 if ($showPendidikanColumn) {
                                     $colspan += 1; // Pendidikan
                                 }
-                                $colspan += 4; // Alamat, Kepersertaan BPJS, Nomor BPJS, Nomor Telepon
+                                $colspan += 3; // Alamat, Kepersertaan BPJS, Nomor BPJS
+                                if (!$isBalitaList) {
+                                    $colspan += 1; // Nomor Telepon (hanya untuk remaja)
+                                }
                                 $colspan += 4; // Nama Orang Tua, Tempat Lahir Orang Tua, Pekerjaan Orang Tua, Pendidikan Orang Tua
                             }
                             if ($isIbuHamil) {

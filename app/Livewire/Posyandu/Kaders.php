@@ -5,6 +5,7 @@ namespace App\Livewire\Posyandu;
 use App\Livewire\SuperAdmin\Traits\KaderCrud;
 use App\Livewire\Posyandu\Traits\PosyanduHelper;
 use App\Livewire\Posyandu\Traits\PosyanduCrudTrait;
+use App\Livewire\Traits\NotificationModal;
 use App\Models\Kader;
 use Livewire\Component;
 use Livewire\Attributes\Layout;
@@ -16,7 +17,7 @@ class Kaders extends Component
         KaderCrud::editKader as traitEditKader;
         KaderCrud::deleteKader as traitDeleteKader;
     }
-    use PosyanduHelper, PosyanduCrudTrait;
+    use PosyanduHelper, PosyanduCrudTrait, NotificationModal;
 
     #[Layout('layouts.posyandudashboard')]
 

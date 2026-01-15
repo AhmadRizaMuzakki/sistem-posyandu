@@ -6,6 +6,7 @@ use App\Models\User;
 use App\Models\Kader;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 
 trait KaderCrud
@@ -181,76 +182,78 @@ trait KaderCrud
 
         $this->validate($rules, $messages);
 
-        if ($this->id_kader) {
-            // UPDATE
-            $kader = Kader::findOrFail($this->id_kader);
-            
-            // Jika kader sudah punya user, update user
-            if ($kader->id_users) {
-                $user = $kader->user;
-                $user->name = $this->nama_kader;
-                $user->email = $this->email_kader;
-                if ($this->password_kader) {
-                    $user->password = Hash::make($this->password_kader);
-                }
-                $user->save();
-            }
-            // Jika kader belum punya user dan password diisi, buat user baru
-            elseif (!empty($this->password_kader)) {
-                // Cek apakah user yang login adalah ketua atau superadmin
-                if (!$isSuperadmin && !$isKetua) {
-                    session()->flash('message', 'Hanya Ketua dan Superadmin yang dapat membuat akun user untuk kader.');
-                    session()->flash('messageType', 'error');
-                    return;
-                }
+        DB::transaction(function () use ($isSuperadmin, $isKetua, &$userId) {
+            if ($this->id_kader) {
+                // UPDATE
+                $kader = Kader::findOrFail($this->id_kader);
                 
-                $user = User::create([
-                    'name' => $this->nama_kader,
-                    'email' => $this->email_kader,
-                    'password' => Hash::make($this->password_kader),
+                // Jika kader sudah punya user, update user
+                if ($kader->id_users) {
+                    $user = $kader->user;
+                    $user->name = $this->nama_kader;
+                    $user->email = $this->email_kader;
+                    if ($this->password_kader) {
+                        $user->password = Hash::make($this->password_kader);
+                    }
+                    $user->save();
+                }
+                // Jika kader belum punya user dan password diisi, buat user baru
+                elseif (!empty($this->password_kader)) {
+                    // Cek apakah user yang login adalah ketua atau superadmin
+                    if (!$isSuperadmin && !$isKetua) {
+                        throw new \Exception('Hanya Ketua dan Superadmin yang dapat membuat akun user untuk kader.');
+                    }
+                    
+                    $user = User::create([
+                        'name' => $this->nama_kader,
+                        'email' => $this->email_kader,
+                        'password' => Hash::make($this->password_kader),
+                    ]);
+                    $user->assignRole('adminPosyandu');
+                    $kader->id_users = $user->id;
+                }
+
+                $kader->id_posyandu = $this->posyandu_id_kader;
+                $kader->nama_kader = $this->nama_kader;
+                $kader->nik_kader = $this->nik_kader;
+                $kader->tanggal_lahir = $this->tanggal_lahir;
+                $kader->alamat_kader = $this->alamat_kader;
+                $kader->jabatan_kader = $this->jabatan_kader;
+                $kader->save();
+            } else {
+                // CREATE
+                $userId = null;
+                
+                // Hanya buat user jika password diisi
+                if (!empty($this->password_kader)) {
+                    $user = User::create([
+                        'name' => $this->nama_kader,
+                        'email' => $this->email_kader,
+                        'password' => Hash::make($this->password_kader),
+                    ]);
+
+                    // Assign role kader
+                    $user->assignRole('adminPosyandu');
+                    $userId = $user->id;
+                }
+
+                // Buat record Kader (dengan atau tanpa id_users)
+                Kader::create([
+                    'id_users' => $userId,
+                    'nama_kader' => $this->nama_kader,
+                    'id_posyandu' => $this->posyandu_id_kader,
+                    'nik_kader' => $this->nik_kader,
+                    'tanggal_lahir' => $this->tanggal_lahir,
+                    'alamat_kader' => $this->alamat_kader,
+                    'jabatan_kader' => $this->jabatan_kader,
                 ]);
-                $user->assignRole('adminPosyandu');
-                $kader->id_users = $user->id;
             }
-
-            $kader->id_posyandu = $this->posyandu_id_kader;
-            $kader->nama_kader = $this->nama_kader;
-            $kader->nik_kader = $this->nik_kader;
-            $kader->tanggal_lahir = $this->tanggal_lahir;
-            $kader->alamat_kader = $this->alamat_kader;
-            $kader->jabatan_kader = $this->jabatan_kader;
-            $kader->save();
-
+        });
+        
+        if ($this->id_kader) {
             session()->flash('message', 'Data Kader berhasil diperbarui.');
         } else {
-            // CREATE
-            $userId = null;
-            
-            // Hanya buat user jika password diisi
-            if (!empty($this->password_kader)) {
-                $user = User::create([
-                    'name' => $this->nama_kader,
-                    'email' => $this->email_kader,
-                    'password' => Hash::make($this->password_kader),
-                ]);
-
-                // Assign role kader
-                $user->assignRole('adminPosyandu');
-                $userId = $user->id;
-            }
-
-            // Buat record Kader (dengan atau tanpa id_users)
-            Kader::create([
-                'id_users' => $userId,
-                'nama_kader' => $this->nama_kader,
-                'id_posyandu' => $this->posyandu_id_kader,
-                'nik_kader' => $this->nik_kader,
-                'tanggal_lahir' => $this->tanggal_lahir,
-                'alamat_kader' => $this->alamat_kader,
-                'jabatan_kader' => $this->jabatan_kader,
-            ]);
-
-            if ($userId) {
+            if (isset($userId) && $userId) {
                 session()->flash('message', 'Data Kader dan akun user berhasil ditambahkan.');
             } else {
                 session()->flash('message', 'Data Kader berhasil ditambahkan (tanpa akun user).');
@@ -324,12 +327,15 @@ trait KaderCrud
 
         // Hapus user hanya jika tidak digunakan kader lain
         $user = $kader->user;
-        $kader->delete();
+        
+        DB::transaction(function () use ($kader, $user) {
+            $kader->delete();
 
-        // Pastikan user hanya satu kali dipakai (jaga2 penghapusan)
-        if ($user && Kader::where('id_users', $user->id)->count() === 0) {
-            $user->delete();
-        }
+            // Pastikan user hanya satu kali dipakai (jaga2 penghapusan)
+            if ($user && Kader::where('id_users', $user->id)->count() === 0) {
+                $user->delete();
+            }
+        });
 
         $this->refreshPosyandu();
         session()->flash('message', 'Data Kader berhasil dihapus.');

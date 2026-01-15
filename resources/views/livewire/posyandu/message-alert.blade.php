@@ -1,23 +1,71 @@
-{{-- Pesan Sukses/Error --}}
-@if (session()->has('message'))
-    <div class="fixed top-4 right-4 z-50 animate-slide-in-right">
-        <div class="bg-white rounded-lg shadow-lg border-l-4 {{ session('messageType') === 'error' ? 'border-red-500' : 'border-green-500' }} p-4 max-w-md">
-            <div class="flex items-center">
-                <div class="flex-shrink-0">
-                    @if (session('messageType') === 'error')
-                        <i class="ph ph-x-circle text-red-500 text-2xl"></i>
-                    @else
-                        <i class="ph ph-check-circle text-green-500 text-2xl"></i>
-                    @endif
+{{-- Notification Modal --}}
+@if(isset($showNotificationModal))
+    @include('components.notification-modal')
+@elseif (session()->has('message'))
+    {{-- Fallback untuk backward compatibility jika component belum menggunakan NotificationModal trait --}}
+    <div x-data="{ 
+        show: true,
+        type: '{{ session('messageType', 'success') }}',
+        message: '{{ session('message') }}'
+    }" 
+    x-show="show"
+    x-cloak
+    class="fixed inset-0 z-50 overflow-y-auto"
+    style="display: none;"
+    x-init="setTimeout(() => show = false, 5000)">
+        <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+            {{-- Overlay --}}
+            <div x-show="show" 
+                 x-transition:enter="ease-out duration-300"
+                 x-transition:enter-start="opacity-0"
+                 x-transition:enter-end="opacity-100"
+                 x-transition:leave="ease-in duration-200"
+                 x-transition:leave-start="opacity-100"
+                 x-transition:leave-end="opacity-0"
+                 class="fixed inset-0 transition-opacity bg-gray-500 bg-opacity-75"
+                 x-on:click="show = false"></div>
+
+            {{-- Modal Panel --}}
+            <div x-show="show"
+                 x-transition:enter="ease-out duration-300"
+                 x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                 x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100"
+                 x-transition:leave="ease-in duration-200"
+                 x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100"
+                 x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                 class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-md sm:w-full"
+                 x-on:click.away="show = false">
+                
+                {{-- Header --}}
+                <div class="px-6 py-4 flex items-center justify-between {{ session('messageType', 'success') === 'error' ? 'bg-red-500' : 'bg-green-500' }}">
+                    <div class="flex items-center">
+                        @if(session('messageType', 'success') === 'error')
+                            <i class="ph ph-x-circle text-2xl text-white mr-3"></i>
+                        @else
+                            <i class="ph ph-check-circle text-2xl text-white mr-3"></i>
+                        @endif
+                        <h3 class="text-lg font-semibold text-white">
+                            {{ session('messageType', 'success') === 'error' ? 'Terjadi Kesalahan' : 'Berhasil' }}
+                        </h3>
+                    </div>
+                    <button x-on:click="show = false" class="text-white hover:text-gray-200">
+                        <i class="ph ph-x text-xl"></i>
+                    </button>
                 </div>
-                <div class="ml-3">
-                    <p class="text-sm font-medium {{ session('messageType') === 'error' ? 'text-red-800' : 'text-green-800' }}">
+
+                {{-- Body --}}
+                <div class="bg-white px-6 py-4">
+                    <p class="text-gray-700 text-sm">
                         {{ session('message') }}
                     </p>
                 </div>
-                <div class="ml-auto pl-3">
-                    <button wire:click="$dispatch('dismissFlash')" class="text-gray-400 hover:text-gray-600">
-                        <i class="ph ph-x"></i>
+
+                {{-- Footer --}}
+                <div class="bg-gray-50 px-6 py-4 flex justify-end">
+                    <button 
+                        x-on:click="show = false"
+                        class="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors">
+                        Tutup
                     </button>
                 </div>
             </div>

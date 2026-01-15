@@ -3,6 +3,7 @@
 namespace App\Livewire\SuperAdmin\Traits;
 
 use App\Models\SasaranIbuhamil;
+use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 
 trait IbuHamilCrud
@@ -174,14 +175,20 @@ trait IbuHamilCrud
             'pekerjaan_suami' => $this->pekerjaan_suami_ibuhamil ?: null,
         ];
 
+        DB::transaction(function () use ($data) {
+            if ($this->id_sasaran_ibuhamil) {
+                // UPDATE
+                $ibuhamil = SasaranIbuhamil::findOrFail($this->id_sasaran_ibuhamil);
+                $ibuhamil->update($data);
+            } else {
+                // CREATE
+                SasaranIbuhamil::create($data);
+            }
+        });
+        
         if ($this->id_sasaran_ibuhamil) {
-            // UPDATE
-            $ibuhamil = SasaranIbuhamil::findOrFail($this->id_sasaran_ibuhamil);
-            $ibuhamil->update($data);
             session()->flash('message', 'Data Ibu Hamil berhasil diperbarui.');
         } else {
-            // CREATE
-            SasaranIbuhamil::create($data);
             session()->flash('message', 'Data Ibu Hamil berhasil ditambahkan.');
         }
 

@@ -10,6 +10,7 @@ use App\Models\SasaranPralansia;
 use App\Models\SasaranLansia;
 use App\Models\SasaranIbuhamil;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 
 trait PendidikanCrud
@@ -380,11 +381,17 @@ trait PendidikanCrud
             'pendidikan_terakhir' => $this->pendidikan_terakhir_pendidikan ?: ($sasaran['pendidikan'] ?? null),
         ];
 
+        DB::transaction(function () use ($data) {
+            if ($this->id_pendidikan) {
+                PendidikanModel::findOrFail($this->id_pendidikan)->update($data);
+            } else {
+                PendidikanModel::create($data);
+            }
+        });
+        
         if ($this->id_pendidikan) {
-            PendidikanModel::findOrFail($this->id_pendidikan)->update($data);
             session()->flash('message', 'Data Pendidikan berhasil diperbarui.');
         } else {
-            PendidikanModel::create($data);
             session()->flash('message', 'Data Pendidikan berhasil ditambahkan.');
         }
 

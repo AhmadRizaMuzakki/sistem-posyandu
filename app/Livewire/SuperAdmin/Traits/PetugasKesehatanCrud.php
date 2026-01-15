@@ -5,6 +5,7 @@ namespace App\Livewire\SuperAdmin\Traits;
 use App\Models\User;
 use App\Models\PetugasKesehatan;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 
 trait PetugasKesehatanCrud
@@ -126,38 +127,42 @@ trait PetugasKesehatanCrud
             // UPDATE
             $petugasKesehatan = PetugasKesehatan::findOrFail($this->id_petugas_kesehatan);
             
-            // Hapus user jika ada (petugas kesehatan tidak boleh punya akun)
-            if ($petugasKesehatan->id_users) {
-                $user = $petugasKesehatan->user;
-                $petugasKesehatan->id_users = null;
-                $petugasKesehatan->save();
-                
-                // Hapus user jika tidak digunakan oleh petugas kesehatan lain
-                if ($user && PetugasKesehatan::where('id_users', $user->id)->count() === 0) {
-                    $user->delete();
+            DB::transaction(function () use ($petugasKesehatan) {
+                // Hapus user jika ada (petugas kesehatan tidak boleh punya akun)
+                if ($petugasKesehatan->id_users) {
+                    $user = $petugasKesehatan->user;
+                    $petugasKesehatan->id_users = null;
+                    $petugasKesehatan->save();
+                    
+                    // Hapus user jika tidak digunakan oleh petugas kesehatan lain
+                    if ($user && PetugasKesehatan::where('id_users', $user->id)->count() === 0) {
+                        $user->delete();
+                    }
                 }
-            }
 
-            $petugasKesehatan->id_posyandu = $this->posyandu_id_petugas_kesehatan;
-            $petugasKesehatan->nama_petugas_kesehatan = $this->nama_petugas_kesehatan;
-            $petugasKesehatan->nik_petugas_kesehatan = $this->nik_petugas_kesehatan;
-            $petugasKesehatan->tanggal_lahir = $this->tanggal_lahir;
-            $petugasKesehatan->alamat_petugas_kesehatan = $this->alamat_petugas_kesehatan;
-            $petugasKesehatan->bidan = $this->bidan;
-            $petugasKesehatan->save();
+                $petugasKesehatan->id_posyandu = $this->posyandu_id_petugas_kesehatan;
+                $petugasKesehatan->nama_petugas_kesehatan = $this->nama_petugas_kesehatan;
+                $petugasKesehatan->nik_petugas_kesehatan = $this->nik_petugas_kesehatan;
+                $petugasKesehatan->tanggal_lahir = $this->tanggal_lahir;
+                $petugasKesehatan->alamat_petugas_kesehatan = $this->alamat_petugas_kesehatan;
+                $petugasKesehatan->bidan = $this->bidan;
+                $petugasKesehatan->save();
+            });
 
             session()->flash('message', 'Data Petugas Kesehatan berhasil diperbarui.');
         } else {
             // CREATE - Tidak membuat user account
-            PetugasKesehatan::create([
-                'id_users' => null,
-                'nama_petugas_kesehatan' => $this->nama_petugas_kesehatan,
-                'id_posyandu' => $this->posyandu_id_petugas_kesehatan,
-                'nik_petugas_kesehatan' => $this->nik_petugas_kesehatan,
-                'tanggal_lahir' => $this->tanggal_lahir,
-                'alamat_petugas_kesehatan' => $this->alamat_petugas_kesehatan,
-                'bidan' => $this->bidan,
-            ]);
+            DB::transaction(function () {
+                PetugasKesehatan::create([
+                    'id_users' => null,
+                    'nama_petugas_kesehatan' => $this->nama_petugas_kesehatan,
+                    'id_posyandu' => $this->posyandu_id_petugas_kesehatan,
+                    'nik_petugas_kesehatan' => $this->nik_petugas_kesehatan,
+                    'tanggal_lahir' => $this->tanggal_lahir,
+                    'alamat_petugas_kesehatan' => $this->alamat_petugas_kesehatan,
+                    'bidan' => $this->bidan,
+                ]);
+            });
 
             session()->flash('message', 'Data Petugas Kesehatan berhasil ditambahkan.');
         }
@@ -224,11 +229,14 @@ trait PetugasKesehatanCrud
         $petugasKesehatan = PetugasKesehatan::findOrFail($id);
 
         $user = $petugasKesehatan->user;
-        $petugasKesehatan->delete();
+        
+        DB::transaction(function () use ($petugasKesehatan, $user) {
+            $petugasKesehatan->delete();
 
-        if ($user && PetugasKesehatan::where('id_users', $user->id)->count() === 0) {
-            $user->delete();
-        }
+            if ($user && PetugasKesehatan::where('id_users', $user->id)->count() === 0) {
+                $user->delete();
+            }
+        });
 
         $this->refreshPosyandu();
         session()->flash('message', 'Data Petugas Kesehatan berhasil dihapus.');

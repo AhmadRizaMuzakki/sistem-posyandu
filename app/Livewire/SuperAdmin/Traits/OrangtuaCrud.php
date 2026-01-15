@@ -3,6 +3,7 @@
 namespace App\Livewire\SuperAdmin\Traits;
 
 use App\Models\Orangtua;
+use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 
 trait OrangtuaCrud
@@ -141,14 +142,20 @@ trait OrangtuaCrud
             'nomor_telepon' => $this->nomor_telepon_orangtua ?: null,
         ];
 
+        DB::transaction(function () use ($data) {
+            if ($this->nik_orangtua) {
+                // UPDATE - find by nik since that's the primary key
+                $orangtua = Orangtua::findOrFail($this->nik_orangtua);
+                $orangtua->update($data);
+            } else {
+                // CREATE
+                Orangtua::create($data);
+            }
+        });
+        
         if ($this->nik_orangtua) {
-            // UPDATE - find by nik since that's the primary key
-            $orangtua = Orangtua::findOrFail($this->nik_orangtua);
-            $orangtua->update($data);
             session()->flash('message', 'Data Orangtua berhasil diperbarui.');
         } else {
-            // CREATE
-            Orangtua::create($data);
             session()->flash('message', 'Data Orangtua berhasil ditambahkan.');
         }
 

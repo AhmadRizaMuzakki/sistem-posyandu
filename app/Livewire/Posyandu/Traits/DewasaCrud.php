@@ -6,6 +6,7 @@ use App\Models\SasaranDewasa;
 use App\Models\SasaranBayibalita;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 
 trait DewasaCrud
@@ -161,78 +162,84 @@ trait DewasaCrud
             }
         }
 
-        // Buat atau update user untuk sasaran dewasa berdasarkan No KK
-        $userId = null;
-        if ($this->id_users_sasaran_dewasa !== '') {
-            // Jika user sudah dipilih manual, gunakan itu
-            $userId = $this->id_users_sasaran_dewasa;
-        } else {
-            // Pastikan no_kk tersedia
-            if (empty($this->no_kk_sasaran_dewasa)) {
-                throw new \Exception('No KK wajib diisi untuk membuat akun.');
-            }
-
-            // Buat akun otomatis berdasarkan No KK sasaran
-            $email = $this->no_kk_sasaran_dewasa . '@gmail.com';
-            $userExists = User::where('email', $email)->first();
-
-            if ($userExists) {
-                // Update user yang sudah ada (timpa data jika No KK sama)
-                $userExists->name = $this->nama_sasaran_dewasa;
-                $userExists->password = Hash::make($this->no_kk_sasaran_dewasa);
-                $userExists->save();
-                $userId = $userExists->id;
-            } else {
-                // Buat user baru
-                $user = User::create([
-                    'name' => $this->nama_sasaran_dewasa,
-                    'email' => $email,
-                    'password' => Hash::make($this->no_kk_sasaran_dewasa),
-                    'email_verified_at' => now(),
-                ]);
-                $userId = $user->id;
-
-                // Assign role orangtua jika belum punya
-                if (!$user->hasRole('orangtua')) {
-                    $user->assignRole('orangtua');
-                }
-            }
-        }
-
         // Gunakan id_posyandu_sasaran jika ada, jika tidak gunakan posyanduId dari kader
         $posyanduId = $this->id_posyandu_sasaran ?? $this->setPosyanduFromKader();
 
-        $data = [
-            'id_users' => $userId,
-            'id_posyandu' => $posyanduId,
-            'nama_sasaran' => $this->nama_sasaran_dewasa,
-            'nik_sasaran' => $this->nik_sasaran_dewasa,
-            'no_kk_sasaran' => $this->no_kk_sasaran_dewasa ?: null,
-            'tempat_lahir' => $this->tempat_lahir_dewasa ?: null,
-            'tanggal_lahir' => $this->tanggal_lahir_dewasa,
-            'jenis_kelamin' => $this->jenis_kelamin_dewasa,
-            'umur_sasaran' => $umur,
-            'pekerjaan' => $this->pekerjaan_dewasa ?: null,
-            'pendidikan' => $this->pendidikan_dewasa ?: null,
-            'nik_orangtua' => $nik_orangtua,
-            'alamat_sasaran' => $this->alamat_sasaran_dewasa,
-            'rt' => $this->rt_dewasa ?: null,
-            'rw' => $this->rw_dewasa ?: null,
-            'kepersertaan_bpjs' => $this->kepersertaan_bpjs_dewasa ?: null,
-            'nomor_bpjs' => $this->nomor_bpjs_dewasa ?: null,
-            'nomor_telepon' => $this->nomor_telepon_dewasa ?: null,
-        ];
+        DB::transaction(function () use ($umur, $nik_orangtua, $posyanduId, &$userId, &$dewasa) {
+            // Buat atau update user untuk sasaran dewasa berdasarkan No KK
+            $userId = null;
+            if ($this->id_users_sasaran_dewasa !== '') {
+                // Jika user sudah dipilih manual, gunakan itu
+                $userId = $this->id_users_sasaran_dewasa;
+            } else {
+                // Pastikan no_kk tersedia
+                if (empty($this->no_kk_sasaran_dewasa)) {
+                    throw new \Exception('No KK wajib diisi untuk membuat akun.');
+                }
 
-        if ($this->id_sasaran_dewasa) {
-            // UPDATE
-            if (!$dewasa) {
-                $dewasa = SasaranDewasa::findOrFail($this->id_sasaran_dewasa);
+                // Buat akun otomatis berdasarkan No KK sasaran
+                $email = $this->no_kk_sasaran_dewasa . '@gmail.com';
+                $userExists = User::where('email', $email)->first();
+
+                if ($userExists) {
+                    // Update user yang sudah ada (timpa data jika No KK sama)
+                    $userExists->name = $this->nama_sasaran_dewasa;
+                    $userExists->password = Hash::make($this->no_kk_sasaran_dewasa);
+                    $userExists->save();
+                    $userId = $userExists->id;
+                } else {
+                    // Buat user baru
+                    $user = User::create([
+                        'name' => $this->nama_sasaran_dewasa,
+                        'email' => $email,
+                        'password' => Hash::make($this->no_kk_sasaran_dewasa),
+                        'email_verified_at' => now(),
+                    ]);
+                    $userId = $user->id;
+
+                    // Assign role orangtua jika belum punya
+                    if (!$user->hasRole('orangtua')) {
+                        $user->assignRole('orangtua');
+                    }
+                }
             }
-            $dewasa->update($data);
+
+            $data = [
+                'id_users' => $userId,
+                'id_posyandu' => $posyanduId,
+                'nama_sasaran' => $this->nama_sasaran_dewasa,
+                'nik_sasaran' => $this->nik_sasaran_dewasa,
+                'no_kk_sasaran' => $this->no_kk_sasaran_dewasa ?: null,
+                'tempat_lahir' => $this->tempat_lahir_dewasa ?: null,
+                'tanggal_lahir' => $this->tanggal_lahir_dewasa,
+                'jenis_kelamin' => $this->jenis_kelamin_dewasa,
+                'umur_sasaran' => $umur,
+                'pekerjaan' => $this->pekerjaan_dewasa ?: null,
+                'pendidikan' => $this->pendidikan_dewasa ?: null,
+                'nik_orangtua' => $nik_orangtua,
+                'alamat_sasaran' => $this->alamat_sasaran_dewasa,
+                'rt' => $this->rt_dewasa ?: null,
+                'rw' => $this->rw_dewasa ?: null,
+                'kepersertaan_bpjs' => $this->kepersertaan_bpjs_dewasa ?: null,
+                'nomor_bpjs' => $this->nomor_bpjs_dewasa ?: null,
+                'nomor_telepon' => $this->nomor_telepon_dewasa ?: null,
+            ];
+
+            if ($this->id_sasaran_dewasa) {
+                // UPDATE
+                if (!$dewasa) {
+                    $dewasa = SasaranDewasa::findOrFail($this->id_sasaran_dewasa);
+                }
+                $dewasa->update($data);
+            } else {
+                // CREATE
+                $dewasa = SasaranDewasa::create($data);
+            }
+        });
+        
+        if ($this->id_sasaran_dewasa) {
             session()->flash('message', 'Data Dewasa berhasil diperbarui.');
         } else {
-            // CREATE
-            SasaranDewasa::create($data);
             session()->flash('message', 'Data Dewasa berhasil ditambahkan.');
         }
 

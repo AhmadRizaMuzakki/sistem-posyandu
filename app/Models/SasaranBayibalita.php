@@ -25,7 +25,6 @@ class SasaranBayibalita extends Model
         'rw',
         'kepersertaan_bpjs',
         'nomor_bpjs',
-        'nomor_telepon',
     ];
 
     public function posyandu()

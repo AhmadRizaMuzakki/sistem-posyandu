@@ -5,6 +5,7 @@ namespace App\Livewire\Posyandu;
 use App\Livewire\SuperAdmin\Traits\PetugasKesehatanCrud;
 use App\Livewire\Posyandu\Traits\PosyanduHelper;
 use App\Livewire\Posyandu\Traits\PosyanduCrudTrait;
+use App\Livewire\Traits\NotificationModal;
 use App\Models\PetugasKesehatan;
 use Livewire\Component;
 use Livewire\Attributes\Layout;
@@ -16,7 +17,7 @@ class PosyanduPetugasKesehatan extends Component
         PetugasKesehatanCrud::editPetugasKesehatan as traitEditPetugasKesehatan;
         PetugasKesehatanCrud::deletePetugasKesehatan as traitDeletePetugasKesehatan;
     }
-    use PosyanduHelper, PosyanduCrudTrait;
+    use PosyanduHelper, PosyanduCrudTrait, NotificationModal;
 
     #[Layout('layouts.posyandudashboard')]
 

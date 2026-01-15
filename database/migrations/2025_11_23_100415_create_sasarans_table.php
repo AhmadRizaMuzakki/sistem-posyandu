@@ -28,7 +28,6 @@ return new class extends Migration
             $table->string('rw')->nullable();
             $table->enum('kepersertaan_bpjs', ['PBI', 'NON PBI'])->default('NON PBI')->nullable();
             $table->string('nomor_bpjs')->nullable();
-            $table->string('nomor_telepon')->nullable();
             $table->timestamps();
 
             $table->foreign('id_posyandu')->references('id_posyandu')->on('posyandu')->cascadeOnDelete();

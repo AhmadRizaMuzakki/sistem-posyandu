@@ -7,6 +7,7 @@ use Livewire\Component;
 use Livewire\Attributes\Layout;
 use Livewire\WithFileUploads;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 class PosyanduList extends Component
@@ -162,19 +163,21 @@ class PosyanduList extends Component
                 $data['logo_posyandu'] = $this->currentLogoPath;
             }
 
-            if ($this->isEditMode && $this->editingId) {
-                // Update existing
-                $posyandu = Posyandu::find($this->editingId);
-                if (!$posyandu) {
-                    throw new \Exception('Posyandu tidak ditemukan.');
+            DB::transaction(function () use ($data, &$message) {
+                if ($this->isEditMode && $this->editingId) {
+                    // Update existing
+                    $posyandu = Posyandu::find($this->editingId);
+                    if (!$posyandu) {
+                        throw new \Exception('Posyandu tidak ditemukan.');
+                    }
+                    $posyandu->update($data);
+                    $message = 'Posyandu berhasil diperbarui.';
+                } else {
+                    // Create new
+                    Posyandu::create($data);
+                    $message = 'Posyandu berhasil ditambahkan.';
                 }
-                $posyandu->update($data);
-                $message = 'Posyandu berhasil diperbarui.';
-            } else {
-                // Create new
-                Posyandu::create($data);
-                $message = 'Posyandu berhasil ditambahkan.';
-            }
+            });
 
             $this->loadPosyandu();
             $this->resetForm();
@@ -229,23 +232,25 @@ class PosyanduList extends Component
                 return;
             }
 
-            // Hapus file SK jika ada
-            if ($posyandu->sk_posyandu) {
-                $oldPath = str_replace('/storage/', '', $posyandu->sk_posyandu);
-                if (Storage::disk('public')->exists($oldPath)) {
-                    Storage::disk('public')->delete($oldPath);
+            DB::transaction(function () use ($posyandu) {
+                // Hapus file SK jika ada
+                if ($posyandu->sk_posyandu) {
+                    $oldPath = str_replace('/storage/', '', $posyandu->sk_posyandu);
+                    if (Storage::disk('public')->exists($oldPath)) {
+                        Storage::disk('public')->delete($oldPath);
+                    }
                 }
-            }
 
-            // Hapus logo jika ada
-            if ($posyandu->logo_posyandu) {
-                $oldPath = str_replace('/storage/', '', $posyandu->logo_posyandu);
-                if (Storage::disk('public')->exists($oldPath)) {
-                    Storage::disk('public')->delete($oldPath);
+                // Hapus logo jika ada
+                if ($posyandu->logo_posyandu) {
+                    $oldPath = str_replace('/storage/', '', $posyandu->logo_posyandu);
+                    if (Storage::disk('public')->exists($oldPath)) {
+                        Storage::disk('public')->delete($oldPath);
+                    }
                 }
-            }
 
-            $posyandu->delete();
+                $posyandu->delete();
+            });
             $this->loadPosyandu();
 
             session()->flash('message', 'Posyandu berhasil dihapus.');

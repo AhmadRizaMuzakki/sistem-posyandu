@@ -9,6 +9,7 @@ use App\Models\SasaranDewasa;
 use App\Models\SasaranPralansia;
 use App\Models\SasaranLansia;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 
 trait BalitaCrud
@@ -35,7 +36,6 @@ trait BalitaCrud
     public $rw_sasaran;
     public $kepersertaan_bpjs;
     public $nomor_bpjs;
-    public $nomor_telepon;
 
     // Field Form Orangtua
     public $nama_orangtua;
@@ -96,7 +96,6 @@ trait BalitaCrud
         $this->rw_sasaran = '';
         $this->kepersertaan_bpjs = '';
         $this->nomor_bpjs = '';
-        $this->nomor_telepon = '';
         // Reset field orangtua
         $this->nama_orangtua = '';
         $this->tempat_lahir_orangtua = '';
@@ -248,78 +247,83 @@ trait BalitaCrud
             }
         }
 
-        // Update atau create orangtua
-        $orangtua = Orangtua::updateOrCreate(
-            ['nik' => $this->nik_orangtua],
-            $orangtuaData
-        );
+        DB::transaction(function () use ($orangtuaData, $umur, &$user, &$orangtua) {
+            // Update atau create orangtua
+            $orangtua = Orangtua::updateOrCreate(
+                ['nik' => $this->nik_orangtua],
+                $orangtuaData
+            );
 
-        // Buat atau update user untuk orangtua berdasarkan No KK
-        // Pastikan no_kk tersedia
-        if (empty($this->no_kk_sasaran)) {
-            throw new \Exception('No KK wajib diisi untuk membuat akun.');
-        }
+            // Buat atau update user untuk orangtua berdasarkan No KK
+            // Pastikan no_kk tersedia
+            if (empty($this->no_kk_sasaran)) {
+                throw new \Exception('No KK wajib diisi untuk membuat akun.');
+            }
 
-        $email = $this->no_kk_sasaran . '@gmail.com';
-        $userExists = User::where('email', $email)->first();
+            $email = $this->no_kk_sasaran . '@gmail.com';
+            $userExists = User::where('email', $email)->first();
 
-        if ($userExists) {
-            // Update user yang sudah ada (timpa data jika No KK sama)
-            $userExists->name = $this->nama_orangtua;
-            $userExists->password = Hash::make($this->no_kk_sasaran);
-            $userExists->save();
-            $user = $userExists;
-        } else {
-            // Buat user baru
-            $user = User::create([
-                'name' => $this->nama_orangtua,
-                'email' => $email,
-                'password' => Hash::make($this->no_kk_sasaran),
-                'email_verified_at' => now(),
-            ]);
-        }
+            if ($userExists) {
+                // Update user yang sudah ada (timpa data jika No KK sama)
+                $userExists->name = $this->nama_orangtua;
+                $userExists->password = Hash::make($this->no_kk_sasaran);
+                $userExists->save();
+                $user = $userExists;
+            } else {
+                // Buat user baru
+                $user = User::create([
+                    'name' => $this->nama_orangtua,
+                    'email' => $email,
+                    'password' => Hash::make($this->no_kk_sasaran),
+                    'email_verified_at' => now(),
+                ]);
+            }
 
-        // Assign role orangtua jika belum punya
-        if (!$user->hasRole('orangtua')) {
-            $user->assignRole('orangtua');
-        }
+            // Assign role orangtua jika belum punya
+            if (!$user->hasRole('orangtua')) {
+                $user->assignRole('orangtua');
+            }
 
-        // Buat atau update record sasaran dewasa/pralansia/lansia berdasarkan umur orangtua
-        // Panggil setelah user dibuat agar user sudah tersedia
-        $this->createOrUpdateSasaranFromOrangtua(
-            $orangtua, 
-            $this->id_posyandu_sasaran ?? $this->posyanduId,
-            $this->rt_sasaran,
-            $this->rw_sasaran
-        );
+            // Buat atau update record sasaran dewasa/pralansia/lansia berdasarkan umur orangtua
+            // Panggil setelah user dibuat agar user sudah tersedia
+            $this->createOrUpdateSasaranFromOrangtua(
+                $orangtua, 
+                $this->id_posyandu_sasaran ?? $this->posyanduId,
+                $this->rt_sasaran,
+                $this->rw_sasaran
+            );
 
-        $data = [
-            'id_users' => $user->id,
-            'id_posyandu' => $this->id_posyandu_sasaran ?? $this->posyanduId,
-            'nama_sasaran' => $this->nama_sasaran,
-            'nik_sasaran' => $this->nik_sasaran,
-            'no_kk_sasaran' => $this->no_kk_sasaran ?: null,
-            'tempat_lahir' => $this->tempat_lahir ?: null,
-            'tanggal_lahir' => $this->tanggal_lahir_sasaran,
-            'jenis_kelamin' => $this->jenis_kelamin,
-            'umur_sasaran' => $umur,
-            'nik_orangtua' => $this->nik_orangtua,
-            'alamat_sasaran' => $this->alamat_sasaran,
-            'rt' => $this->rt_sasaran ?: null,
-            'rw' => $this->rw_sasaran ?: null,
-            'kepersertaan_bpjs' => $this->kepersertaan_bpjs ?: null,
-            'nomor_bpjs' => $this->nomor_bpjs ?: null,
-            'nomor_telepon' => $this->nomor_telepon ?: null,
-        ];
+            $data = [
+                'id_users' => $user->id,
+                'id_posyandu' => $this->id_posyandu_sasaran ?? $this->posyanduId,
+                'nama_sasaran' => $this->nama_sasaran,
+                'nik_sasaran' => $this->nik_sasaran,
+                'no_kk_sasaran' => $this->no_kk_sasaran ?: null,
+                'tempat_lahir' => $this->tempat_lahir ?: null,
+                'tanggal_lahir' => $this->tanggal_lahir_sasaran,
+                'jenis_kelamin' => $this->jenis_kelamin,
+                'umur_sasaran' => $umur,
+                'nik_orangtua' => $this->nik_orangtua,
+                'alamat_sasaran' => $this->alamat_sasaran,
+                'rt' => $this->rt_sasaran ?: null,
+                'rw' => $this->rw_sasaran ?: null,
+                'kepersertaan_bpjs' => $this->kepersertaan_bpjs ?: null,
+                'nomor_bpjs' => $this->nomor_bpjs ?: null,
+            ];
 
+            if ($this->id_sasaran_bayi_balita) {
+                // UPDATE
+                $balita = SasaranBayibalita::findOrFail($this->id_sasaran_bayi_balita);
+                $balita->update($data);
+            } else {
+                // CREATE
+                SasaranBayibalita::create($data);
+            }
+        });
+        
         if ($this->id_sasaran_bayi_balita) {
-            // UPDATE
-            $balita = SasaranBayibalita::findOrFail($this->id_sasaran_bayi_balita);
-            $balita->update($data);
             session()->flash('message', 'Data Balita berhasil diperbarui.');
         } else {
-            // CREATE
-            SasaranBayibalita::create($data);
             session()->flash('message', 'Data Balita berhasil ditambahkan.');
         }
 
@@ -362,7 +366,6 @@ trait BalitaCrud
         $this->rw_sasaran = $balita->rw ?? '';
         $this->kepersertaan_bpjs = $balita->kepersertaan_bpjs ?? '';
         $this->nomor_bpjs = $balita->nomor_bpjs ?? '';
-        $this->nomor_telepon = $balita->nomor_telepon ?? '';
 
         // Load data orangtua jika ada
         if ($balita->nik_orangtua) {

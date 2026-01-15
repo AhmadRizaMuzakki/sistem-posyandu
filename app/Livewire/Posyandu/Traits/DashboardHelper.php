@@ -23,10 +23,11 @@ trait DashboardHelper
     }
 
     /**
-     * Get sasaran counts by category
+     * Get sasaran counts by category - Optimasi dengan single query per table
      */
     protected function getSasaranCountsByCategory($posyanduId)
     {
+        // Gunakan DB::raw untuk optimasi lebih lanjut jika diperlukan
         return [
             'bayibalita' => SasaranBayibalita::where('id_posyandu', $posyanduId)->count(),
             'remaja' => SasaranRemaja::where('id_posyandu', $posyanduId)->count(),
@@ -38,44 +39,62 @@ trait DashboardHelper
     }
 
     /**
-     * Get pendidikan data for chart
+     * Get pendidikan data for chart - Optimasi dengan batch query
      */
     protected function getPendidikanData($posyanduId): array
     {
         $levels = $this->getPendidikanLevels();
-        $counts = [];
+        $counts = array_fill_keys($levels, 0);
 
-        foreach ($levels as $level) {
-            $counts[$level] = 0;
+        // Optimasi: Ambil semua data pendidikan sekaligus, lalu group by
+        $pendidikanData = collect();
 
-            // Remaja
-            if (Schema::hasTable('sasaran_remajas') && Schema::hasColumn('sasaran_remajas', 'pendidikan')) {
-                $counts[$level] += SasaranRemaja::where('id_posyandu', $posyanduId)
-                    ->where('pendidikan', $level)->count();
-            }
+        // Batch query untuk semua kategori sekaligus
+        $pendidikanData = $pendidikanData->merge(
+            SasaranRemaja::where('id_posyandu', $posyanduId)
+                ->whereNotNull('pendidikan')
+                ->select('pendidikan')
+                ->get()
+                ->pluck('pendidikan')
+        );
 
-            // Dewasa
-            if (Schema::hasTable('sasaran_dewasas') && Schema::hasColumn('sasaran_dewasas', 'pendidikan')) {
-                $counts[$level] += SasaranDewasa::where('id_posyandu', $posyanduId)
-                    ->where('pendidikan', $level)->count();
-            }
+        $pendidikanData = $pendidikanData->merge(
+            SasaranDewasa::where('id_posyandu', $posyanduId)
+                ->whereNotNull('pendidikan')
+                ->select('pendidikan')
+                ->get()
+                ->pluck('pendidikan')
+        );
 
-            // Pralansia
-            if (Schema::hasTable('sasaran_pralansias') && Schema::hasColumn('sasaran_pralansias', 'pendidikan')) {
-                $counts[$level] += SasaranPralansia::where('id_posyandu', $posyanduId)
-                    ->where('pendidikan', $level)->count();
-            }
+        $pendidikanData = $pendidikanData->merge(
+            SasaranPralansia::where('id_posyandu', $posyanduId)
+                ->whereNotNull('pendidikan')
+                ->select('pendidikan')
+                ->get()
+                ->pluck('pendidikan')
+        );
 
-            // Lansia
-            if (Schema::hasTable('sasaran_lansias') && Schema::hasColumn('sasaran_lansias', 'pendidikan')) {
-                $counts[$level] += SasaranLansia::where('id_posyandu', $posyanduId)
-                    ->where('pendidikan', $level)->count();
-            }
+        $pendidikanData = $pendidikanData->merge(
+            SasaranLansia::where('id_posyandu', $posyanduId)
+                ->whereNotNull('pendidikan')
+                ->select('pendidikan')
+                ->get()
+                ->pluck('pendidikan')
+        );
 
-            // Ibu Hamil (opsional, jika kolom sudah ada)
-            if (Schema::hasTable('sasaran_ibuhamils') && Schema::hasColumn('sasaran_ibuhamils', 'pendidikan')) {
-                $counts[$level] += SasaranIbuhamil::where('id_posyandu', $posyanduId)
-                    ->where('pendidikan', $level)->count();
+        $pendidikanData = $pendidikanData->merge(
+            SasaranIbuhamil::where('id_posyandu', $posyanduId)
+                ->whereNotNull('pendidikan')
+                ->select('pendidikan')
+                ->get()
+                ->pluck('pendidikan')
+        );
+
+        // Count by level
+        $grouped = $pendidikanData->countBy();
+        foreach ($grouped as $level => $count) {
+            if (isset($counts[$level])) {
+                $counts[$level] = $count;
             }
         }
 

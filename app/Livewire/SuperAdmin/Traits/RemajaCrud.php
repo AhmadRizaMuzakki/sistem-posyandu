@@ -9,6 +9,7 @@ use App\Models\SasaranDewasa;
 use App\Models\SasaranPralansia;
 use App\Models\SasaranLansia;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 
 trait RemajaCrud
@@ -317,50 +318,54 @@ trait RemajaCrud
             'nomor_telepon' => $this->nomor_telepon_remaja ?: null,
         ];
 
-        if ($this->id_sasaran_remaja) {
-            // UPDATE
-            $remaja = SasaranRemaja::findOrFail($this->id_sasaran_remaja);
-            $remaja->update($data);
-            
-            // Auto-save pendidikan
-            if (!empty($this->pendidikan_remaja)) {
-                $this->autoSavePendidikan(
-                    $remaja->id_sasaran_remaja,
-                    'remaja',
-                    $this->posyanduId,
-                    $this->pendidikan_remaja,
-                    [
-                        'nik' => $remaja->nik_sasaran,
-                        'nama' => $remaja->nama_sasaran,
-                        'tanggal_lahir' => $remaja->tanggal_lahir,
-                        'jenis_kelamin' => $remaja->jenis_kelamin,
-                        'umur' => $remaja->umur_sasaran,
-                    ]
-                );
+        DB::transaction(function () use ($data, &$remaja) {
+            if ($this->id_sasaran_remaja) {
+                // UPDATE
+                $remaja = SasaranRemaja::findOrFail($this->id_sasaran_remaja);
+                $remaja->update($data);
+                
+                // Auto-save pendidikan
+                if (!empty($this->pendidikan_remaja)) {
+                    $this->autoSavePendidikan(
+                        $remaja->id_sasaran_remaja,
+                        'remaja',
+                        $this->posyanduId,
+                        $this->pendidikan_remaja,
+                        [
+                            'nik' => $remaja->nik_sasaran,
+                            'nama' => $remaja->nama_sasaran,
+                            'tanggal_lahir' => $remaja->tanggal_lahir,
+                            'jenis_kelamin' => $remaja->jenis_kelamin,
+                            'umur' => $remaja->umur_sasaran,
+                        ]
+                    );
+                }
+            } else {
+                // CREATE
+                $remaja = SasaranRemaja::create($data);
+                
+                // Auto-save pendidikan
+                if (!empty($this->pendidikan_remaja)) {
+                    $this->autoSavePendidikan(
+                        $remaja->id_sasaran_remaja,
+                        'remaja',
+                        $this->posyanduId,
+                        $this->pendidikan_remaja,
+                        [
+                            'nik' => $remaja->nik_sasaran,
+                            'nama' => $remaja->nama_sasaran,
+                            'tanggal_lahir' => $remaja->tanggal_lahir,
+                            'jenis_kelamin' => $remaja->jenis_kelamin,
+                            'umur' => $remaja->umur_sasaran,
+                        ]
+                    );
+                }
             }
-            
+        });
+        
+        if ($this->id_sasaran_remaja) {
             session()->flash('message', 'Data Remaja berhasil diperbarui.');
         } else {
-            // CREATE
-            $remaja = SasaranRemaja::create($data);
-            
-            // Auto-save pendidikan
-            if (!empty($this->pendidikan_remaja)) {
-                $this->autoSavePendidikan(
-                    $remaja->id_sasaran_remaja,
-                    'remaja',
-                    $this->posyanduId,
-                    $this->pendidikan_remaja,
-                    [
-                        'nik' => $remaja->nik_sasaran,
-                        'nama' => $remaja->nama_sasaran,
-                        'tanggal_lahir' => $remaja->tanggal_lahir,
-                        'jenis_kelamin' => $remaja->jenis_kelamin,
-                        'umur' => $remaja->umur_sasaran,
-                    ]
-                );
-            }
-            
             session()->flash('message', 'Data Remaja berhasil ditambahkan.');
         }
 

@@ -6,6 +6,7 @@ use App\Models\SasaranPralansia;
 use App\Models\SasaranBayibalita;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 
 trait PralansiaCrud
@@ -163,78 +164,84 @@ trait PralansiaCrud
             }
         }
 
-        // Buat atau update user untuk sasaran pralansia berdasarkan No KK
-        $userId = null;
-        if ($this->id_users_sasaran_pralansia !== '') {
-            // Jika user sudah dipilih manual, gunakan itu
-            $userId = $this->id_users_sasaran_pralansia;
-        } else {
-            // Pastikan no_kk tersedia
-            if (empty($this->no_kk_sasaran_pralansia)) {
-                throw new \Exception('No KK wajib diisi untuk membuat akun.');
-            }
-
-            // Buat akun otomatis berdasarkan No KK sasaran
-            $email = $this->no_kk_sasaran_pralansia . '@gmail.com';
-            $userExists = User::where('email', $email)->first();
-
-            if ($userExists) {
-                // Update user yang sudah ada (timpa data jika No KK sama)
-                $userExists->name = $this->nama_sasaran_pralansia;
-                $userExists->password = Hash::make($this->no_kk_sasaran_pralansia);
-                $userExists->save();
-                $userId = $userExists->id;
-            } else {
-                // Buat user baru
-                $user = User::create([
-                    'name' => $this->nama_sasaran_pralansia,
-                    'email' => $email,
-                    'password' => Hash::make($this->no_kk_sasaran_pralansia),
-                    'email_verified_at' => now(),
-                ]);
-                $userId = $user->id;
-
-                // Assign role orangtua jika belum punya
-                if (!$user->hasRole('orangtua')) {
-                    $user->assignRole('orangtua');
-                }
-            }
-        }
-
         // Gunakan id_posyandu_sasaran jika ada, jika tidak gunakan posyanduId dari kader
         $posyanduId = $this->id_posyandu_sasaran ?? $this->setPosyanduFromKader();
 
-        $data = [
-            'id_users' => $userId,
-            'id_posyandu' => $posyanduId,
-            'nama_sasaran' => $this->nama_sasaran_pralansia,
-            'nik_sasaran' => $this->nik_sasaran_pralansia,
-            'no_kk_sasaran' => $this->no_kk_sasaran_pralansia ?: null,
-            'tempat_lahir' => $this->tempat_lahir_pralansia ?: null,
-            'tanggal_lahir' => $this->tanggal_lahir_pralansia,
-            'jenis_kelamin' => $this->jenis_kelamin_pralansia,
-            'umur_sasaran' => $umur,
-            'pekerjaan' => $this->pekerjaan_pralansia ?: null,
-            'pendidikan' => $this->pendidikan_pralansia ?: null,
-            'nik_orangtua' => $nik_orangtua,
-            'alamat_sasaran' => $this->alamat_sasaran_pralansia,
-            'rt' => $this->rt_pralansia ?: null,
-            'rw' => $this->rw_pralansia ?: null,
-            'kepersertaan_bpjs' => $this->kepersertaan_bpjs_pralansia ?: null,
-            'nomor_bpjs' => $this->nomor_bpjs_pralansia ?: null,
-            'nomor_telepon' => $this->nomor_telepon_pralansia ?: null,
-        ];
+        DB::transaction(function () use ($umur, $nik_orangtua, $posyanduId, &$userId, &$pralansia) {
+            // Buat atau update user untuk sasaran pralansia berdasarkan No KK
+            $userId = null;
+            if ($this->id_users_sasaran_pralansia !== '') {
+                // Jika user sudah dipilih manual, gunakan itu
+                $userId = $this->id_users_sasaran_pralansia;
+            } else {
+                // Pastikan no_kk tersedia
+                if (empty($this->no_kk_sasaran_pralansia)) {
+                    throw new \Exception('No KK wajib diisi untuk membuat akun.');
+                }
 
-        if ($this->id_sasaran_pralansia) {
-            // UPDATE
-            if (!$pralansia) {
-                $pralansia = SasaranPralansia::findOrFail($this->id_sasaran_pralansia);
+                // Buat akun otomatis berdasarkan No KK sasaran
+                $email = $this->no_kk_sasaran_pralansia . '@gmail.com';
+                $userExists = User::where('email', $email)->first();
+
+                if ($userExists) {
+                    // Update user yang sudah ada (timpa data jika No KK sama)
+                    $userExists->name = $this->nama_sasaran_pralansia;
+                    $userExists->password = Hash::make($this->no_kk_sasaran_pralansia);
+                    $userExists->save();
+                    $userId = $userExists->id;
+                } else {
+                    // Buat user baru
+                    $user = User::create([
+                        'name' => $this->nama_sasaran_pralansia,
+                        'email' => $email,
+                        'password' => Hash::make($this->no_kk_sasaran_pralansia),
+                        'email_verified_at' => now(),
+                    ]);
+                    $userId = $user->id;
+
+                    // Assign role orangtua jika belum punya
+                    if (!$user->hasRole('orangtua')) {
+                        $user->assignRole('orangtua');
+                    }
+                }
             }
-            $pralansia->update($data);
+
+            $data = [
+                'id_users' => $userId,
+                'id_posyandu' => $posyanduId,
+                'nama_sasaran' => $this->nama_sasaran_pralansia,
+                'nik_sasaran' => $this->nik_sasaran_pralansia,
+                'no_kk_sasaran' => $this->no_kk_sasaran_pralansia ?: null,
+                'tempat_lahir' => $this->tempat_lahir_pralansia ?: null,
+                'tanggal_lahir' => $this->tanggal_lahir_pralansia,
+                'jenis_kelamin' => $this->jenis_kelamin_pralansia,
+                'umur_sasaran' => $umur,
+                'pekerjaan' => $this->pekerjaan_pralansia ?: null,
+                'pendidikan' => $this->pendidikan_pralansia ?: null,
+                'nik_orangtua' => $nik_orangtua,
+                'alamat_sasaran' => $this->alamat_sasaran_pralansia,
+                'rt' => $this->rt_pralansia ?: null,
+                'rw' => $this->rw_pralansia ?: null,
+                'kepersertaan_bpjs' => $this->kepersertaan_bpjs_pralansia ?: null,
+                'nomor_bpjs' => $this->nomor_bpjs_pralansia ?: null,
+                'nomor_telepon' => $this->nomor_telepon_pralansia ?: null,
+            ];
+
+            if ($this->id_sasaran_pralansia) {
+                // UPDATE
+                if (!$pralansia) {
+                    $pralansia = SasaranPralansia::findOrFail($this->id_sasaran_pralansia);
+                }
+                $pralansia->update($data);
+            } else {
+                // CREATE
+                $pralansia = SasaranPralansia::create($data);
+            }
+        });
+        
+        if ($this->id_sasaran_pralansia) {
             session()->flash('message', 'Data Pralansia berhasil diperbarui.');
         } else {
-            // CREATE
-            SasaranPralansia::create($data);
             session()->flash('message', 'Data Pralansia berhasil ditambahkan.');
         }
 

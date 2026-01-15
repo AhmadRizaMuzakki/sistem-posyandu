@@ -9,6 +9,7 @@ use App\Models\SasaranDewasa;
 use App\Models\SasaranPralansia;
 use App\Models\SasaranLansia;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 
 trait ImunisasiCrud
@@ -249,14 +250,20 @@ trait ImunisasiCrud
             'keterangan' => $this->keterangan,
         ];
 
+        DB::transaction(function () use ($data) {
+            if ($this->id_imunisasi) {
+                // UPDATE
+                $imunisasi = Imunisasi::findOrFail($this->id_imunisasi);
+                $imunisasi->update($data);
+            } else {
+                // CREATE
+                Imunisasi::create($data);
+            }
+        });
+        
         if ($this->id_imunisasi) {
-            // UPDATE
-            $imunisasi = Imunisasi::findOrFail($this->id_imunisasi);
-            $imunisasi->update($data);
             session()->flash('message', 'Data Imunisasi berhasil diperbarui.');
         } else {
-            // CREATE
-            Imunisasi::create($data);
             session()->flash('message', 'Data Imunisasi berhasil ditambahkan.');
         }
 

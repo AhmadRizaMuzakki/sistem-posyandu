@@ -5,6 +5,7 @@ namespace App\Livewire\Posyandu;
 use App\Livewire\SuperAdmin\Traits\ImunisasiCrud;
 use App\Livewire\Posyandu\Traits\PosyanduHelper;
 use App\Livewire\Posyandu\Traits\PosyanduCrudTrait;
+use App\Livewire\Traits\NotificationModal;
 use App\Models\Imunisasi;
 use App\Models\SasaranBayibalita;
 use App\Models\SasaranRemaja;
@@ -22,7 +23,7 @@ class KaderImunisasi extends Component
         ImunisasiCrud::editImunisasi as traitEditImunisasi;
         ImunisasiCrud::deleteImunisasi as traitDeleteImunisasi;
     }
-    use PosyanduHelper, PosyanduCrudTrait;
+    use PosyanduHelper, PosyanduCrudTrait, NotificationModal;
 
     public $search = '';
 

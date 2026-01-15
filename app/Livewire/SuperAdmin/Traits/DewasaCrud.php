@@ -9,6 +9,7 @@ use App\Models\SasaranPralansia;
 use App\Models\SasaranLansia;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 use App\Livewire\SuperAdmin\Traits\AutoSavePendidikan;
 
@@ -224,52 +225,56 @@ trait DewasaCrud
             'nomor_telepon' => $this->nomor_telepon_dewasa ?: null,
         ];
 
+        DB::transaction(function () use ($data, &$dewasa) {
+            if ($this->id_sasaran_dewasa) {
+                // UPDATE
+                if (!$dewasa) {
+                    $dewasa = SasaranDewasa::findOrFail($this->id_sasaran_dewasa);
+                }
+                $dewasa->update($data);
+                
+                // Auto-save pendidikan
+                if (!empty($this->pendidikan_dewasa)) {
+                    $this->autoSavePendidikan(
+                        $dewasa->id_sasaran_dewasa,
+                        'dewasa',
+                        $this->posyanduId,
+                        $this->pendidikan_dewasa,
+                        [
+                            'nik' => $dewasa->nik_sasaran,
+                            'nama' => $dewasa->nama_sasaran,
+                            'tanggal_lahir' => $dewasa->tanggal_lahir,
+                            'jenis_kelamin' => $dewasa->jenis_kelamin,
+                            'umur' => $dewasa->umur_sasaran,
+                        ]
+                    );
+                }
+            } else {
+                // CREATE
+                $dewasa = SasaranDewasa::create($data);
+                
+                // Auto-save pendidikan
+                if (!empty($this->pendidikan_dewasa)) {
+                    $this->autoSavePendidikan(
+                        $dewasa->id_sasaran_dewasa,
+                        'dewasa',
+                        $this->posyanduId,
+                        $this->pendidikan_dewasa,
+                        [
+                            'nik' => $dewasa->nik_sasaran,
+                            'nama' => $dewasa->nama_sasaran,
+                            'tanggal_lahir' => $dewasa->tanggal_lahir,
+                            'jenis_kelamin' => $dewasa->jenis_kelamin,
+                            'umur' => $dewasa->umur_sasaran,
+                        ]
+                    );
+                }
+            }
+        });
+        
         if ($this->id_sasaran_dewasa) {
-            // UPDATE
-            if (!$dewasa) {
-                $dewasa = SasaranDewasa::findOrFail($this->id_sasaran_dewasa);
-            }
-            $dewasa->update($data);
-            
-            // Auto-save pendidikan
-            if (!empty($this->pendidikan_dewasa)) {
-                $this->autoSavePendidikan(
-                    $dewasa->id_sasaran_dewasa,
-                    'dewasa',
-                    $this->posyanduId,
-                    $this->pendidikan_dewasa,
-                    [
-                        'nik' => $dewasa->nik_sasaran,
-                        'nama' => $dewasa->nama_sasaran,
-                        'tanggal_lahir' => $dewasa->tanggal_lahir,
-                        'jenis_kelamin' => $dewasa->jenis_kelamin,
-                        'umur' => $dewasa->umur_sasaran,
-                    ]
-                );
-            }
-            
             session()->flash('message', 'Data Dewasa berhasil diperbarui.');
         } else {
-            // CREATE
-            $dewasa = SasaranDewasa::create($data);
-            
-            // Auto-save pendidikan
-            if (!empty($this->pendidikan_dewasa)) {
-                $this->autoSavePendidikan(
-                    $dewasa->id_sasaran_dewasa,
-                    'dewasa',
-                    $this->posyanduId,
-                    $this->pendidikan_dewasa,
-                    [
-                        'nik' => $dewasa->nik_sasaran,
-                        'nama' => $dewasa->nama_sasaran,
-                        'tanggal_lahir' => $dewasa->tanggal_lahir,
-                        'jenis_kelamin' => $dewasa->jenis_kelamin,
-                        'umur' => $dewasa->umur_sasaran,
-                    ]
-                );
-            }
-            
             session()->flash('message', 'Data Dewasa berhasil ditambahkan.');
         }
 

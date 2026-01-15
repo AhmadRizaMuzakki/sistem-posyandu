@@ -448,35 +448,8 @@
         </div>
     </div>
 
-    {{-- Message Alert --}}
-    @if (session()->has('message'))
-        <div x-data="{ show: true }" 
-             x-show="show" 
-             x-init="setTimeout(() => show = false, 5000)"
-             class="fixed top-4 right-4 z-50 max-w-sm w-full">
-            <div class="rounded-lg shadow-lg p-4 {{ session('messageType') === 'success' ? 'bg-green-50 border border-green-200' : 'bg-red-50 border border-red-200' }}">
-                <div class="flex items-center">
-                    <div class="flex-shrink-0">
-                        @if(session('messageType') === 'success')
-                            <i class="ph ph-check-circle text-2xl text-green-600"></i>
-                        @else
-                            <i class="ph ph-x-circle text-2xl text-red-600"></i>
-                        @endif
-                    </div>
-                    <div class="ml-3">
-                        <p class="text-sm font-medium {{ session('messageType') === 'success' ? 'text-green-800' : 'text-red-800' }}">
-                            {{ session('message') }}
-                        </p>
-                    </div>
-                    <div class="ml-auto pl-3">
-                        <button x-on:click="show = false" class="inline-flex {{ session('messageType') === 'success' ? 'text-green-500 hover:text-green-600' : 'text-red-500 hover:text-red-600' }}">
-                            <i class="ph ph-x"></i>
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    @endif
+    {{-- Notification Modal --}}
+    @include('components.notification-modal')
 </div>
 
 @push('scripts')
