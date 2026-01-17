@@ -56,8 +56,7 @@
                 </button>
                 @if($posyandu->sk_posyandu)
                 <button 
-                    wire:click="deleteSk"
-                    wire:confirm="Apakah Anda yakin ingin menghapus file SK ini?"
+                    wire:click="openConfirmModal('deleteSk', 'Apakah Anda yakin ingin menghapus file SK ini?')"
                     class="px-3 py-1.5 text-sm bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors flex items-center space-x-1">
                     <i class="ph ph-trash text-sm"></i>
                     <span>Hapus</span>
@@ -192,3 +191,4 @@
     </div>
 </div>
 
+@include('components.confirm-modal')

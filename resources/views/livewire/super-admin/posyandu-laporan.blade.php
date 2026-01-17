@@ -177,7 +177,12 @@
         } else if (namaSasaran) {
             window.open(namaSasaran, '_blank');
         } else {
-            alert('Pilih salah satu filter terlebih dahulu');
+            window.dispatchEvent(new CustomEvent('show-alert', {
+                detail: {
+                    message: 'Pilih salah satu filter terlebih dahulu',
+                    type: 'warning'
+                }
+            }));
         }
     }
 
@@ -242,7 +247,12 @@
         }
         // Tidak ada filter yang dipilih
         else {
-            alert('Pilih minimal satu filter terlebih dahulu');
+            window.dispatchEvent(new CustomEvent('show-alert', {
+                detail: {
+                    message: 'Pilih minimal satu filter terlebih dahulu',
+                    type: 'warning'
+                }
+            }));
             return;
         }
         

@@ -343,6 +343,7 @@
 
     @stack('scripts')
     @livewireScripts
+    @include('components.alert-modal')
 </body>
 
 </html>

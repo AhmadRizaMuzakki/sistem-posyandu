@@ -32,6 +32,11 @@ class PosyanduDashboard extends Component
     // Pendidikan properties
     public $showPendidikanModal = false;
     public $pendidikan_terakhir = '';
+    
+    // Modal konfirmasi
+    public $showConfirmModal = false;
+    public $confirmMessage = '';
+    public $confirmAction = '';
 
     #[Layout('layouts.posyandudashboard')]
 
@@ -171,6 +176,37 @@ class PosyanduDashboard extends Component
         } catch (\Exception $e) {
             $this->showErrorNotification('Gagal mengupload file SK: ' . $e->getMessage());
         }
+    }
+
+    /**
+     * Buka modal konfirmasi
+     */
+    public function openConfirmModal($action, $message)
+    {
+        $this->confirmAction = $action;
+        $this->confirmMessage = $message;
+        $this->showConfirmModal = true;
+    }
+
+    /**
+     * Tutup modal konfirmasi
+     */
+    public function closeConfirmModal()
+    {
+        $this->showConfirmModal = false;
+        $this->confirmMessage = '';
+        $this->confirmAction = '';
+    }
+
+    /**
+     * Eksekusi action setelah konfirmasi
+     */
+    public function executeConfirmAction()
+    {
+        if ($this->confirmAction === 'deleteSk') {
+            $this->deleteSk();
+        }
+        $this->closeConfirmModal();
     }
 
     /**

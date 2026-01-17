@@ -161,7 +161,12 @@
             } else if (namaSasaran) {
                 window.open(namaSasaran, '_blank');
             } else {
-                alert('Pilih salah satu filter terlebih dahulu');
+                window.dispatchEvent(new CustomEvent('show-alert', {
+                    detail: {
+                        message: 'Pilih salah satu filter terlebih dahulu',
+                        type: 'warning'
+                    }
+                }));
             }
         }
 
@@ -191,7 +196,7 @@
             }
             // Kombinasi 2 filter: kategori sasaran + pendidikan
             else if (kategoriValue && pendidikanValue) {
-                url = '{{ route("adminPosyandu.pendidikan.pdf.kategori-sasaran-pendidikan", ["kategoriSasaran" => ":kategori", "kategoriPendidikan" => ":pendidikan")]) }}'
+                url = '{{ route("adminPosyandu.pendidikan.pdf.kategori-sasaran-pendidikan", ["kategoriSasaran" => ":kategori", "kategoriPendidikan" => ":pendidikan"]) }}'
                     .replace(':kategori', encodeURIComponent(kategoriValue))
                     .replace(':pendidikan', encodeURIComponent(pendidikanValue));
             }
@@ -221,7 +226,12 @@
             }
             // Tidak ada filter yang dipilih
             else {
-                alert('Pilih minimal satu filter terlebih dahulu');
+                window.dispatchEvent(new CustomEvent('show-alert', {
+                    detail: {
+                        message: 'Pilih minimal satu filter terlebih dahulu',
+                        type: 'warning'
+                    }
+                }));
                 return;
             }
             

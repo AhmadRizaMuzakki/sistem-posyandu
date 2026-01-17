@@ -58,7 +58,7 @@
                 {{-- 3. DATA PETUGAS KESEHATAN --}}
                 <a href="{{ route('adminPosyandu.petugas-kesehatan') }}"
                     class="flex items-center px-4 py-3 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
-                    <i class="ph ph-user-nurse text-xl mr-3"></i>
+                    <i class="ph ph-stethoscope text-xl mr-3"></i>
                     <span class="font-medium">Petugas Kesehatan</span>
                 </a>
 
@@ -189,6 +189,7 @@
 
     @stack('scripts')
     @livewireScripts
+    @include('components.alert-modal')
 </body>
 
 </html>

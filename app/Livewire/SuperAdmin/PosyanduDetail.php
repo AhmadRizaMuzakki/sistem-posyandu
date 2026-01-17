@@ -31,6 +31,11 @@ class PosyanduDetail extends Component
     public $posyanduId;
     public $skFile;
     public $showUploadModal = false;
+    
+    // Modal konfirmasi
+    public $showConfirmModal = false;
+    public $confirmMessage = '';
+    public $confirmAction = '';
 
     // Search properties for each sasaran type
     public $search_bayibalita = '';
@@ -220,6 +225,37 @@ class PosyanduDetail extends Component
             session()->flash('message', 'Gagal mengupload file SK: ' . $e->getMessage());
             session()->flash('messageType', 'error');
         }
+    }
+
+    /**
+     * Buka modal konfirmasi
+     */
+    public function openConfirmModal($action, $message)
+    {
+        $this->confirmAction = $action;
+        $this->confirmMessage = $message;
+        $this->showConfirmModal = true;
+    }
+
+    /**
+     * Tutup modal konfirmasi
+     */
+    public function closeConfirmModal()
+    {
+        $this->showConfirmModal = false;
+        $this->confirmMessage = '';
+        $this->confirmAction = '';
+    }
+
+    /**
+     * Eksekusi action setelah konfirmasi
+     */
+    public function executeConfirmAction()
+    {
+        if ($this->confirmAction === 'deleteSk') {
+            $this->deleteSk();
+        }
+        $this->closeConfirmModal();
     }
 
     /**
