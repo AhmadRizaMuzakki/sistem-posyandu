@@ -55,7 +55,9 @@
                     request()->routeIs('posyandu.kader') ||
                     request()->routeIs('posyandu.petugas-kesehatan') ||
                     request()->routeIs('posyandu.sasaran') ||
-                    request()->routeIs('posyandu.imunisasi')) {
+                    request()->routeIs('posyandu.imunisasi') ||
+                    request()->routeIs('posyandu.pendidikan') ||
+                    request()->routeIs('posyandu.laporan')) {
                     try {
                         $encryptedId = request()->route('id');
                         if ($encryptedId) {
