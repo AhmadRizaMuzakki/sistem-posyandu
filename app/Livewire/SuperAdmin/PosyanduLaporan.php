@@ -84,6 +84,22 @@ class PosyanduLaporan extends Component
             ->filter()
             ->toArray();
 
+        // Ambil daftar kategori sasaran dari pendidikan
+        $kategoriSasaranPendidikanList = Pendidikan::where('id_posyandu', $this->posyandu->id_posyandu)
+            ->distinct()
+            ->orderBy('kategori_sasaran')
+            ->pluck('kategori_sasaran')
+            ->filter()
+            ->toArray();
+
+        // Ambil daftar nama sasaran dari pendidikan
+        $namaSasaranPendidikanList = Pendidikan::where('id_posyandu', $this->posyandu->id_posyandu)
+            ->distinct()
+            ->orderBy('nama')
+            ->pluck('nama')
+            ->filter()
+            ->toArray();
+
         return view('livewire.super-admin.posyandu-laporan', [
             'title' => 'Laporan - '.$this->posyandu->nama_posyandu,
             'daftarPosyandu' => $daftarPosyandu,
@@ -94,6 +110,8 @@ class PosyanduLaporan extends Component
             'jenisVaksinList' => $jenisVaksinList,
             'namaSasaranList' => $namaSasaranList,
             'kategoriPendidikanList' => $kategoriPendidikanList,
+            'kategoriSasaranPendidikanList' => $kategoriSasaranPendidikanList,
+            'namaSasaranPendidikanList' => $namaSasaranPendidikanList,
         ]);
     }
 }

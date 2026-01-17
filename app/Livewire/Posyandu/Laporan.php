@@ -63,6 +63,22 @@ class Laporan extends Component
             ->pluck('pendidikan_terakhir')
             ->toArray();
 
+        // Ambil daftar kategori sasaran dari pendidikan
+        $kategoriSasaranPendidikanList = Pendidikan::where('id_posyandu', $this->posyandu->id_posyandu)
+            ->distinct()
+            ->orderBy('kategori_sasaran')
+            ->pluck('kategori_sasaran')
+            ->filter()
+            ->toArray();
+
+        // Ambil daftar nama sasaran dari pendidikan
+        $namaSasaranPendidikanList = Pendidikan::where('id_posyandu', $this->posyandu->id_posyandu)
+            ->distinct()
+            ->orderBy('nama')
+            ->pluck('nama')
+            ->filter()
+            ->toArray();
+
         // Mapping label kategori
         $kategoriLabels = [
             'bayibalita' => 'Bayi dan Balita',
@@ -81,6 +97,8 @@ class Laporan extends Component
             'jenisVaksinList' => $jenisVaksinList,
             'namaSasaranList' => $namaSasaranList,
             'kategoriPendidikanList' => $kategoriPendidikanList,
+            'kategoriSasaranPendidikanList' => $kategoriSasaranPendidikanList,
+            'namaSasaranPendidikanList' => $namaSasaranPendidikanList,
         ]);
     }
 }

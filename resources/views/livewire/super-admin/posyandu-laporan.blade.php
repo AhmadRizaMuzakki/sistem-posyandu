@@ -112,6 +112,16 @@
                     <h3 class="text-base font-semibold text-gray-800">Export dengan Filter</h3>
                 </div>
                 <div class="space-y-4">
+                    {{-- Filter Kategori Sasaran --}}
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Filter berdasarkan Kategori Sasaran</label>
+                        <select id="filterKategoriPendidikan" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-primary focus:border-primary">
+                            <option value="">Semua Kategori</option>
+                            @foreach($kategoriSasaranPendidikanList ?? [] as $kategori)
+                                <option value="{{ route('superadmin.posyandu.pendidikan.pdf.kategori-sasaran', ['id' => encrypt($posyandu->id_posyandu), 'kategoriSasaran' => urlencode($kategori)]) }}">{{ $kategoriLabels[$kategori] ?? ucfirst($kategori) }}</option>
+                            @endforeach
+                        </select>
+                    </div>
                     {{-- Filter Pendidikan --}}
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-2">Filter berdasarkan Pendidikan</label>
@@ -119,6 +129,16 @@
                             <option value="">Semua Pendidikan</option>
                             @foreach($kategoriPendidikanList as $pendidikan)
                                 <option value="{{ route('superadmin.posyandu.pendidikan.pdf.kategori', ['id' => encrypt($posyandu->id_posyandu), 'kategori' => urlencode($pendidikan)]) }}">{{ $pendidikan }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    {{-- Filter Nama Sasaran --}}
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Filter berdasarkan Nama Sasaran</label>
+                        <select id="filterNamaSasaranPendidikan" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-primary focus:border-primary">
+                            <option value="">Semua Nama Sasaran</option>
+                            @foreach($namaSasaranPendidikanList ?? [] as $nama)
+                                <option value="{{ route('superadmin.posyandu.pendidikan.pdf.nama', ['id' => encrypt($posyandu->id_posyandu), 'nama' => urlencode($nama)]) }}">{{ $nama }}</option>
                             @endforeach
                         </select>
                     </div>
@@ -162,12 +182,72 @@
     }
 
     function exportFilteredPendidikan() {
+        const kategori = document.getElementById('filterKategoriPendidikan').value;
         const pendidikan = document.getElementById('filterPendidikan').value;
+        const namaSasaran = document.getElementById('filterNamaSasaranPendidikan').value;
         
-        if (pendidikan) {
-            window.open(pendidikan, '_blank');
-        } else {
-            alert('Pilih filter pendidikan terlebih dahulu');
+        const posyanduId = '{{ encrypt($posyandu->id_posyandu) }}';
+        let url = '';
+        
+        // Extract values dari route
+        const getValueFromRoute = (route, pattern) => {
+            const match = route.match(pattern);
+            return match ? decodeURIComponent(match[1]) : null;
+        };
+        
+        const kategoriValue = kategori ? getValueFromRoute(kategori, /kategori-sasaran\/([^\/]+)/) : null;
+        const pendidikanValue = pendidikan ? getValueFromRoute(pendidikan, /kategori\/([^\/]+)/) : null;
+        const namaValue = namaSasaran ? getValueFromRoute(namaSasaran, /nama\/([^\/]+)/) : null;
+        
+        // Kombinasi 3 filter: kategori sasaran + pendidikan + nama
+        if (kategoriValue && pendidikanValue && namaValue) {
+            url = '{{ route("superadmin.posyandu.pendidikan.pdf.all-filters", ["id" => ":id", "kategoriSasaran" => ":kategori", "kategoriPendidikan" => ":pendidikan", "nama" => ":nama"]) }}'
+                .replace(':id', posyanduId)
+                .replace(':kategori', encodeURIComponent(kategoriValue))
+                .replace(':pendidikan', encodeURIComponent(pendidikanValue))
+                .replace(':nama', encodeURIComponent(namaValue));
+        }
+        // Kombinasi 2 filter: kategori sasaran + pendidikan
+        else if (kategoriValue && pendidikanValue) {
+            url = '{{ route("superadmin.posyandu.pendidikan.pdf.kategori-sasaran-pendidikan", ["id" => ":id", "kategoriSasaran" => ":kategori", "kategoriPendidikan" => ":pendidikan"]) }}'
+                .replace(':id', posyanduId)
+                .replace(':kategori', encodeURIComponent(kategoriValue))
+                .replace(':pendidikan', encodeURIComponent(pendidikanValue));
+        }
+        // Kombinasi 2 filter: kategori sasaran + nama
+        else if (kategoriValue && namaValue) {
+            url = '{{ route("superadmin.posyandu.pendidikan.pdf.kategori-sasaran-nama", ["id" => ":id", "kategoriSasaran" => ":kategori", "nama" => ":nama"]) }}'
+                .replace(':id', posyanduId)
+                .replace(':kategori', encodeURIComponent(kategoriValue))
+                .replace(':nama', encodeURIComponent(namaValue));
+        }
+        // Kombinasi 2 filter: pendidikan + nama
+        else if (pendidikanValue && namaValue) {
+            url = '{{ route("superadmin.posyandu.pendidikan.pdf.pendidikan-nama", ["id" => ":id", "kategoriPendidikan" => ":pendidikan", "nama" => ":nama"]) }}'
+                .replace(':id', posyanduId)
+                .replace(':pendidikan', encodeURIComponent(pendidikanValue))
+                .replace(':nama', encodeURIComponent(namaValue));
+        }
+        // Filter tunggal: kategori sasaran
+        else if (kategori) {
+            url = kategori;
+        }
+        // Filter tunggal: pendidikan
+        else if (pendidikan) {
+            url = pendidikan;
+        }
+        // Filter tunggal: nama sasaran
+        else if (namaSasaran) {
+            url = namaSasaran;
+        }
+        // Tidak ada filter yang dipilih
+        else {
+            alert('Pilih minimal satu filter terlebih dahulu');
+            return;
+        }
+        
+        if (url) {
+            window.open(url, '_blank');
         }
     }
 </script>
