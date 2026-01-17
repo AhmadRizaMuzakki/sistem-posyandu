@@ -183,7 +183,7 @@
                                     :href="`/supervisor/posyandu/${posyandu.encryptedId}/petugas-kesehatan`"
                                     class="flex items-center px-4 py-2 text-sm text-gray-600 hover:bg-gray-100 hover:text-primary rounded-lg transition-colors group"
                                 >
-                                    <i class="ph ph-user-nurse text-lg mr-3 group-hover:text-primary"></i>
+                                    <i class="ph ph-stethoscope text-lg mr-3 group-hover:text-primary"></i>
                                     <span class="font-medium">Petugas Kesehatan</span>
                                 </a>
 
