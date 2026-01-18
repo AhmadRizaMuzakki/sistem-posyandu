@@ -30,6 +30,7 @@ trait PralansiaCrud
     public $bulan_lahir_pralansia;
     public $tahun_lahir_pralansia;
     public $jenis_kelamin_pralansia;
+    public $status_keluarga_pralansia;
     public $umur_sasaran_pralansia;
     public $pekerjaan_pralansia;
     public $pendidikan_pralansia;
@@ -80,6 +81,7 @@ trait PralansiaCrud
         $this->bulan_lahir_pralansia = '';
         $this->tahun_lahir_pralansia = '';
         $this->jenis_kelamin_pralansia = '';
+        $this->status_keluarga_pralansia = '';
         $this->umur_sasaran_pralansia = '';
         $this->pekerjaan_pralansia = '';
         $this->pendidikan_pralansia = '';
@@ -109,6 +111,7 @@ trait PralansiaCrud
             'tahun_lahir_pralansia' => 'required|numeric|min:1900|max:' . date('Y'),
             'tanggal_lahir_pralansia' => 'required|date',
             'jenis_kelamin_pralansia' => 'required|in:Laki-laki,Perempuan',
+            'status_keluarga_pralansia' => 'nullable|in:kepala keluarga,istri,anak',
             'alamat_sasaran_pralansia' => 'required|string|max:225',
             'pendidikan_pralansia' => 'nullable|string',
         ], [
@@ -215,6 +218,7 @@ trait PralansiaCrud
             'tempat_lahir' => $this->tempat_lahir_pralansia ?: null,
             'tanggal_lahir' => $this->tanggal_lahir_pralansia,
             'jenis_kelamin' => $this->jenis_kelamin_pralansia,
+            'status_keluarga' => $this->status_keluarga_pralansia ?: null,
             'umur_sasaran' => $umur,
             'pekerjaan' => $this->pekerjaan_pralansia ?: null,
             'pendidikan' => $this->pendidikan_pralansia ?: null,
@@ -310,6 +314,7 @@ trait PralansiaCrud
             $this->tahun_lahir_pralansia = '';
         }
         $this->jenis_kelamin_pralansia = $pralansia->jenis_kelamin;
+        $this->status_keluarga_pralansia = $pralansia->status_keluarga ?? '';
         $this->umur_sasaran_pralansia = $pralansia->tanggal_lahir
             ? Carbon::parse($pralansia->tanggal_lahir)->age
             : $pralansia->umur_sasaran;

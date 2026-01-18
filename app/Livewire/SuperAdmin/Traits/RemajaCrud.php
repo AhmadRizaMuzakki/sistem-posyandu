@@ -29,6 +29,7 @@ trait RemajaCrud
     public $bulan_lahir_remaja;
     public $tahun_lahir_remaja;
     public $jenis_kelamin_remaja;
+    public $status_keluarga_remaja;
     public $umur_sasaran_remaja;
     public $pendidikan_remaja;
     public $nik_orangtua_remaja;
@@ -90,6 +91,7 @@ trait RemajaCrud
         $this->bulan_lahir_remaja = '';
         $this->tahun_lahir_remaja = '';
         $this->jenis_kelamin_remaja = '';
+        $this->status_keluarga_remaja = '';
         $this->umur_sasaran_remaja = '';
         $this->pendidikan_remaja = '';
         $this->nik_orangtua_remaja = '';
@@ -132,6 +134,7 @@ trait RemajaCrud
             'tahun_lahir_remaja' => 'required|numeric|min:1900|max:' . date('Y'),
             'tanggal_lahir_remaja' => 'required|date',
             'jenis_kelamin_remaja' => 'required|in:Laki-laki,Perempuan',
+            'status_keluarga_remaja' => 'nullable|in:kepala keluarga,istri,anak',
             'alamat_sasaran_remaja' => 'required|string|max:225',
             'nik_orangtua_remaja' => 'required|numeric',
             'nama_orangtua_remaja' => 'required|string|max:100',
@@ -307,6 +310,7 @@ trait RemajaCrud
             'tempat_lahir' => $this->tempat_lahir_remaja ?: null,
             'tanggal_lahir' => $this->tanggal_lahir_remaja,
             'jenis_kelamin' => $this->jenis_kelamin_remaja,
+            'status_keluarga' => $this->status_keluarga_remaja ?: null,
             'umur_sasaran' => $umur,
             'pendidikan' => $this->pendidikan_remaja ?: null,
             'nik_orangtua' => $this->nik_orangtua_remaja,
@@ -398,6 +402,7 @@ trait RemajaCrud
             $this->tahun_lahir_remaja = '';
         }
         $this->jenis_kelamin_remaja = $remaja->jenis_kelamin;
+        $this->status_keluarga_remaja = $remaja->status_keluarga ?? '';
         $this->umur_sasaran_remaja = $remaja->tanggal_lahir
             ? Carbon::parse($remaja->tanggal_lahir)->age
             : $remaja->umur_sasaran;

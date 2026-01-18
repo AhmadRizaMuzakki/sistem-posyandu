@@ -18,6 +18,7 @@ class SasaranLansia extends Model
         'tempat_lahir',
         'tanggal_lahir',
         'jenis_kelamin',
+        'status_keluarga',
         'umur_sasaran',
         'pekerjaan',
         'pendidikan',

@@ -17,6 +17,7 @@ class SasaranIbuhamil extends Model
         'tempat_lahir',
         'tanggal_lahir',
         'jenis_kelamin',
+        'status_keluarga',
         'umur_sasaran',
         'bulan_kandungan',
         'pekerjaan',
@@ -33,6 +34,7 @@ class SasaranIbuhamil extends Model
         'tempat_lahir_suami',
         'tanggal_lahir_suami',
         'pekerjaan_suami',
+        'status_keluarga_suami',
     ];
 
     public function posyandu()

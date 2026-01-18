@@ -29,6 +29,7 @@ trait BalitaCrud
     public $bulan_lahir_sasaran;
     public $tahun_lahir_sasaran;
     public $jenis_kelamin;
+    public $status_keluarga;
     public $umur_sasaran;
     public $nik_orangtua;
     public $alamat_sasaran;
@@ -89,6 +90,7 @@ trait BalitaCrud
         $this->bulan_lahir_sasaran = '';
         $this->tahun_lahir_sasaran = '';
         $this->jenis_kelamin = '';
+        $this->status_keluarga = '';
         $this->umur_sasaran = '';
         $this->nik_orangtua = '';
         $this->alamat_sasaran = '';
@@ -130,6 +132,7 @@ trait BalitaCrud
             'tahun_lahir_sasaran' => 'required|numeric|min:1900|max:' . date('Y'),
             'tanggal_lahir_sasaran' => 'required|date',
             'jenis_kelamin' => 'required|in:Laki-laki,Perempuan',
+            'status_keluarga' => 'nullable|in:kepala keluarga,istri,anak',
             'alamat_sasaran' => 'required|string|max:225',
             'nik_orangtua' => 'required|numeric',
             'nama_orangtua' => 'required|string|max:100',
@@ -302,6 +305,7 @@ trait BalitaCrud
                 'tempat_lahir' => $this->tempat_lahir ?: null,
                 'tanggal_lahir' => $this->tanggal_lahir_sasaran,
                 'jenis_kelamin' => $this->jenis_kelamin,
+                'status_keluarga' => $this->status_keluarga ?: null,
                 'umur_sasaran' => $umur,
                 'nik_orangtua' => $this->nik_orangtua,
                 'alamat_sasaran' => $this->alamat_sasaran,
@@ -357,6 +361,7 @@ trait BalitaCrud
             $this->tahun_lahir_sasaran = '';
         }
         $this->jenis_kelamin = $balita->jenis_kelamin;
+        $this->status_keluarga = $balita->status_keluarga ?? '';
         $this->umur_sasaran = $balita->tanggal_lahir
             ? Carbon::parse($balita->tanggal_lahir)->age
             : $balita->umur_sasaran;

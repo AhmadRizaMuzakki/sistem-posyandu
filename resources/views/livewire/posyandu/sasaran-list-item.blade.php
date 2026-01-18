@@ -66,6 +66,7 @@
                         <th class="px-6 py-3">Nama</th>
                         <th class="px-6 py-3">Tanggal Lahir</th>
                         <th class="px-6 py-3">Jenis Kelamin</th>
+                        <th class="px-6 py-3">Status Keluarga</th>
                         <th class="px-6 py-3">Umur</th>
 
                         {{-- Kolom Pendidikan untuk Remaja, Dewasa, Lansia, Pralansia --}}
@@ -93,6 +94,7 @@
                             <th class="px-6 py-3">Nama Suami</th>
                             <th class="px-6 py-3">NIK Suami</th>
                             <th class="px-6 py-3">Pekerjaan Suami</th>
+                            <th class="px-6 py-3">Status Keluarga Suami</th>
                             <th class="px-6 py-3">Kepersertaan BPJS</th>
                             <th class="px-6 py-3">Nomor Telepon</th>
                         @endif
@@ -123,6 +125,7 @@
                         <td class="px-6 py-4">{{ $item->nama_sasaran ?? '-' }}</td>
                         <td class="px-6 py-4">{{ $item->tanggal_lahir ? \Carbon\Carbon::parse($item->tanggal_lahir)->format('d/m/Y') : '-' }}</td>
                         <td class="px-6 py-4">{{ $item->jenis_kelamin ?? '-' }}</td>
+                        <td class="px-6 py-4">{{ $item->status_keluarga ? ucfirst($item->status_keluarga) : '-' }}</td>
                         <td class="px-6 py-4">
                             @php
                                 $umurLabel = '-';
@@ -178,6 +181,7 @@
                             <td class="px-6 py-4">{{ $item->nama_suami ?? '-' }}</td>
                             <td class="px-6 py-4">{{ $item->nik_suami ?? '-' }}</td>
                             <td class="px-6 py-4">{{ $item->pekerjaan_suami ?? '-' }}</td>
+                            <td class="px-6 py-4">{{ $item->status_keluarga_suami ? ucfirst($item->status_keluarga_suami) : '-' }}</td>
                             <td class="px-6 py-4">
                                 @if($item->kepersertaan_bpjs)
                                     <span class="px-2 py-1 text-xs font-semibold rounded-full {{ $item->kepersertaan_bpjs == 'PBI' ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800' }}">
@@ -311,7 +315,7 @@
                                 $colspan += 4; // Nama Orang Tua, Tempat Lahir Orang Tua, Pekerjaan Orang Tua, Pendidikan Orang Tua
                             }
                             if ($isIbuHamil) {
-                                $colspan += 10; // Bulan Kandungan, Pekerjaan, Alamat, RT, RW, Nama Suami, NIK Suami, Pekerjaan Suami, Kepersertaan BPJS, Nomor Telepon
+                                $colspan += 11; // Bulan Kandungan, Pekerjaan, Alamat, RT, RW, Nama Suami, NIK Suami, Pekerjaan Suami, Status Keluarga Suami, Kepersertaan BPJS, Nomor Telepon
                             } elseif (!$isDetailed) {
                                 if ($showPendidikanColumn) {
                                     $colspan += 1; // Pendidikan

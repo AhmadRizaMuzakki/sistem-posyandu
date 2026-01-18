@@ -30,6 +30,7 @@ trait LansiaCrud
     public $bulan_lahir_lansia;
     public $tahun_lahir_lansia;
     public $jenis_kelamin_lansia;
+    public $status_keluarga_lansia;
     public $umur_sasaran_lansia;
     public $pekerjaan_lansia;
     public $pendidikan_lansia;
@@ -80,6 +81,7 @@ trait LansiaCrud
         $this->bulan_lahir_lansia = '';
         $this->tahun_lahir_lansia = '';
         $this->jenis_kelamin_lansia = '';
+        $this->status_keluarga_lansia = '';
         $this->umur_sasaran_lansia = '';
         $this->pekerjaan_lansia = '';
         $this->pendidikan_lansia = '';
@@ -109,6 +111,7 @@ trait LansiaCrud
             'tahun_lahir_lansia' => 'required|numeric|min:1900|max:' . date('Y'),
             'tanggal_lahir_lansia' => 'required|date',
             'jenis_kelamin_lansia' => 'required|in:Laki-laki,Perempuan',
+            'status_keluarga_lansia' => 'nullable|in:kepala keluarga,istri,anak',
             'alamat_sasaran_lansia' => 'required|string|max:225',
             'pendidikan_lansia' => 'nullable|string',
         ], [
@@ -215,6 +218,7 @@ trait LansiaCrud
             'tempat_lahir' => $this->tempat_lahir_lansia ?: null,
             'tanggal_lahir' => $this->tanggal_lahir_lansia,
             'jenis_kelamin' => $this->jenis_kelamin_lansia,
+            'status_keluarga' => $this->status_keluarga_lansia ?: null,
             'umur_sasaran' => $umur,
             'pekerjaan' => $this->pekerjaan_lansia ?: null,
             'pendidikan' => $this->pendidikan_lansia ?: null,
@@ -310,6 +314,7 @@ trait LansiaCrud
             $this->tahun_lahir_lansia = '';
         }
         $this->jenis_kelamin_lansia = $lansia->jenis_kelamin;
+        $this->status_keluarga_lansia = $lansia->status_keluarga ?? '';
         $this->umur_sasaran_lansia = $lansia->tanggal_lahir
             ? Carbon::parse($lansia->tanggal_lahir)->age
             : $lansia->umur_sasaran;

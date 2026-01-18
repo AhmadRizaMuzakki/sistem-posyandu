@@ -186,6 +186,16 @@
                             @error('jenis_kelamin_dewasa') <span class="text-red-500 text-xs">{{ $message }}</span>@enderror
                         </div>
                         <div>
+                            <label class="block text-gray-700 text-sm font-bold mb-2">Status Keluarga</label>
+                            <select wire:model="status_keluarga_dewasa" class="shadow border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-primary focus:border-primary">
+                                <option value="">Pilih Status Keluarga...</option>
+                                <option value="kepala keluarga">Kepala Keluarga</option>
+                                <option value="istri">Istri</option>
+                                <option value="anak">Anak</option>
+                            </select>
+                            @error('status_keluarga_dewasa') <span class="text-red-500 text-xs">{{ $message }}</span>@enderror
+                        </div>
+                        <div>
                             <label class="block text-gray-700 text-sm font-bold mb-2">Umur (tahun)</label>
                             <input type="number" wire:model="umur_sasaran_dewasa" readonly class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-primary focus:border-primary bg-gray-100 cursor-not-allowed">
                             @error('umur_sasaran_dewasa') <span class="text-red-500 text-xs">{{ $message }}</span>@enderror

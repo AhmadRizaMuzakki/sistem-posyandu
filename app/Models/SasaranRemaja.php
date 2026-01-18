@@ -18,6 +18,7 @@ class SasaranRemaja extends Model
         'tempat_lahir',
         'tanggal_lahir',
         'jenis_kelamin',
+        'status_keluarga',
         'umur_sasaran',
         'pendidikan',
         'nik_orangtua',

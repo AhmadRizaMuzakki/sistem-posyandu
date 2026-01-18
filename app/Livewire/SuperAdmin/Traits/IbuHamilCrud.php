@@ -22,6 +22,7 @@ trait IbuHamilCrud
     public $bulan_lahir_ibuhamil;
     public $tahun_lahir_ibuhamil;
     public $jenis_kelamin_ibuhamil;
+    public $status_keluarga_ibuhamil;
     public $umur_sasaran_ibuhamil;
     public $bulan_kandungan_ibuhamil;
     public $pekerjaan_ibuhamil;
@@ -39,6 +40,7 @@ trait IbuHamilCrud
     public $tempat_lahir_suami_ibuhamil;
     public $tanggal_lahir_suami_ibuhamil;
     public $pekerjaan_suami_ibuhamil;
+    public $status_keluarga_suami_ibuhamil;
     public $hari_lahir_suami_ibuhamil;
     public $bulan_lahir_suami_ibuhamil;
     public $tahun_lahir_suami_ibuhamil;
@@ -80,6 +82,7 @@ trait IbuHamilCrud
         $this->bulan_lahir_ibuhamil = '';
         $this->tahun_lahir_ibuhamil = '';
         $this->jenis_kelamin_ibuhamil = '';
+        $this->status_keluarga_ibuhamil = '';
         $this->umur_sasaran_ibuhamil = '';
         $this->bulan_kandungan_ibuhamil = '';
         $this->pekerjaan_ibuhamil = '';
@@ -97,6 +100,7 @@ trait IbuHamilCrud
         $this->tempat_lahir_suami_ibuhamil = '';
         $this->tanggal_lahir_suami_ibuhamil = '';
         $this->pekerjaan_suami_ibuhamil = '';
+        $this->status_keluarga_suami_ibuhamil = '';
         $this->hari_lahir_suami_ibuhamil = '';
         $this->bulan_lahir_suami_ibuhamil = '';
         $this->tahun_lahir_suami_ibuhamil = '';
@@ -119,6 +123,7 @@ trait IbuHamilCrud
             'tahun_lahir_ibuhamil' => 'required|numeric|min:1900|max:' . date('Y'),
             'tanggal_lahir_ibuhamil' => 'required|date',
             'jenis_kelamin_ibuhamil' => 'required|in:Laki-laki,Perempuan',
+            'status_keluarga_ibuhamil' => 'nullable|in:kepala keluarga,istri,anak',
             'alamat_sasaran_ibuhamil' => 'required|string|max:225',
         ], [
             'nama_sasaran_ibuhamil.required' => 'Nama sasaran wajib diisi.',
@@ -158,6 +163,7 @@ trait IbuHamilCrud
             'tempat_lahir' => $this->tempat_lahir_ibuhamil ?: null,
             'tanggal_lahir' => $this->tanggal_lahir_ibuhamil,
             'jenis_kelamin' => $this->jenis_kelamin_ibuhamil,
+            'status_keluarga' => $this->status_keluarga_ibuhamil ?: null,
             'umur_sasaran' => $umur,
             'bulan_kandungan' => $this->bulan_kandungan_ibuhamil ?: null,
             'pekerjaan' => $this->pekerjaan_ibuhamil ?: null,
@@ -173,6 +179,7 @@ trait IbuHamilCrud
             'tempat_lahir_suami' => $this->tempat_lahir_suami_ibuhamil ?: null,
             'tanggal_lahir_suami' => $this->tanggal_lahir_suami_ibuhamil ?: null,
             'pekerjaan_suami' => $this->pekerjaan_suami_ibuhamil ?: null,
+            'status_keluarga_suami' => $this->status_keluarga_suami_ibuhamil ?: null,
         ];
 
         DB::transaction(function () use ($data) {
@@ -221,6 +228,7 @@ trait IbuHamilCrud
             $this->tahun_lahir_ibuhamil = '';
         }
         $this->jenis_kelamin_ibuhamil = $ibuhamil->jenis_kelamin;
+        $this->status_keluarga_ibuhamil = $ibuhamil->status_keluarga ?? '';
         $this->umur_sasaran_ibuhamil = $ibuhamil->tanggal_lahir
             ? Carbon::parse($ibuhamil->tanggal_lahir)->age
             : $ibuhamil->umur_sasaran;
@@ -250,6 +258,7 @@ trait IbuHamilCrud
             $this->tahun_lahir_suami_ibuhamil = '';
         }
         $this->pekerjaan_suami_ibuhamil = $ibuhamil->pekerjaan_suami ?? '';
+        $this->status_keluarga_suami_ibuhamil = $ibuhamil->status_keluarga_suami ?? '';
 
         $this->isSasaranIbuHamilModalOpen = true;
     }

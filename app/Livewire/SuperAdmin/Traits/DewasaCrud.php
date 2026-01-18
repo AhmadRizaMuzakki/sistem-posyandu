@@ -30,6 +30,7 @@ trait DewasaCrud
     public $bulan_lahir_dewasa;
     public $tahun_lahir_dewasa;
     public $jenis_kelamin_dewasa;
+    public $status_keluarga_dewasa;
     public $umur_sasaran_dewasa;
     public $pekerjaan_dewasa;
     public $pendidikan_dewasa;
@@ -80,6 +81,7 @@ trait DewasaCrud
         $this->bulan_lahir_dewasa = '';
         $this->tahun_lahir_dewasa = '';
         $this->jenis_kelamin_dewasa = '';
+        $this->status_keluarga_dewasa = '';
         $this->umur_sasaran_dewasa = '';
         $this->pekerjaan_dewasa = '';
         $this->pendidikan_dewasa = '';
@@ -109,6 +111,7 @@ trait DewasaCrud
             'tahun_lahir_dewasa' => 'required|numeric|min:1900|max:' . date('Y'),
             'tanggal_lahir_dewasa' => 'required|date',
             'jenis_kelamin_dewasa' => 'required|in:Laki-laki,Perempuan',
+            'status_keluarga_dewasa' => 'nullable|in:kepala keluarga,istri,anak',
             'alamat_sasaran_dewasa' => 'required|string|max:225',
         ], [
             'nama_sasaran_dewasa.required' => 'Nama sasaran wajib diisi.',
@@ -213,6 +216,7 @@ trait DewasaCrud
             'tempat_lahir' => $this->tempat_lahir_dewasa ?: null,
             'tanggal_lahir' => $this->tanggal_lahir_dewasa,
             'jenis_kelamin' => $this->jenis_kelamin_dewasa,
+            'status_keluarga' => $this->status_keluarga_dewasa ?: null,
             'umur_sasaran' => $umur,
             'pekerjaan' => $this->pekerjaan_dewasa ?: null,
             'pendidikan' => $this->pendidikan_dewasa ?: null,
@@ -308,6 +312,7 @@ trait DewasaCrud
             $this->tahun_lahir_dewasa = '';
         }
         $this->jenis_kelamin_dewasa = $dewasa->jenis_kelamin;
+        $this->status_keluarga_dewasa = $dewasa->status_keluarga ?? '';
         $this->umur_sasaran_dewasa = $dewasa->tanggal_lahir
             ? Carbon::parse($dewasa->tanggal_lahir)->age
             : $dewasa->umur_sasaran;

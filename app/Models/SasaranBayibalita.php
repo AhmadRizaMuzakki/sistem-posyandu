@@ -18,6 +18,7 @@ class SasaranBayibalita extends Model
         'tempat_lahir',
         'tanggal_lahir',
         'jenis_kelamin',
+        'status_keluarga',
         'umur_sasaran',
         'nik_orangtua',
         'alamat_sasaran',
