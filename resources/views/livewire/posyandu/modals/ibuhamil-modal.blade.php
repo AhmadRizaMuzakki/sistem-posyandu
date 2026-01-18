@@ -18,8 +18,120 @@
                         </div>
                         <div>
                             <label class="block text-gray-700 text-sm font-bold mb-2">NIK Sasaran <span class="text-red-500">*</span></label>
-                            <input type="number" wire:model="nik_sasaran_ibuhamil" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-primary focus:border-primary" placeholder="NIK Sasaran">
+                            <div class="relative" x-data="{
+                                open: false,
+                                searchText: '',
+                                selectedNik: @entangle('nik_sasaran_ibuhamil'),
+                                nikList: @js($this->getNikListIbuHamil())
+                            }" x-init="
+                                $watch('selectedNik', value => {
+                                    if (value) {
+                                        const item = nikList.find(item => item.nik == value);
+                                        if (item) {
+                                            searchText = item.nik + ' - ' + item.nama + ' (' + item.kategori + ')';
+                                            // Auto-fill data ketika NIK dipilih
+                                            setTimeout(() => {
+                                                $wire.call('loadDataIbuHamilByNik', value);
+                                            }, 150);
+                                        } else {
+                                            searchText = value;
+                                        }
+                                    } else {
+                                        searchText = '';
+                                    }
+                                });
+                                
+                                // Inisialisasi saat pertama kali load
+                                if (selectedNik) {
+                                    const item = nikList.find(item => item.nik == selectedNik);
+                                    if (item) {
+                                        searchText = item.nik + ' - ' + item.nama + ' (' + item.kategori + ')';
+                                    } else {
+                                        searchText = selectedNik;
+                                    }
+                                }
+                            ">
+                                <input
+                                    type="text"
+                                    x-model="searchText"
+                                    @focus="open = true"
+                                    @input="
+                                        open = true;
+                                        // Jika user mengetik manual, ekstrak hanya angka (NIK)
+                                        const match = searchText.match(/^\d+/);
+                                        if (match && !nikList.find(item => item.nik == match[0])) {
+                                            selectedNik = match[0];
+                                            $wire.set('nik_sasaran_ibuhamil', match[0]);
+                                        }
+                                    "
+                                    @keydown.enter.prevent="
+                                        const match = searchText.match(/^\d+/);
+                                        if (match) {
+                                            selectedNik = match[0];
+                                            $wire.set('nik_sasaran_ibuhamil', match[0]);
+                                            open = false;
+                                        }
+                                    "
+                                    @keydown.escape="open = false"
+                                    @blur="setTimeout(() => {
+                                        open = false;
+                                        // Pastikan nilai yang tersimpan hanya NIK
+                                        if (selectedNik && searchText) {
+                                            const match = searchText.match(/^\d+/);
+                                            if (match && match[0] != selectedNik) {
+                                                selectedNik = match[0];
+                                                $wire.set('nik_sasaran_ibuhamil', match[0]);
+                                            }
+                                        }
+                                    }, 200)"
+                                    class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-primary focus:border-primary"
+                                    placeholder="Ketik untuk mencari NIK atau pilih dari dropdown..."
+                                    autocomplete="off">
+                                <div x-show="open"
+                                     @click.outside="open = false"
+                                     x-transition:enter="transition ease-out duration-100"
+                                     x-transition:enter-start="opacity-0 scale-95"
+                                     x-transition:enter-end="opacity-100 scale-100"
+                                     x-transition:leave="transition ease-in duration-75"
+                                     x-transition:leave-start="opacity-100 scale-100"
+                                     x-transition:leave-end="opacity-0 scale-95"
+                                     class="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-auto"
+                                     style="display: none;">
+                                    <ul class="py-1">
+                                        <li @click="selectedNik = ''; searchText = ''; open = false; $wire.set('nik_sasaran_ibuhamil', '')"
+                                            class="px-4 py-2 text-sm text-gray-500 hover:bg-gray-100 cursor-pointer">
+                                            -- Pilih NIK --
+                                        </li>
+                                        @if(count($this->getNikListIbuHamil()) > 0)
+                                            @foreach($this->getNikListIbuHamil() as $item)
+                                                <li @click="
+                                                    const nik = '{{ $item['nik'] }}';
+                                                    selectedNik = nik;
+                                                    searchText = '{{ $item['nik'] }} - {{ $item['nama'] }} ({{ $item['kategori'] }})';
+                                                    open = false;
+                                                    $wire.set('nik_sasaran_ibuhamil', nik);
+                                                    // Panggil method untuk auto-fill data
+                                                    setTimeout(() => {
+                                                        $wire.call('loadDataIbuHamilByNik', nik);
+                                                    }, 200);
+                                                "
+                                                    x-show="!searchText || '{{ strtolower($item['nik'] . ' ' . $item['nama'] . ' ' . $item['kategori']) }}'.includes(searchText.toLowerCase())"
+                                                    class="px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer"
+                                                    :class="selectedNik == '{{ $item['nik'] }}' ? 'bg-blue-50 font-medium' : ''">
+                                                    <div class="font-medium">{{ $item['nik'] }} - {{ $item['nama'] }}</div>
+                                                    <div class="text-xs text-gray-500">{{ $item['kategori'] }} | {{ $item['jenis_kelamin'] }} | {{ $item['status_keluarga'] ? ucfirst($item['status_keluarga']) : '-' }}</div>
+                                                </li>
+                                            @endforeach
+                                        @else
+                                            <li class="px-4 py-2 text-sm text-gray-500">
+                                                Tidak ada data NIK tersedia
+                                            </li>
+                                        @endif
+                                    </ul>
+                                </div>
+                            </div>
                             @error('nik_sasaran_ibuhamil') <span class="text-red-500 text-xs">{{ $message }}</span>@enderror
+                            <p class="text-xs text-gray-500 mt-1">Pilih NIK dari sasaran dewasa/pralansia/lansia untuk auto-fill data</p>
                         </div>
                         <div>
                             <label class="block text-gray-700 text-sm font-bold mb-2">No. KK</label>
@@ -93,9 +205,9 @@
                             @error('umur_sasaran_ibuhamil') <span class="text-red-500 text-xs">{{ $message }}</span>@enderror
                         </div>
                         <div>
-                            <label class="block text-gray-700 text-sm font-bold mb-2">Bulan Kandungan</label>
-                            <input type="number" wire:model="bulan_kandungan_ibuhamil" min="1" max="9" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-primary focus:border-primary" placeholder="Masukkan bulan kandungan (1-9)">
-                            @error('bulan_kandungan_ibuhamil') <span class="text-red-500 text-xs">{{ $message }}</span>@enderror
+                            <label class="block text-gray-700 text-sm font-bold mb-2">Minggu Kandungan</label>
+                            <input type="number" wire:model="minggu_kandungan_ibuhamil" min="1" max="40" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-primary focus:border-primary" placeholder="Masukkan minggu kandungan (1-40)">
+                            @error('minggu_kandungan_ibuhamil') <span class="text-red-500 text-xs">{{ $message }}</span>@enderror
                         </div>
                         <div>
                             <label class="block text-gray-700 text-sm font-bold mb-2">Pekerjaan</label>
@@ -259,8 +371,120 @@
                             </div>
                             <div>
                                 <label class="block text-gray-700 text-sm font-bold mb-2">NIK Suami</label>
-                                <input type="number" wire:model="nik_suami_ibuhamil" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-primary focus:border-primary" placeholder="NIK suami">
+                                <div class="relative" x-data="{
+                                    open: false,
+                                    searchText: '',
+                                    selectedNik: @entangle('nik_suami_ibuhamil'),
+                                    nikList: @js($this->getNikListSuami())
+                                }" x-init="
+                                    $watch('selectedNik', value => {
+                                        if (value) {
+                                            const item = nikList.find(item => item.nik == value);
+                                            if (item) {
+                                                searchText = item.nik + ' - ' + item.nama + ' (' + item.kategori + ')';
+                                                // Auto-fill data suami ketika NIK dipilih
+                                                setTimeout(() => {
+                                                    $wire.call('loadDataSuamiByNik', value);
+                                                }, 150);
+                                            } else {
+                                                searchText = value;
+                                            }
+                                        } else {
+                                            searchText = '';
+                                        }
+                                    });
+                                    
+                                    // Inisialisasi saat pertama kali load
+                                    if (selectedNik) {
+                                        const item = nikList.find(item => item.nik == selectedNik);
+                                        if (item) {
+                                            searchText = item.nik + ' - ' + item.nama + ' (' + item.kategori + ')';
+                                        } else {
+                                            searchText = selectedNik;
+                                        }
+                                    }
+                                ">
+                                    <input
+                                        type="text"
+                                        x-model="searchText"
+                                        @focus="open = true"
+                                        @input="
+                                            open = true;
+                                            // Jika user mengetik manual, ekstrak hanya angka (NIK)
+                                            const match = searchText.match(/^\d+/);
+                                            if (match && !nikList.find(item => item.nik == match[0])) {
+                                                selectedNik = match[0];
+                                                $wire.set('nik_suami_ibuhamil', match[0]);
+                                            }
+                                        "
+                                        @keydown.enter.prevent="
+                                            const match = searchText.match(/^\d+/);
+                                            if (match) {
+                                                selectedNik = match[0];
+                                                $wire.set('nik_suami_ibuhamil', match[0]);
+                                                open = false;
+                                            }
+                                        "
+                                        @keydown.escape="open = false"
+                                        @blur="setTimeout(() => {
+                                            open = false;
+                                            // Pastikan nilai yang tersimpan hanya NIK
+                                            if (selectedNik && searchText) {
+                                                const match = searchText.match(/^\d+/);
+                                                if (match && match[0] != selectedNik) {
+                                                    selectedNik = match[0];
+                                                    $wire.set('nik_suami_ibuhamil', match[0]);
+                                                }
+                                            }
+                                        }, 200)"
+                                        class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-primary focus:border-primary"
+                                        placeholder="Ketik untuk mencari NIK atau pilih dari dropdown..."
+                                        autocomplete="off">
+                                    <div x-show="open"
+                                         @click.outside="open = false"
+                                         x-transition:enter="transition ease-out duration-100"
+                                         x-transition:enter-start="opacity-0 scale-95"
+                                         x-transition:enter-end="opacity-100 scale-100"
+                                         x-transition:leave="transition ease-in duration-75"
+                                         x-transition:leave-start="opacity-100 scale-100"
+                                         x-transition:leave-end="opacity-0 scale-95"
+                                         class="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-auto"
+                                         style="display: none;">
+                                        <ul class="py-1">
+                                            <li @click="selectedNik = ''; searchText = ''; open = false; $wire.set('nik_suami_ibuhamil', '')"
+                                                class="px-4 py-2 text-sm text-gray-500 hover:bg-gray-100 cursor-pointer">
+                                                -- Pilih NIK Suami --
+                                            </li>
+                                            @if(count($this->getNikListSuami()) > 0)
+                                                @foreach($this->getNikListSuami() as $item)
+                                                    <li @click="
+                                                        const nik = '{{ $item['nik'] }}';
+                                                        selectedNik = nik;
+                                                        searchText = '{{ $item['nik'] }} - {{ $item['nama'] }} ({{ $item['kategori'] }})';
+                                                        open = false;
+                                                        $wire.set('nik_suami_ibuhamil', nik);
+                                                        // Panggil method untuk auto-fill data suami
+                                                        setTimeout(() => {
+                                                            $wire.call('loadDataSuamiByNik', nik);
+                                                        }, 200);
+                                                    "
+                                                        x-show="!searchText || '{{ strtolower($item['nik'] . ' ' . $item['nama'] . ' ' . $item['kategori']) }}'.includes(searchText.toLowerCase())"
+                                                        class="px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer"
+                                                        :class="selectedNik == '{{ $item['nik'] }}' ? 'bg-blue-50 font-medium' : ''">
+                                                        <div class="font-medium">{{ $item['nik'] }} - {{ $item['nama'] }}</div>
+                                                        <div class="text-xs text-gray-500">{{ $item['kategori'] }} | {{ $item['jenis_kelamin'] }} | {{ $item['status_keluarga'] ? ucfirst($item['status_keluarga']) : '-' }}</div>
+                                                    </li>
+                                                @endforeach
+                                            @else
+                                                <li class="px-4 py-2 text-sm text-gray-500">
+                                                    Tidak ada data NIK tersedia
+                                                </li>
+                                            @endif
+                                        </ul>
+                                    </div>
+                                </div>
                                 @error('nik_suami_ibuhamil') <span class="text-red-500 text-xs">{{ $message }}</span>@enderror
+                                <p class="text-xs text-gray-500 mt-1">Pilih NIK dari sasaran dewasa/pralansia/lansia untuk auto-fill biodata suami</p>
                             </div>
                             <div>
                                 <label class="block text-gray-700 text-sm font-bold mb-2">Tempat Lahir Suami</label>

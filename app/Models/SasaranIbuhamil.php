@@ -19,7 +19,7 @@ class SasaranIbuhamil extends Model
         'jenis_kelamin',
         'status_keluarga',
         'umur_sasaran',
-        'bulan_kandungan',
+        'minggu_kandungan',
         'pekerjaan',
         'pendidikan',
         'nik_orangtua',

@@ -86,7 +86,7 @@
 
                         {{-- Kolom Khusus Ibu Hamil - Data Suami dan BPJS --}}
                         @if($isIbuHamil)
-                            <th class="px-6 py-3">Bulan Kandungan</th>
+                            <th class="px-6 py-3">Minggu Kandungan</th>
                             <th class="px-6 py-3">Pekerjaan</th>
                             <th class="px-6 py-3">Alamat</th>
                             <th class="px-6 py-3">RT</th>
@@ -173,7 +173,7 @@
 
                         {{-- Isi Kolom Khusus Ibu Hamil - Data Suami dan BPJS --}}
                         @if($isIbuHamil)
-                            <td class="px-6 py-4">{{ $item->bulan_kandungan ? $item->bulan_kandungan . ' bln' : '-' }}</td>
+                            <td class="px-6 py-4">{{ $item->minggu_kandungan ? $item->minggu_kandungan . ' minggu' : '-' }}</td>
                             <td class="px-6 py-4">{{ $item->pekerjaan ?? '-' }}</td>
                             <td class="px-6 py-4">{{ $item->alamat_sasaran ?? '-' }}</td>
                             <td class="px-6 py-4">{{ $item->rt ?? '-' }}</td>
@@ -315,7 +315,7 @@
                                 $colspan += 4; // Nama Orang Tua, Tempat Lahir Orang Tua, Pekerjaan Orang Tua, Pendidikan Orang Tua
                             }
                             if ($isIbuHamil) {
-                                $colspan += 11; // Bulan Kandungan, Pekerjaan, Alamat, RT, RW, Nama Suami, NIK Suami, Pekerjaan Suami, Status Keluarga Suami, Kepersertaan BPJS, Nomor Telepon
+                                $colspan += 11; // Minggu Kandungan, Pekerjaan, Alamat, RT, RW, Nama Suami, NIK Suami, Pekerjaan Suami, Status Keluarga Suami, Kepersertaan BPJS, Nomor Telepon
                             } elseif (!$isDetailed) {
                                 if ($showPendidikanColumn) {
                                     $colspan += 1; // Pendidikan
