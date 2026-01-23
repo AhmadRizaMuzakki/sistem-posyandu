@@ -83,7 +83,21 @@
                     <span class="font-medium">Pendidikan</span>
                 </a>
 
-                {{-- 7. LAPORAN --}}
+                {{-- 7. DATA IBU MENYUSUI --}}
+                <a href="{{ route('adminPosyandu.ibu-menyusui') }}"
+                    class="flex items-center px-4 py-3 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
+                    <i class="ph ph-baby text-xl mr-3"></i>
+                    <span class="font-medium">Ibu Menyusui</span>
+                </a>
+
+                {{-- 8. JADWAL --}}
+                <a href="{{ route('adminPosyandu.jadwal') }}"
+                    class="flex items-center px-4 py-3 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
+                    <i class="ph ph-calendar text-xl mr-3"></i>
+                    <span class="font-medium">Jadwal</span>
+                </a>
+
+                {{-- 9. LAPORAN --}}
                 <a href="{{ route('adminPosyandu.laporan') }}"
                     class="flex items-center px-4 py-3 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
                     <i class="ph ph-chart-bar text-xl mr-3"></i>

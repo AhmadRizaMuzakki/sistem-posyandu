@@ -1,55 +1,82 @@
-name: Deploy Laravel
+name: Deploy to Hostinger
 
 on:
   push:
-    branches: [ main ] # Sesuaikan nama branch
+    branches:
+      - main  # Pastikan ini sesuai nama branch utama Anda (main atau master)
 
 jobs:
-  deploy:
+  FTP-Deploy-Action:
+    name: 🎉 Deploy Process
     runs-on: ubuntu-latest
     steps:
-    - name: Deploy via SSH
-      uses: appleboy/ssh-action@v1.0.3
+    
+    # 1. Ambil kode terbaru
+    - name: 🚚 Get latest code
+      uses: actions/checkout@v4
       with:
-        host: ${{ secrets.HOST }}
-        username: ${{ secrets.USERNAME }} # Isi 'riza' di secrets GitHub
-        key: ${{ secrets.VPS_SSH_KEY }}
-        script: |
-          set -e  # Stop on error
-          echo "🚀 Starting deployment..."
-          
-          cd /var/www/html
-          echo "📍 Current directory: $(pwd)"
-          echo "📦 Current branch: $(git branch --show-current)"
-          
-          # Tambahkan langkah pembersihan ini
-          echo "🧹 Cleaning up local changes..."
-          git fetch origin main
-          git reset --hard origin/main # Memaksa kondisi file lokal sama persis dengan GitHub
-          echo "✅ Git reset successful!"
-          
-          echo "📦 Installing Composer dependencies..."
-          composer install --no-interaction --prefer-dist --optimize-autoloader
-          
-          echo "📦 Installing NPM dependencies..."
-          npm install
-          
-          echo "🔨 Building assets..."
-          npm run build
-          
-          echo "🗄️ Running migrations..."
-          php artisan migrate --force
-          
-          echo "🧹 Clearing caches..."
-          php artisan optimize:clear
-          
-          echo "⚙️ Caching configuration..."
-          php artisan config:cache
-          php artisan route:cache
-          php artisan view:cache
-          
-          echo "🔐 Setting permissions..."
-          sudo chgrp -R www-data storage bootstrap/cache
-          sudo chmod -R 775 storage bootstrap/cache
-          
-          echo "✅ Deployment completed successfully!"
+        fetch-depth: 0
+
+    # 2. Setup PHP
+    - name: 🔧 Setup PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: '8.2'
+        extensions: mbstring, xml, ctype, iconv, intl, pdo, pdo_mysql, dom, filter, gd, iconv, json, mbstring, zip
+
+    # 3. Install Composer dependencies
+    - name: 📦 Install Composer dependencies
+      run: |
+        composer install --no-interaction --prefer-dist --optimize-autoloader --no-dev
+
+    # 4. Install NPM dependencies
+    - name: 📦 Install NPM dependencies
+      run: |
+        npm ci
+
+    # 5. Build assets
+    - name: 🔨 Build assets
+      run: |
+        npm run build
+
+    # 6. Kirim ke Hostinger via FTP
+    - name: 📂 Sync files
+      uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+      with:
+        server: ${{ secrets.IP }}
+        username: ${{ secrets.USERNAME }}
+        password: ${{ secrets.PASSWORD }}
+        
+        # PENTING UNTUK HOSTINGER:
+        # Hostinger biasanya mengunci akun FTP langsung di dalam folder public_html
+        # Jadi arahkan ke root (./)
+        server-dir: ./
+        
+        # Mencegah file sampah atau file rahasia ter-upload
+        exclude: |
+          **/.git*
+          **/.git*/**
+          **/.github/**
+          **/node_modules/**
+          **/tests/**
+          **/.editorconfig
+          **/.gitattributes
+          **/.gitignore
+          **/.env
+          **/.env.*
+          **/README.md
+          **/phpunit.xml
+          **/postcss.config.js
+          **/tailwind.config.js
+          **/vite.config.js
+          **/package.json
+          **/package-lock.json
+          **/composer.json
+          **/composer.lock
+          **/storage/logs/**
+          **/storage/framework/cache/**
+          **/storage/framework/sessions/**
+          **/storage/framework/views/**
+          **/bootstrap/cache/**
+          **/database/**
+          **/public/Login_v1/**
