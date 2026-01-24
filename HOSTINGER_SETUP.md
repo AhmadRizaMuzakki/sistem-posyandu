@@ -4,50 +4,66 @@ Panduan singkat agar tampilan dan aplikasi berjalan **aman dan lancar** di Hosti
 
 ---
 
-## 1. Document root (wajib)
+## 1. Root `.htaccess` (mengatasi 403 Forbidden)
 
-Set **Document Root** ke folder `public`:
+Di **root project** (folder `public_html/` di Hostinger) sudah ada file **`.htaccess`** yang meneruskan semua request ke folder `public/`. File ini ikut di-deploy.
 
-- Hostinger → **Domains** → posyandukaranggan.com → **Manage** → **Domain Configuration**
-- **Document Root**: ubah ke  
-  `public_html/public`  
-  (bukan sekadar `public_html`)
+- **Document root** tetap `public_html` (tidak perlu diubah ke `public_html/public`).
+- Semua akses (/, /login, /Login_v1/..., dll.) otomatis diarahkan ke `public/`.
 
-Struktur deploy: file Laravel ada di `public_html/` (app, bootstrap, config, **public**, storage, vendor, …). Web server harus menjalankan `public/index.php`, maka root harus `public_html/public`.
+Jika muncul **403 Forbidden**:
+
+1. **Cek permission**
+   - Folder: `755` (atau `775` jika perlu)
+   - File: `644`
+   - Pastikan `public`, `storage`, `bootstrap/cache` bisa dibaca web server.
+
+2. **Pastikan mod_rewrite aktif**
+   - Hostinger biasanya sudah aktif. Jika ragu, hubungi dukungan.
+
+3. **Hapus `.htaccess` lain** di `public_html/` yang memblokir akses (mis. `Deny from all`).
 
 ---
 
 ## 2. File `.env` di server
 
-`.env` **tidak** di-deploy. Buat manual di **root project** (satu tingkat di atas `public`),即 di `public_html/.env`.
+`.env` **tidak** di-deploy. Buat manual di **root project** (`public_html/.env`).
 
 1. Salin isi `env.hostinger.example` ke `.env`.
 2. Sesuaikan:
-   - `APP_URL=https://posyandukaranggan.com` (pakai HTTPS dan domain Anda)
+   - `APP_URL=https://posyandukaranggan.com` (HTTPS + domain Anda)
    - `APP_DEBUG=false`
-   - `APP_KEY=` → generate: jalankan `php artisan key:generate` di server (SSH/Terminal Hostinger) atau isi key dari lokal
+   - `APP_KEY=` → jalankan `php artisan key:generate` di server, atau salin dari lokal
    - `DB_*` → sesuai database MySQL Hostinger
 
 ---
 
-## 3. Hak akses folder
+## 3. `vendor` dan Composer
 
-Pastikan folder berikut **writable** (755 atau 775):
+**`vendor`** tidak ikut deploy (di-exclude). Wajib jalankan Composer di server:
 
-- `storage`
-- `storage/framework`
-- `storage/framework/cache`
-- `storage/framework/sessions`
-- `storage/logs`
-- `bootstrap/cache`
+```bash
+composer install --no-dev --optimize-autoloader
+```
 
-Di File Manager Hostinger: klik kanan folder → **Permissions** → atur sesuai kebutuhan.
+Jalankan di **root project** via SSH atau **Terminal** di File Manager Hostinger.
 
 ---
 
-## 4. Symlink `storage` (jika pakai fitur upload)
+## 4. Hak akses folder
 
-Jika ada upload file (logo, SK, dll.) yang disimpan di `storage/app/public`:
+Pastikan folder berikut **writable** (755 atau 775):
+
+- `storage`, `storage/framework`, `storage/framework/cache`, `storage/framework/sessions`, `storage/logs`
+- `bootstrap/cache`
+
+Di File Manager: klik kanan folder → **Permissions**.
+
+---
+
+## 5. Symlink `storage` (jika pakai upload)
+
+Jika ada upload (logo, SK, dll.) ke `storage/app/public`:
 
 ```bash
 php artisan storage:link
@@ -57,27 +73,19 @@ Jalankan di root project via SSH/Terminal Hostinger.
 
 ---
 
-## 5. Setelah deploy
-
-1. Pastikan **Document Root** = `public_html/public`.
-2. Ada `.env` di root (`public_html/`), nilai `APP_URL` dan `APP_DEBUG` sudah benar.
-3. `storage` dan `bootstrap/cache` writable.
-4. Buka `https://posyandukaranggan.com` → halaman login dan tampilan lain harus sama lancar seperti di local.
-
----
-
 ## Ringkasan checklist
 
 | Langkah | Status |
 |--------|--------|
-| Document root = `public_html/public` | ☐ |
+| Root `.htaccess` ada (ikut deploy) | ☐ |
+| Document root = `public_html` | ☐ |
 | Buat `.env` dari `env.hostinger.example` | ☐ |
 | `APP_URL` HTTPS, `APP_DEBUG=false` | ☐ |
-| `APP_KEY` diisi / `php artisan key:generate` | ☐ |
-| `DB_*` sesuai database Hostinger | ☐ |
+| `APP_KEY` ada; `DB_*` sesuai Hostinger | ☐ |
+| `composer install` di server | ☐ |
 | `storage` & `bootstrap/cache` writable | ☐ |
 | `php artisan storage:link` (jika pakai upload) | ☐ |
 
 ---
 
-Deploy via GitHub Actions sudah mengirim **vendor** dan **build assets**. Setelah checklist di atas selesai, aplikasi siap dipakai di Hostinger dengan aman dan lancar.
+Setelah checklist selesai, buka `https://posyandukaranggan.com`. Halaman login dan tampilan lain harus lancar seperti di local.
