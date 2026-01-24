@@ -61,15 +61,13 @@ Di File Manager: klik kanan folder → **Permissions**.
 
 ---
 
-## 5. Symlink `storage` (jika pakai upload)
+## 5. Upload file (logo, SK) – tanpa `storage:link`
 
-Jika ada upload (logo, SK, dll.) ke `storage/app/public`:
+File upload (logo, SK) disajikan lewat **route** `/storage/{path}` (PHP), bukan symlink. **Jangan** jalankan `php artisan storage:link` di Hostinger.
 
-```bash
-php artisan storage:link
-```
-
-Jalankan di root project via SSH/Terminal Hostinger.
+- `exec()` / `symlink()` sering disabled → `storage:link` bisa error.
+- Aplikasi sudah punya route yang melayani file dari `storage/app/public`.
+- Cukup pastikan `storage` dan `storage/app/public` **writable** (755).
 
 ---
 
@@ -84,7 +82,6 @@ Jalankan di root project via SSH/Terminal Hostinger.
 | `APP_KEY` ada; `DB_*` sesuai Hostinger | ☐ |
 | `composer install` di server | ☐ |
 | `storage` & `bootstrap/cache` writable | ☐ |
-| `php artisan storage:link` (jika pakai upload) | ☐ |
 
 ---
 

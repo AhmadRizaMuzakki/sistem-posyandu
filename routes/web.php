@@ -5,6 +5,7 @@ use App\Livewire\Posyandu\Kaders;
 use App\Livewire\Posyandu\Laporan as PosyanduLaporan;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\LaporanController;
+use App\Http\Controllers\StorageController;
 use App\Livewire\SuperAdmin\Kader\Edit;
 use App\Livewire\SuperAdmin\Kader\Create;
 use App\Livewire\SuperAdmin\Kader\Destroy;
@@ -25,6 +26,10 @@ use App\Livewire\SuperAdmin\SuperAdminDashboard;
 Route::get('/', function () {
     return view('index');
 });
+
+// Serve file dari storage/app/public via PHP (tanpa symlink).
+// Untuk Hostinger saat exec/symlink disabled; alternatif dari storage:link.
+Route::get('/storage/{path}', StorageController::class)->where('path', '.*')->name('storage.serve');
 
 Route::prefix('supervisor')->middleware(['auth', 'verified', 'role:superadmin'])->group(function () {
     Route::get('/', SuperAdminDashboard::class)->name('admin.dashboard');
