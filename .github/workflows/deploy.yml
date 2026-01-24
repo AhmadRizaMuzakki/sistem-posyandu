@@ -40,26 +40,28 @@ jobs:
         npm run build
 
     # 6. Kirim ke Hostinger via FTP
+    # ... langkah sebelumnya sama ...
+
+    # 6. Kirim ke Hostinger via FTP
     - name: 📂 Sync files
       uses: SamKirkland/FTP-Deploy-Action@v4.3.5
       with:
         server: ${{ secrets.IP }}
         username: ${{ secrets.USERNAME }}
         password: ${{ secrets.PASSWORD }}
-        server-dir: ./
+        
+        # PERBAIKAN 1: Arahkan ke folder spesifik domain
+        server-dir: /domains/posyandukaranggan.com/public_html/
 
-        # --- FTP options (lebih stabil di shared hosting) ---
         port: 21
         protocol: ftp
         timeout: 60000
-        # -------------------------------------------------
-
+        
         exclude: |
           **/.git*
           **/.git*/**
           **/.github/**
           **/node_modules/**
-          **/vendor/**
           **/.env
           **/.env.*
           **/README.md
