@@ -58,4 +58,5 @@ jobs:
           **/node_modules/**
           **/.env
           **/.env.*
+          **/vendor/**
           **/README.md
