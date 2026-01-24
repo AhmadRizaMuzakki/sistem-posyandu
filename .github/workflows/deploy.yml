@@ -39,30 +39,23 @@ jobs:
       run: |
         npm run build
 
-    # 6. Kirim ke Hostinger via FTP
-    # ... langkah sebelumnya sama ...
-
-    # 6. Kirim ke Hostinger via FTP
+    # 6. Kirim ke Hostinger via FTP (Laravel 12)
+    # Document root WAJIB: public_html/public (atur di Hostinger → Domains)
     - name: 📂 Sync files
       uses: SamKirkland/FTP-Deploy-Action@v4.3.5
       with:
         server: ${{ secrets.IP }}
         username: ${{ secrets.USERNAME }}
         password: ${{ secrets.PASSWORD }}
-        
-        # PERBAIKAN 1: Arahkan ke folder spesifik domain
         server-dir: /domains/posyandukaranggan.com/public_html/
-
         port: 21
         protocol: ftp
-        timeout: 60000
-        
+        timeout: 180000
         exclude: |
           **/.git*
           **/.git*/**
           **/.github/**
           **/node_modules/**
           **/.env
-          **/vendor/**
           **/.env.*
           **/README.md
