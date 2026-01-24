@@ -63,5 +63,6 @@ jobs:
           **/.github/**
           **/node_modules/**
           **/.env
+          **/vendor/**
           **/.env.*
           **/README.md
