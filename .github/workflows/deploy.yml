@@ -46,37 +46,19 @@ jobs:
         server: ${{ secrets.IP }}
         username: ${{ secrets.USERNAME }}
         password: ${{ secrets.PASSWORD }}
-        
-        # PENTING UNTUK HOSTINGER:
-        # Hostinger biasanya mengunci akun FTP langsung di dalam folder public_html
-        # Jadi arahkan ke root (./)
         server-dir: ./
-        
-        # Mencegah file sampah atau file rahasia ter-upload
+
+        # --- FTP options (lebih stabil di shared hosting) ---
+        port: 21
+        protocol: ftp
+        timeout: 60000
+        # -------------------------------------------------
+
         exclude: |
           **/.git*
           **/.git*/**
           **/.github/**
           **/node_modules/**
-          **/tests/**
-          **/.editorconfig
-          **/.gitattributes
-          **/.gitignore
           **/.env
           **/.env.*
           **/README.md
-          **/phpunit.xml
-          **/postcss.config.js
-          **/tailwind.config.js
-          **/vite.config.js
-          **/package.json
-          **/package-lock.json
-          **/composer.json
-          **/composer.lock
-          **/storage/logs/**
-          **/storage/framework/cache/**
-          **/storage/framework/sessions/**
-          **/storage/framework/views/**
-          **/bootstrap/cache/**
-          **/database/**
-          **/public/Login_v1/**
