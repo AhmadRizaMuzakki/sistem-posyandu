@@ -206,7 +206,7 @@
                 </div>
                 <div>
                     <div class="text-3xl md:text-4xl font-bold mb-1">{{ number_format($totalOrangtua ?? 0) }}{{ ($totalOrangtua ?? 0) > 0 ? '+' : '' }}</div>
-                    <div class="text-teal-100 text-xs md:text-sm font-medium">Orangtua</div>
+                    <div class="text-teal-100 text-xs md:text-sm font-medium">Dewasa</div>
                 </div>
                 <div>
                     <div class="text-3xl md:text-4xl font-bold mb-1">{{ number_format($totalIbuHamil ?? 0) }}{{ ($totalIbuHamil ?? 0) > 0 ? '+' : '' }}</div>
