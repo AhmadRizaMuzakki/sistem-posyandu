@@ -4,6 +4,7 @@ namespace App\Livewire\Posyandu;
 
 use App\Livewire\Posyandu\Traits\PosyanduHelper;
 use App\Models\Jadwal;
+use App\Models\JadwalKegiatan;
 use App\Models\PetugasKesehatan;
 use Livewire\Component;
 use Livewire\Attributes\Layout;
@@ -18,14 +19,23 @@ class PosyanduJadwal extends Component
     public $currentYear;
     public $selectedDate = null;
     public $isModalOpen = false;
+    public $isDetailModalOpen = false;
+    public $detailDate = null;
     public $jadwalId = null;
     public $id_petugas_kesehatan = null;
     public $keterangan = '';
     public $tanggal = '';
-    public $presensi = 'belum_hadir'; // Default: belum_hadir
-    public $activeTab = 'jadwal'; // 'jadwal' atau 'absen'
-    public $absenDate = null; // Tanggal untuk tab absen
-    public $isAddJadwalModalOpen = false; // Modal untuk tambah jadwal baru
+    public $presensi = 'belum_hadir';
+    public $activeTab = 'jadwal';
+    public $absenDate = null;
+
+    // Kegiatan/acara (card terpisah)
+    public $tanggal_acara = '';
+    public $nama_kegiatan = '';
+    public $tempat = '';
+    public $deskripsi_kegiatan = '';
+    public $jam_mulai = '';
+    public $jam_selesai = '';
 
     #[Layout('layouts.posyandudashboard')]
 
@@ -34,7 +44,8 @@ class PosyanduJadwal extends Component
         $this->initializePosyandu();
         $this->currentMonth = date('n');
         $this->currentYear = date('Y');
-        $this->absenDate = date('Y-m-d'); // Default ke hari ini
+        $this->absenDate = date('Y-m-d');
+        $this->tanggal_acara = date('Y-m-d');
     }
 
     public function previousMonth()
@@ -62,30 +73,39 @@ class PosyanduJadwal extends Component
         if ($date) {
             $this->selectedDate = $date;
             $this->tanggal = $date;
+            $this->tanggal_acara = $date; // Update tanggal di form acara juga
+        } else {
+            $this->tanggal = $this->selectedDate ?? date('Y-m-d');
         }
+        $this->jadwalId = null;
+        $this->id_petugas_kesehatan = null;
+        $this->keterangan = '';
+        $this->presensi = 'belum_hadir';
         $this->isModalOpen = true;
+    }
+
+    /** Update tanggal di form acara dan petugas ketika klik tanggal di kalender */
+    public function selectDate($date)
+    {
+        $this->tanggal_acara = $date;
+        $this->tanggal = $date;
     }
 
     public function openAddJadwalModal()
     {
-        $this->selectedDate = null;
-        $this->tanggal = date('Y-m-d');
-        $this->jadwalId = null;
-        $this->id_petugas_kesehatan = null;
-        $this->keterangan = '';
-        $this->presensi = 'belum_hadir';
-        $this->isAddJadwalModalOpen = true;
-    }
-
-    public function closeAddJadwalModal()
-    {
-        $this->isAddJadwalModalOpen = false;
-        $this->selectedDate = null;
-        $this->jadwalId = null;
-        $this->id_petugas_kesehatan = null;
-        $this->keterangan = '';
-        $this->tanggal = '';
-        $this->presensi = 'belum_hadir';
+        // Tutup modal detail jika terbuka
+        if ($this->isDetailModalOpen) {
+            $this->closeDetailModal();
+        }
+        // Tutup modal lama jika terbuka
+        if ($this->isModalOpen) {
+            $this->closeModal();
+        }
+        // Gunakan tanggal dari detailDate jika ada, atau tanggal hari ini
+        $date = $this->detailDate ?? date('Y-m-d');
+        $this->selectedDate = $date;
+        $this->tanggal = $date;
+        $this->openModal($this->tanggal);
     }
 
     public function openEditModal($jadwalId)
@@ -115,13 +135,77 @@ class PosyanduJadwal extends Component
         $this->presensi = 'belum_hadir';
     }
 
+    public function saveKegiatan()
+    {
+        $this->validate([
+            'tanggal_acara' => 'required|date',
+            'nama_kegiatan' => 'required|string|max:255',
+            'tempat' => 'nullable|string|max:255',
+            'deskripsi_kegiatan' => 'nullable|string',
+            'jam_mulai' => 'nullable|string|regex:/^\d{1,2}:\d{2}(:\d{2})?$/',
+            'jam_selesai' => 'nullable|string|regex:/^\d{1,2}:\d{2}(:\d{2})?$/',
+        ], [
+            'tanggal_acara.required' => 'Tanggal wajib diisi.',
+            'nama_kegiatan.required' => 'Nama acara wajib diisi.',
+        ]);
+
+        $jamMulai = $this->normalizeTime($this->jam_mulai);
+        $jamSelesai = $this->normalizeTime($this->jam_selesai);
+
+        JadwalKegiatan::create([
+            'id_posyandu' => $this->posyanduId,
+            'tanggal' => $this->tanggal_acara,
+            'nama_kegiatan' => trim($this->nama_kegiatan),
+            'tempat' => $this->tempat ? trim($this->tempat) : null,
+            'deskripsi' => $this->deskripsi_kegiatan ? trim($this->deskripsi_kegiatan) : null,
+            'jam_mulai' => $jamMulai,
+            'jam_selesai' => $jamSelesai,
+        ]);
+
+        $this->nama_kegiatan = '';
+        $this->tempat = '';
+        $this->deskripsi_kegiatan = '';
+        $this->jam_mulai = '';
+        $this->jam_selesai = '';
+        session()->flash('message', 'Acara berhasil disimpan.');
+        session()->flash('messageType', 'success');
+    }
+
+    /** Normalisasi jam ke format H:i:s untuk kolom TIME. */
+    private function normalizeTime(?string $value): ?string
+    {
+        $value = trim((string) $value);
+        if ($value === '') {
+            return null;
+        }
+        $parts = explode(':', $value);
+        if (count($parts) === 2) {
+            return sprintf('%02d:%02d:00', (int) $parts[0], (int) $parts[1]);
+        }
+        if (count($parts) === 3) {
+            return sprintf('%02d:%02d:%02d', (int) $parts[0], (int) $parts[1], (int) $parts[2]);
+        }
+        return null;
+    }
+
+    public function deleteKegiatan($id)
+    {
+        $k = JadwalKegiatan::findOrFail($id);
+        if ($k->id_posyandu != $this->posyanduId) {
+            abort(403, 'Unauthorized access');
+        }
+        $k->delete();
+        session()->flash('message', 'Kegiatan berhasil dihapus.');
+        session()->flash('messageType', 'success');
+    }
+
     public function saveJadwal()
     {
         $this->validate([
             'tanggal' => 'required|date',
             'id_petugas_kesehatan' => 'required|exists:petugas_kesehatan,id_petugas_kesehatan',
             'keterangan' => 'nullable|string',
-            'presensi' => 'required|in:hadir,tidak_hadir,belum_hadir',
+            'presensi' => 'nullable|in:hadir,tidak_hadir,belum_hadir',
         ]);
 
         // Validasi petugas kesehatan milik posyandu yang sama
@@ -132,14 +216,12 @@ class PosyanduJadwal extends Component
             return;
         }
 
-        // Pastikan presensi dalam lowercase dan valid
-        $presensi = strtolower(trim($this->presensi));
+        // Default presensi jika tidak diisi (dari card tidak ada presensi)
+        $presensi = $this->presensi ? strtolower(trim($this->presensi)) : 'belum_hadir';
         
         // Validasi nilai presensi
         if (!in_array($presensi, ['hadir', 'tidak_hadir', 'belum_hadir'])) {
-            session()->flash('message', 'Nilai presensi tidak valid.');
-            session()->flash('messageType', 'error');
-            return;
+            $presensi = 'belum_hadir';
         }
 
         if ($this->jadwalId) {
@@ -157,25 +239,23 @@ class PosyanduJadwal extends Component
             session()->flash('message', 'Jadwal berhasil diperbarui.');
         } else {
             // Create new - bisa multiple petugas di tanggal yang sama
-            // Gunakan DB::table untuk memastikan enum di-quote dengan benar
             DB::table('jadwals')->insert([
                 'id_posyandu' => $this->posyanduId,
                 'tanggal' => $this->tanggal,
                 'id_petugas_kesehatan' => $this->id_petugas_kesehatan,
                 'keterangan' => $this->keterangan ?: null,
-                'presensi' => $presensi, // Laravel akan otomatis quote string ini
+                'presensi' => $presensi,
                 'created_at' => now(),
                 'updated_at' => now(),
             ]);
-            session()->flash('message', 'Jadwal berhasil ditambahkan.');
+            session()->flash('message', 'Petugas berhasil ditambahkan.');
         }
 
         session()->flash('messageType', 'success');
-        if ($this->isAddJadwalModalOpen) {
-            $this->closeAddJadwalModal();
-        } else {
-            $this->closeModal();
-        }
+        $this->jadwalId = null;
+        $this->id_petugas_kesehatan = null;
+        $this->keterangan = '';
+        $this->presensi = 'belum_hadir';
     }
 
     public function deleteJadwal($id)
@@ -230,30 +310,27 @@ class PosyanduJadwal extends Component
         $calendarStartDate = $prevMonthStart->copy()->addDays($daysInPrevMonth - $firstDayOfWeek);
         $calendarEndDate = $endOfMonth->copy()->addDays(42 - ($firstDayOfWeek + $startOfMonth->daysInMonth));
         
-        // Get all jadwal for the calendar view period with petugas kesehatan
-        // Group by tanggal untuk mendapatkan multiple jadwal per tanggal
         $jadwals = Jadwal::where('id_posyandu', $this->posyanduId)
             ->whereBetween('tanggal', [$calendarStartDate->format('Y-m-d'), $calendarEndDate->format('Y-m-d')])
             ->with('petugasKesehatan')
             ->get()
-            ->groupBy(function($jadwal) {
-                return $jadwal->tanggal->format('Y-m-d');
-            });
-        
-        // Get petugas kesehatan untuk dropdown
+            ->groupBy(fn ($j) => $j->tanggal->format('Y-m-d'));
+
+        $kegiatans = JadwalKegiatan::where('id_posyandu', $this->posyanduId)
+            ->whereBetween('tanggal', [$calendarStartDate->format('Y-m-d'), $calendarEndDate->format('Y-m-d')])
+            ->get()
+            ->groupBy(fn ($k) => $k->tanggal->format('Y-m-d'));
+
         $petugasKesehatanList = PetugasKesehatan::where('id_posyandu', $this->posyanduId)
             ->orderBy('nama_petugas_kesehatan')
             ->get();
 
-        // Build calendar days
         $daysInMonth = $startOfMonth->daysInMonth;
-        $firstDayOfWeek = $startOfMonth->dayOfWeek; // 0 = Sunday, 6 = Saturday
-        
+        $firstDayOfWeek = $startOfMonth->dayOfWeek;
         $calendarDays = [];
-        
-        // Add days from previous month
         $prevMonth = $startOfMonth->copy()->subMonth();
         $daysInPrevMonth = $prevMonth->daysInMonth;
+
         for ($i = $firstDayOfWeek - 1; $i >= 0; $i--) {
             $day = $daysInPrevMonth - $i;
             $date = Carbon::create($prevMonth->year, $prevMonth->month, $day);
@@ -263,11 +340,11 @@ class PosyanduJadwal extends Component
                 'date' => $dateKey,
                 'isToday' => $date->isToday(),
                 'isOtherMonth' => true,
-                'jadwals' => $jadwals->get($dateKey, collect()), // Multiple jadwal per tanggal
+                'jadwals' => $jadwals->get($dateKey, collect()),
+                'kegiatans' => $kegiatans->get($dateKey, collect()),
             ];
         }
-        
-        // Add days of the month
+
         for ($day = 1; $day <= $daysInMonth; $day++) {
             $date = Carbon::create($this->currentYear, $this->currentMonth, $day);
             $dateKey = $date->format('Y-m-d');
@@ -276,31 +353,31 @@ class PosyanduJadwal extends Component
                 'date' => $dateKey,
                 'isToday' => $date->isToday(),
                 'isOtherMonth' => false,
-                'jadwals' => $jadwals->get($dateKey, collect()), // Multiple jadwal per tanggal
+                'jadwals' => $jadwals->get($dateKey, collect()),
+                'kegiatans' => $kegiatans->get($dateKey, collect()),
             ];
         }
-        
-        // Add days from next month to fill the grid (42 cells total = 6 weeks)
+
         $totalCells = count($calendarDays);
         $remainingCells = 42 - $totalCells;
         if ($remainingCells > 0) {
             $nextMonth = $endOfMonth->copy()->addDay();
             for ($day = 1; $day <= $remainingCells; $day++) {
                 $date = Carbon::create($nextMonth->year, $nextMonth->month, $day);
-            $dateKey = $date->format('Y-m-d');
-            $calendarDays[] = [
-                'day' => $day,
-                'date' => $dateKey,
-                'isToday' => $date->isToday(),
-                'isOtherMonth' => true,
-                'jadwals' => $jadwals->get($dateKey, collect()), // Multiple jadwal per tanggal
-            ];
+                $dateKey = $date->format('Y-m-d');
+                $calendarDays[] = [
+                    'day' => $day,
+                    'date' => $dateKey,
+                    'isToday' => $date->isToday(),
+                    'isOtherMonth' => true,
+                    'jadwals' => $jadwals->get($dateKey, collect()),
+                    'kegiatans' => $kegiatans->get($dateKey, collect()),
+                ];
             }
         }
 
         $monthName = $startOfMonth->locale('id')->translatedFormat('F Y');
 
-        // Get jadwal untuk tanggal yang dipilih (untuk ditampilkan di modal)
         $selectedDateJadwals = collect();
         if ($this->selectedDate) {
             $selectedDateJadwals = Jadwal::where('id_posyandu', $this->posyanduId)
@@ -309,7 +386,13 @@ class PosyanduJadwal extends Component
                 ->get();
         }
 
-        // Get jadwal untuk tab absen berdasarkan tanggal yang dipilih
+        // Query terpisah untuk pagination list acara (hanya bulan ini)
+        $kegiatansList = JadwalKegiatan::where('id_posyandu', $this->posyanduId)
+            ->whereBetween('tanggal', [$startOfMonth->format('Y-m-d'), $endOfMonth->format('Y-m-d')])
+            ->orderByDesc('tanggal')
+            ->orderByDesc('created_at')
+            ->paginate(10);
+
         $absenJadwals = collect();
         if ($this->absenDate) {
             $absenJadwals = Jadwal::where('id_posyandu', $this->posyanduId)
@@ -319,12 +402,21 @@ class PosyanduJadwal extends Component
                 ->get();
         }
 
-        // Get semua jadwal untuk tab Jadwal (tabel)
-        $allJadwals = Jadwal::where('id_posyandu', $this->posyanduId)
-            ->with('petugasKesehatan')
-            ->orderBy('tanggal', 'desc')
-            ->orderBy('created_at', 'desc')
-            ->get();
+        // Data untuk modal detail hari
+        $detailDateJadwals = collect();
+        $detailDateKegiatans = collect();
+        if ($this->detailDate) {
+            $detailDateJadwals = Jadwal::where('id_posyandu', $this->posyanduId)
+                ->where('tanggal', $this->detailDate)
+                ->with('petugasKesehatan')
+                ->orderBy('created_at')
+                ->get();
+            
+            $detailDateKegiatans = JadwalKegiatan::where('id_posyandu', $this->posyanduId)
+                ->where('tanggal', $this->detailDate)
+                ->orderBy('jam_mulai')
+                ->get();
+        }
 
         return view('livewire.posyandu.posyandu-jadwal', [
             'title' => 'Jadwal - ' . $this->posyandu->nama_posyandu,
@@ -333,8 +425,10 @@ class PosyanduJadwal extends Component
             'monthName' => $monthName,
             'petugasKesehatanList' => $petugasKesehatanList,
             'selectedDateJadwals' => $selectedDateJadwals,
+            'kegiatansList' => $kegiatansList,
             'absenJadwals' => $absenJadwals,
-            'allJadwals' => $allJadwals,
+            'detailDateJadwals' => $detailDateJadwals,
+            'detailDateKegiatans' => $detailDateKegiatans,
         ]);
     }
 }

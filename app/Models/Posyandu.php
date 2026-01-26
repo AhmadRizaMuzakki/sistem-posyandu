@@ -68,4 +68,8 @@ class Posyandu extends Model
         return $this->hasMany(Jadwal::class, 'id_posyandu');
     }
 
+    public function jadwalKegiatan()
+    {
+        return $this->hasMany(JadwalKegiatan::class, 'id_posyandu');
+    }
 }

@@ -6,6 +6,7 @@ use App\Livewire\Posyandu\Laporan as PosyanduLaporan;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\LaporanController;
 use App\Http\Controllers\StorageController;
+use App\Http\Controllers\IndexController;
 use App\Livewire\SuperAdmin\Kader\Edit;
 use App\Livewire\SuperAdmin\Kader\Create;
 use App\Livewire\SuperAdmin\Kader\Destroy;
@@ -23,9 +24,7 @@ use App\Livewire\Posyandu\KaderImunisasi;
 use App\Livewire\SuperAdmin\PosyanduLaporan as SuperadminPosyanduLaporan;
 use App\Livewire\SuperAdmin\SuperAdminDashboard;
 
-Route::get('/', function () {
-    return view('index');
-});
+Route::get('/', [IndexController::class, 'index']);
 
 // Serve file dari storage/app/public via PHP (tanpa symlink).
 // Untuk Hostinger saat exec/symlink disabled; alternatif dari storage:link.

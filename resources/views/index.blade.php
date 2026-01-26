@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Posyandu Karanggan - Sehat Bersama, Tumbuh Bahagia</title>
+    <title>{{ $posyandu ? $posyandu->nama_posyandu : 'Posyandu' }} - Sehat Bersama, Tumbuh Bahagia</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -32,6 +32,51 @@
             from { opacity: 0; transform: translateY(20px); }
             to { opacity: 1; transform: translateY(0); }
         }
+        
+        /* Custom Pagination Styling */
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+        .pagination > * {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .pagination a, .pagination span {
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+        .pagination a {
+            background: white;
+            border: 1px solid #e2e8f0;
+            color: #475569;
+            text-decoration: none;
+        }
+        .pagination a:hover {
+            background: #0D9488;
+            color: white;
+            border-color: #0D9488;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px -1px rgba(13, 148, 136, 0.2);
+        }
+        .pagination .active span {
+            background: #0D9488;
+            color: white;
+            border-color: #0D9488;
+            box-shadow: 0 2px 4px rgba(13, 148, 136, 0.2);
+        }
+        .pagination .disabled span {
+            background: #f1f5f9;
+            color: #94a3b8;
+            border-color: #e2e8f0;
+            cursor: not-allowed;
+        }
     </style>
 </head>
 <body class="font-sans text-slate-700 antialiased bg-white">
@@ -43,7 +88,7 @@
                     <div class="w-10 h-10 bg-primary rounded-full flex items-center justify-center text-white font-bold text-xl">
                         <i class="fa-solid fa-heart-pulse"></i>
                     </div>
-                    <a href="#beranda" class="font-bold text-xl tracking-tight text-slate-800 hover:text-primary transition">Posyandu <span class="text-primary">Karanggan</span></a>
+                    <a href="#beranda" class="font-bold text-xl tracking-tight text-slate-800 hover:text-primary transition">{{ $posyandu ? $posyandu->nama_posyandu : 'Posyandu' }}</a>
                 </div>
                 <div class="hidden md:flex space-x-8">
                     <a href="#beranda" class="text-slate-600 hover:text-primary font-medium transition">Beranda</a>
@@ -132,14 +177,14 @@
         
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center">
             <span class="inline-block py-1 px-3 rounded-full bg-teal-100 text-primary text-sm font-semibold mb-6 fade-in-up">
-                ✨ Melayani Sepenuh Hati untuk Keluarga Sehat
+                ? Melayani Sepenuh Hati untuk Keluarga Sehat
             </span>
             <h1 class="text-4xl md:text-6xl font-extrabold text-slate-900 tracking-tight mb-6 leading-tight fade-in-up" style="animation-delay: 0.1s;">
                 Mewujudkan Generasi Sehat <br>
-                <span class="text-primary">Mulai dari Karanggan</span>
+                <span class="text-primary">{{ $posyandu ? 'Bersama ' . $posyandu->nama_posyandu : 'Bersama Posyandu' }}</span>
             </h1>
             <p class="mt-4 max-w-3xl mx-auto text-xl text-slate-600 mb-10 fade-in-up" style="animation-delay: 0.2s;">
-                Posyandu Karanggan hadir sebagai mitra terpercaya keluarga dalam menjaga kesehatan ibu, anak, dan lansia. Dengan pelayanan terpadu, profesional, dan ramah, kami berkomitmen mewujudkan masyarakat yang sehat dan produktif.
+                {{ $posyandu ? $posyandu->nama_posyandu : 'Posyandu' }} hadir sebagai mitra terpercaya keluarga dalam menjaga kesehatan ibu, anak, dan lansia. Dengan pelayanan terpadu, profesional, dan ramah, kami berkomitmen mewujudkan masyarakat yang sehat dan produktif.
             </p>
             <div class="flex flex-col sm:flex-row justify-center gap-4 fade-in-up" style="animation-delay: 0.3s;">
                 <a href="#jadwal" class="px-8 py-4 rounded-full bg-primary text-white font-bold text-lg shadow-xl shadow-teal-500/30 hover:bg-primaryDark transition hover:-translate-y-1">
@@ -156,19 +201,19 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="grid grid-cols-2 md:grid-cols-4 gap-8 text-center text-white">
                 <div>
-                    <div class="text-4xl font-bold mb-1">150+</div>
+                    <div class="text-4xl font-bold mb-1">{{ number_format($totalBayiBalita ?? 0) }}{{ ($totalBayiBalita ?? 0) > 0 ? '+' : '' }}</div>
                     <div class="text-teal-100 text-sm font-medium">Balita Sehat</div>
                 </div>
                 <div>
-                    <div class="text-4xl font-bold mb-1">80+</div>
-                    <div class="text-teal-100 text-sm font-medium">Lansia Aktif</div>
+                    <div class="text-4xl font-bold mb-1">{{ number_format($totalIbuHamil ?? 0) }}{{ ($totalIbuHamil ?? 0) > 0 ? '+' : '' }}</div>
+                    <div class="text-teal-100 text-sm font-medium">Ibu Hamil</div>
                 </div>
                 <div>
-                    <div class="text-4xl font-bold mb-1">15</div>
+                    <div class="text-4xl font-bold mb-1">{{ number_format($totalKader ?? 0) }}</div>
                     <div class="text-teal-100 text-sm font-medium">Kader Terlatih</div>
                 </div>
                 <div>
-                    <div class="text-4xl font-bold mb-1">100%</div>
+                    <div class="text-4xl font-bold mb-1">{{ $cakupanImunisasi ?? 0 }}%</div>
                     <div class="text-teal-100 text-sm font-medium">Cakupan Imunisasi</div>
                 </div>
             </div>
@@ -328,72 +373,347 @@
         </div>
     </section>
 
-    <section id="jadwal" class="py-20 bg-gradient-to-b from-white to-slate-50">
+    <section id="jadwal" class="py-20 bg-gradient-to-b from-white via-lightBg to-white">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="text-center mb-12">
-                <span class="inline-block py-1 px-3 rounded-full bg-teal-100 text-primary text-sm font-semibold mb-4">Jadwal Kegiatan</span>
-                <h2 class="text-4xl font-bold text-slate-900 mb-4">Jadwal Posyandu Bulan Ini</h2>
-                <p class="text-slate-600 max-w-2xl mx-auto text-lg">Jangan lewatkan jadwal penimbangan dan imunisasi. Pastikan membawa buku KIA/KMS dan kartu imunisasi anak Anda.</p>
+            <div class="text-center mb-8">
+                <span class="inline-block py-2 px-4 rounded-full bg-gradient-to-r from-primary/10 to-teal-100 text-primary text-sm font-bold mb-4 shadow-sm">
+                    <i class="fa-solid fa-calendar-check mr-2"></i>Jadwal Kegiatan
+                </span>
+                <h2 class="text-4xl md:text-5xl font-extrabold text-slate-900 mb-4 bg-gradient-to-r from-slate-900 to-slate-700 bg-clip-text text-transparent">
+                    Jadwal Kegiatan Posyandu
+                </h2>
+                <p class="text-slate-600 max-w-2xl mx-auto text-lg leading-relaxed">
+                    Jangan lewatkan jadwal penimbangan dan imunisasi. Pastikan membawa buku KIA/KMS dan kartu imunisasi anak Anda.
+                </p>
+            </div>
+
+            {{-- Filter dan Search Bar --}}
+            <div class="mb-8 bg-white rounded-2xl p-6 shadow-lg border border-slate-200">
+                <form method="GET" action="#jadwal" class="flex flex-col md:flex-row gap-4">
+                    <div class="flex-1">
+                        <div class="relative">
+                            <input type="text" name="search" value="{{ $search ?? '' }}" 
+                                   placeholder="Cari acara, tempat, atau deskripsi..." 
+                                   class="w-full pl-12 pr-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition">
+                            <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                        </div>
+                    </div>
+                    <div class="md:w-64">
+                        <select name="filter_posyandu" 
+                                class="w-full px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition appearance-none bg-white">
+                            <option value="">Semua Posyandu</option>
+                            @foreach($daftarPosyandu ?? [] as $p)
+                                <option value="{{ $p->id_posyandu }}" {{ ($filterPosyandu ?? '') == $p->id_posyandu ? 'selected' : '' }}>
+                                    {{ $p->nama_posyandu }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <button type="submit" 
+                            class="px-6 py-3 bg-primary text-white rounded-xl font-semibold hover:bg-primaryDark transition shadow-md hover:shadow-lg flex items-center justify-center">
+                        <i class="fa-solid fa-filter mr-2"></i>Filter
+                    </button>
+                    @if($search || $filterPosyandu)
+                        <a href="#jadwal" 
+                           class="px-6 py-3 bg-slate-200 text-slate-700 rounded-xl font-semibold hover:bg-slate-300 transition flex items-center justify-center">
+                            <i class="fa-solid fa-xmark mr-2"></i>Reset
+                        </a>
+                    @endif
+                </form>
+                @if($acaraList && $acaraList->total() > 0)
+                    <div class="mt-4 text-sm text-slate-600">
+                        <i class="fa-solid fa-info-circle mr-1"></i>
+                        Menampilkan <strong>{{ $acaraList->firstItem() }}</strong> - <strong>{{ $acaraList->lastItem() }}</strong> dari <strong>{{ $acaraList->total() }}</strong> acara
+                    </div>
+                @endif
             </div>
             
-            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-                <div class="bg-white rounded-2xl p-6 shadow-lg border border-slate-100 hover:shadow-xl transition-all">
-                    <div class="flex items-center justify-between mb-4">
-                        <div class="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center">
-                            <i class="fa-solid fa-calendar-days text-primary text-xl"></i>
-                        </div>
-                        <span class="text-xs font-semibold text-primary bg-primary/10 px-3 py-1 rounded-full">Balita & Ibu</span>
-                    </div>
-                    <h3 class="text-xl font-bold text-slate-900 mb-2">Posyandu Melati 1</h3>
-                    <div class="space-y-2 text-slate-600 mb-4">
-                        <p class="flex items-center"><i class="fa-solid fa-clock text-primary mr-2"></i> Senin, 12 Februari 2024</p>
-                        <p class="flex items-center"><i class="fa-solid fa-location-dot text-primary mr-2"></i> Balai RW 01</p>
-                        <p class="flex items-center"><i class="fa-solid fa-clock text-primary mr-2"></i> 08:00 - 12:00 WIB</p>
-                    </div>
-                    <div class="pt-4 border-t border-slate-100">
-                        <p class="text-sm text-slate-500">Layanan: Penimbangan, Imunisasi, PMT</p>
-                    </div>
-                </div>
+            @if($acaraList && $acaraList->isNotEmpty())
+                @php
+                    // Group acara berdasarkan status (hanya untuk halaman saat ini karena pagination)
+                    $acaraMendatang = [];
+                    $acaraHariIni = [];
+                    $acaraLewat = [];
+                    
+                    foreach($acaraList as $acara) {
+                        $tanggal = \Carbon\Carbon::parse($acara->tanggal);
+                        if ($tanggal->isToday()) {
+                            $acaraHariIni[] = $acara;
+                        } elseif ($tanggal->isPast() && !$tanggal->isToday()) {
+                            $acaraLewat[] = $acara;
+                        } else {
+                            $acaraMendatang[] = $acara;
+                        }
+                    }
+                @endphp
 
-                <div class="bg-white rounded-2xl p-6 shadow-lg border border-slate-100 hover:shadow-xl transition-all">
-                    <div class="flex items-center justify-between mb-4">
-                        <div class="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center">
-                            <i class="fa-solid fa-calendar-days text-primary text-xl"></i>
+                @if(!empty($acaraHariIni))
+                    <div class="mb-8">
+                        <div class="flex items-center gap-3 mb-4">
+                            <div class="h-1 w-12 bg-gradient-to-r from-primary to-primaryDark rounded-full"></div>
+                            <h3 class="text-xl font-bold text-slate-900 flex items-center">
+                                <i class="fa-solid fa-star text-yellow-500 mr-2 animate-pulse"></i>
+                                Acara Hari Ini
+                                @if(count($acaraHariIni) > 9)
+                                    <span class="ml-2 text-sm font-normal text-slate-500">(Menampilkan 9 dari {{ count($acaraHariIni) }})</span>
+                                @endif
+                            </h3>
                         </div>
-                        <span class="text-xs font-semibold text-orange-500 bg-orange-100 px-3 py-1 rounded-full">Lansia</span>
-                    </div>
-                    <h3 class="text-xl font-bold text-slate-900 mb-2">Posyandu Mawar 2</h3>
-                    <div class="space-y-2 text-slate-600 mb-4">
-                        <p class="flex items-center"><i class="fa-solid fa-clock text-primary mr-2"></i> Kamis, 15 Februari 2024</p>
-                        <p class="flex items-center"><i class="fa-solid fa-location-dot text-primary mr-2"></i> Balai RW 02</p>
-                        <p class="flex items-center"><i class="fa-solid fa-clock text-primary mr-2"></i> 08:00 - 11:00 WIB</p>
-                    </div>
-                    <div class="pt-4 border-t border-slate-100">
-                        <p class="text-sm text-slate-500">Layanan: Pemeriksaan Tensi, Gula Darah, Senam</p>
-                    </div>
-                </div>
-
-                <div class="bg-white rounded-2xl p-6 shadow-lg border border-slate-100 hover:shadow-xl transition-all">
-                    <div class="flex items-center justify-between mb-4">
-                        <div class="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center">
-                            <i class="fa-solid fa-calendar-days text-primary text-xl"></i>
+                        <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            @foreach(array_slice($acaraHariIni, 0, 9) as $acara)
+                                @php
+                                    $tanggal = \Carbon\Carbon::parse($acara->tanggal);
+                                @endphp
+                                <div class="bg-gradient-to-br from-primary/5 via-white to-teal-50 rounded-2xl p-6 shadow-xl border-2 border-primary/20 hover:border-primary/40 transition-all duration-300 hover:-translate-y-1 group relative overflow-hidden">
+                                    <div class="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full -mr-16 -mt-16 group-hover:scale-150 transition-transform duration-500"></div>
+                                    <div class="relative z-10">
+                                        <div class="flex items-start justify-between mb-4">
+                                            <div class="w-14 h-14 bg-gradient-to-br from-primary to-primaryDark rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+                                                <i class="fa-solid fa-calendar-days text-white text-xl"></i>
+                                            </div>
+                                            <span class="text-xs font-bold text-white bg-gradient-to-r from-yellow-400 to-orange-500 px-3 py-1.5 rounded-full shadow-md">
+                                                <i class="fa-solid fa-fire mr-1"></i>Hari Ini
+                                            </span>
+                                        </div>
+                                        <h3 class="text-xl font-bold text-slate-900 mb-3 group-hover:text-primary transition-colors">{{ $acara->nama_kegiatan }}</h3>
+                                        @if($acara->posyandu)
+                                            <div class="inline-flex items-center px-3 py-1 bg-primary/10 rounded-lg mb-3">
+                                                <i class="fa-solid fa-hospital text-primary text-xs mr-2"></i>
+                                                <span class="text-sm text-primary font-semibold">{{ $acara->posyandu->nama_posyandu }}</span>
+                                            </div>
+                                        @endif
+                                        <div class="space-y-2.5 text-slate-700 mb-4">
+                                            <div class="flex items-center text-sm font-medium">
+                                                <div class="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center mr-3">
+                                                    <i class="fa-solid fa-calendar text-primary text-xs"></i>
+                                                </div>
+                                                <span>{{ $tanggal->locale('id')->translatedFormat('l, d F Y') }}</span>
+                                            </div>
+                                            @if($acara->tempat)
+                                                <div class="flex items-center text-sm font-medium">
+                                                    <div class="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center mr-3">
+                                                        <i class="fa-solid fa-location-dot text-primary text-xs"></i>
+                                                    </div>
+                                                    <span>{{ $acara->tempat }}</span>
+                                                </div>
+                                            @endif
+                                            @if($acara->jam_mulai || $acara->jam_selesai)
+                                                <div class="flex items-center text-sm font-medium">
+                                                    <div class="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center mr-3">
+                                                        <i class="fa-solid fa-clock text-primary text-xs"></i>
+                                                    </div>
+                                                    <span>
+                                                        @if($acara->jam_mulai && $acara->jam_selesai)
+                                                            {{ \Carbon\Carbon::parse($acara->jam_mulai)->format('H:i') }} - {{ \Carbon\Carbon::parse($acara->jam_selesai)->format('H:i') }} WIB
+                                                        @elseif($acara->jam_mulai)
+                                                            {{ \Carbon\Carbon::parse($acara->jam_mulai)->format('H:i') }} WIB
+                                                        @elseif($acara->jam_selesai)
+                                                            Sampai {{ \Carbon\Carbon::parse($acara->jam_selesai)->format('H:i') }} WIB
+                                                        @endif
+                                                    </span>
+                                                </div>
+                                            @endif
+                                        </div>
+                                        @if($acara->deskripsi)
+                                            <div class="pt-4 border-t border-slate-200">
+                                                <p class="text-sm text-slate-600 leading-relaxed">{{ Str::limit($acara->deskripsi, 120) }}</p>
+                                            </div>
+                                        @endif
+                                    </div>
+                                </div>
+                            @endforeach
                         </div>
-                        <span class="text-xs font-semibold text-purple-500 bg-purple-100 px-3 py-1 rounded-full">Edukasi</span>
                     </div>
-                    <h3 class="text-xl font-bold text-slate-900 mb-2">Penyuluhan Gizi</h3>
-                    <div class="space-y-2 text-slate-600 mb-4">
-                        <p class="flex items-center"><i class="fa-solid fa-clock text-primary mr-2"></i> Sabtu, 17 Februari 2024</p>
-                        <p class="flex items-center"><i class="fa-solid fa-location-dot text-primary mr-2"></i> Aula Posyandu</p>
-                        <p class="flex items-center"><i class="fa-solid fa-clock text-primary mr-2"></i> 09:00 - 11:00 WIB</p>
-                    </div>
-                    <div class="pt-4 border-t border-slate-100">
-                        <p class="text-sm text-slate-500">Topik: Gizi Seimbang untuk Keluarga</p>
-                    </div>
-                </div>
-            </div>
+                @endif
 
-            <div class="text-center">
-                <p class="text-slate-600 mb-4">Ingin mendapatkan notifikasi jadwal? <a href="{{ Route::has('register') ? route('register') : '#' }}" class="text-primary font-semibold hover:underline">Daftar sekarang</a></p>
+                @if(!empty($acaraMendatang))
+                    <div class="mb-8">
+                        <div class="flex items-center gap-3 mb-4">
+                            <div class="h-1 w-12 bg-gradient-to-r from-green-500 to-emerald-500 rounded-full"></div>
+                            <h3 class="text-xl font-bold text-slate-900 flex items-center">
+                                <i class="fa-solid fa-arrow-up text-green-500 mr-2"></i>
+                                Acara Mendatang
+                            </h3>
+                        </div>
+                        <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            @foreach($acaraMendatang as $acara)
+                                @php
+                                    $tanggal = \Carbon\Carbon::parse($acara->tanggal);
+                                    $now = \Carbon\Carbon::now()->startOfDay();
+                                    $tanggalStart = $tanggal->copy()->startOfDay();
+                                    $daysUntil = abs($now->diffInDays($tanggalStart, false));
+                                    
+                                    // Format countdown yang lebih user-friendly
+                                    $countdownText = '';
+                                    if ($daysUntil == 0) {
+                                        $countdownText = 'Besok';
+                                    } elseif ($daysUntil == 1) {
+                                        $countdownText = '1 hari lagi';
+                                    } elseif ($daysUntil < 7) {
+                                        $countdownText = $daysUntil . ' hari lagi';
+                                    } elseif ($daysUntil < 14) {
+                                        $countdownText = '1 minggu lagi';
+                                    } elseif ($daysUntil < 30) {
+                                        $weeks = floor($daysUntil / 7);
+                                        $countdownText = $weeks . ' minggu lagi';
+                                    } elseif ($daysUntil < 60) {
+                                        $countdownText = '1 bulan lagi';
+                                    } else {
+                                        $months = floor($daysUntil / 30);
+                                        $countdownText = $months . ' bulan lagi';
+                                    }
+                                @endphp
+                                <div class="bg-white rounded-2xl p-6 shadow-lg border border-slate-200 hover:shadow-2xl hover:border-primary/30 transition-all duration-300 hover:-translate-y-1 group">
+                                    <div class="flex items-start justify-between mb-4">
+                                        <div class="w-12 h-12 bg-gradient-to-br from-green-100 to-emerald-100 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
+                                            <i class="fa-solid fa-calendar-days text-green-600 text-lg"></i>
+                                        </div>
+                                        <span class="text-xs font-bold text-green-700 bg-green-50 px-3 py-1 rounded-full border border-green-200">
+                                            {{ $countdownText }}
+                                        </span>
+                                    </div>
+                                    <h3 class="text-lg font-bold text-slate-900 mb-2 group-hover:text-primary transition-colors">{{ $acara->nama_kegiatan }}</h3>
+                                    @if($acara->posyandu)
+                                        <div class="inline-flex items-center px-2.5 py-1 bg-primary/5 rounded-lg mb-3">
+                                            <i class="fa-solid fa-hospital text-primary text-xs mr-1.5"></i>
+                                            <span class="text-xs text-primary font-medium">{{ $acara->posyandu->nama_posyandu }}</span>
+                                        </div>
+                                    @endif
+                                    <div class="space-y-2 text-slate-600 mb-4">
+                                        <p class="flex items-center text-sm">
+                                            <i class="fa-solid fa-calendar text-primary mr-2 text-xs"></i> 
+                                            {{ $tanggal->locale('id')->translatedFormat('l, d F Y') }}
+                                        </p>
+                                        @if($acara->tempat)
+                                            <p class="flex items-center text-sm">
+                                                <i class="fa-solid fa-location-dot text-primary mr-2 text-xs"></i> 
+                                                {{ $acara->tempat }}
+                                            </p>
+                                        @endif
+                                        @if($acara->jam_mulai || $acara->jam_selesai)
+                                            <p class="flex items-center text-sm">
+                                                <i class="fa-solid fa-clock text-primary mr-2 text-xs"></i> 
+                                                @if($acara->jam_mulai && $acara->jam_selesai)
+                                                    {{ \Carbon\Carbon::parse($acara->jam_mulai)->format('H:i') }} - {{ \Carbon\Carbon::parse($acara->jam_selesai)->format('H:i') }} WIB
+                                                @elseif($acara->jam_mulai)
+                                                    {{ \Carbon\Carbon::parse($acara->jam_mulai)->format('H:i') }} WIB
+                                                @elseif($acara->jam_selesai)
+                                                    Sampai {{ \Carbon\Carbon::parse($acara->jam_selesai)->format('H:i') }} WIB
+                                                @endif
+                                            </p>
+                                        @endif
+                                    </div>
+                                    @if($acara->deskripsi)
+                                        <div class="pt-3 border-t border-slate-100">
+                                            <p class="text-xs text-slate-500 leading-relaxed">{{ Str::limit($acara->deskripsi, 100) }}</p>
+                                        </div>
+                                    @endif
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
+                @endif
+
+                @if(!empty($acaraLewat))
+                    <div class="mb-8">
+                        <div class="flex items-center gap-3 mb-4">
+                            <div class="h-1 w-12 bg-gradient-to-r from-slate-300 to-slate-400 rounded-full"></div>
+                            <h3 class="text-xl font-bold text-slate-700 flex items-center">
+                                <i class="fa-solid fa-history text-slate-400 mr-2"></i>
+                                Acara Terlampaui
+                            </h3>
+                        </div>
+                        <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            @foreach($acaraLewat as $acara)
+                                @php
+                                    $tanggal = \Carbon\Carbon::parse($acara->tanggal);
+                                @endphp
+                                <div class="bg-white rounded-2xl p-6 shadow-md border border-slate-200 opacity-75 hover:opacity-100 transition-all duration-300">
+                                    <div class="flex items-start justify-between mb-4">
+                                        <div class="w-12 h-12 bg-slate-100 rounded-xl flex items-center justify-center">
+                                            <i class="fa-solid fa-calendar-days text-slate-400 text-lg"></i>
+                                        </div>
+                                        <span class="text-xs font-medium text-slate-500 bg-slate-50 px-3 py-1 rounded-full border border-slate-200">
+                                            Selesai
+                                        </span>
+                                    </div>
+                                    <h3 class="text-lg font-bold text-slate-600 mb-2">{{ $acara->nama_kegiatan }}</h3>
+                                    @if($acara->posyandu)
+                                        <div class="inline-flex items-center px-2.5 py-1 bg-slate-50 rounded-lg mb-3">
+                                            <i class="fa-solid fa-hospital text-slate-400 text-xs mr-1.5"></i>
+                                            <span class="text-xs text-slate-500 font-medium">{{ $acara->posyandu->nama_posyandu }}</span>
+                                        </div>
+                                    @endif
+                                    <div class="space-y-2 text-slate-500 mb-4">
+                                        <p class="flex items-center text-sm">
+                                            <i class="fa-solid fa-calendar text-slate-400 mr-2 text-xs"></i> 
+                                            {{ $tanggal->locale('id')->translatedFormat('l, d F Y') }}
+                                        </p>
+                                        @if($acara->tempat)
+                                            <p class="flex items-center text-sm">
+                                                <i class="fa-solid fa-location-dot text-slate-400 mr-2 text-xs"></i> 
+                                                {{ $acara->tempat }}
+                                            </p>
+                                        @endif
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
+                @endif
+
+                {{-- Pagination --}}
+                @if($acaraList->hasPages())
+                    <div class="mt-8 flex justify-center">
+                        <div class="bg-white rounded-xl p-4 shadow-lg border border-slate-200">
+                            {{ $acaraList->links() }}
+                        </div>
+                    </div>
+                @endif
+            @else
+                <div class="text-center py-16 bg-white rounded-3xl border-2 border-dashed border-slate-200 shadow-sm">
+                    <div class="w-20 h-20 bg-gradient-to-br from-slate-100 to-slate-200 rounded-full flex items-center justify-center mx-auto mb-6">
+                        @if($search || $filterPosyandu)
+                            <i class="fa-solid fa-search text-slate-400 text-3xl"></i>
+                        @else
+                            <i class="fa-solid fa-calendar-xmark text-slate-400 text-3xl"></i>
+                        @endif
+                    </div>
+                    <h3 class="text-2xl font-bold text-slate-700 mb-3">
+                        @if($search || $filterPosyandu)
+                            Tidak Ada Acara Ditemukan
+                        @else
+                            Belum Ada Jadwal Acara
+                        @endif
+                    </h3>
+                    <p class="text-slate-500 max-w-md mx-auto mb-6">
+                        @if($search || $filterPosyandu)
+                            Coba ubah filter atau kata kunci pencarian Anda.
+                        @else
+                            Jadwal acara akan ditampilkan di sini setelah ditambahkan oleh admin posyandu.
+                        @endif
+                    </p>
+                    @if($search || $filterPosyandu)
+                        <a href="#jadwal" class="inline-flex items-center px-6 py-3 bg-slate-200 text-slate-700 rounded-full font-semibold hover:bg-slate-300 transition mr-3">
+                            <i class="fa-solid fa-arrow-left mr-2"></i>Kembali
+                        </a>
+                    @endif
+                    <a href="{{ Route::has('register') ? route('register') : '#' }}" class="inline-flex items-center px-6 py-3 bg-primary text-white rounded-full font-semibold hover:bg-primaryDark transition shadow-lg hover:shadow-xl">
+                        <i class="fa-solid fa-bell mr-2"></i>Daftar untuk Notifikasi
+                    </a>
+                </div>
+            @endif
+
+            <div class="text-center mt-12">
+                <div class="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-primary/10 to-teal-50 rounded-full border border-primary/20">
+                    <i class="fa-solid fa-bell text-primary"></i>
+                    <p class="text-slate-700 font-medium">
+                        Ingin mendapatkan notifikasi jadwal? 
+                        <a href="{{ Route::has('register') ? route('register') : '#' }}" class="text-primary font-bold hover:underline ml-1">
+                            Daftar sekarang
+                        </a>
+                    </p>
+                </div>
             </div>
         </div>
     </section>
@@ -584,9 +904,9 @@
                         <div class="w-10 h-10 bg-primary rounded-full flex items-center justify-center text-white text-lg">
                             <i class="fa-solid fa-heart-pulse"></i>
                         </div>
-                        <span class="font-bold text-xl text-white">Posyandu <span class="text-primary">Karanggan</span></span>
+                        <span class="font-bold text-xl text-white">{{ $posyandu ? $posyandu->nama_posyandu : 'Posyandu' }}</span>
                     </div>
-                    <p class="text-slate-400 text-sm leading-relaxed mb-4">Mengabdi untuk kesehatan masyarakat desa dengan pelayanan prima, profesional, dan sepenuh hati. Bersama mewujudkan generasi sehat dan produktif.</p>
+                    <p class="text-slate-400 text-sm leading-relaxed mb-4">{{ $posyandu ? $posyandu->nama_posyandu : 'Posyandu' }} mengabdi untuk kesehatan masyarakat dengan pelayanan prima, profesional, dan sepenuh hati. Bersama mewujudkan generasi sehat dan produktif.</p>
                     <div class="flex space-x-3">
                         <a href="#" class="w-9 h-9 rounded-full bg-slate-800 flex items-center justify-center text-slate-300 hover:bg-primary hover:text-white transition"><i class="fa-brands fa-instagram"></i></a>
                         <a href="#" class="w-9 h-9 rounded-full bg-slate-800 flex items-center justify-center text-slate-300 hover:bg-primary hover:text-white transition"><i class="fa-brands fa-facebook-f"></i></a>
@@ -647,7 +967,7 @@
             
             <div class="border-t border-slate-800 pt-8">
                 <div class="flex flex-col md:flex-row justify-between items-center gap-4">
-                    <p class="text-sm text-slate-400">&copy; {{ date('Y') }} Posyandu Karanggan. All rights reserved.</p>
+                    <p class="text-sm text-slate-400">&copy; {{ date('Y') }} {{ $posyandu ? $posyandu->nama_posyandu : 'Posyandu' }}. All rights reserved.</p>
                     <div class="flex gap-6 text-sm text-slate-400">
                         <a href="#" class="hover:text-primary transition">Kebijakan Privasi</a>
                         <a href="#" class="hover:text-primary transition">Syarat & Ketentuan</a>
