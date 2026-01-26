@@ -39,9 +39,79 @@ jobs:
       run: |
         npm run build
 
-    # 6. Kirim ke Hostinger via FTP (Laravel 12)
-    # Document root WAJIB: public_html/public (atur di Hostinger → Domains)
-    - name: 📂 Sync files
+    # 5.5. Siapkan struktur untuk deployment
+    - name: 📁 Prepare deployment structure
+      run: |
+        # Buat folder untuk Laravel project (tanpa public/)
+        mkdir -p deploy_laravel
+        # Copy folder dan file yang diperlukan
+        [ -d app ] && cp -r app deploy_laravel/
+        [ -d bootstrap ] && cp -r bootstrap deploy_laravel/
+        [ -d config ] && cp -r config deploy_laravel/
+        [ -d database ] && cp -r database deploy_laravel/
+        [ -d routes ] && cp -r routes deploy_laravel/
+        [ -d storage ] && cp -r storage deploy_laravel/
+        [ -d tests ] && cp -r tests deploy_laravel/
+        [ -f artisan ] && cp artisan deploy_laravel/
+        [ -f composer.json ] && cp composer.json deploy_laravel/
+        [ -f composer.lock ] && cp composer.lock deploy_laravel/
+        [ -f package.json ] && cp package.json deploy_laravel/
+        [ -f package-lock.json ] && cp package-lock.json deploy_laravel/
+        [ -f phpunit.xml ] && cp phpunit.xml deploy_laravel/
+        [ -f tailwind.config.js ] && cp tailwind.config.js deploy_laravel/
+        [ -f vite.config.js ] && cp vite.config.js deploy_laravel/
+        [ -f postcss.config.js ] && cp postcss.config.js deploy_laravel/
+        [ -f .editorconfig ] && cp .editorconfig deploy_laravel/
+        [ -f .gitattributes ] && cp .gitattributes deploy_laravel/
+        [ -f .gitignore ] && cp .gitignore deploy_laravel/
+        [ -f .htaccess ] && cp .htaccess deploy_laravel/
+        [ -f env.hostinger.example ] && cp env.hostinger.example deploy_laravel/
+        [ -f HOSTINGER_SETUP.md ] && cp HOSTINGER_SETUP.md deploy_laravel/
+        
+        # Buat folder untuk public_html
+        mkdir -p deploy_public_html
+        # Copy isi public/ ke deploy_public_html
+        cp -r public/* deploy_public_html/ 2>/dev/null || true
+        [ -f public/.htaccess ] && cp public/.htaccess deploy_public_html/
+        # Update index.php path (dari __DIR__.'/../ ke __DIR__.'/../posyandukaranggan/)
+        sed -i "s|__DIR__.'/../|__DIR__.'/../posyandukaranggan/|g" deploy_public_html/index.php
+        sed -i "s|__DIR__.\"/../|__DIR__.\"/../posyandukaranggan/|g" deploy_public_html/index.php
+
+    # 6. Deploy Laravel project ke folder posyandukaranggan (folder akan dibuat otomatis)
+    - name: 📂 Deploy Laravel to posyandukaranggan
+      uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+      with:
+        server: ${{ secrets.IP }}
+        username: ${{ secrets.USERNAME }}
+        password: ${{ secrets.PASSWORD }}
+        server-dir: /domains/posyandukaranggan.com/posyandukaranggan/
+        port: 21
+        protocol: ftp
+        timeout: 180000
+        local-dir: ./deploy_laravel/
+        exclude: |
+          **/.git*
+          **/.git*/**
+          **/.github/**
+
+    # 6.5. Pindahkan .env dari public_html ke posyandukaranggan (sebelum membersihkan public_html)
+    - name: 🔄 Move .env from public_html to posyandukaranggan
+      run: |
+        sudo apt-get update && sudo apt-get install -y lftp
+        lftp -c "
+        set ftp:ssl-allow no;
+        open -u ${{ secrets.USERNAME }},${{ secrets.PASSWORD }} ftp://${{ secrets.IP }}:21;
+        cd /domains/posyandukaranggan.com/public_html;
+        get .env -o /tmp/.env || echo '.env tidak ditemukan di public_html, skip...';
+        cd /domains/posyandukaranggan.com/posyandukaranggan;
+        put /tmp/.env -o .env || echo 'Gagal upload .env, pastikan folder posyandukaranggan sudah ada';
+        cd /domains/posyandukaranggan.com/public_html;
+        rm .env || echo 'Gagal hapus .env dari public_html';
+        quit;
+        " || echo "Langkah ini akan di-skip jika .env tidak ada atau sudah dipindahkan"
+
+    # 7. Deploy isi public/ ke public_html/ (bersihkan dulu karena sudah ada isinya)
+    - name: 📂 Deploy public to public_html
       uses: SamKirkland/FTP-Deploy-Action@v4.3.5
       with:
         server: ${{ secrets.IP }}
@@ -51,12 +121,9 @@ jobs:
         port: 21
         protocol: ftp
         timeout: 180000
+        local-dir: ./deploy_public_html/
+        dangerous-clean-slate: true
         exclude: |
           **/.git*
           **/.git*/**
           **/.github/**
-          **/node_modules/**
-          **/.env
-          **/.env.*
-          **/vendor/**
-          **/README.md
