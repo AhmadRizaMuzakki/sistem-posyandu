@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ $posyandu ? $posyandu->nama_posyandu : 'Posyandu' }} - Sehat Bersama, Tumbuh Bahagia</title>
+    <title>Posyandu Karanggan - Sehat Bersama, Tumbuh Bahagia</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -88,7 +88,7 @@
                     <div class="w-10 h-10 bg-primary rounded-full flex items-center justify-center text-white font-bold text-xl">
                         <i class="fa-solid fa-heart-pulse"></i>
                     </div>
-                    <a href="#beranda" class="font-bold text-xl tracking-tight text-slate-800 hover:text-primary transition">{{ $posyandu ? $posyandu->nama_posyandu : 'Posyandu' }}</a>
+                    <a href="#beranda" class="font-bold text-xl tracking-tight text-slate-800 hover:text-primary transition">Posyandu Karanggan</a>
                 </div>
                 <div class="hidden md:flex space-x-8">
                     <a href="#beranda" class="text-slate-600 hover:text-primary font-medium transition">Beranda</a>
@@ -181,10 +181,10 @@
             </span>
             <h1 class="text-4xl md:text-6xl font-extrabold text-slate-900 tracking-tight mb-6 leading-tight fade-in-up" style="animation-delay: 0.1s;">
                 Mewujudkan Generasi Sehat <br>
-                <span class="text-primary">{{ $posyandu ? 'Bersama ' . $posyandu->nama_posyandu : 'Bersama Posyandu' }}</span>
+                <span class="text-primary">Posyandu Karanggan</span>
             </h1>
             <p class="mt-4 max-w-3xl mx-auto text-xl text-slate-600 mb-10 fade-in-up" style="animation-delay: 0.2s;">
-                {{ $posyandu ? $posyandu->nama_posyandu : 'Posyandu' }} hadir sebagai mitra terpercaya keluarga dalam menjaga kesehatan ibu, anak, dan lansia. Dengan pelayanan terpadu, profesional, dan ramah, kami berkomitmen mewujudkan masyarakat yang sehat dan produktif.
+                Posyandu Karanggan hadir sebagai mitra terpercaya keluarga dalam menjaga kesehatan ibu, anak, dan lansia. Dengan pelayanan terpadu, profesional, dan ramah, kami berkomitmen mewujudkan masyarakat yang sehat dan produktif.
             </p>
             <div class="flex flex-col sm:flex-row justify-center gap-4 fade-in-up" style="animation-delay: 0.3s;">
                 <a href="#jadwal" class="px-8 py-4 rounded-full bg-primary text-white font-bold text-lg shadow-xl shadow-teal-500/30 hover:bg-primaryDark transition hover:-translate-y-1">
@@ -199,22 +199,38 @@
 
     <section class="py-10 bg-primary mx-4 md:mx-10 rounded-3xl shadow-2xl relative -mt-10 z-20">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-8 text-center text-white">
+            <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4 md:gap-6 text-center text-white">
                 <div>
-                    <div class="text-4xl font-bold mb-1">{{ number_format($totalBayiBalita ?? 0) }}{{ ($totalBayiBalita ?? 0) > 0 ? '+' : '' }}</div>
-                    <div class="text-teal-100 text-sm font-medium">Balita Sehat</div>
+                    <div class="text-3xl md:text-4xl font-bold mb-1">{{ number_format($totalBalita ?? 0) }}{{ ($totalBalita ?? 0) > 0 ? '+' : '' }}</div>
+                    <div class="text-teal-100 text-xs md:text-sm font-medium">Balita</div>
                 </div>
                 <div>
-                    <div class="text-4xl font-bold mb-1">{{ number_format($totalIbuHamil ?? 0) }}{{ ($totalIbuHamil ?? 0) > 0 ? '+' : '' }}</div>
-                    <div class="text-teal-100 text-sm font-medium">Ibu Hamil</div>
+                    <div class="text-3xl md:text-4xl font-bold mb-1">{{ number_format($totalRemaja ?? 0) }}{{ ($totalRemaja ?? 0) > 0 ? '+' : '' }}</div>
+                    <div class="text-teal-100 text-xs md:text-sm font-medium">Remaja</div>
                 </div>
                 <div>
-                    <div class="text-4xl font-bold mb-1">{{ number_format($totalKader ?? 0) }}</div>
-                    <div class="text-teal-100 text-sm font-medium">Kader Terlatih</div>
+                    <div class="text-3xl md:text-4xl font-bold mb-1">{{ number_format($totalOrangtua ?? 0) }}{{ ($totalOrangtua ?? 0) > 0 ? '+' : '' }}</div>
+                    <div class="text-teal-100 text-xs md:text-sm font-medium">Orangtua</div>
                 </div>
                 <div>
-                    <div class="text-4xl font-bold mb-1">{{ $cakupanImunisasi ?? 0 }}%</div>
-                    <div class="text-teal-100 text-sm font-medium">Cakupan Imunisasi</div>
+                    <div class="text-3xl md:text-4xl font-bold mb-1">{{ number_format($totalIbuHamil ?? 0) }}{{ ($totalIbuHamil ?? 0) > 0 ? '+' : '' }}</div>
+                    <div class="text-teal-100 text-xs md:text-sm font-medium">Ibu Hamil</div>
+                </div>
+                <div>
+                    <div class="text-3xl md:text-4xl font-bold mb-1">{{ number_format($totalPralansia ?? 0) }}{{ ($totalPralansia ?? 0) > 0 ? '+' : '' }}</div>
+                    <div class="text-teal-100 text-xs md:text-sm font-medium">Pralansia</div>
+                </div>
+                <div>
+                    <div class="text-3xl md:text-4xl font-bold mb-1">{{ number_format($totalLansia ?? 0) }}{{ ($totalLansia ?? 0) > 0 ? '+' : '' }}</div>
+                    <div class="text-teal-100 text-xs md:text-sm font-medium">Lansia</div>
+                </div>
+                <div>
+                    <div class="text-3xl md:text-4xl font-bold mb-1">{{ number_format($totalKader ?? 0) }}</div>
+                    <div class="text-teal-100 text-xs md:text-sm font-medium">Kader</div>
+                </div>
+                <div>
+                    <div class="text-3xl md:text-4xl font-bold mb-1">{{ $cakupanImunisasi ?? 0 }}%</div>
+                    <div class="text-teal-100 text-xs md:text-sm font-medium">Cakupan Imunisasi</div>
                 </div>
             </div>
         </div>

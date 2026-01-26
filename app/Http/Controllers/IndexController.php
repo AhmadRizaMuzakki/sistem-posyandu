@@ -6,6 +6,11 @@ use App\Models\Posyandu;
 use App\Models\JadwalKegiatan;
 use App\Models\SasaranBayibalita;
 use App\Models\SasaranIbuhamil;
+use App\Models\SasaranRemaja;
+use App\Models\SasaranDewasa;
+use App\Models\SasaranPralansia;
+use App\Models\SasaranLansia;
+use App\Models\Orangtua;
 use App\Models\Kader;
 use App\Models\Imunisasi;
 use Carbon\Carbon;
@@ -74,9 +79,13 @@ class IndexController extends Controller
             ->paginate(12)
             ->withQueryString(); // Mempertahankan query string untuk filter
         
-        // Hitung statistik gabungan dari semua posyandu
-        $totalBayiBalita = SasaranBayibalita::count();
+        // Hitung statistik gabungan dari semua posyandu (12 posyandu)
+        $totalBalita = SasaranBayibalita::count();
+        $totalRemaja = SasaranRemaja::count();
+        $totalOrangtua = SasaranDewasa::count(); // Dewasa = Orangtua
         $totalIbuHamil = SasaranIbuhamil::count();
+        $totalPralansia = SasaranPralansia::count();
+        $totalLansia = SasaranLansia::count();
         $totalKader = Kader::count();
         
         // Hitung cakupan imunisasi (persentase dari total bayi/balita yang sudah diimunisasi)
@@ -87,8 +96,8 @@ class IndexController extends Controller
             ->distinct('id_sasaran')
             ->count('id_sasaran');
         
-        $cakupanImunisasi = $totalBayiBalita > 0 
-            ? round(($totalBayiBalitaTerimunisasi / $totalBayiBalita) * 100) 
+        $cakupanImunisasi = $totalBalita > 0 
+            ? round(($totalBayiBalitaTerimunisasi / $totalBalita) * 100) 
             : 0;
         // Batasi maksimal 100%
         $cakupanImunisasi = min($cakupanImunisasi, 100);
@@ -104,8 +113,12 @@ class IndexController extends Controller
             'daftarPosyandu' => $daftarPosyandu,
             'filterPosyandu' => $filterPosyandu,
             'search' => $search,
-            'totalBayiBalita' => $totalBayiBalita,
+            'totalBalita' => $totalBalita,
+            'totalRemaja' => $totalRemaja,
+            'totalOrangtua' => $totalOrangtua,
             'totalIbuHamil' => $totalIbuHamil,
+            'totalPralansia' => $totalPralansia,
+            'totalLansia' => $totalLansia,
             'totalKader' => $totalKader,
             'cakupanImunisasi' => $cakupanImunisasi,
         ]);

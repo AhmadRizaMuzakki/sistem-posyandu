@@ -14,7 +14,7 @@ class PosyanduSeeder extends Seeder
     {
         \App\Models\Posyandu::insert([
             [
-                'nama_posyandu' => 'Posyandu Sedap Malam',
+                'nama_posyandu' => 'Posyandu Karanggan',
                 'alamat_posyandu' => 'Jl. Mawar No. 123',
                 'domisili_posyandu' => 'Kelurahan Mawar',
                 'jumlah_sasaran' => 100,

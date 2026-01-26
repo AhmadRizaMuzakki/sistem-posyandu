@@ -55,6 +55,13 @@
                     </a>
                 @endif
 
+                {{-- 8. JADWAL --}}{{-- 8. JADWAL --}}
+                <a href="{{ route('adminPosyandu.jadwal') }}"
+                    class="flex items-center px-4 py-3 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
+                    <i class="ph ph-calendar text-xl mr-3"></i>
+                    <span class="font-medium">Jadwal</span>
+                </a>
+                
                 {{-- 3. DATA PETUGAS KESEHATAN --}}
                 <a href="{{ route('adminPosyandu.petugas-kesehatan') }}"
                     class="flex items-center px-4 py-3 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
@@ -88,13 +95,6 @@
                     class="flex items-center px-4 py-3 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
                     <i class="ph ph-baby text-xl mr-3"></i>
                     <span class="font-medium">Ibu Menyusui</span>
-                </a>
-
-                {{-- 8. JADWAL --}}
-                <a href="{{ route('adminPosyandu.jadwal') }}"
-                    class="flex items-center px-4 py-3 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
-                    <i class="ph ph-calendar text-xl mr-3"></i>
-                    <span class="font-medium">Jadwal</span>
                 </a>
 
                 {{-- 9. LAPORAN --}}
