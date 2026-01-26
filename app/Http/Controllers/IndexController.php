@@ -34,8 +34,8 @@ class IndexController extends Controller
             $posyandu = Posyandu::first();
         }
 
-        // Ambil semua posyandu untuk filter dropdown
-        $daftarPosyandu = Posyandu::select('id_posyandu', 'nama_posyandu')
+        // Ambil semua posyandu untuk filter dropdown dan daftar posyandu
+        $daftarPosyandu = Posyandu::select('id_posyandu', 'nama_posyandu', 'alamat_posyandu', 'domisili_posyandu')
             ->orderBy('nama_posyandu')
             ->get();
 

@@ -93,6 +93,7 @@
                 <div class="hidden md:flex space-x-8">
                     <a href="#beranda" class="text-slate-600 hover:text-primary font-medium transition">Beranda</a>
                     <a href="#layanan" class="text-slate-600 hover:text-primary font-medium transition">Layanan</a>
+                    <a href="#posyandu" class="text-slate-600 hover:text-primary font-medium transition">Posyandu</a>
                     <a href="#jadwal" class="text-slate-600 hover:text-primary font-medium transition">Jadwal</a>
                     <a href="#galeri" class="text-slate-600 hover:text-primary font-medium transition">Galeri</a>
                 </div>
@@ -111,12 +112,9 @@
                             @endphp
                             <a href="{{ $dashboardRoute }}" class="text-slate-600 hover:text-primary font-medium transition">Dashboard</a>
                         @else
-                            <a href="{{ route('login') }}" class="text-slate-600 hover:text-primary font-medium transition">Masuk</a>
-                            @if (Route::has('register'))
-                                <a href="{{ route('register') }}" class="inline-flex items-center justify-center px-6 py-2 border border-transparent text-sm font-medium rounded-full text-white bg-primary hover:bg-primaryDark shadow-lg shadow-primary/30 transition hover:-translate-y-0.5">
-                                    Daftar
-                                </a>
-                            @endif
+                            <a href="{{ route('login') }}" class="inline-flex items-center justify-center px-6 py-2 border border-transparent text-sm font-medium rounded-full text-white bg-primary hover:bg-primaryDark shadow-lg shadow-primary/30 transition hover:-translate-y-0.5">
+                                Masuk
+                            </a>
                         @endauth
                     @else
                         <a href="#kontak" class="inline-flex items-center justify-center px-6 py-2 border border-transparent text-sm font-medium rounded-full text-white bg-primary hover:bg-primaryDark shadow-lg shadow-primary/30 transition hover:-translate-y-0.5">
@@ -135,6 +133,7 @@
             <div class="px-4 py-6 space-y-4">
                 <a href="#beranda" class="block text-slate-600 hover:text-primary font-medium py-2 transition">Beranda</a>
                 <a href="#layanan" class="block text-slate-600 hover:text-primary font-medium py-2 transition">Layanan</a>
+                <a href="#posyandu" class="block text-slate-600 hover:text-primary font-medium py-2 transition">Posyandu</a>
                 <a href="#jadwal" class="block text-slate-600 hover:text-primary font-medium py-2 transition">Jadwal</a>
                 <a href="#galeri" class="block text-slate-600 hover:text-primary font-medium py-2 transition">Galeri</a>
                 <div class="pt-4 border-t border-slate-100 space-y-3">
@@ -152,12 +151,9 @@
                             @endphp
                             <a href="{{ $dashboardRoute }}" class="block text-slate-600 hover:text-primary font-medium py-2 transition">Dashboard</a>
                         @else
-                            <a href="{{ route('login') }}" class="block text-slate-600 hover:text-primary font-medium py-2 transition">Masuk</a>
-                            @if (Route::has('register'))
-                                <a href="{{ route('register') }}" class="block w-full text-center px-6 py-3 rounded-full text-white bg-primary hover:bg-primaryDark font-medium transition">
-                                    Daftar
-                                </a>
-                            @endif
+                            <a href="{{ route('login') }}" class="block w-full text-center px-6 py-3 rounded-full text-white bg-primary hover:bg-primaryDark font-medium transition">
+                                Masuk
+                            </a>
                         @endauth
                     @else
                         <a href="#kontak" class="block w-full text-center px-6 py-3 rounded-full text-white bg-primary hover:bg-primaryDark font-medium transition">
@@ -386,6 +382,63 @@
                     </div>
                 </div>
             </div>
+        </div>
+    </section>
+
+    {{-- Section Daftar Posyandu --}}
+    <section id="posyandu" class="py-20 bg-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-12">
+                <span class="inline-block py-1 px-3 rounded-full bg-primary/10 text-primary text-sm font-semibold mb-4">Jaringan Posyandu</span>
+                <h2 class="text-4xl font-bold text-slate-900 mb-4">Daftar Posyandu</h2>
+                <p class="text-slate-600 max-w-2xl mx-auto text-lg">Temukan posyandu terdekat di wilayah Anda. Kami memiliki 12 posyandu yang siap melayani kesehatan keluarga Anda.</p>
+            </div>
+            
+            @if($daftarPosyandu && $daftarPosyandu->count() > 0)
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                    @foreach($daftarPosyandu as $p)
+                        <div class="group bg-white rounded-2xl p-6 border-2 border-slate-200 hover:border-primary transition-all duration-300 hover:shadow-xl hover:-translate-y-2">
+                            <div class="flex items-center justify-between mb-4">
+                                <div class="w-14 h-14 bg-gradient-to-br from-primary to-primaryDark rounded-xl flex items-center justify-center text-white text-xl font-bold shadow-lg group-hover:scale-110 transition-transform">
+                                    <i class="fa-solid fa-hospital"></i>
+                                </div>
+                                <a href="?posyandu={{ $p->id_posyandu }}#beranda" 
+                                   class="text-primary hover:text-primaryDark transition-colors">
+                                    <i class="fa-solid fa-arrow-right text-lg"></i>
+                                </a>
+                            </div>
+                            <h3 class="text-xl font-bold text-slate-900 mb-2 group-hover:text-primary transition-colors">
+                                {{ $p->nama_posyandu }}
+                            </h3>
+                            @if($p->domisili_posyandu)
+                                <div class="flex items-center text-sm text-slate-500 mb-2">
+                                    <i class="fa-solid fa-location-dot mr-2 text-primary"></i>
+                                    <span>{{ $p->domisili_posyandu }}</span>
+                                </div>
+                            @endif
+                            @if($p->alamat_posyandu)
+                                <p class="text-xs text-slate-600 mb-4 line-clamp-2">
+                                    {{ $p->alamat_posyandu }}
+                                </p>
+                            @else
+                                <p class="text-sm text-slate-600 mb-4">
+                                    Klik untuk melihat informasi dan jadwal kegiatan posyandu ini.
+                                </p>
+                            @endif
+                            <a href="?posyandu={{ $p->id_posyandu }}#beranda" 
+                               class="inline-flex items-center text-sm font-semibold text-primary hover:text-primaryDark transition-colors">
+                                Lihat Detail
+                                <i class="fa-solid fa-arrow-right ml-2 text-xs"></i>
+                            </a>
+                        </div>
+                    @endforeach
+                </div>
+            @else
+                <div class="text-center py-12 bg-slate-50 rounded-2xl border-2 border-dashed border-slate-300">
+                    <i class="fa-solid fa-hospital text-4xl text-slate-400 mb-4"></i>
+                    <p class="text-slate-500 font-medium">Belum ada posyandu terdaftar</p>
+                </div>
+            @endif
         </div>
     </section>
 
@@ -714,23 +767,8 @@
                             <i class="fa-solid fa-arrow-left mr-2"></i>Kembali
                         </a>
                     @endif
-                    <a href="{{ Route::has('register') ? route('register') : '#' }}" class="inline-flex items-center px-6 py-3 bg-primary text-white rounded-full font-semibold hover:bg-primaryDark transition shadow-lg hover:shadow-xl">
-                        <i class="fa-solid fa-bell mr-2"></i>Daftar untuk Notifikasi
-                    </a>
                 </div>
             @endif
-
-            <div class="text-center mt-12">
-                <div class="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-primary/10 to-teal-50 rounded-full border border-primary/20">
-                    <i class="fa-solid fa-bell text-primary"></i>
-                    <p class="text-slate-700 font-medium">
-                        Ingin mendapatkan notifikasi jadwal? 
-                        <a href="{{ Route::has('register') ? route('register') : '#' }}" class="text-primary font-bold hover:underline ml-1">
-                            Daftar sekarang
-                        </a>
-                    </p>
-                </div>
-            </div>
         </div>
     </section>
 
@@ -896,14 +934,9 @@
             <div class="bg-gradient-to-r from-primary to-primaryDark rounded-2xl p-8 md:p-12 text-white text-center">
                 <h3 class="text-2xl font-bold mb-4">Bergabunglah dengan Kami</h3>
                 <p class="text-teal-100 mb-6 max-w-2xl mx-auto text-lg">
-                    Dapatkan akses penuh ke semua layanan kesehatan terpadu. Daftar sekarang dan nikmati kemudahan dalam mengelola kesehatan keluarga Anda.
+                    Dapatkan akses penuh ke semua layanan kesehatan terpadu. Hubungi kader posyandu terdekat untuk mendapatkan akses dan nikmati kemudahan dalam mengelola kesehatan keluarga Anda.
                 </p>
                 <div class="flex flex-col sm:flex-row justify-center gap-4">
-                    @if (Route::has('register'))
-                        <a href="{{ route('register') }}" class="px-8 py-3 rounded-full bg-white text-primary font-bold hover:bg-teal-50 transition shadow-lg">
-                            <i class="fa-solid fa-user-plus mr-2"></i> Daftar Sekarang
-                        </a>
-                    @endif
                     <a href="#kontak" class="px-8 py-3 rounded-full bg-transparent border-2 border-white text-white font-bold hover:bg-white/10 transition">
                         <i class="fa-solid fa-phone mr-2"></i> Hubungi Kami
                     </a>
