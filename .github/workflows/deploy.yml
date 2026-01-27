@@ -53,9 +53,14 @@ jobs:
         [ -d bootstrap ] && cp -r bootstrap deploy_laravel/
         [ -d config ] && cp -r config deploy_laravel/
         [ -d database ] && cp -r database deploy_laravel/
+        [ -d resources ] && cp -r resources deploy_laravel/
         [ -d routes ] && cp -r routes deploy_laravel/
         [ -d storage ] && cp -r storage deploy_laravel/
         [ -d tests ] && cp -r tests deploy_laravel/
+        [ -d vendor ] && cp -r vendor deploy_laravel/
+        # Kosongkan compiled views (path absolut dari runner); Laravel akan compile ulang di server
+        rm -rf deploy_laravel/storage/framework/views
+        mkdir -p deploy_laravel/storage/framework/views
         [ -f artisan ] && cp artisan deploy_laravel/
         [ -f composer.json ] && cp composer.json deploy_laravel/
         [ -f composer.lock ] && cp composer.lock deploy_laravel/
@@ -82,6 +87,11 @@ jobs:
         # Update index.php path (dari __DIR__.'/../ ke __DIR__.'/../posyandukaranggan/)
         sed -i "s|__DIR__.'/../|__DIR__.'/../posyandukaranggan/|g" deploy_public_html/index.php
         sed -i "s|__DIR__.\"/../|__DIR__.\"/../posyandukaranggan/|g" deploy_public_html/index.php
+
+    # 5.6. Verifikasi view auth.login ada (cegah "View [auth.login] not found")
+    - name: ✅ Verifikasi view auth.login
+      run: |
+        test -f deploy_laravel/resources/views/auth/login.blade.php || (echo "ERROR: resources/views/auth/login.blade.php tidak ada di deploy_laravel. Pastikan folder resources ter-deploy." && exit 1)
 
     # 6. Deploy Laravel project ke folder posyandukaranggan (folder akan dibuat otomatis)
     - name: 📂 Deploy Laravel to posyandukaranggan
