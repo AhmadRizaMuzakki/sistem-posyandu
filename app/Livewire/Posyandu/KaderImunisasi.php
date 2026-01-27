@@ -170,7 +170,7 @@ class KaderImunisasi extends Component
     {
         // Ambil imunisasi hanya untuk posyandu kader ini dengan filter search
         $query = Imunisasi::where('id_posyandu', $this->posyanduId)
-            ->with(['user', 'posyandu']);
+            ->with(['user', 'posyandu', 'petugasKesehatan']);
 
         // Filter berdasarkan search
         if (!empty($this->search)) {
@@ -204,6 +204,7 @@ class KaderImunisasi extends Component
             'id_imunisasi' => $this->id_imunisasi,
             'posyandu' => $this->posyandu,
             'sasaranList' => $this->sasaranList,
+            'petugasKesehatanList' => $this->getPetugasKesehatanList(),
         ]);
     }
 }

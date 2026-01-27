@@ -8,6 +8,8 @@ use App\Models\SasaranIbuhamil;
 use App\Models\SasaranDewasa;
 use App\Models\SasaranPralansia;
 use App\Models\SasaranLansia;
+use App\Models\SasaranBayibalita;
+use App\Models\PetugasKesehatan;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 
@@ -31,12 +33,18 @@ trait IbuMenyusuiCrud
     public $tahun_kunjungan;
     public $status_kunjungan;
     public $tanggal_kunjungan;
+    public $id_petugas_penanggung_jawab;
+    public $id_petugas_imunisasi;
+    public $id_petugas_input;
 
     // Field Input Kunjungan Bulk (per bulan)
     public $bulan_input_kunjungan;
     public $tahun_input_kunjungan;
     public $tanggal_agenda_kunjungan;
     public $selectedIbuMenyusui = []; // Array ID ibu menyusui yang dicentang (untuk Livewire array)
+    public $id_petugas_penanggung_jawab_bulk;
+    public $id_petugas_imunisasi_bulk;
+    public $id_petugas_input_bulk;
 
     /**
      * Buka modal tambah/edit Ibu Menyusui
@@ -161,8 +169,14 @@ trait IbuMenyusuiCrud
             $this->status_kunjungan = $kunjungan->status ?? '';
             $this->tanggal_kunjungan = $kunjungan->tanggal_kunjungan ? 
                 (is_string($kunjungan->tanggal_kunjungan) ? $kunjungan->tanggal_kunjungan : $kunjungan->tanggal_kunjungan->format('Y-m-d')) : '';
+            $this->id_petugas_penanggung_jawab = $kunjungan->id_petugas_penanggung_jawab;
+            $this->id_petugas_imunisasi = $kunjungan->id_petugas_imunisasi;
+            $this->id_petugas_input = $kunjungan->id_petugas_input;
         } else {
             $this->id_kunjungan = null;
+            $this->id_petugas_penanggung_jawab = null;
+            $this->id_petugas_imunisasi = null;
+            $this->id_petugas_input = null;
         }
 
         $this->isKunjunganModalOpen = true;
@@ -188,6 +202,9 @@ trait IbuMenyusuiCrud
         $this->tahun_kunjungan = date('Y');
         $this->status_kunjungan = '';
         $this->tanggal_kunjungan = date('Y-m-d');
+        $this->id_petugas_penanggung_jawab = null;
+        $this->id_petugas_imunisasi = null;
+        $this->id_petugas_input = null;
     }
 
     /**
@@ -201,12 +218,18 @@ trait IbuMenyusuiCrud
             'tahun_kunjungan' => 'required|integer|min:2020|max:' . (date('Y') + 1),
             'status_kunjungan' => 'nullable|in:success',
             'tanggal_kunjungan' => 'nullable|date',
+            'id_petugas_penanggung_jawab' => 'nullable|exists:petugas_kesehatan,id_petugas_kesehatan',
+            'id_petugas_imunisasi' => 'nullable|exists:petugas_kesehatan,id_petugas_kesehatan',
+            'id_petugas_input' => 'nullable|exists:petugas_kesehatan,id_petugas_kesehatan',
         ], [
             'id_ibu_menyusui_kunjungan.required' => 'Ibu menyusui wajib dipilih.',
             'bulan_kunjungan.required' => 'Bulan wajib diisi.',
             'bulan_kunjungan.min' => 'Bulan minimal 1.',
             'bulan_kunjungan.max' => 'Bulan maksimal 12.',
             'tahun_kunjungan.required' => 'Tahun wajib diisi.',
+            'id_petugas_penanggung_jawab.exists' => 'Petugas penanggung jawab tidak ditemukan.',
+            'id_petugas_imunisasi.exists' => 'Petugas imunisasi tidak ditemukan.',
+            'id_petugas_input.exists' => 'Petugas input tidak ditemukan.',
         ]);
 
         $data = [
@@ -215,6 +238,9 @@ trait IbuMenyusuiCrud
             'tahun' => $this->tahun_kunjungan,
             'status' => $this->status_kunjungan ?: null,
             'tanggal_kunjungan' => $this->tanggal_kunjungan ?: null,
+            'id_petugas_penanggung_jawab' => $this->id_petugas_penanggung_jawab ?: null,
+            'id_petugas_imunisasi' => $this->id_petugas_imunisasi ?: null,
+            'id_petugas_input' => $this->id_petugas_input ?: null,
         ];
 
         DB::transaction(function () use ($data) {
@@ -279,6 +305,8 @@ trait IbuMenyusuiCrud
         $this->tahun_input_kunjungan = $tahun ?? date('Y');
         $this->tanggal_agenda_kunjungan = date('Y-m-d');
         $this->selectedIbuMenyusui = [];
+        $this->id_petugas_penanggung_jawab_bulk = null;
+        $this->id_petugas_imunisasi_bulk = null;
         
         $this->isInputKunjunganModalOpen = true;
         
@@ -311,6 +339,9 @@ trait IbuMenyusuiCrud
         $this->tahun_input_kunjungan = null;
         $this->tanggal_agenda_kunjungan = date('Y-m-d');
         $this->selectedIbuMenyusui = [];
+        $this->id_petugas_penanggung_jawab_bulk = null;
+        $this->id_petugas_imunisasi_bulk = null;
+        $this->id_petugas_input_bulk = null;
         $this->isInputKunjunganModalOpen = false;
     }
 
@@ -349,7 +380,7 @@ trait IbuMenyusuiCrud
 
         $this->selectedIbuMenyusui = array_values($kunjungan); // Pastikan array dengan key numerik
 
-        // Set tanggal agenda dari kunjungan pertama jika ada
+        // Set tanggal agenda dan petugas dari kunjungan pertama jika ada
         $firstKunjungan = KunjunganIbuMenyusui::whereHas('ibuMenyusui', function($q) use ($posyanduId) {
             $q->where('id_posyandu', $posyanduId);
         })
@@ -358,12 +389,24 @@ trait IbuMenyusuiCrud
         ->whereNotNull('tanggal_kunjungan')
         ->first();
 
-        if ($firstKunjungan && $firstKunjungan->tanggal_kunjungan) {
-            $this->tanggal_agenda_kunjungan = is_string($firstKunjungan->tanggal_kunjungan) 
-                ? $firstKunjungan->tanggal_kunjungan 
-                : $firstKunjungan->tanggal_kunjungan->format('Y-m-d');
+        if ($firstKunjungan) {
+            if ($firstKunjungan->tanggal_kunjungan) {
+                $this->tanggal_agenda_kunjungan = is_string($firstKunjungan->tanggal_kunjungan) 
+                    ? $firstKunjungan->tanggal_kunjungan 
+                    : $firstKunjungan->tanggal_kunjungan->format('Y-m-d');
+            } else {
+                $this->tanggal_agenda_kunjungan = date('Y-m-d');
+            }
+            
+            // Load petugas jika ada
+            $this->id_petugas_penanggung_jawab_bulk = $firstKunjungan->id_petugas_penanggung_jawab;
+            $this->id_petugas_imunisasi_bulk = $firstKunjungan->id_petugas_imunisasi;
+            $this->id_petugas_input_bulk = $firstKunjungan->id_petugas_input;
         } else {
             $this->tanggal_agenda_kunjungan = date('Y-m-d');
+            $this->id_petugas_penanggung_jawab_bulk = null;
+            $this->id_petugas_imunisasi_bulk = null;
+            $this->id_petugas_input_bulk = null;
         }
     }
 
@@ -376,10 +419,16 @@ trait IbuMenyusuiCrud
             'bulan_input_kunjungan' => 'required|integer|min:1|max:12',
             'tahun_input_kunjungan' => 'required|integer|min:2020|max:' . (date('Y') + 1),
             'tanggal_agenda_kunjungan' => 'required|date',
+            'id_petugas_penanggung_jawab_bulk' => 'nullable|exists:petugas_kesehatan,id_petugas_kesehatan',
+            'id_petugas_imunisasi_bulk' => 'nullable|exists:petugas_kesehatan,id_petugas_kesehatan',
+            'id_petugas_input_bulk' => 'nullable|exists:petugas_kesehatan,id_petugas_kesehatan',
         ], [
             'bulan_input_kunjungan.required' => 'Bulan wajib dipilih.',
             'tahun_input_kunjungan.required' => 'Tahun wajib dipilih.',
             'tanggal_agenda_kunjungan.required' => 'Tanggal agenda wajib diisi.',
+            'id_petugas_penanggung_jawab_bulk.exists' => 'Petugas penanggung jawab tidak ditemukan.',
+            'id_petugas_imunisasi_bulk.exists' => 'Petugas imunisasi tidak ditemukan.',
+            'id_petugas_input_bulk.exists' => 'Petugas input tidak ditemukan.',
         ]);
 
         // Dapatkan posyanduId
@@ -419,6 +468,9 @@ trait IbuMenyusuiCrud
                         [
                             'status' => 'success',
                             'tanggal_kunjungan' => $this->tanggal_agenda_kunjungan,
+                            'id_petugas_penanggung_jawab' => $this->id_petugas_penanggung_jawab_bulk ?: null,
+                            'id_petugas_imunisasi' => $this->id_petugas_imunisasi_bulk ?: null,
+                            'id_petugas_input' => $this->id_petugas_input_bulk ?: null,
                         ]
                     );
                 }
@@ -431,8 +483,8 @@ trait IbuMenyusuiCrud
     }
 
     /**
-     * Get list ibu menyusui dari sasaran
-     * Data diambil dari sasaran ibu hamil, dewasa, pralansia, lansia (perempuan)
+     * Get list ibu menyusui dari sasaran balita
+     * Data diambil dari sasaran balita, nama ibu dan suami diambil dari susunan keluarga berdasarkan KK
      * Method ini akan sync data dari sasaran ke tabel ibu_menyusuis
      */
     public function getIbuMenyusuiFromSasaran()
@@ -446,74 +498,115 @@ trait IbuMenyusuiCrud
             return collect();
         }
 
-        $namaIbuFromSasaran = collect();
-
-        // Ambil nama dari sasaran ibu hamil
-        $ibuHamil = SasaranIbuhamil::where('id_posyandu', $posyanduId)->get();
-        foreach ($ibuHamil as $ibu) {
-            $namaIbuFromSasaran->push([
-                'nama_ibu' => $ibu->nama_sasaran,
-                'nama_suami' => $ibu->nama_suami,
-                'nama_bayi' => null,
-            ]);
-        }
-
-        // Ambil nama dari sasaran dewasa (perempuan)
-        $dewasa = SasaranDewasa::where('id_posyandu', $posyanduId)
-            ->where('jenis_kelamin', 'Perempuan')
-            ->get();
-        foreach ($dewasa as $ibu) {
-            $namaIbuFromSasaran->push([
-                'nama_ibu' => $ibu->nama_sasaran,
-                'nama_suami' => null,
-                'nama_bayi' => null,
-            ]);
-        }
-
-        // Ambil nama dari sasaran pralansia (perempuan)
-        $pralansia = SasaranPralansia::where('id_posyandu', $posyanduId)
-            ->where('jenis_kelamin', 'Perempuan')
-            ->get();
-        foreach ($pralansia as $ibu) {
-            $namaIbuFromSasaran->push([
-                'nama_ibu' => $ibu->nama_sasaran,
-                'nama_suami' => null,
-                'nama_bayi' => null,
-            ]);
-        }
-
-        // Ambil nama dari sasaran lansia (perempuan)
-        $lansia = SasaranLansia::where('id_posyandu', $posyanduId)
-            ->where('jenis_kelamin', 'Perempuan')
-            ->get();
-        foreach ($lansia as $ibu) {
-            $namaIbuFromSasaran->push([
-                'nama_ibu' => $ibu->nama_sasaran,
-                'nama_suami' => null,
-                'nama_bayi' => null,
-            ]);
-        }
-
-        // Buat atau update record di tabel ibu_menyusuis
         $ibuMenyusuiList = collect();
-        $uniqueNamaIbu = $namaIbuFromSasaran->unique('nama_ibu');
 
-        foreach ($uniqueNamaIbu as $data) {
-            $ibuMenyusui = IbuMenyusui::firstOrCreate(
+        // Ambil semua sasaran balita dari posyandu ini
+        $balitaList = SasaranBayibalita::where('id_posyandu', $posyanduId)
+            ->whereNotNull('no_kk_sasaran')
+            ->get();
+
+        foreach ($balitaList as $balita) {
+            $noKk = $balita->no_kk_sasaran;
+            $namaBayi = $balita->nama_sasaran;
+            
+            // Cari nama ibu dari susunan keluarga (perempuan dengan status 'istri' atau 'kepala keluarga')
+            $namaIbu = null;
+            $namaSuami = null;
+
+            // Cari ibu dari sasaran dewasa (perempuan dengan status 'istri' atau 'kepala keluarga')
+            $ibuDewasa = SasaranDewasa::where('id_posyandu', $posyanduId)
+                ->where('no_kk_sasaran', $noKk)
+                ->where('jenis_kelamin', 'Perempuan')
+                ->whereIn('status_keluarga', ['istri', 'kepala keluarga'])
+                ->first();
+            
+            if ($ibuDewasa) {
+                $namaIbu = $ibuDewasa->nama_sasaran;
+            } else {
+                // Jika tidak ada di dewasa, cari di pralansia
+                $ibuPralansia = SasaranPralansia::where('id_posyandu', $posyanduId)
+                    ->where('no_kk_sasaran', $noKk)
+                    ->where('jenis_kelamin', 'Perempuan')
+                    ->whereIn('status_keluarga', ['istri', 'kepala keluarga'])
+                    ->first();
+                
+                if ($ibuPralansia) {
+                    $namaIbu = $ibuPralansia->nama_sasaran;
+                } else {
+                    // Jika tidak ada di pralansia, cari di lansia
+                    $ibuLansia = SasaranLansia::where('id_posyandu', $posyanduId)
+                        ->where('no_kk_sasaran', $noKk)
+                        ->where('jenis_kelamin', 'Perempuan')
+                        ->whereIn('status_keluarga', ['istri', 'kepala keluarga'])
+                        ->first();
+                    
+                    if ($ibuLansia) {
+                        $namaIbu = $ibuLansia->nama_sasaran;
+                    }
+                }
+            }
+
+            // Cari suami dari susunan keluarga (laki-laki dengan status 'kepala keluarga')
+            $suamiDewasa = SasaranDewasa::where('id_posyandu', $posyanduId)
+                ->where('no_kk_sasaran', $noKk)
+                ->where('jenis_kelamin', 'Laki-laki')
+                ->where('status_keluarga', 'kepala keluarga')
+                ->first();
+            
+            if ($suamiDewasa) {
+                $namaSuami = $suamiDewasa->nama_sasaran;
+            } else {
+                // Jika tidak ada di dewasa, cari di pralansia
+                $suamiPralansia = SasaranPralansia::where('id_posyandu', $posyanduId)
+                    ->where('no_kk_sasaran', $noKk)
+                    ->where('jenis_kelamin', 'Laki-laki')
+                    ->where('status_keluarga', 'kepala keluarga')
+                    ->first();
+                
+                if ($suamiPralansia) {
+                    $namaSuami = $suamiPralansia->nama_sasaran;
+                } else {
+                    // Jika tidak ada di pralansia, cari di lansia
+                    $suamiLansia = SasaranLansia::where('id_posyandu', $posyanduId)
+                        ->where('no_kk_sasaran', $noKk)
+                        ->where('jenis_kelamin', 'Laki-laki')
+                        ->where('status_keluarga', 'kepala keluarga')
+                        ->first();
+                    
+                    if ($suamiLansia) {
+                        $namaSuami = $suamiLansia->nama_sasaran;
+                    }
+                }
+            }
+
+        // Jika ditemukan nama ibu, buat atau update record di tabel ibu_menyusuis
+        if ($namaIbu) {
+            $ibuMenyusui = IbuMenyusui::updateOrCreate(
                 [
                     'id_posyandu' => $posyanduId,
-                    'nama_ibu' => $data['nama_ibu'],
+                    'nama_bayi' => $namaBayi,
                 ],
                 [
-                    'nama_suami' => $data['nama_suami'],
-                    'nama_bayi' => $data['nama_bayi'],
+                    'nama_ibu' => $namaIbu,
+                    'nama_suami' => $namaSuami,
                 ]
             );
 
-            // Update nama suami jika ada di sasaran tapi belum ada di tabel
-            if ($data['nama_suami'] && !$ibuMenyusui->nama_suami) {
-                $ibuMenyusui->update(['nama_suami' => $data['nama_suami']]);
-            }
+            // Otomatis buat kunjungan untuk bulan dan tahun saat ini jika belum ada
+            $bulanSaatIni = date('n');
+            $tahunSaatIni = date('Y');
+            
+            KunjunganIbuMenyusui::firstOrCreate(
+                [
+                    'id_ibu_menyusui' => $ibuMenyusui->id_ibu_menyusui,
+                    'bulan' => $bulanSaatIni,
+                    'tahun' => $tahunSaatIni,
+                ],
+                [
+                    'status' => 'success',
+                    'tanggal_kunjungan' => date('Y-m-d'),
+                ]
+            );
 
             $ibuMenyusuiList->push([
                 'id_ibu_menyusui' => $ibuMenyusui->id_ibu_menyusui,
@@ -522,8 +615,9 @@ trait IbuMenyusuiCrud
                 'nama_bayi' => $ibuMenyusui->nama_bayi,
             ]);
         }
+        }
 
-        // Tambahkan juga yang sudah ada di tabel tapi tidak ada di sasaran
+        // Tambahkan juga yang sudah ada di tabel tapi tidak ada di sasaran balita
         $existingIbuMenyusui = IbuMenyusui::where('id_posyandu', $posyanduId)->get();
         foreach ($existingIbuMenyusui as $ibu) {
             $exists = $ibuMenyusuiList->firstWhere('id_ibu_menyusui', $ibu->id_ibu_menyusui);
@@ -537,7 +631,7 @@ trait IbuMenyusuiCrud
             }
         }
 
-        return $ibuMenyusuiList->sortBy('nama_ibu')->values();
+        return $ibuMenyusuiList->sortBy('nama_bayi')->values();
     }
 
     /**
@@ -591,5 +685,138 @@ trait IbuMenyusuiCrud
         });
 
         $this->refreshPosyandu();
+    }
+
+    /**
+     * Sync ibu menyusui dari sasaran balita berdasarkan KK
+     * Dipanggil setelah balita disimpan untuk auto-create/update ibu_menyusui
+     */
+    public function syncIbuMenyusuiFromBalita($balitaId, $posyanduId)
+    {
+        $balita = SasaranBayibalita::find($balitaId);
+        if (!$balita || !$balita->no_kk_sasaran) {
+            return;
+        }
+
+        $noKk = $balita->no_kk_sasaran;
+        $namaBayi = $balita->nama_sasaran;
+        
+        // Cari nama ibu dari susunan keluarga (perempuan dengan status 'istri' atau 'kepala keluarga')
+        $namaIbu = null;
+        $namaSuami = null;
+
+        // Cari ibu dari sasaran dewasa (perempuan dengan status 'istri' atau 'kepala keluarga')
+        $ibuDewasa = SasaranDewasa::where('id_posyandu', $posyanduId)
+            ->where('no_kk_sasaran', $noKk)
+            ->where('jenis_kelamin', 'Perempuan')
+            ->whereIn('status_keluarga', ['istri', 'kepala keluarga'])
+            ->first();
+        
+        if ($ibuDewasa) {
+            $namaIbu = $ibuDewasa->nama_sasaran;
+        } else {
+            // Jika tidak ada di dewasa, cari di pralansia
+            $ibuPralansia = SasaranPralansia::where('id_posyandu', $posyanduId)
+                ->where('no_kk_sasaran', $noKk)
+                ->where('jenis_kelamin', 'Perempuan')
+                ->whereIn('status_keluarga', ['istri', 'kepala keluarga'])
+                ->first();
+            
+            if ($ibuPralansia) {
+                $namaIbu = $ibuPralansia->nama_sasaran;
+            } else {
+                // Jika tidak ada di pralansia, cari di lansia
+                $ibuLansia = SasaranLansia::where('id_posyandu', $posyanduId)
+                    ->where('no_kk_sasaran', $noKk)
+                    ->where('jenis_kelamin', 'Perempuan')
+                    ->whereIn('status_keluarga', ['istri', 'kepala keluarga'])
+                    ->first();
+                
+                if ($ibuLansia) {
+                    $namaIbu = $ibuLansia->nama_sasaran;
+                }
+            }
+        }
+
+        // Cari suami dari susunan keluarga (laki-laki dengan status 'kepala keluarga')
+        $suamiDewasa = SasaranDewasa::where('id_posyandu', $posyanduId)
+            ->where('no_kk_sasaran', $noKk)
+            ->where('jenis_kelamin', 'Laki-laki')
+            ->where('status_keluarga', 'kepala keluarga')
+            ->first();
+        
+        if ($suamiDewasa) {
+            $namaSuami = $suamiDewasa->nama_sasaran;
+        } else {
+            // Jika tidak ada di dewasa, cari di pralansia
+            $suamiPralansia = SasaranPralansia::where('id_posyandu', $posyanduId)
+                ->where('no_kk_sasaran', $noKk)
+                ->where('jenis_kelamin', 'Laki-laki')
+                ->where('status_keluarga', 'kepala keluarga')
+                ->first();
+            
+            if ($suamiPralansia) {
+                $namaSuami = $suamiPralansia->nama_sasaran;
+            } else {
+                // Jika tidak ada di pralansia, cari di lansia
+                $suamiLansia = SasaranLansia::where('id_posyandu', $posyanduId)
+                    ->where('no_kk_sasaran', $noKk)
+                    ->where('jenis_kelamin', 'Laki-laki')
+                    ->where('status_keluarga', 'kepala keluarga')
+                    ->first();
+                
+                if ($suamiLansia) {
+                    $namaSuami = $suamiLansia->nama_sasaran;
+                }
+            }
+        }
+
+        // Jika ditemukan nama ibu, buat atau update record di tabel ibu_menyusuis
+        if ($namaIbu) {
+            $ibuMenyusui = IbuMenyusui::updateOrCreate(
+                [
+                    'id_posyandu' => $posyanduId,
+                    'nama_bayi' => $namaBayi,
+                ],
+                [
+                    'nama_ibu' => $namaIbu,
+                    'nama_suami' => $namaSuami,
+                ]
+            );
+
+            // Otomatis buat kunjungan untuk bulan dan tahun saat ini
+            $bulanSaatIni = date('n');
+            $tahunSaatIni = date('Y');
+            
+            KunjunganIbuMenyusui::updateOrCreate(
+                [
+                    'id_ibu_menyusui' => $ibuMenyusui->id_ibu_menyusui,
+                    'bulan' => $bulanSaatIni,
+                    'tahun' => $tahunSaatIni,
+                ],
+                [
+                    'status' => 'success',
+                    'tanggal_kunjungan' => date('Y-m-d'),
+                ]
+            );
+        }
+    }
+
+    /**
+     * Get list petugas kesehatan untuk posyandu
+     */
+    public function getPetugasKesehatanList()
+    {
+        $posyanduId = $this->posyanduId ?? 
+                     (isset($this->id_posyandu_sasaran) ? $this->id_posyandu_sasaran : null) ??
+                     (method_exists($this, 'getPosyanduId') ? $this->getPosyanduId() : null);
+
+        if (!$posyanduId) {
+            return collect();
+        }
+
+        return PetugasKesehatan::where('id_posyandu', $posyanduId)
+            ->orderBy('nama_petugas_kesehatan')
+            ->get();
     }
 }

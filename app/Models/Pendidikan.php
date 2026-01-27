@@ -20,6 +20,8 @@ class Pendidikan extends Model
         'jenis_kelamin',
         'umur',
         'pendidikan_terakhir',
+        'rt',
+        'rw',
     ];
 
     protected $casts = [

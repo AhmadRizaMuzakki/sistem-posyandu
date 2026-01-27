@@ -310,6 +310,19 @@
                             </div>
                         </div>
 
+                        {{-- Petugas Kesehatan --}}
+                        <div>
+                            <label class="block text-gray-700 text-sm font-bold mb-2">Petugas Kesehatan</label>
+                            <select wire:model="id_petugas_kesehatan_imunisasi" 
+                                    class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-primary focus:border-primary">
+                                <option value="">Pilih Petugas Kesehatan</option>
+                                @foreach($petugasKesehatanList as $petugas)
+                                    <option value="{{ $petugas->id_petugas_kesehatan }}">{{ $petugas->nama_petugas_kesehatan }}</option>
+                                @endforeach
+                            </select>
+                            @error('id_petugas_kesehatan_imunisasi') <span class="text-red-500 text-xs">{{ $message }}</span>@enderror
+                        </div>
+
                         {{-- Keterangan --}}
                         <div>
                             <label class="block text-gray-700 text-sm font-bold mb-2">Keterangan</label>

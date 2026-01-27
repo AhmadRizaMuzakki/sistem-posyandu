@@ -118,12 +118,12 @@
             <div>
                 <label class="text-sm font-medium text-gray-500">Jumlah Sasaran</label>
                 @php
-                    $totalSasaran = $posyandu->sasaran_bayibalita->count() +
-                                    $posyandu->sasaran_remaja->count() +
-                                    $posyandu->sasaran_dewasa->count() +
-                                    $posyandu->sasaran_ibuhamil->count() +
-                                    $posyandu->sasaran_pralansia->count() +
-                                    $posyandu->sasaran_lansia->count();
+                    $totalSasaran = ($posyandu->sasaran_bayibalita ? $posyandu->sasaran_bayibalita->count() : 0) +
+                                    ($posyandu->sasaran_remaja ? $posyandu->sasaran_remaja->count() : 0) +
+                                    ($posyandu->sasaran_dewasa ? $posyandu->sasaran_dewasa->count() : 0) +
+                                    ($posyandu->sasaran_ibuhamil ? $posyandu->sasaran_ibuhamil->count() : 0) +
+                                    ($posyandu->sasaran_pralansia ? $posyandu->sasaran_pralansia->count() : 0) +
+                                    ($posyandu->sasaran_lansia ? $posyandu->sasaran_lansia->count() : 0);
                 @endphp
                 <p class="text-gray-800 mt-1">{{ number_format($totalSasaran, 0, ',', '.') }} orang</p>
             </div>
@@ -140,55 +140,164 @@
             <div class="flex items-center justify-between p-4 bg-blue-50 rounded-lg">
                 <div>
                     <p class="text-sm text-gray-600">Total Kader</p>
-                    <p class="text-2xl font-bold text-primary mt-1">{{ $posyandu->kader->count() }}</p>
+                    <p class="text-2xl font-bold text-primary mt-1">{{ $posyandu->kader ? $posyandu->kader->count() : 0 }}</p>
                 </div>
                 <i class="ph ph-users text-4xl text-blue-300"></i>
             </div>
             <div class="flex items-center justify-between p-4 bg-green-50 rounded-lg">
                 <div>
                     <p class="text-sm text-gray-600">Total Sasaran Bayi/Balita</p>
-                    <p class="text-2xl font-bold text-green-600 mt-1">{{ $posyandu->sasaran_bayibalita->count() }}</p>
+                    <p class="text-2xl font-bold text-green-600 mt-1">{{ $posyandu->sasaran_bayibalita ? $posyandu->sasaran_bayibalita->count() : 0 }}</p>
                 </div>
                 <i class="ph ph-baby text-4xl text-green-300"></i>
             </div>
             <div class="flex items-center justify-between p-4 bg-purple-50 rounded-lg">
                 <div>
                     <p class="text-sm text-gray-600">Total Sasaran Remaja</p>
-                    <p class="text-2xl font-bold text-purple-600 mt-1">{{ $posyandu->sasaran_remaja->count() }}</p>
+                    <p class="text-2xl font-bold text-purple-600 mt-1">{{ $posyandu->sasaran_remaja ? $posyandu->sasaran_remaja->count() : 0 }}</p>
                 </div>
                 <i class="ph ph-user text-4xl text-purple-300"></i>
             </div>
             <div class="flex items-center justify-between p-4 bg-orange-50 rounded-lg">
                 <div>
                     <p class="text-sm text-gray-600">Total Sasaran Dewasa</p>
-                    <p class="text-2xl font-bold text-orange-600 mt-1">{{ $posyandu->sasaran_dewasa->count() }}</p>
+                    <p class="text-2xl font-bold text-orange-600 mt-1">{{ $posyandu->sasaran_dewasa ? $posyandu->sasaran_dewasa->count() : 0 }}</p>
                 </div>
                 <i class="ph ph-users text-4xl text-orange-300"></i>
             </div>
             <div class="flex items-center justify-between p-4 bg-pink-50 rounded-lg">
                 <div>
                     <p class="text-sm text-gray-600">Total Ibu Hamil</p>
-                    <p class="text-2xl font-bold text-pink-600 mt-1">{{ $posyandu->sasaran_ibuhamil->count() }}</p>
+                    <p class="text-2xl font-bold text-pink-600 mt-1">{{ $posyandu->sasaran_ibuhamil ? $posyandu->sasaran_ibuhamil->count() : 0 }}</p>
                 </div>
                 <i class="ph ph-heart text-4xl text-pink-300"></i>
             </div>
             <div class="flex items-center justify-between p-4 bg-yellow-50 rounded-lg">
                 <div>
                     <p class="text-sm text-gray-600">Total Pralansia</p>
-                    <p class="text-2xl font-bold text-yellow-600 mt-1">{{ $posyandu->sasaran_pralansia->count() }}</p>
+                    <p class="text-2xl font-bold text-yellow-600 mt-1">{{ $posyandu->sasaran_pralansia ? $posyandu->sasaran_pralansia->count() : 0 }}</p>
                 </div>
                 <i class="ph ph-user-circle text-4xl text-yellow-300"></i>
             </div>
             <div class="flex items-center justify-between p-4 bg-indigo-50 rounded-lg">
                 <div>
                     <p class="text-sm text-gray-600">Total Lansia</p>
-                    <p class="text-2xl font-bold text-indigo-600 mt-1">{{ $posyandu->sasaran_lansia->count() }}</p>
+                    <p class="text-2xl font-bold text-indigo-600 mt-1">{{ $posyandu->sasaran_lansia ? $posyandu->sasaran_lansia->count() : 0 }}</p>
                 </div>
                 <i class="ph ph-user-gear text-4xl text-indigo-300"></i>
             </div>
         </div>
     </div>
     </div>
+
+    {{-- Chart Pendidikan --}}
+    @if(isset($pendidikanChartData) && count($pendidikanChartData['labels']) > 0)
+    <div class="bg-white rounded-lg shadow-sm p-6">
+        <h2 class="text-xl font-semibold text-gray-800 mb-4 flex items-center">
+            <i class="ph ph-chart-pie text-2xl mr-3 text-primary"></i>
+            Chart Pendidikan
+        </h2>
+        <div class="h-80">
+            <canvas id="pendidikanChart"></canvas>
+        </div>
+    </div>
+    @else
+    <div class="bg-white rounded-lg shadow-sm p-6">
+        <h2 class="text-xl font-semibold text-gray-800 mb-4 flex items-center">
+            <i class="ph ph-chart-pie text-2xl mr-3 text-primary"></i>
+            Chart Pendidikan
+        </h2>
+        <div class="text-center py-12 text-gray-500">
+            <i class="ph ph-graduation-cap text-4xl mb-2"></i>
+            <p>Belum ada data pendidikan untuk ditampilkan</p>
+        </div>
+    </div>
+    @endif
 </div>
+
+@push('scripts')
+@if(isset($pendidikanChartData) && count($pendidikanChartData['labels']) > 0)
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const pendidikanData = @json($pendidikanChartData);
+        
+        const ctx = document.getElementById('pendidikanChart');
+        if (!ctx) return;
+
+        new Chart(ctx, {
+            type: 'pie',
+            data: {
+                labels: pendidikanData.labels,
+                datasets: [{
+                    label: 'Jumlah',
+                    data: pendidikanData.data,
+                    backgroundColor: [
+                        'rgba(239, 68, 68, 0.8)',
+                        'rgba(251, 191, 36, 0.8)',
+                        'rgba(34, 197, 94, 0.8)',
+                        'rgba(59, 130, 246, 0.8)',
+                        'rgba(168, 85, 247, 0.8)',
+                        'rgba(236, 72, 153, 0.8)',
+                        'rgba(14, 165, 233, 0.8)',
+                        'rgba(245, 158, 11, 0.8)',
+                        'rgba(139, 92, 246, 0.8)',
+                        'rgba(20, 184, 166, 0.8)',
+                        'rgba(249, 115, 22, 0.8)',
+                        'rgba(99, 102, 241, 0.8)',
+                    ],
+                    borderColor: [
+                        'rgba(239, 68, 68, 1)',
+                        'rgba(251, 191, 36, 1)',
+                        'rgba(34, 197, 94, 1)',
+                        'rgba(59, 130, 246, 1)',
+                        'rgba(168, 85, 247, 1)',
+                        'rgba(236, 72, 153, 1)',
+                        'rgba(14, 165, 233, 1)',
+                        'rgba(245, 158, 11, 1)',
+                        'rgba(139, 92, 246, 1)',
+                        'rgba(20, 184, 166, 1)',
+                        'rgba(249, 115, 22, 1)',
+                        'rgba(99, 102, 241, 1)',
+                    ],
+                    borderWidth: 2,
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'right',
+                        labels: {
+                            padding: 15,
+                            usePointStyle: true,
+                            font: {
+                                size: 12
+                            }
+                        }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                const label = context.label || '';
+                                const value = context.parsed || 0;
+                                const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : 0;
+                                return label + ': ' + value + ' orang (' + percentage + '%)';
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    });
+</script>
+@endif
+@endpush
+
+{{-- Modal Upload SK --}}
+@include('livewire.super-admin.posyandu-detail.partials.upload-sk')
 
 @include('components.confirm-modal')

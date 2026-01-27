@@ -8,6 +8,7 @@ use App\Models\SasaranDewasa;
 use App\Models\SasaranPralansia;
 use App\Models\SasaranLansia;
 use App\Models\SasaranIbuhamil;
+use App\Models\Pendidikan;
 use Illuminate\Support\Facades\Schema;
 
 trait DashboardHelper
@@ -39,62 +40,41 @@ trait DashboardHelper
     }
 
     /**
-     * Get pendidikan data for chart - Optimasi dengan batch query
+     * Get pendidikan data for chart - Menggunakan data dari tabel pendidikan
      */
     protected function getPendidikanData($posyanduId): array
     {
         $levels = $this->getPendidikanLevels();
         $counts = array_fill_keys($levels, 0);
 
-        // Optimasi: Ambil semua data pendidikan sekaligus, lalu group by
-        $pendidikanData = collect();
+        // Ambil data dari tabel pendidikan
+        $pendidikanData = Pendidikan::where('id_posyandu', $posyanduId)
+            ->whereNotNull('pendidikan_terakhir')
+            ->selectRaw('pendidikan_terakhir, COUNT(*) as jumlah')
+            ->groupBy('pendidikan_terakhir')
+            ->orderByRaw('
+                CASE 
+                    WHEN pendidikan_terakhir = "Tidak/Belum Sekolah" THEN 1
+                    WHEN pendidikan_terakhir = "PAUD" THEN 2
+                    WHEN pendidikan_terakhir = "TK" THEN 3
+                    WHEN pendidikan_terakhir = "Tidak Tamat SD/Sederajat" THEN 4
+                    WHEN pendidikan_terakhir = "Tamat SD/Sederajat" THEN 5
+                    WHEN pendidikan_terakhir = "SLTP/Sederajat" THEN 6
+                    WHEN pendidikan_terakhir = "SLTA/Sederajat" THEN 7
+                    WHEN pendidikan_terakhir = "Diploma I/II" THEN 8
+                    WHEN pendidikan_terakhir = "Akademi/Diploma III/Sarjana Muda" THEN 9
+                    WHEN pendidikan_terakhir = "Diploma IV/Strata I" THEN 10
+                    WHEN pendidikan_terakhir = "Strata II" THEN 11
+                    WHEN pendidikan_terakhir = "Strata III" THEN 12
+                    ELSE 13
+                END
+            ')
+            ->get();
 
-        // Batch query untuk semua kategori sekaligus
-        $pendidikanData = $pendidikanData->merge(
-            SasaranRemaja::where('id_posyandu', $posyanduId)
-                ->whereNotNull('pendidikan')
-                ->select('pendidikan')
-                ->get()
-                ->pluck('pendidikan')
-        );
-
-        $pendidikanData = $pendidikanData->merge(
-            SasaranDewasa::where('id_posyandu', $posyanduId)
-                ->whereNotNull('pendidikan')
-                ->select('pendidikan')
-                ->get()
-                ->pluck('pendidikan')
-        );
-
-        $pendidikanData = $pendidikanData->merge(
-            SasaranPralansia::where('id_posyandu', $posyanduId)
-                ->whereNotNull('pendidikan')
-                ->select('pendidikan')
-                ->get()
-                ->pluck('pendidikan')
-        );
-
-        $pendidikanData = $pendidikanData->merge(
-            SasaranLansia::where('id_posyandu', $posyanduId)
-                ->whereNotNull('pendidikan')
-                ->select('pendidikan')
-                ->get()
-                ->pluck('pendidikan')
-        );
-
-        $pendidikanData = $pendidikanData->merge(
-            SasaranIbuhamil::where('id_posyandu', $posyanduId)
-                ->whereNotNull('pendidikan')
-                ->select('pendidikan')
-                ->get()
-                ->pluck('pendidikan')
-        );
-
-        // Count by level
-        $grouped = $pendidikanData->countBy();
-        foreach ($grouped as $level => $count) {
-            if (isset($counts[$level])) {
-                $counts[$level] = $count;
+        // Map hasil ke array counts
+        foreach ($pendidikanData as $item) {
+            if (isset($counts[$item->pendidikan_terakhir])) {
+                $counts[$item->pendidikan_terakhir] = $item->jumlah;
             }
         }
 
@@ -111,6 +91,8 @@ trait DashboardHelper
     {
         return [
             'Tidak/Belum Sekolah',
+            'PAUD',
+            'TK',
             'Tidak Tamat SD/Sederajat',
             'Tamat SD/Sederajat',
             'SLTP/Sederajat',

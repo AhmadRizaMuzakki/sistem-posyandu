@@ -45,10 +45,47 @@
                         @error('tanggal_agenda_kunjungan') <span class="text-red-500 text-xs">{{ $message }}</span>@enderror
                     </div>
 
+                    {{-- Petugas Penanggung Jawab, Petugas Imunisasi, dan Petugas Input --}}
+                    <div class="grid grid-cols-3 gap-4 mb-6">
+                        <div>
+                            <label class="block text-gray-700 text-sm font-bold mb-2">Petugas Penanggung Jawab</label>
+                            <select wire:model="id_petugas_penanggung_jawab_bulk" 
+                                    class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-primary focus:border-primary">
+                                <option value="">Pilih Petugas</option>
+                                @foreach($petugasKesehatanList as $petugas)
+                                    <option value="{{ $petugas->id_petugas_kesehatan }}">{{ $petugas->nama_petugas_kesehatan }}</option>
+                                @endforeach
+                            </select>
+                            @error('id_petugas_penanggung_jawab_bulk') <span class="text-red-500 text-xs">{{ $message }}</span>@enderror
+                        </div>
+                        <div>
+                            <label class="block text-gray-700 text-sm font-bold mb-2">Petugas Imunisasi</label>
+                            <select wire:model="id_petugas_imunisasi_bulk" 
+                                    class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-primary focus:border-primary">
+                                <option value="">Pilih Petugas</option>
+                                @foreach($petugasKesehatanList as $petugas)
+                                    <option value="{{ $petugas->id_petugas_kesehatan }}">{{ $petugas->nama_petugas_kesehatan }}</option>
+                                @endforeach
+                            </select>
+                            @error('id_petugas_imunisasi_bulk') <span class="text-red-500 text-xs">{{ $message }}</span>@enderror
+                        </div>
+                        <div>
+                            <label class="block text-gray-700 text-sm font-bold mb-2">Petugas Input</label>
+                            <select wire:model="id_petugas_input_bulk" 
+                                    class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-primary focus:border-primary">
+                                <option value="">Pilih Petugas</option>
+                                @foreach($petugasKesehatanList as $petugas)
+                                    <option value="{{ $petugas->id_petugas_kesehatan }}">{{ $petugas->nama_petugas_kesehatan }}</option>
+                                @endforeach
+                            </select>
+                            @error('id_petugas_input_bulk') <span class="text-red-500 text-xs">{{ $message }}</span>@enderror
+                        </div>
+                    </div>
+
                     {{-- List Checkbox Ibu Menyusui --}}
                     @if($bulan_input_kunjungan && $tahun_input_kunjungan)
                         <div class="mb-4">
-                            <label class="block text-gray-700 text-sm font-bold mb-3">Pilih Ibu yang Hadir:</label>
+                            <label class="block text-gray-700 text-sm font-bold mb-3">Pilih Balita yang Hadir:</label>
                             <div class="border border-gray-300 rounded-lg p-4 max-h-96 overflow-y-auto">
                                 @if($sasaranList && $sasaranList->count() > 0)
                                     <div class="space-y-2">
@@ -71,7 +108,7 @@
                                         @endforeach
                                     </div>
                                 @else
-                                    <p class="text-sm text-gray-500 text-center py-4">Tidak ada data ibu menyusui dari sasaran</p>
+                                    <p class="text-sm text-gray-500 text-center py-4">Tidak ada data balita dari sasaran</p>
                                 @endif
                             </div>
                         </div>

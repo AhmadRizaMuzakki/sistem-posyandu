@@ -110,7 +110,7 @@ class PosyanduImunisasi extends Component
 
         // Ambil imunisasi untuk posyandu ini dengan filter search
         $query = Imunisasi::where('id_posyandu', $this->posyanduId)
-            ->with(['user', 'posyandu']);
+            ->with(['user', 'posyandu', 'petugasKesehatan']);
 
         // Filter berdasarkan search
         if (!empty($this->search)) {
@@ -144,6 +144,7 @@ class PosyanduImunisasi extends Component
             'imunisasiList' => $imunisasiList,
             'isImunisasiModalOpen' => $this->isImunisasiModalOpen,
             'id_imunisasi' => $this->id_imunisasi,
+            'petugasKesehatanList' => $this->getPetugasKesehatanList(),
         ]);
     }
 }

@@ -4,7 +4,7 @@
     <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
         <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" wire:click="closeKunjunganModal()" aria-hidden="true"></div>
         <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
-        <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+        <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-2xl sm:w-full">
             <form wire:submit.prevent="storeKunjungan">
                 <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
                     <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4" id="modal-title">
@@ -39,6 +39,41 @@
                                 <span class="ml-2 text-sm text-gray-700">Status: Success</span>
                             </label>
                             @error('status_kunjungan') <span class="text-red-500 text-xs">{{ $message }}</span>@enderror
+                        </div>
+                        <div class="grid grid-cols-3 gap-4">
+                            <div>
+                                <label class="block text-gray-700 text-sm font-bold mb-2">Petugas Penanggung Jawab</label>
+                                <select wire:model="id_petugas_penanggung_jawab" 
+                                        class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-primary focus:border-primary">
+                                    <option value="">Pilih Petugas</option>
+                                    @foreach($petugasKesehatanList as $petugas)
+                                        <option value="{{ $petugas->id_petugas_kesehatan }}">{{ $petugas->nama_petugas_kesehatan }}</option>
+                                    @endforeach
+                                </select>
+                                @error('id_petugas_penanggung_jawab') <span class="text-red-500 text-xs">{{ $message }}</span>@enderror
+                            </div>
+                            <div>
+                                <label class="block text-gray-700 text-sm font-bold mb-2">Petugas Imunisasi</label>
+                                <select wire:model="id_petugas_imunisasi" 
+                                        class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-primary focus:border-primary">
+                                    <option value="">Pilih Petugas</option>
+                                    @foreach($petugasKesehatanList as $petugas)
+                                        <option value="{{ $petugas->id_petugas_kesehatan }}">{{ $petugas->nama_petugas_kesehatan }}</option>
+                                    @endforeach
+                                </select>
+                                @error('id_petugas_imunisasi') <span class="text-red-500 text-xs">{{ $message }}</span>@enderror
+                            </div>
+                            <div>
+                                <label class="block text-gray-700 text-sm font-bold mb-2">Petugas Input</label>
+                                <select wire:model="id_petugas_input" 
+                                        class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-primary focus:border-primary">
+                                    <option value="">Pilih Petugas</option>
+                                    @foreach($petugasKesehatanList as $petugas)
+                                        <option value="{{ $petugas->id_petugas_kesehatan }}">{{ $petugas->nama_petugas_kesehatan }}</option>
+                                    @endforeach
+                                </select>
+                                @error('id_petugas_input') <span class="text-red-500 text-xs">{{ $message }}</span>@enderror
+                            </div>
                         </div>
                     </div>
                 </div>

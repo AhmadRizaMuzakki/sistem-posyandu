@@ -8,6 +8,8 @@ use App\Models\User;
 use App\Models\SasaranDewasa;
 use App\Models\SasaranPralansia;
 use App\Models\SasaranLansia;
+use App\Models\IbuMenyusui;
+use App\Models\KunjunganIbuMenyusui;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
@@ -319,10 +321,15 @@ trait BalitaCrud
                 // UPDATE
                 $balita = SasaranBayibalita::findOrFail($this->id_sasaran_bayi_balita);
                 $balita->update($data);
+                $balitaId = $balita->id_sasaran_bayibalita;
             } else {
                 // CREATE
-                SasaranBayibalita::create($data);
+                $balita = SasaranBayibalita::create($data);
+                $balitaId = $balita->id_sasaran_bayibalita;
             }
+
+            // Auto-sync ibu menyusui dari balita
+            $this->syncIbuMenyusuiFromBalita($balitaId, $this->id_posyandu_sasaran ?? $this->posyanduId);
         });
         
         if ($this->id_sasaran_bayi_balita) {
@@ -1023,6 +1030,121 @@ trait BalitaCrud
             } else {
                 SasaranLansia::create($sasaranData);
             }
+        }
+    }
+
+    /**
+     * Sync ibu menyusui dari sasaran balita berdasarkan KK
+     * Dipanggil setelah balita disimpan untuk auto-create/update ibu_menyusui
+     */
+    private function syncIbuMenyusuiFromBalita($balitaId, $posyanduId)
+    {
+        $balita = SasaranBayibalita::find($balitaId);
+        if (!$balita || !$balita->no_kk_sasaran) {
+            return;
+        }
+
+        $noKk = $balita->no_kk_sasaran;
+        $namaBayi = $balita->nama_sasaran;
+        
+        // Cari nama ibu dari susunan keluarga (perempuan dengan status 'istri' atau 'kepala keluarga')
+        $namaIbu = null;
+        $namaSuami = null;
+
+        // Cari ibu dari sasaran dewasa (perempuan dengan status 'istri' atau 'kepala keluarga')
+        $ibuDewasa = SasaranDewasa::where('id_posyandu', $posyanduId)
+            ->where('no_kk_sasaran', $noKk)
+            ->where('jenis_kelamin', 'Perempuan')
+            ->whereIn('status_keluarga', ['istri', 'kepala keluarga'])
+            ->first();
+        
+        if ($ibuDewasa) {
+            $namaIbu = $ibuDewasa->nama_sasaran;
+        } else {
+            // Jika tidak ada di dewasa, cari di pralansia
+            $ibuPralansia = SasaranPralansia::where('id_posyandu', $posyanduId)
+                ->where('no_kk_sasaran', $noKk)
+                ->where('jenis_kelamin', 'Perempuan')
+                ->whereIn('status_keluarga', ['istri', 'kepala keluarga'])
+                ->first();
+            
+            if ($ibuPralansia) {
+                $namaIbu = $ibuPralansia->nama_sasaran;
+            } else {
+                // Jika tidak ada di pralansia, cari di lansia
+                $ibuLansia = SasaranLansia::where('id_posyandu', $posyanduId)
+                    ->where('no_kk_sasaran', $noKk)
+                    ->where('jenis_kelamin', 'Perempuan')
+                    ->whereIn('status_keluarga', ['istri', 'kepala keluarga'])
+                    ->first();
+                
+                if ($ibuLansia) {
+                    $namaIbu = $ibuLansia->nama_sasaran;
+                }
+            }
+        }
+
+        // Cari suami dari susunan keluarga (laki-laki dengan status 'kepala keluarga')
+        $suamiDewasa = SasaranDewasa::where('id_posyandu', $posyanduId)
+            ->where('no_kk_sasaran', $noKk)
+            ->where('jenis_kelamin', 'Laki-laki')
+            ->where('status_keluarga', 'kepala keluarga')
+            ->first();
+        
+        if ($suamiDewasa) {
+            $namaSuami = $suamiDewasa->nama_sasaran;
+        } else {
+            // Jika tidak ada di dewasa, cari di pralansia
+            $suamiPralansia = SasaranPralansia::where('id_posyandu', $posyanduId)
+                ->where('no_kk_sasaran', $noKk)
+                ->where('jenis_kelamin', 'Laki-laki')
+                ->where('status_keluarga', 'kepala keluarga')
+                ->first();
+            
+            if ($suamiPralansia) {
+                $namaSuami = $suamiPralansia->nama_sasaran;
+            } else {
+                // Jika tidak ada di pralansia, cari di lansia
+                $suamiLansia = SasaranLansia::where('id_posyandu', $posyanduId)
+                    ->where('no_kk_sasaran', $noKk)
+                    ->where('jenis_kelamin', 'Laki-laki')
+                    ->where('status_keluarga', 'kepala keluarga')
+                    ->first();
+                
+                if ($suamiLansia) {
+                    $namaSuami = $suamiLansia->nama_sasaran;
+                }
+            }
+        }
+
+        // Jika ditemukan nama ibu, buat atau update record di tabel ibu_menyusuis
+        if ($namaIbu) {
+            $ibuMenyusui = IbuMenyusui::updateOrCreate(
+                [
+                    'id_posyandu' => $posyanduId,
+                    'nama_bayi' => $namaBayi,
+                ],
+                [
+                    'nama_ibu' => $namaIbu,
+                    'nama_suami' => $namaSuami,
+                ]
+            );
+
+            // Otomatis buat kunjungan untuk bulan dan tahun saat ini
+            $bulanSaatIni = date('n');
+            $tahunSaatIni = date('Y');
+            
+            KunjunganIbuMenyusui::updateOrCreate(
+                [
+                    'id_ibu_menyusui' => $ibuMenyusui->id_ibu_menyusui,
+                    'bulan' => $bulanSaatIni,
+                    'tahun' => $tahunSaatIni,
+                ],
+                [
+                    'status' => 'success',
+                    'tanggal_kunjungan' => date('Y-m-d'),
+                ]
+            );
         }
     }
 }

@@ -78,11 +78,12 @@ class PosyanduIbuMenyusui extends Component
         }
 
         $ibuMenyusuiList = $query->with(['kunjungan' => function($q) {
-            $q->where('tahun', $this->tahunFilter);
+            $q->where('tahun', $this->tahunFilter)
+              ->with(['petugasPenanggungJawab', 'petugasImunisasi', 'petugasInput']);
         }])->get();
 
         return view('livewire.super-admin.posyandu-detail.ibu-menyusui', [
-            'title' => 'Ibu Menyusui - ' . $posyandu->nama_posyandu,
+            'title' => 'Absensi - ' . $posyandu->nama_posyandu,
             'posyandu' => $posyandu,
             'ibuMenyusuiList' => $ibuMenyusuiList,
             'sasaranList' => $sasaranList,
@@ -91,6 +92,7 @@ class PosyanduIbuMenyusui extends Component
             'isInputKunjunganModalOpen' => $this->isInputKunjunganModalOpen,
             'id_ibu_menyusui' => $this->id_ibu_menyusui,
             'bulanList' => $this->getBulanList(),
+            'petugasKesehatanList' => $this->getPetugasKesehatanList(),
         ]);
     }
 }

@@ -55,6 +55,7 @@
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Kategori</th>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Jenis Imunisasi</th>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tanggal</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Petugas Kesehatan</th>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Keterangan</th>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Aksi</th>
                             </tr>
@@ -78,6 +79,9 @@
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
                                         {{ $imunisasi->tanggal_imunisasi ? \Carbon\Carbon::parse($imunisasi->tanggal_imunisasi)->format('d/m/Y') : '-' }}
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                                        {{ $imunisasi->petugasKesehatan->nama_petugas_kesehatan ?? '-' }}
                                     </td>
                                     <td class="px-6 py-4 text-sm text-gray-600">
                                         {{ $imunisasi->keterangan ?? '-' }}
@@ -391,6 +395,19 @@
                                         </div>
                                         @error('berat_badan') <span class="text-red-500 text-xs">{{ $message }}</span>@enderror
                                     </div>
+                                </div>
+
+                                {{-- Petugas Kesehatan --}}
+                                <div>
+                                    <label class="block text-gray-700 text-sm font-bold mb-2">Petugas Kesehatan</label>
+                                    <select wire:model="id_petugas_kesehatan_imunisasi" 
+                                            class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-primary focus:border-primary">
+                                        <option value="">Pilih Petugas Kesehatan</option>
+                                        @foreach($petugasKesehatanList as $petugas)
+                                            <option value="{{ $petugas->id_petugas_kesehatan }}">{{ $petugas->nama_petugas_kesehatan }}</option>
+                                        @endforeach
+                                    </select>
+                                    @error('id_petugas_kesehatan_imunisasi') <span class="text-red-500 text-xs">{{ $message }}</span>@enderror
                                 </div>
 
                                 {{-- Keterangan --}}

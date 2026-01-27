@@ -5,7 +5,7 @@
             <div class="flex items-center justify-between">
                 <div>
                     <h1 class="text-3xl font-bold text-gray-800">{{ $posyandu->nama_posyandu }}</h1>
-                    <p class="text-gray-500 mt-1">Manajemen Data Ibu Menyusui</p>
+                    <p class="text-gray-500 mt-1">Absensi Kehadiran</p>
                 </div>
             </div>
         </div>
@@ -15,7 +15,7 @@
             <div class="flex items-center justify-between mb-4">
                 <h2 class="text-xl font-semibold text-gray-800 flex items-center">
                     <i class="ph ph-baby text-2xl mr-3 text-primary"></i>
-                    Daftar Ibu Menyusui
+                    Absensi Kehadiran
                 </h2>
                 <div class="flex gap-2">
                     <button wire:click="openInputKunjunganModal"
@@ -56,13 +56,16 @@
                         <thead class="bg-gray-50">
                             <tr>
                                 <th rowspan="2" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-r">No</th>
-                                <th colspan="3" class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider border-r">Sasaran Ibu Menyusui</th>
-                                <th colspan="12" class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Jumlah Kunjungan dan Jumlah Sasaran Ibu Menyusui</th>
+                                <th colspan="6" class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider border-r">Sasaran Balita</th>
+                                <th colspan="12" class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Absensi Kehadiran Per Bulan</th>
                             </tr>
                             <tr>
                                 <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-r">Nama Ibu</th>
                                 <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-r">Nama Suami</th>
                                 <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-r">Nama Bayi</th>
+                                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-r">Petugas Penanggung Jawab</th>
+                                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-r">Petugas Imunisasi</th>
+                                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-r">Petugas Input</th>
                                 @foreach($bulanList as $bulanNum => $bulanNama)
                                     <th class="px-2 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">{{ substr($bulanNama, 0, 3) }}</th>
                                 @endforeach
@@ -81,6 +84,45 @@
                                     <td class="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900 border-r">{{ $ibu->nama_ibu }}</td>
                                     <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-600 border-r">{{ $ibu->nama_suami ?? '-' }}</td>
                                     <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-600 border-r">{{ $ibu->nama_bayi ?? '-' }}</td>
+                                    <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-600 border-r">
+                                        @php
+                                            // Ambil petugas dari kunjungan bulan pertama yang ada di tahun filter
+                                            $petugasPJ = '-';
+                                            foreach ($kunjunganByBulan as $kunjungan) {
+                                                if ($kunjungan->petugasPenanggungJawab) {
+                                                    $petugasPJ = $kunjungan->petugasPenanggungJawab->nama_petugas_kesehatan;
+                                                    break;
+                                                }
+                                            }
+                                        @endphp
+                                        {{ $petugasPJ }}
+                                    </td>
+                                    <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-600 border-r">
+                                        @php
+                                            // Ambil petugas dari kunjungan bulan pertama yang ada di tahun filter
+                                            $petugasImunisasi = '-';
+                                            foreach ($kunjunganByBulan as $kunjungan) {
+                                                if ($kunjungan->petugasImunisasi) {
+                                                    $petugasImunisasi = $kunjungan->petugasImunisasi->nama_petugas_kesehatan;
+                                                    break;
+                                                }
+                                            }
+                                        @endphp
+                                        {{ $petugasImunisasi }}
+                                    </td>
+                                    <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-600 border-r">
+                                        @php
+                                            // Ambil petugas input dari kunjungan bulan pertama yang ada di tahun filter
+                                            $petugasInput = '-';
+                                            foreach ($kunjunganByBulan as $kunjungan) {
+                                                if ($kunjungan->petugasInput) {
+                                                    $petugasInput = $kunjungan->petugasInput->nama_petugas_kesehatan;
+                                                    break;
+                                                }
+                                            }
+                                        @endphp
+                                        {{ $petugasInput }}
+                                    </td>
                                     @for($bulan = 1; $bulan <= 12; $bulan++)
                                         <td class="px-2 py-4 text-center">
                                             @php
@@ -104,7 +146,7 @@
             @else
                 <div class="text-center py-12 text-gray-500">
                     <i class="ph ph-baby text-4xl mb-2"></i>
-                    <p>Belum ada data ibu menyusui dari sasaran</p>
+                    <p>Belum ada data balita dari sasaran</p>
                 </div>
             @endif
         </div>

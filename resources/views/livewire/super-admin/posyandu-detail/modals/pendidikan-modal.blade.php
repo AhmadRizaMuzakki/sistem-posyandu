@@ -116,6 +116,8 @@
                                                     $wire.set('kategori_sasaran_pendidikan', '{{ $sasaran['kategori'] }}');
                                                     $wire.set('id_sasaran_pendidikan', '{{ $sasaran['id'] }}');
                                                     $wire.set('nama_pendidikan', '{{ $sasaran['nama'] }}');
+                                                    $wire.set('rt_pendidikan', '{{ $sasaran['rt'] ?? '' }}');
+                                                    $wire.set('rw_pendidikan', '{{ $sasaran['rw'] ?? '' }}');
                                                 "
                                                     x-show="!searchText || '{{ strtolower($sasaran['nama'] . ' ' . $sasaran['nik'] . ' ' . $sasaran['kategori']) }}'.includes(searchText.toLowerCase())"
                                                     class="px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer"
@@ -241,6 +243,26 @@
                                     </span>
                                 </div>
                                 @error('umur_pendidikan') <span class="text-red-500 text-xs">{{ $message }}</span>@enderror
+                            </div>
+                        </div>
+
+                        {{-- RT dan RW --}}
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-gray-700 text-sm font-bold mb-2">RT</label>
+                                <input type="text"
+                                       wire:model="rt_pendidikan"
+                                       class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-primary focus:border-primary"
+                                       placeholder="RT">
+                                @error('rt_pendidikan') <span class="text-red-500 text-xs">{{ $message }}</span>@enderror
+                            </div>
+                            <div>
+                                <label class="block text-gray-700 text-sm font-bold mb-2">RW</label>
+                                <input type="text"
+                                       wire:model="rw_pendidikan"
+                                       class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-primary focus:border-primary"
+                                       placeholder="RW">
+                                @error('rw_pendidikan') <span class="text-red-500 text-xs">{{ $message }}</span>@enderror
                             </div>
                         </div>
 

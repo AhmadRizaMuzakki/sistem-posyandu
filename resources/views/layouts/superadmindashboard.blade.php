@@ -226,7 +226,7 @@
                                     class="flex items-center px-4 py-2 text-sm text-gray-600 hover:bg-gray-100 hover:text-primary rounded-lg transition-colors group"
                                 >
                                     <i class="ph ph-baby text-lg mr-3 group-hover:text-primary"></i>
-                                    <span class="font-medium">Ibu Menyusui</span>
+                                    <span class="font-medium">Absensi</span>
                                 </a>
 
                                 <a

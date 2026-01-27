@@ -8,6 +8,7 @@ use App\Models\SasaranRemaja;
 use App\Models\SasaranDewasa;
 use App\Models\SasaranPralansia;
 use App\Models\SasaranLansia;
+use App\Models\PetugasKesehatan;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
@@ -30,6 +31,7 @@ trait ImunisasiCrud
     public $tinggi_badan;
     public $berat_badan;
     public $keterangan = '';
+    public $id_petugas_kesehatan_imunisasi;
 
     // Untuk dropdown sasaran
     public $sasaranList = [];
@@ -78,6 +80,7 @@ trait ImunisasiCrud
         $this->tinggi_badan = '';
         $this->berat_badan = '';
         $this->keterangan = '';
+        $this->id_petugas_kesehatan_imunisasi = null;
         $this->sasaranList = [];
     }
 
@@ -209,6 +212,7 @@ trait ImunisasiCrud
             'tinggi_badan' => 'nullable|numeric|min:0|max:300',
             'berat_badan' => 'nullable|numeric|min:0|max:300',
             'keterangan' => 'nullable|string',
+            'id_petugas_kesehatan_imunisasi' => 'nullable|exists:petugas_kesehatan,id_petugas_kesehatan',
         ], [
             'id_posyandu_imunisasi.required' => 'Posyandu wajib dipilih.',
             'id_posyandu_imunisasi.exists' => 'Posyandu yang dipilih tidak valid.',
@@ -241,6 +245,7 @@ trait ImunisasiCrud
         $data = [
             'id_posyandu' => $this->id_posyandu_imunisasi,
             'id_users' => Auth::id(),
+            'id_petugas_kesehatan' => $this->id_petugas_kesehatan_imunisasi ?: null,
             'id_sasaran' => $this->id_sasaran_imunisasi,
             'kategori_sasaran' => $this->kategori_sasaran_imunisasi,
             'jenis_imunisasi' => $this->jenis_imunisasi,
@@ -304,6 +309,7 @@ trait ImunisasiCrud
         $this->tinggi_badan = $imunisasi->tinggi_badan ?? '';
         $this->berat_badan = $imunisasi->berat_badan ?? '';
         $this->keterangan = $imunisasi->keterangan ?? '';
+        $this->id_petugas_kesehatan_imunisasi = $imunisasi->id_petugas_kesehatan;
 
         $this->isImunisasiModalOpen = true;
     }
@@ -338,6 +344,36 @@ trait ImunisasiCrud
         } else {
             $this->tanggal_imunisasi = null;
         }
+    }
+
+    /**
+     * Get list petugas kesehatan untuk posyandu
+     */
+    public function getPetugasKesehatanList()
+    {
+        // Coba ambil posyanduId dari berbagai sumber
+        $posyanduId = null;
+        
+        // Prioritas 1: dari field id_posyandu_imunisasi
+        if (isset($this->id_posyandu_imunisasi) && $this->id_posyandu_imunisasi) {
+            $posyanduId = $this->id_posyandu_imunisasi;
+        }
+        // Prioritas 2: dari property posyanduId
+        elseif (isset($this->posyanduId) && $this->posyanduId) {
+            $posyanduId = $this->posyanduId;
+        }
+        // Prioritas 3: dari method getPosyanduId jika ada
+        elseif (method_exists($this, 'getPosyanduId')) {
+            $posyanduId = $this->getPosyanduId();
+        }
+
+        if (!$posyanduId) {
+            return collect();
+        }
+
+        return PetugasKesehatan::where('id_posyandu', $posyanduId)
+            ->orderBy('nama_petugas_kesehatan')
+            ->get();
     }
 }
 

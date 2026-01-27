@@ -24,8 +24,11 @@ class IndexController extends Controller
         // Ambil posyandu pertama sebagai default, atau bisa dikonfigurasi
         // Jika ada parameter posyandu di query string, gunakan itu
         $posyanduId = $request->query('posyandu');
-        $filterPosyandu = $request->query('filter_posyandu');
+        $filterBulan = $request->query('filter_bulan');
         $search = $request->query('search');
+        
+        // Parse filter bulan jika ada
+        $filterBulan = $filterBulan ? (int)$filterBulan : null;
         
         if ($posyanduId) {
             $posyandu = Posyandu::find($posyanduId);
@@ -40,28 +43,20 @@ class IndexController extends Controller
             ->get();
 
         // Ambil acara dari SEMUA posyandu untuk ditampilkan di halaman depan
-        $today = Carbon::now()->startOfDay();
-        $startDate = Carbon::now()->subDays(30)->startOfDay(); // 30 hari terakhir untuk acara baru
-        $endDate = Carbon::now()->addMonths(2)->endOfMonth();
-        
-        // Query: tampilkan semua acara dari semua posyandu yang:
-        // 1. Tanggalnya >= hari ini sampai 2 bulan ke depan, ATAU
-        // 2. Baru dibuat dalam 30 hari terakhir (untuk menampilkan acara baru meskipun tanggalnya jauh)
-        $query = JadwalKegiatan::with('posyandu')
-            ->where(function($q) use ($today, $endDate, $startDate) {
-                $q->where(function($subQ) use ($today, $endDate) {
-                    // Acara dengan tanggal >= hari ini sampai 2 bulan ke depan
-                    $subQ->where('tanggal', '>=', $today->format('Y-m-d'))
-                      ->where('tanggal', '<=', $endDate->format('Y-m-d'));
-                })->orWhere(function($subQ) use ($startDate) {
-                    // Acara yang baru dibuat dalam 30 hari terakhir
-                    $subQ->where('created_at', '>=', $startDate);
-                });
-            });
+        $query = JadwalKegiatan::with('posyandu');
 
-        // Filter berdasarkan posyandu jika dipilih
-        if ($filterPosyandu) {
-            $query->where('id_posyandu', $filterPosyandu);
+        // Filter berdasarkan bulan jika dipilih (menggunakan tahun saat ini)
+        if ($filterBulan && $filterBulan >= 1 && $filterBulan <= 12) {
+            $currentYear = Carbon::now()->year;
+            $startOfMonth = Carbon::create($currentYear, $filterBulan, 1)->startOfDay();
+            $endOfMonth = Carbon::create($currentYear, $filterBulan, 1)->endOfMonth()->endOfDay();
+            $query->whereBetween('tanggal', [$startOfMonth->format('Y-m-d'), $endOfMonth->format('Y-m-d')]);
+        } else {
+            // Default: tampilkan acara dari bulan ini dan beberapa bulan ke depan
+            $today = Carbon::now()->startOfDay();
+            $endDate = Carbon::now()->addMonths(2)->endOfMonth();
+            $query->where('tanggal', '>=', $today->format('Y-m-d'))
+                  ->where('tanggal', '<=', $endDate->format('Y-m-d'));
         }
 
         // Search berdasarkan nama acara atau tempat
@@ -79,20 +74,52 @@ class IndexController extends Controller
             ->paginate(12)
             ->withQueryString(); // Mempertahankan query string untuk filter
         
-        // Hitung statistik gabungan dari semua posyandu (12 posyandu)
-        $totalBalita = SasaranBayibalita::count();
-        $totalRemaja = SasaranRemaja::count();
-        $totalOrangtua = SasaranDewasa::count(); // Dewasa = Orangtua
-        $totalIbuHamil = SasaranIbuhamil::count();
-        $totalPralansia = SasaranPralansia::count();
-        $totalLansia = SasaranLansia::count();
-        $totalKader = Kader::count();
+        // Generate list bulan untuk dropdown (hanya nama bulan, tanpa tahun)
+        $bulanList = [];
+        for ($i = 1; $i <= 12; $i++) {
+            $date = Carbon::create(Carbon::now()->year, $i, 1);
+            $bulanList[] = [
+                'value' => $i,
+                'label' => $date->locale('id')->translatedFormat('F'),
+            ];
+        }
+        
+        // Filter berdasarkan bulan ini di tahun ini
+        // Statistik diambil dari SEMUA posyandu dan difilter untuk bulan ini di tahun ini
+        $currentMonth = Carbon::now()->month;
+        $currentYear = Carbon::now()->year;
+        $startOfMonth = Carbon::create($currentYear, $currentMonth, 1)->startOfDay();
+        $endOfMonth = Carbon::create($currentYear, $currentMonth, 1)->endOfMonth()->endOfDay();
+        
+        // Hitung statistik gabungan dari SEMUA posyandu yang dibuat/ditambahkan bulan ini di tahun ini
+        // Tidak ada filter id_posyandu, sehingga mencakup semua posyandu
+        $totalBalita = SasaranBayibalita::whereYear('created_at', $currentYear)
+            ->whereMonth('created_at', $currentMonth)
+            ->count();
+        $totalRemaja = SasaranRemaja::whereYear('created_at', $currentYear)
+            ->whereMonth('created_at', $currentMonth)
+            ->count();
+        $totalOrangtua = SasaranDewasa::whereYear('created_at', $currentYear)
+            ->whereMonth('created_at', $currentMonth)
+            ->count(); // Dewasa = Orangtua
+        $totalIbuHamil = SasaranIbuhamil::whereYear('created_at', $currentYear)
+            ->whereMonth('created_at', $currentMonth)
+            ->count();
+        $totalPralansia = SasaranPralansia::whereYear('created_at', $currentYear)
+            ->whereMonth('created_at', $currentMonth)
+            ->count();
+        $totalLansia = SasaranLansia::whereYear('created_at', $currentYear)
+            ->whereMonth('created_at', $currentMonth)
+            ->count();
+        $totalKader = Kader::count(); // Kader tidak difilter karena biasanya tidak berubah per bulan
         
         // Hitung cakupan imunisasi (persentase dari total bayi/balita yang sudah diimunisasi)
-        // Cakupan = (jumlah bayi/balita yang sudah diimunisasi / total bayi/balita) * 100
+        // Filter imunisasi dari SEMUA posyandu yang dibuat bulan ini di tahun ini
         $totalBayiBalitaTerimunisasi = DB::table('imunisasi')
             ->where('kategori_sasaran', 'bayibalita')
             ->whereNotNull('id_sasaran')
+            ->whereYear('created_at', $currentYear)
+            ->whereMonth('created_at', $currentMonth)
             ->distinct('id_sasaran')
             ->count('id_sasaran');
         
@@ -111,7 +138,8 @@ class IndexController extends Controller
             'posyandu' => $posyandu,
             'acaraList' => $acaraList,
             'daftarPosyandu' => $daftarPosyandu,
-            'filterPosyandu' => $filterPosyandu,
+            'filterBulan' => $filterBulan,
+            'bulanList' => $bulanList,
             'search' => $search,
             'totalBalita' => $totalBalita,
             'totalRemaja' => $totalRemaja,
@@ -121,6 +149,8 @@ class IndexController extends Controller
             'totalLansia' => $totalLansia,
             'totalKader' => $totalKader,
             'cakupanImunisasi' => $cakupanImunisasi,
+            'currentMonth' => $currentMonth,
+            'currentYear' => $currentYear,
         ]);
     }
 }

@@ -12,6 +12,7 @@ class Imunisasi extends Model
     protected $fillable = [
         'id_posyandu',
         'id_users',
+        'id_petugas_kesehatan',
         'id_sasaran',
         'kategori_sasaran',
         'jenis_imunisasi',
@@ -37,6 +38,12 @@ class Imunisasi extends Model
     public function user()
     {
         return $this->belongsTo(User::class, 'id_users');
+    }
+
+    // Relasi ke Petugas Kesehatan
+    public function petugasKesehatan()
+    {
+        return $this->belongsTo(PetugasKesehatan::class, 'id_petugas_kesehatan');
     }
 
     // Method untuk mendapatkan sasaran berdasarkan kategori

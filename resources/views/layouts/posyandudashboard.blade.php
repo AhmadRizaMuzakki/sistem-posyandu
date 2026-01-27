@@ -90,11 +90,11 @@
                     <span class="font-medium">Pendidikan</span>
                 </a>
 
-                {{-- 7. DATA IBU MENYUSUI --}}
+                {{-- 7. ABSENSI KEHADIRAN --}}
                 <a href="{{ route('adminPosyandu.ibu-menyusui') }}"
                     class="flex items-center px-4 py-3 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
                     <i class="ph ph-baby text-xl mr-3"></i>
-                    <span class="font-medium">Ibu Menyusui</span>
+                    <span class="font-medium">Absensi</span>
                 </a>
 
                 {{-- 9. LAPORAN --}}

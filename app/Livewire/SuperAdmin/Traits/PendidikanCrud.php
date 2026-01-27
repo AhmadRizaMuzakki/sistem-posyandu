@@ -32,6 +32,8 @@ trait PendidikanCrud
     public $jenis_kelamin_pendidikan = '';
     public $umur_pendidikan;
     public $pendidikan_terakhir_pendidikan = '';
+    public $rt_pendidikan = '';
+    public $rw_pendidikan = '';
 
     // Untuk dropdown sasaran
     public $sasaranList = [];
@@ -82,6 +84,8 @@ trait PendidikanCrud
             'jenis_kelamin_pendidikan' => '',
             'umur_pendidikan' => '',
             'pendidikan_terakhir_pendidikan' => '',
+            'rt_pendidikan' => '',
+            'rw_pendidikan' => '',
             'sasaranList' => [],
         ];
 
@@ -146,6 +150,8 @@ trait PendidikanCrud
                     'jenis_kelamin' => $s->jenis_kelamin ?? '',
                     'umur' => $s->umur_sasaran ?? null,
                     'pendidikan' => $s->pendidikan ?? '',
+                    'rt' => $s->rt ?? '',
+                    'rw' => $s->rw ?? '',
                 ]);
             }
         }
@@ -170,6 +176,8 @@ trait PendidikanCrud
             $this->jenis_kelamin_pendidikan = '';
             $this->umur_pendidikan = '';
             $this->pendidikan_terakhir_pendidikan = '';
+            $this->rt_pendidikan = '';
+            $this->rw_pendidikan = '';
             return;
         }
 
@@ -219,6 +227,8 @@ trait PendidikanCrud
             }
             
             $this->pendidikan_terakhir_pendidikan = $sasaran['pendidikan'] ?? '';
+            $this->rt_pendidikan = $sasaran['rt'] ?? '';
+            $this->rw_pendidikan = $sasaran['rw'] ?? '';
         }
     }
 
@@ -235,11 +245,13 @@ trait PendidikanCrud
         $this->hari_lahir_pendidikan = '';
         $this->bulan_lahir_pendidikan = '';
         $this->tahun_lahir_pendidikan = '';
-        $this->jenis_kelamin_pendidikan = '';
-        $this->umur_pendidikan = '';
-        $this->pendidikan_terakhir_pendidikan = '';
-        $this->loadSasaranList();
-    }
+            $this->jenis_kelamin_pendidikan = '';
+            $this->umur_pendidikan = '';
+            $this->pendidikan_terakhir_pendidikan = '';
+            $this->rt_pendidikan = '';
+            $this->rw_pendidikan = '';
+            $this->loadSasaranList();
+        }
 
     /**
      * Calculate umur dari tanggal lahir
@@ -379,6 +391,8 @@ trait PendidikanCrud
             'jenis_kelamin' => $this->jenis_kelamin_pendidikan ?: ($sasaran['jenis_kelamin'] ?? null),
             'umur' => $this->umur_pendidikan !== '' ? $this->umur_pendidikan : ($sasaran['umur'] ?? null),
             'pendidikan_terakhir' => $this->pendidikan_terakhir_pendidikan ?: ($sasaran['pendidikan'] ?? null),
+            'rt' => $this->rt_pendidikan ?: ($sasaran['rt'] ?? null),
+            'rw' => $this->rw_pendidikan ?: ($sasaran['rw'] ?? null),
         ];
 
         DB::transaction(function () use ($data) {
@@ -439,6 +453,8 @@ trait PendidikanCrud
         $this->jenis_kelamin_pendidikan = $pendidikan->jenis_kelamin ?? '';
         $this->umur_pendidikan = $pendidikan->umur ?? '';
         $this->pendidikan_terakhir_pendidikan = $pendidikan->pendidikan_terakhir ?? '';
+        $this->rt_pendidikan = $pendidikan->rt ?? '';
+        $this->rw_pendidikan = $pendidikan->rw ?? '';
         $this->isPendidikanModalOpen = true;
     }
 
