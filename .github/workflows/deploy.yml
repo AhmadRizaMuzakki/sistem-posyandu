@@ -42,6 +42,9 @@ jobs:
         [ -d storage ] && cp -r storage deploy_laravel/
         [ -d tests ] && cp -r tests deploy_laravel/
         # vendor TIDAK dijalankan di GitHub Actions; jalankan composer install di server (posyandukaranggan)
+        # Copy public/build/ ke posyandukaranggan/public/build/ (untuk Vite manifest.json)
+        mkdir -p deploy_laravel/public
+        [ -d public/build ] && cp -r public/build deploy_laravel/public/
         # Kosongkan compiled views (path absolut dari runner); Laravel akan compile ulang di server
         rm -rf deploy_laravel/storage/framework/views
         mkdir -p deploy_laravel/storage/framework/views
@@ -71,10 +74,11 @@ jobs:
         sed -i "s|__DIR__.'/../|__DIR__.'/../posyandukaranggan/|g" deploy_public_html/index.php
         sed -i "s|__DIR__.\"/../|__DIR__.\"/../posyandukaranggan/|g" deploy_public_html/index.php
 
-    # 5. Verifikasi view auth.login ada (cegah "View [auth.login] not found")
-    - name: ✅ Verifikasi view auth.login
+    # 5. Verifikasi view auth.login dan Vite manifest ada
+    - name: ✅ Verifikasi view auth.login dan Vite manifest
       run: |
         test -f deploy_laravel/resources/views/auth/login.blade.php || (echo "ERROR: resources/views/auth/login.blade.php tidak ada di deploy_laravel. Pastikan folder resources ter-deploy." && exit 1)
+        test -f deploy_laravel/public/build/manifest.json || (echo "WARNING: public/build/manifest.json tidak ada. Pastikan npm run build berhasil dan folder build ter-copy." && exit 1)
 
     # 6. Deploy Laravel project ke folder posyandukaranggan (folder akan dibuat otomatis)
     - name: 📂 Deploy Laravel to posyandukaranggan
