@@ -61,13 +61,19 @@ Di File Manager: klik kanan folder → **Permissions**.
 
 ---
 
-## 5. Upload file (logo, SK) – tanpa `storage:link`
+## 5. Storage di `public_html` (logo, SK)
 
-File upload (logo, SK) disajikan lewat **route** `/storage/{path}` (PHP), bukan symlink. **Jangan** jalankan `php artisan storage:link` di Hostinger.
+Deploy mengikuti langkah: **jalankan `php artisan storage:link` dulu**, lalu pindah **isi** folder `public` ke `public_html`. Folder Laravel **tidak** disimpan di `public_html`.
 
-- `exec()` / `symlink()` sering disabled → `storage:link` bisa error.
-- Aplikasi sudah punya route yang melayani file dari `storage/app/public`.
-- Cukup pastikan `storage` dan `storage/app/public` **writable** (755).
+- Workflow deploy sudah menjalankan `storage:link` sebelum copy `public` → `public_html`.
+- Symlink `public_html/storage` → `../posyandukaranggan/storage/app/public` ikut disiapkan di deploy.
+- FTP kadang tidak preserve symlink. Jika `/storage/...` tidak jalan, buat manual via **SSH**:
+  ```bash
+  cd /domains/posyandukaranggan.com/public_html
+  ln -s ../posyandukaranggan/storage/app/public storage
+  ```
+- Jika `symlink()` disabled di Hostinger, route `/storage/{path}` (PHP) tetap melayani file dari `storage/app/public` sebagai alternatif.
+- Pastikan `storage` dan `storage/app/public` **writable** (755).
 
 ---
 
@@ -82,6 +88,7 @@ File upload (logo, SK) disajikan lewat **route** `/storage/{path}` (PHP), bukan 
 | `APP_KEY` ada; `DB_*` sesuai Hostinger | ☐ |
 | `composer install` di server | ☐ |
 | `storage` & `bootstrap/cache` writable | ☐ |
+| Symlink `public_html/storage` → `../posyandukaranggan/...` (atau gunakan route) | ☐ |
 
 ---
 

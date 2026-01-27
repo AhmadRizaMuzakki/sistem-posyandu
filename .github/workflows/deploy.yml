@@ -39,6 +39,10 @@ jobs:
       run: |
         npm run build
 
+    # 5.4. Storage link (SEBELUM pindah public → public_html, ikuti langkah deploy)
+    - name: 🔗 Storage link (sebelum pindah isi public)
+      run: php artisan storage:link
+
     # 5.5. Siapkan struktur untuk deployment
     - name: 📁 Prepare deployment structure
       run: |
@@ -68,11 +72,13 @@ jobs:
         [ -f env.hostinger.example ] && cp env.hostinger.example deploy_laravel/
         [ -f HOSTINGER_SETUP.md ] && cp HOSTINGER_SETUP.md deploy_laravel/
         
-        # Buat folder untuk public_html
+        # Buat folder untuk public_html & copy isi public/ (bukan folder Laravel)
+        # NOTE: Jalanin storage:link dulu sebelum pindah public → public_html.
         mkdir -p deploy_public_html
-        # Copy isi public/ ke deploy_public_html
-        cp -r public/* deploy_public_html/ 2>/dev/null || true
+        rsync -a --exclude='storage' public/ deploy_public_html/
         [ -f public/.htaccess ] && cp public/.htaccess deploy_public_html/
+        # Symlink storage di public_html → posyandukaranggan/storage/app/public
+        ln -sf ../posyandukaranggan/storage/app/public deploy_public_html/storage
         # Update index.php path (dari __DIR__.'/../ ke __DIR__.'/../posyandukaranggan/)
         sed -i "s|__DIR__.'/../|__DIR__.'/../posyandukaranggan/|g" deploy_public_html/index.php
         sed -i "s|__DIR__.\"/../|__DIR__.\"/../posyandukaranggan/|g" deploy_public_html/index.php
