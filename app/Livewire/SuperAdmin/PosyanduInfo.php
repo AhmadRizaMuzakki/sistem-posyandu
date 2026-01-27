@@ -12,6 +12,11 @@ class PosyanduInfo extends Component
 
     public $posyandu;
     public $posyanduId;
+    
+    // Modal konfirmasi (untuk kompatibilitas dengan confirm-modal)
+    public $showConfirmModal = false;
+    public $confirmMessage = '';
+    public $confirmAction = '';
 
     #[Layout('layouts.superadmindashboard')]
 
@@ -67,6 +72,25 @@ class PosyanduInfo extends Component
         }
 
         return $query->count();
+    }
+
+    /**
+     * Tutup modal konfirmasi (untuk kompatibilitas dengan confirm-modal)
+     */
+    public function closeConfirmModal()
+    {
+        $this->showConfirmModal = false;
+        $this->confirmMessage = '';
+        $this->confirmAction = '';
+    }
+
+    /**
+     * Eksekusi action setelah konfirmasi (untuk kompatibilitas dengan confirm-modal)
+     */
+    public function executeConfirmAction()
+    {
+        // Tidak ada action yang perlu dieksekusi di PosyanduInfo
+        $this->closeConfirmModal();
     }
 
     public function render()
