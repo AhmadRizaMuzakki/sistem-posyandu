@@ -17,33 +17,17 @@ jobs:
       with:
         fetch-depth: 0
 
-    # 2. Setup PHP
-    - name: 🔧 Setup PHP
-      uses: shivammathur/setup-php@v2
-      with:
-        php-version: '8.2'
-        extensions: mbstring, xml, ctype, iconv, intl, pdo, pdo_mysql, dom, filter, gd, iconv, json, mbstring, zip
-
-    # 3. Install Composer dependencies
-    - name: 📦 Install Composer dependencies
-      run: |
-        composer install --no-interaction --prefer-dist --optimize-autoloader --no-dev
-
-    # 4. Install NPM dependencies
+    # 2. Install NPM dependencies
     - name: 📦 Install NPM dependencies
       run: |
         npm ci
 
-    # 5. Build assets
+    # 3. Build assets
     - name: 🔨 Build assets
       run: |
         npm run build
 
-    # 5.4. Storage link (SEBELUM pindah public → public_html, ikuti langkah deploy)
-    - name: 🔗 Storage link (sebelum pindah isi public)
-      run: php artisan storage:link
-
-    # 5.5. Siapkan struktur untuk deployment
+    # 4. Siapkan struktur untuk deployment
     - name: 📁 Prepare deployment structure
       run: |
         # Buat folder untuk Laravel project (tanpa public/)
@@ -57,7 +41,7 @@ jobs:
         [ -d routes ] && cp -r routes deploy_laravel/
         [ -d storage ] && cp -r storage deploy_laravel/
         [ -d tests ] && cp -r tests deploy_laravel/
-        [ -d vendor ] && cp -r vendor deploy_laravel/
+        # vendor TIDAK dijalankan di GitHub Actions; jalankan composer install di server (posyandukaranggan)
         # Kosongkan compiled views (path absolut dari runner); Laravel akan compile ulang di server
         rm -rf deploy_laravel/storage/framework/views
         mkdir -p deploy_laravel/storage/framework/views
@@ -78,7 +62,6 @@ jobs:
         [ -f HOSTINGER_SETUP.md ] && cp HOSTINGER_SETUP.md deploy_laravel/
         
         # Buat folder untuk public_html & copy isi public/ (bukan folder Laravel)
-        # NOTE: Jalanin storage:link dulu sebelum pindah public → public_html.
         mkdir -p deploy_public_html
         rsync -a --exclude='storage' public/ deploy_public_html/
         [ -f public/.htaccess ] && cp public/.htaccess deploy_public_html/
@@ -88,7 +71,7 @@ jobs:
         sed -i "s|__DIR__.'/../|__DIR__.'/../posyandukaranggan/|g" deploy_public_html/index.php
         sed -i "s|__DIR__.\"/../|__DIR__.\"/../posyandukaranggan/|g" deploy_public_html/index.php
 
-    # 5.6. Verifikasi view auth.login ada (cegah "View [auth.login] not found")
+    # 5. Verifikasi view auth.login ada (cegah "View [auth.login] not found")
     - name: ✅ Verifikasi view auth.login
       run: |
         test -f deploy_laravel/resources/views/auth/login.blade.php || (echo "ERROR: resources/views/auth/login.blade.php tidak ada di deploy_laravel. Pastikan folder resources ter-deploy." && exit 1)
@@ -143,4 +126,3 @@ jobs:
           **/.git*
           **/.git*/**
           **/.github/**
-          **/vendor/**
