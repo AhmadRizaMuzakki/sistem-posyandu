@@ -1130,21 +1130,8 @@ trait BalitaCrud
                 ]
             );
 
-            // Otomatis buat kunjungan untuk bulan dan tahun saat ini
-            $bulanSaatIni = date('n');
-            $tahunSaatIni = date('Y');
-            
-            KunjunganIbuMenyusui::updateOrCreate(
-                [
-                    'id_ibu_menyusui' => $ibuMenyusui->id_ibu_menyusui,
-                    'bulan' => $bulanSaatIni,
-                    'tahun' => $tahunSaatIni,
-                ],
-                [
-                    'status' => 'success',
-                    'tanggal_kunjungan' => date('Y-m-d'),
-                ]
-            );
+            // Jangan auto-buat kunjungan. Absensi hanya diisi lewat halaman Ibu Menyusui
+            // (checkbox atau modal Input Kunjungan Per Bulan).
         }
     }
 }

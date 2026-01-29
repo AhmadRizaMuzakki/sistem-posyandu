@@ -3,10 +3,13 @@
 namespace App\Http\Controllers;
 
 use App\Models\Imunisasi;
+use App\Models\Jadwal;
 use App\Models\Kader;
 use App\Models\Posyandu;
 use App\Models\Pendidikan;
+use Carbon\Carbon;
 use Dompdf\Dompdf;
+use Illuminate\Http\Request;
 use Dompdf\Options;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
@@ -983,6 +986,88 @@ class LaporanController extends Controller
             'totalKader' => $posyandu->kader->count(),
             'generatedAt' => now('Asia/Jakarta'),
             'user' => $user,
+        ], $fileName);
+    }
+
+    /**
+     * Laporan Absensi (Jadwal) - Admin Posyandu. Filter: bulan, presensi (hadir/tidak_hadir).
+     */
+    public function posyanduAbsensiPdf(Request $request): Response
+    {
+        $user = Auth::user();
+        $kader = Kader::with('posyandu')->where('id_users', $user->id)->first();
+        if (! $kader || ! $kader->posyandu) {
+            abort(403, 'Posyandu untuk akun ini tidak ditemukan.');
+        }
+        $posyandu = $kader->posyandu;
+        $bulan = (int) $request->query('bulan', now()->month);
+        $tahun = (int) $request->query('tahun', now()->year);
+        $presensi = $request->query('presensi'); // hadir, tidak_hadir, atau kosong = semua
+
+        $query = Jadwal::with(['petugasKesehatan'])
+            ->where('id_posyandu', $posyandu->id_posyandu)
+            ->whereMonth('tanggal', $bulan)
+            ->whereYear('tanggal', $tahun);
+        if ($presensi === 'hadir') {
+            $query->where('presensi', 'hadir');
+        } elseif ($presensi === 'tidak_hadir') {
+            // Tidak hadir = yang dijadwalkan tapi tidak hadir: explicit tidak_hadir ATAU belum_hadir (belum dicentang hadir)
+            $query->whereIn('presensi', ['tidak_hadir', 'belum_hadir']);
+        }
+        $jadwalList = $query->orderBy('tanggal')->orderBy('id_jadwal')->get();
+
+        $bulanLabel = Carbon::create($tahun, $bulan, 1)->locale('id')->translatedFormat('F Y');
+        $presensiLabel = $presensi === 'hadir' ? 'Hadir' : ($presensi === 'tidak_hadir' ? 'Tidak Hadir' : 'Semua');
+        $fileName = 'Laporan-Absensi-'.$presensiLabel.'-'.$bulanLabel.'-'.$posyandu->nama_posyandu.'-'.now('Asia/Jakarta')->format('Ymd_His').'.pdf';
+
+        return $this->renderPdf('pdf.laporan-posyandu-absensi', [
+            'posyandu' => $posyandu,
+            'jadwalList' => $jadwalList,
+            'generatedAt' => now('Asia/Jakarta'),
+            'user' => $user,
+            'bulanLabel' => $bulanLabel,
+            'presensiLabel' => $presensiLabel,
+        ], $fileName);
+    }
+
+    /**
+     * Laporan Absensi (Jadwal) - Super Admin. Filter: bulan, presensi (hadir/tidak_hadir).
+     */
+    public function superadminPosyanduAbsensiPdf(Request $request, string $id): Response
+    {
+        try {
+            $decryptedId = decrypt($id);
+        } catch (\Illuminate\Contracts\Encryption\DecryptException $e) {
+            abort(404, 'ID tidak valid');
+        }
+        $posyandu = Posyandu::findOrFail($decryptedId);
+        $bulan = (int) $request->query('bulan', now()->month);
+        $tahun = (int) $request->query('tahun', now()->year);
+        $presensi = $request->query('presensi');
+
+        $query = Jadwal::with(['petugasKesehatan'])
+            ->where('id_posyandu', $posyandu->id_posyandu)
+            ->whereMonth('tanggal', $bulan)
+            ->whereYear('tanggal', $tahun);
+        if ($presensi === 'hadir') {
+            $query->where('presensi', 'hadir');
+        } elseif ($presensi === 'tidak_hadir') {
+            // Tidak hadir = yang dijadwalkan tapi tidak hadir: explicit tidak_hadir ATAU belum_hadir (belum dicentang hadir)
+            $query->whereIn('presensi', ['tidak_hadir', 'belum_hadir']);
+        }
+        $jadwalList = $query->orderBy('tanggal')->orderBy('id_jadwal')->get();
+
+        $bulanLabel = Carbon::create($tahun, $bulan, 1)->locale('id')->translatedFormat('F Y');
+        $presensiLabel = $presensi === 'hadir' ? 'Hadir' : ($presensi === 'tidak_hadir' ? 'Tidak Hadir' : 'Semua');
+        $fileName = 'Laporan-Absensi-'.$presensiLabel.'-'.$bulanLabel.'-'.$posyandu->nama_posyandu.'-'.now('Asia/Jakarta')->format('Ymd_His').'.pdf';
+
+        return $this->renderPdf('pdf.laporan-posyandu-absensi', [
+            'posyandu' => $posyandu,
+            'jadwalList' => $jadwalList,
+            'generatedAt' => now('Asia/Jakarta'),
+            'user' => Auth::user(),
+            'bulanLabel' => $bulanLabel,
+            'presensiLabel' => $presensiLabel,
         ], $fileName);
     }
 

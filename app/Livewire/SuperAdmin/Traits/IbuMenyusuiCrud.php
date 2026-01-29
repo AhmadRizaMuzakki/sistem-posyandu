@@ -592,21 +592,9 @@ trait IbuMenyusuiCrud
                 ]
             );
 
-            // Otomatis buat kunjungan untuk bulan dan tahun saat ini jika belum ada
-            $bulanSaatIni = date('n');
-            $tahunSaatIni = date('Y');
-            
-            KunjunganIbuMenyusui::firstOrCreate(
-                [
-                    'id_ibu_menyusui' => $ibuMenyusui->id_ibu_menyusui,
-                    'bulan' => $bulanSaatIni,
-                    'tahun' => $tahunSaatIni,
-                ],
-                [
-                    'status' => 'success',
-                    'tanggal_kunjungan' => date('Y-m-d'),
-                ]
-            );
+            // Jangan auto-buat kunjungan di sini. Absensi (hadir/tidak hadir) hanya diisi
+            // lewat checkbox di tabel atau modal "Input Kunjungan Per Bulan", agar yang
+            // tidak hadir tetap tampil unchecked (tidak hadir).
 
             $ibuMenyusuiList->push([
                 'id_ibu_menyusui' => $ibuMenyusui->id_ibu_menyusui,
@@ -784,21 +772,7 @@ trait IbuMenyusuiCrud
                 ]
             );
 
-            // Otomatis buat kunjungan untuk bulan dan tahun saat ini
-            $bulanSaatIni = date('n');
-            $tahunSaatIni = date('Y');
-            
-            KunjunganIbuMenyusui::updateOrCreate(
-                [
-                    'id_ibu_menyusui' => $ibuMenyusui->id_ibu_menyusui,
-                    'bulan' => $bulanSaatIni,
-                    'tahun' => $tahunSaatIni,
-                ],
-                [
-                    'status' => 'success',
-                    'tanggal_kunjungan' => date('Y-m-d'),
-                ]
-            );
+            // Jangan auto-buat kunjungan. Absensi hanya diisi lewat checkbox atau modal.
         }
     }
 

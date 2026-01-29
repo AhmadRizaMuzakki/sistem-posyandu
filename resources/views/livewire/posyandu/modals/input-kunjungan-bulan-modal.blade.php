@@ -82,7 +82,7 @@
                         </div>
                     </div>
 
-                    {{-- List Checkbox Ibu Menyusui --}}
+                    {{-- Daftar Peserta Absensi (Balita) --}}
                     @if($bulan_input_kunjungan && $tahun_input_kunjungan)
                         <div class="mb-4">
                             <label class="block text-gray-700 text-sm font-bold mb-3">Pilih Balita yang Hadir:</label>

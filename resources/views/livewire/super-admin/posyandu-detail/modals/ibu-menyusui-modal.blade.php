@@ -1,4 +1,4 @@
-{{-- Modal Form Ibu Menyusui --}}
+{{-- Modal Form Absensi (Data Keluarga untuk Absensi Balita) --}}
 @if($isIbuMenyusuiModalOpen)
 <div class="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
     <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
@@ -8,7 +8,7 @@
             <form wire:submit.prevent="storeIbuMenyusui">
                 <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
                     <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4" id="modal-title">
-                        {{ $id_ibu_menyusui ? 'Edit Data Ibu Menyusui' : 'Tambah Ibu Menyusui Baru' }}
+                        {{ $id_ibu_menyusui ? 'Edit Data Absensi' : 'Tambah Data Absensi' }}
                     </h3>
                     <div class="space-y-4">
                         <div>

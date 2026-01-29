@@ -10,7 +10,7 @@
             </div>
         </div>
 
-        {{-- Daftar Ibu Menyusui --}}
+        {{-- Daftar Absensi (Kunjungan Balita ke Posyandu) --}}
         <div class="bg-white rounded-lg shadow-sm p-6">
             <div class="flex items-center justify-between mb-4">
                 <h2 class="text-xl font-semibold text-gray-800 flex items-center">
@@ -146,13 +146,13 @@
             @else
                 <div class="text-center py-12 text-gray-500">
                     <i class="ph ph-baby text-4xl mb-2"></i>
-                    <p>Belum ada data balita dari sasaran</p>
+                    <p>Belum ada data absensi (sasaran balita)</p>
                 </div>
             @endif
         </div>
     </div>
 
-    {{-- Modal Form Ibu Menyusui --}}
+    {{-- Modal Form Absensi --}}
     @include('livewire.super-admin.posyandu-detail.modals.ibu-menyusui-modal')
 
     {{-- Modal Form Kunjungan --}}

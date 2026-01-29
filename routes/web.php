@@ -52,6 +52,7 @@ Route::prefix('supervisor')->middleware(['auth', 'verified', 'role:superadmin'])
     Route::get('/posyandu/{id}/laporan/pdf/jenis-vaksin/{jenisVaksin}', [LaporanController::class, 'superadminPosyanduImunisasiPdfByJenisVaksin'])->name('superadmin.posyandu.laporan.pdf.jenis-vaksin');
     Route::get('/posyandu/{id}/laporan/pdf/nama/{nama}', [LaporanController::class, 'superadminPosyanduImunisasiPdfByNama'])->name('superadmin.posyandu.laporan.pdf.nama');
     Route::get('/posyandu/{id}/laporan/pdf/{kategori}', [LaporanController::class, 'superadminPosyanduImunisasiPdf'])->name('superadmin.posyandu.laporan.pdf.kategori');
+    Route::get('/posyandu/{id}/laporan/absensi/pdf', [LaporanController::class, 'superadminPosyanduAbsensiPdf'])->name('superadmin.posyandu.laporan.absensi.pdf');
     Route::get('/posyandu/{id}/laporan/pdf', [LaporanController::class, 'superadminPosyanduImunisasiPdf'])->name('superadmin.posyandu.laporan.pdf');
     // Route kombinasi filter pendidikan (harus didefinisikan sebelum route tunggal)
     Route::get('/posyandu/{id}/pendidikan/pdf/kategori-sasaran/{kategoriSasaran}/pendidikan/{kategoriPendidikan}/nama/{nama}', [LaporanController::class, 'superadminPosyanduPendidikanPdfByAllFilters'])->name('superadmin.posyandu.pendidikan.pdf.all-filters');
@@ -81,6 +82,7 @@ Route::prefix('posyandu')->middleware(['auth', 'verified', 'role:adminPosyandu|s
     Route::get('/laporan/pdf/jenis-vaksin/{jenisVaksin}', [LaporanController::class, 'posyanduImunisasiPdfByJenisVaksin'])->name('adminPosyandu.laporan.pdf.jenis-vaksin');
     Route::get('/laporan/pdf/nama/{nama}', [LaporanController::class, 'posyanduImunisasiPdfByNama'])->name('adminPosyandu.laporan.pdf.nama');
     Route::get('/laporan/pdf/{kategori}', [LaporanController::class, 'posyanduImunisasiPdf'])->name('adminPosyandu.laporan.pdf.kategori');
+    Route::get('/laporan/absensi/pdf', [LaporanController::class, 'posyanduAbsensiPdf'])->name('adminPosyandu.laporan.absensi.pdf');
     Route::get('/laporan/pdf', [LaporanController::class, 'posyanduImunisasiPdf'])->name('adminPosyandu.laporan.pdf');
     // Route kombinasi filter pendidikan (harus didefinisikan sebelum route tunggal)
     Route::get('/pendidikan/pdf/kategori-sasaran/{kategoriSasaran}/pendidikan/{kategoriPendidikan}/nama/{nama}', [LaporanController::class, 'posyanduPendidikanPdfByAllFilters'])->name('adminPosyandu.pendidikan.pdf.all-filters');

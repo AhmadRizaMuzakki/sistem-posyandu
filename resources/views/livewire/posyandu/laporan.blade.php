@@ -94,6 +94,55 @@
         
     </div>
 
+    {{-- Grup Laporan Absensi (Jadwal) --}}
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+        <div class="flex items-center gap-2 mb-4 pb-3 border-b border-gray-200">
+            <i class="ph ph-clipboard-text text-2xl text-teal-600"></i>
+            <h2 class="text-xl font-semibold text-gray-800">Laporan Absensi (Jadwal)</h2>
+        </div>
+
+        <div class="mb-6">
+            <div class="flex items-center gap-2 mb-3">
+                <i class="ph ph-file-pdf text-lg text-primary"></i>
+                <h3 class="text-base font-semibold text-gray-800">Export dengan Filter</h3>
+            </div>
+            <div class="space-y-4">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Bulan</label>
+                        <select id="filterBulanAbsensi" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-primary focus:border-primary">
+                            @foreach(range(1, 12) as $m)
+                                <option value="{{ $m }}" {{ $m == now()->month ? 'selected' : '' }}>{{ \Carbon\Carbon::create(now()->year, $m, 1)->locale('id')->translatedFormat('F') }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Tahun</label>
+                        <select id="filterTahunAbsensi" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-primary focus:border-primary">
+                            @foreach(range(now()->year, now()->year - 2) as $y)
+                                <option value="{{ $y }}" {{ $y == now()->year ? 'selected' : '' }}>{{ $y }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Presensi</label>
+                    <select id="filterPresensiAbsensi" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-primary focus:border-primary">
+                        <option value="">Semua (Hadir & Tidak Hadir)</option>
+                        <option value="hadir">Hadir</option>
+                        <option value="tidak_hadir">Tidak Hadir</option>
+                    </select>
+                </div>
+                <div>
+                    <button onclick="exportAbsensiPdf()" class="w-full inline-flex items-center justify-center px-4 py-2 rounded-lg bg-teal-600 text-white text-sm font-medium shadow-sm hover:bg-teal-700 transition-colors">
+                        <i class="ph ph-file-pdf text-lg mr-2"></i>
+                        Export PDF Laporan Absensi
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     {{-- Grup Laporan Pendidikan --}}
     <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
         <div class="flex items-center gap-2 mb-4 pb-3 border-b border-gray-200">
@@ -168,6 +217,15 @@
                     }
                 }));
             }
+        }
+
+        function exportAbsensiPdf() {
+            const bulan = document.getElementById('filterBulanAbsensi').value;
+            const tahun = document.getElementById('filterTahunAbsensi').value;
+            const presensi = document.getElementById('filterPresensiAbsensi').value;
+            let url = '{{ route("adminPosyandu.laporan.absensi.pdf") }}?bulan=' + bulan + '&tahun=' + tahun;
+            if (presensi) url += '&presensi=' + presensi;
+            window.open(url, '_blank');
         }
 
         function exportFilteredPendidikan() {
