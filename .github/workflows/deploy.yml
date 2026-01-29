@@ -27,6 +27,22 @@ jobs:
       run: |
         npm run build
 
+    # 4. Siapkan folder deploy_laravel (isi yang akan di-upload via FTP)
+    - name: 📁 Siapkan folder deploy_laravel
+      run: |
+        mkdir -p deploy_laravel
+        rsync -a \
+          --exclude='.git' \
+          --exclude='node_modules' \
+          --exclude='.github' \
+          --exclude='deploy_laravel' \
+          --exclude='storage/logs/*' \
+          --exclude='storage/framework/cache/*' \
+          --exclude='storage/framework/sessions/*' \
+          --exclude='storage/framework/views/*' \
+          --exclude='.env' \
+          . deploy_laravel/
+
     # 5. Verifikasi view auth.login dan Vite manifest ada
     - name: ✅ Verifikasi view auth.login dan Vite manifest
       run: |
