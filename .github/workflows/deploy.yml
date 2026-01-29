@@ -47,6 +47,11 @@ jobs:
           --exclude='storage/framework/views/*' \
           --exclude='.env' \
           . deploy_laravel/
+        echo "✅ Verifikasi folder build setelah rsync..."
+        test -d deploy_laravel/public/build || (echo "❌ ERROR: Folder deploy_laravel/public/build tidak ada!" && exit 1)
+        test -d deploy_laravel/public/build/assets || (echo "❌ ERROR: Folder deploy_laravel/public/build/assets tidak ada!" && exit 1)
+        echo "📁 Struktur folder build:"
+        find deploy_laravel/public/build -type f -name "*.css" -o -name "*.js" | head -10
 
     # 5. Verifikasi view auth.login dan Vite manifest ada
     - name: ✅ Verifikasi view auth.login dan Vite manifest
@@ -71,7 +76,9 @@ jobs:
         protocol: ftp
         timeout: 180000
         local-dir: ./deploy_laravel/
+        dangerous-clean-slate: false
         exclude: |
           **/.git*
           **/.git*/**
           **/.github/**
+        log-level: verbose
