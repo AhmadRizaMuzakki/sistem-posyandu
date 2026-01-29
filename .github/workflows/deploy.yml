@@ -26,6 +26,11 @@ jobs:
     - name: 🔨 Build assets
       run: |
         npm run build
+        echo "✅ Build selesai. Memverifikasi folder build..."
+        ls -la public/build/ || (echo "❌ ERROR: Folder public/build tidak ada setelah build!" && exit 1)
+        test -f public/build/manifest.json || (echo "❌ ERROR: manifest.json tidak ada!" && exit 1)
+        echo "📦 File di public/build:"
+        ls -la public/build/
 
     # 4. Siapkan folder deploy_laravel (isi yang akan di-upload via FTP)
     - name: 📁 Siapkan folder deploy_laravel
@@ -47,7 +52,12 @@ jobs:
     - name: ✅ Verifikasi view auth.login dan Vite manifest
       run: |
         test -f deploy_laravel/resources/views/auth/login.blade.php || (echo "ERROR: resources/views/auth/login.blade.php tidak ada di deploy_laravel. Pastikan folder resources ter-deploy." && exit 1)
-        test -f deploy_laravel/public/build/manifest.json || (echo "WARNING: public/build/manifest.json tidak ada. Pastikan npm run build berhasil dan folder build ter-copy." && exit 1)
+        test -f deploy_laravel/public/build/manifest.json || (echo "❌ ERROR: public/build/manifest.json tidak ada. Pastikan npm run build berhasil dan folder build ter-copy." && exit 1)
+        echo "✅ manifest.json ditemukan. Memverifikasi isi manifest..."
+        cat deploy_laravel/public/build/manifest.json
+        echo ""
+        echo "📦 File CSS/JS di deploy_laravel/public/build:"
+        ls -la deploy_laravel/public/build/ | grep -E '\.(css|js)$' || echo "⚠️  Tidak ada file CSS/JS ditemukan!"
 
     # 6. Deploy Laravel project ke folder posyandukaranggan (folder akan dibuat otomatis)
     - name: 📂 Deploy Laravel to posyandukaranggan
