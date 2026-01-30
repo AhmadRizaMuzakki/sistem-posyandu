@@ -90,9 +90,9 @@ jobs:
       - name: 📂 FTP Sync (Changes Only)
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
-          server: ${{ secrets.FTP_SERVER }}
-          username: ${{ secrets.FTP_USERNAME }}
-          password: ${{ secrets.FTP_PASSWORD }}
+          server: ${{ secrets.IP }}
+          username: ${{ secrets.USERNAME }}
+          password: ${{ secrets.PASSWORD }}
           # GANTI path ini sesuai folder staging di Hostinger Anda
           server-dir: /domains/posyandukaranggan.com/public_html/staging/ 
           log-level: standard
@@ -120,9 +120,9 @@ jobs:
       - name: 📂 FTP Sync (Changes Only)
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
-          server: ${{ secrets.FTP_SERVER }}
-          username: ${{ secrets.FTP_USERNAME }}
-          password: ${{ secrets.FTP_PASSWORD }}
+          server: ${{ secrets.IP }}
+          username: ${{ secrets.USERNAME }}
+          password: ${{ secrets.PASSWORD }}
           # Path Production Anda
           server-dir: /domains/posyandukaranggan.com/posyandukaranggan/ 
           log-level: verbose
