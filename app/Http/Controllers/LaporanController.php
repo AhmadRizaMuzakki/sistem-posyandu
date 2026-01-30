@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Imunisasi;
+use App\Models\IbuMenyusui;
 use App\Models\Jadwal;
 use App\Models\Kader;
 use App\Models\Posyandu;
@@ -1028,6 +1029,129 @@ class LaporanController extends Controller
             'bulanLabel' => $bulanLabel,
             'presensiLabel' => $presensiLabel,
         ], $fileName);
+    }
+
+    /**
+     * Laporan Absensi Kunjungan (Ibu/Bayi) - Admin Posyandu. Filter: bulan, tahun, presensi (hadir/tidak_hadir).
+     * "Tidak hadir" = ibu/bayi yang tidak centang di menu Absensi Kehadiran (tidak punya kunjungan success di bulan tersebut).
+     */
+    public function posyanduAbsensiKunjunganPdf(Request $request): Response
+    {
+        $user = Auth::user();
+        $kader = Kader::with('posyandu')->where('id_users', $user->id)->first();
+        if (! $kader || ! $kader->posyandu) {
+            abort(403, 'Posyandu untuk akun ini tidak ditemukan.');
+        }
+        $posyandu = $kader->posyandu;
+        $bulan = (int) $request->query('bulan', now()->month);
+        $tahun = (int) $request->query('tahun', now()->year);
+        $presensi = $request->query('presensi'); // hadir, tidak_hadir, atau kosong = semua
+
+        $list = $this->buildAbsensiKunjunganList($posyandu->id_posyandu, $bulan, $tahun, $presensi);
+
+        $bulanLabel = Carbon::create($tahun, $bulan, 1)->locale('id')->translatedFormat('F Y');
+        $presensiLabel = $presensi === 'hadir' ? 'Hadir' : ($presensi === 'tidak_hadir' ? 'Tidak Hadir' : 'Semua');
+        $fileName = 'Laporan-Absensi-Kunjungan-'.$presensiLabel.'-'.$bulanLabel.'-'.$posyandu->nama_posyandu.'-'.now('Asia/Jakarta')->format('Ymd_His').'.pdf';
+
+        return $this->renderPdf('pdf.laporan-posyandu-absensi-kunjungan', [
+            'posyandu' => $posyandu,
+            'list' => $list,
+            'generatedAt' => now('Asia/Jakarta'),
+            'user' => $user,
+            'bulanLabel' => $bulanLabel,
+            'presensiLabel' => $presensiLabel,
+        ], $fileName);
+    }
+
+    /**
+     * Laporan Absensi Kunjungan (Ibu/Bayi) - Super Admin. Filter: bulan, tahun, presensi (hadir/tidak_hadir).
+     */
+    public function superadminPosyanduAbsensiKunjunganPdf(Request $request, string $id): Response
+    {
+        try {
+            $decryptedId = decrypt($id);
+        } catch (\Illuminate\Contracts\Encryption\DecryptException $e) {
+            abort(404, 'ID tidak valid');
+        }
+        $posyandu = Posyandu::findOrFail($decryptedId);
+        $bulan = (int) $request->query('bulan', now()->month);
+        $tahun = (int) $request->query('tahun', now()->year);
+        $presensi = $request->query('presensi');
+
+        $list = $this->buildAbsensiKunjunganList($posyandu->id_posyandu, $bulan, $tahun, $presensi);
+
+        $bulanLabel = Carbon::create($tahun, $bulan, 1)->locale('id')->translatedFormat('F Y');
+        $presensiLabel = $presensi === 'hadir' ? 'Hadir' : ($presensi === 'tidak_hadir' ? 'Tidak Hadir' : 'Semua');
+        $fileName = 'Laporan-Absensi-Kunjungan-'.$presensiLabel.'-'.$bulanLabel.'-'.$posyandu->nama_posyandu.'-'.now('Asia/Jakarta')->format('Ymd_His').'.pdf';
+
+        return $this->renderPdf('pdf.laporan-posyandu-absensi-kunjungan', [
+            'posyandu' => $posyandu,
+            'list' => $list,
+            'generatedAt' => now('Asia/Jakarta'),
+            'user' => Auth::user(),
+            'bulanLabel' => $bulanLabel,
+            'presensiLabel' => $presensiLabel,
+        ], $fileName);
+    }
+
+    /**
+     * Build list ibu/bayi untuk laporan absensi kunjungan (hadir = punya kunjungan success; tidak_hadir = tidak punya).
+     */
+    protected function buildAbsensiKunjunganList(int $idPosyandu, int $bulan, int $tahun, ?string $presensi): \Illuminate\Support\Collection
+    {
+        if ($presensi === 'tidak_hadir') {
+            $ibuList = IbuMenyusui::where('id_posyandu', $idPosyandu)
+                ->whereDoesntHave('kunjungan', function ($q) use ($bulan, $tahun) {
+                    $q->where('bulan', $bulan)->where('tahun', $tahun)->where('status', 'success');
+                })
+                ->orderBy('nama_ibu')
+                ->get();
+            return $ibuList->map(fn ($ibu) => [
+                'nama_ibu' => $ibu->nama_ibu,
+                'nama_suami' => $ibu->nama_suami,
+                'nama_bayi' => $ibu->nama_bayi,
+            ]);
+        }
+
+        if ($presensi === 'hadir') {
+            $ibuList = IbuMenyusui::where('id_posyandu', $idPosyandu)
+                ->whereHas('kunjungan', function ($q) use ($bulan, $tahun) {
+                    $q->where('bulan', $bulan)->where('tahun', $tahun)->where('status', 'success');
+                })
+                ->with(['kunjungan' => function ($q) use ($bulan, $tahun) {
+                    $q->where('bulan', $bulan)->where('tahun', $tahun)->where('status', 'success');
+                }])
+                ->orderBy('nama_ibu')
+                ->get();
+            return $ibuList->map(function ($ibu) {
+                $k = $ibu->kunjungan->first();
+                return [
+                    'nama_ibu' => $ibu->nama_ibu,
+                    'nama_suami' => $ibu->nama_suami,
+                    'nama_bayi' => $ibu->nama_bayi,
+                    'tanggal_kunjungan' => $k && $k->tanggal_kunjungan
+                        ? Carbon::parse($k->tanggal_kunjungan)->format('d/m/Y')
+                        : '-',
+                ];
+            });
+        }
+
+        // Semua: hadir + tidak hadir (semua ibu menyusui di posyandu, dengan indikator)
+        $ibuList = IbuMenyusui::where('id_posyandu', $idPosyandu)
+            ->with(['kunjungan' => function ($q) use ($bulan, $tahun) {
+                $q->where('bulan', $bulan)->where('tahun', $tahun)->where('status', 'success');
+            }])
+            ->orderBy('nama_ibu')
+            ->get();
+        return $ibuList->map(function ($ibu) {
+            $k = $ibu->kunjungan->first();
+            return [
+                'nama_ibu' => $ibu->nama_ibu,
+                'nama_suami' => $ibu->nama_suami,
+                'nama_bayi' => $ibu->nama_bayi,
+                'status' => $k ? 'Hadir' : 'Tidak Hadir',
+            ];
+        });
     }
 
     /**
