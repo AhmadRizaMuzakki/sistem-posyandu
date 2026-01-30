@@ -1,84 +1,131 @@
-name: Deploy to Hostinger
+name: 🚀 Multi-Stage Deploy (Staging & Production)
 
 on:
   push:
     branches:
-      - main  # Pastikan ini sesuai nama branch utama Anda (main atau master)
+      - main      # Production
+      - staging   # Staging (Buat branch ini jika belum ada)
+
+# Mencegah deploy bertumpuk jika ada push beruntun
+concurrency:
+  group: ${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
-  FTP-Deploy-Action:
-    name: 🎉 Deploy Process
+  # ----------------------------------------------------------------------
+  # JOB 1: BUILD (Berjalan sama untuk Staging & Production)
+  # ----------------------------------------------------------------------
+  build:
+    name: 📦 Build Assets & Vendor
     runs-on: ubuntu-latest
     steps:
-    
-    # 1. Ambil kode terbaru
-    - name: 🚚 Get latest code
-      uses: actions/checkout@v4
-      with:
-        fetch-depth: 0
+      - name: 🚚 Get latest code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2 # Cukup ambil history sedikit untuk diff
 
-    # 2. Install NPM dependencies
-    - name: 📦 Install NPM dependencies
-      run: |
-        npm ci
+      - name: 📦 Setup PHP (Faster Composer)
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2' # Sesuaikan versi PHP Hostinger Anda
+          extensions: mbstring, xml, ctype, iconv, intl, pdo_sqlite, dom, filter, json
+          coverage: none
 
-    # 3. Build assets
-    - name: 🔨 Build assets
-      run: |
-        npm run build
-        echo "✅ Build selesai. Memverifikasi folder build..."
-        ls -la public/build/ || (echo "❌ ERROR: Folder public/build tidak ada setelah build!" && exit 1)
-        test -f public/build/manifest.json || (echo "❌ ERROR: manifest.json tidak ada!" && exit 1)
-        echo "📦 File di public/build:"
-        ls -la public/build/
+      - name: 📦 Install NPM dependencies
+        run: npm ci
 
-    # 4. Siapkan folder deploy_laravel (isi yang akan di-upload via FTP)
-    - name: 📁 Siapkan folder deploy_laravel
-      run: |
-        mkdir -p deploy_laravel
-        rsync -a \
-          --exclude='.git' \
-          --exclude='node_modules' \
-          --exclude='.github' \
-          --exclude='deploy_laravel' \
-          --exclude='storage/logs/*' \
-          --exclude='storage/framework/cache/*' \
-          --exclude='storage/framework/sessions/*' \
-          --exclude='storage/framework/views/*' \
-          --exclude='.env' \
-          . deploy_laravel/
-        echo "✅ Verifikasi folder build setelah rsync..."
-        test -d deploy_laravel/public/build || (echo "❌ ERROR: Folder deploy_laravel/public/build tidak ada!" && exit 1)
-        test -d deploy_laravel/public/build/assets || (echo "❌ ERROR: Folder deploy_laravel/public/build/assets tidak ada!" && exit 1)
-        echo "📁 Struktur folder build:"
-        find deploy_laravel/public/build -type f -name "*.css" -o -name "*.js" | head -10
+      - name: 🔨 Build Assets (Vite)
+        run: npm run build
 
-    # 5. Verifikasi view auth.login dan Vite manifest ada
-    - name: ✅ Verifikasi view auth.login dan Vite manifest
-      run: |
-        test -f deploy_laravel/resources/views/auth/login.blade.php || (echo "ERROR: resources/views/auth/login.blade.php tidak ada di deploy_laravel. Pastikan folder resources ter-deploy." && exit 1)
-        test -f deploy_laravel/public/build/manifest.json || (echo "❌ ERROR: public/build/manifest.json tidak ada. Pastikan npm run build berhasil dan folder build ter-copy." && exit 1)
-        echo "✅ manifest.json ditemukan. Memverifikasi isi manifest..."
-        cat deploy_laravel/public/build/manifest.json
-        echo ""
-        echo "📦 File CSS/JS di deploy_laravel/public/build:"
-        ls -la deploy_laravel/public/build/ | grep -E '\.(css|js)$' || echo "⚠️  Tidak ada file CSS/JS ditemukan!"
+      - name: 🎼 Install Composer Dependencies
+        run: composer install --no-dev --optimize-autoloader --prefer-dist --no-interaction --no-progress
 
-    # 6. Deploy Laravel project ke folder posyandukaranggan (folder akan dibuat otomatis)
-    - name: 📂 Deploy Laravel to posyandukaranggan
-      uses: SamKirkland/FTP-Deploy-Action@v4.3.5
-      with:
-        server: ${{ secrets.IP }}
-        username: ${{ secrets.USERNAME }}
-        password: ${{ secrets.PASSWORD }}
-        server-dir: /domains/posyandukaranggan.com/posyandukaranggan/
-        port: 21
-        protocol: ftp
-        timeout: 180000
-        local-dir: ./deploy_laravel/
-        dangerous-clean-slate: false
-        exclude: |
-          **/.git*
-          **/.git*/**
-          **/.github/**
-        log-level: verbose
+      # Kita siapkan folder artefak bersih di sini agar siap upload
+      - name: 📁 Prepare Deploy Artifact
+        run: |
+          mkdir -p deploy_package
+          # Copy semua file project ke folder deploy_package
+          rsync -a . deploy_package/ \
+            --exclude='.git' \
+            --exclude='.github' \
+            --exclude='node_modules' \
+            --exclude='deploy_package' \
+            --exclude='tests' \
+            --exclude='storage/logs/*' \
+            --exclude='storage/framework/cache/*' \
+            --exclude='storage/framework/sessions/*' \
+            --exclude='storage/framework/views/*' \
+            --exclude='.env' \
+            --exclude='.env.example'
+          
+          echo "✅ Artifact siap. Mengecek manifest..."
+          ls -la deploy_package/public/build/
+
+      # Simpan hasil build agar bisa dipakai di job deploy berikutnya
+      - name: 📤 Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-build
+          path: deploy_package/
+          retention-days: 1
+
+  # ----------------------------------------------------------------------
+  # JOB 2: DEPLOY STAGING (Hanya jalan jika branch = staging)
+  # ----------------------------------------------------------------------
+  deploy-staging:
+    name: 🚧 Deploy to Staging
+    needs: build
+    if: github.ref == 'refs/heads/staging'
+    runs-on: ubuntu-latest
+    environment: 
+      name: staging
+      url: https://staging.posyandukaranggan.com # Ganti URL Staging Anda
+    steps:
+      - name: 📥 Download Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: app-build
+          path: . 
+
+      - name: 📂 FTP Sync (Changes Only)
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          # GANTI path ini sesuai folder staging di Hostinger Anda
+          server-dir: /domains/posyandukaranggan.com/public_html/staging/ 
+          log-level: standard
+          # PENTING: State file memastikan hanya file berubah yang diupload
+          state-name: .ftp-deploy-sync-state-staging.json 
+
+  # ----------------------------------------------------------------------
+  # JOB 3: DEPLOY PRODUCTION (Hanya jalan jika branch = main)
+  # ----------------------------------------------------------------------
+  deploy-production:
+    name: 🎉 Deploy to Production
+    needs: build
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment: 
+      name: production
+      url: https://posyandukaranggan.com
+    steps:
+      - name: 📥 Download Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: app-build
+          path: .
+
+      - name: 📂 FTP Sync (Changes Only)
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          # Path Production Anda
+          server-dir: /domains/posyandukaranggan.com/posyandukaranggan/ 
+          log-level: verbose
+          # PENTING: Ini kuncinya. Action ini akan mengecek file ini di server.
+          # Jika file lokal == file server (hash-nya sama), dia SKIP upload.
+          state-name: .ftp-deploy-sync-state.json
