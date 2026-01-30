@@ -45,19 +45,15 @@ jobs:
         run: |
           mkdir -p deploy_package
           # Copy semua file project ke folder deploy_package
-          rsync -a . deploy_package/ \
-            --exclude='.git' \
-            --exclude='.github' \
-            --exclude='node_modules' \
-            --exclude='deploy_package' \
-            --exclude='tests' \
-            --exclude='storage/logs/*' \
-            --exclude='storage/framework/cache/*' \
-            --exclude='storage/framework/sessions/*' \
-            --exclude='storage/framework/views/*' \
-            --exclude='.env' \
-            --exclude='.env.example'
-          
+          rsync -a \
+          --exclude="vendor" \
+          --exclude="**/vendor/**" \
+          --exclude="node_modules" \
+          --exclude=".git" \
+          --exclude=".github" \
+          --exclude=".env" \
+          . deploy_package/
+
           echo "✅ Artifact siap. Mengecek manifest..."
           ls -la deploy_package/public/build/
 
