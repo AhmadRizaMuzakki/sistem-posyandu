@@ -29,7 +29,7 @@
             <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
                 @foreach($items as $item)
                     <div class="group relative aspect-[4/3] rounded-lg overflow-hidden bg-gray-100 border border-gray-200">
-                        <img src="{{ route('storage.serve', ['path' => $item->path]) }}" alt="{{ $item->caption ?? 'Galeri' }}"
+                        <img src="{{ url('/storage/' . $item->path) }}" alt="{{ $item->caption ?? 'Galeri' }}"
                             class="w-full h-full object-cover">
                         @if($item->posyandu)
                             <span class="absolute top-2 left-2 px-2 py-0.5 rounded bg-primary/90 text-white text-xs font-medium">{{ $item->posyandu->nama_posyandu }}</span>
