@@ -6,6 +6,7 @@ use App\Models\Galeri as GaleriModel;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
 use Livewire\Component;
+use Symfony\Component\HttpFoundation\File\Exception\FileException;
 use Livewire\Attributes\Layout;
 use Livewire\WithFileUploads;
 
@@ -53,22 +54,43 @@ class Galeri extends Component
     {
         $this->validate();
         $caption = $this->caption ?: null;
-        $saved = 0;
         $dir = public_path('uploads/galeri');
-        if (!File::isDirectory($dir)) {
-            File::makeDirectory($dir, 0755, true);
+        try {
+            if (!File::isDirectory($dir)) {
+                File::makeDirectory($dir, 0755, true);
+            }
+            if (!File::isWritable($dir)) {
+                session()->flash('messageType', 'error');
+                session()->flash('message', 'Folder uploads/galeri tidak dapat ditulis. Di server buat folder public/uploads/galeri dan set permission 775 atau 755.');
+                return;
+            }
+        } catch (\Throwable $e) {
+            session()->flash('messageType', 'error');
+            session()->flash('message', 'Folder uploads/galeri tidak bisa dibuat. Buat manual: public/uploads/galeri dengan permission 775.');
+            return;
         }
-        foreach ($this->fotoFiles as $file) {
-            $ext = $file->getClientOriginalExtension();
-            $safeName = 'galeri_' . Str::random(8) . '.' . $ext;
-            $file->move($dir, $safeName);
-            $path = 'galeri/' . $safeName;
-            GaleriModel::create([
-                'path' => $path,
-                'caption' => $caption,
-                'id_posyandu' => null,
-            ]);
-            $saved++;
+        $saved = 0;
+        try {
+            foreach ($this->fotoFiles as $file) {
+                $ext = $file->getClientOriginalExtension();
+                $safeName = 'galeri_' . Str::random(8) . '.' . $ext;
+                $file->move($dir, $safeName);
+                $path = 'galeri/' . $safeName;
+                GaleriModel::create([
+                    'path' => $path,
+                    'caption' => $caption,
+                    'id_posyandu' => null,
+                ]);
+                $saved++;
+            }
+        } catch (FileException $e) {
+            session()->flash('messageType', 'error');
+            session()->flash('message', 'Gagal menyimpan file. Pastikan folder public/uploads/galeri ada dan bisa ditulis (chmod 775 atau 755).');
+            return;
+        } catch (\Throwable $e) {
+            session()->flash('messageType', 'error');
+            session()->flash('message', 'Gagal upload: ' . $e->getMessage());
+            return;
         }
         $this->closeUploadModal();
         session()->flash('message', $saved > 1 ? "{$saved} foto berhasil ditambahkan." : 'Foto berhasil ditambahkan.');

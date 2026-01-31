@@ -16,7 +16,7 @@
         </div>
 
         @if(session('message'))
-            <div class="mb-4 p-3 rounded-lg bg-green-100 text-green-800 text-sm">{{ session('message') }}</div>
+            <div class="mb-4 p-3 rounded-lg text-sm {{ session('messageType') === 'error' ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800' }}">{{ session('message') }}</div>
         @endif
 
         @if($items->isEmpty())
