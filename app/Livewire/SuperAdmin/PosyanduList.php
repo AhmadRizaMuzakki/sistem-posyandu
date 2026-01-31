@@ -139,7 +139,7 @@ class PosyanduList extends Component
                 $originalName = $this->skFile->getClientOriginalName();
                 $extension = $this->skFile->getClientOriginalExtension();
                 $safeName = Str::slug(pathinfo($originalName, PATHINFO_FILENAME)) . '_' . time() . '.' . $extension;
-                $this->skFile->move($dir, $safeName);
+                File::copy($this->skFile->getRealPath(), $dir . DIRECTORY_SEPARATOR . $safeName);
                 $data['sk_posyandu'] = 'sk_posyandu/' . $safeName;
             } elseif ($this->isEditMode && !$this->skFile) {
                 $data['sk_posyandu'] = $this->currentSkPath;
@@ -161,7 +161,7 @@ class PosyanduList extends Component
                 $originalName = $this->logoFile->getClientOriginalName();
                 $extension = $this->logoFile->getClientOriginalExtension();
                 $safeName = Str::slug(pathinfo($originalName, PATHINFO_FILENAME)) . '_' . time() . '.' . $extension;
-                $this->logoFile->move($dir, $safeName);
+                File::copy($this->logoFile->getRealPath(), $dir . DIRECTORY_SEPARATOR . $safeName);
                 $data['logo_posyandu'] = 'logo_posyandu/' . $safeName;
             } elseif ($this->isEditMode && !$this->logoFile) {
                 $data['logo_posyandu'] = $this->currentLogoPath;

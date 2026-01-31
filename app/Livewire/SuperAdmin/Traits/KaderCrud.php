@@ -238,7 +238,8 @@ trait KaderCrud
                     }
                     $ext = $this->fotoKaderFile->getClientOriginalExtension();
                     $safeName = 'kader_' . $kader->id_kader . '_' . Str::random(8) . '.' . $ext;
-                    $this->fotoKaderFile->move($dir, $safeName);
+                    $destFile = $dir . DIRECTORY_SEPARATOR . $safeName;
+                    File::copy($this->fotoKaderFile->getRealPath(), $destFile);
                     $kader->foto_kader = 'foto_kader/' . $safeName;
                 }
 
@@ -283,7 +284,8 @@ trait KaderCrud
                     }
                     $ext = $this->fotoKaderFile->getClientOriginalExtension();
                     $safeName = 'kader_' . $newKader->id_kader . '_' . Str::random(8) . '.' . $ext;
-                    $this->fotoKaderFile->move($dir, $safeName);
+                    $destFile = $dir . DIRECTORY_SEPARATOR . $safeName;
+                    File::copy($this->fotoKaderFile->getRealPath(), $destFile);
                     $newKader->foto_kader = 'foto_kader/' . $safeName;
                     $newKader->save();
                 }

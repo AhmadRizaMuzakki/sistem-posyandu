@@ -68,7 +68,12 @@ class Galeri extends Component
         foreach ($this->fotoFiles as $file) {
             $ext = $file->getClientOriginalExtension();
             $safeName = 'galeri_' . $this->posyanduId . '_' . Str::random(8) . '.' . $ext;
-            $file->move($dir, $safeName);
+            $destFile = $dir . DIRECTORY_SEPARATOR . $safeName;
+            if (!File::copy($file->getRealPath(), $destFile)) {
+                session()->flash('messageType', 'error');
+                session()->flash('message', 'Gagal menyimpan file ke ' . $dir);
+                return;
+            }
             $path = 'galeri/' . $safeName;
             GaleriModel::create([
                 'path' => $path,

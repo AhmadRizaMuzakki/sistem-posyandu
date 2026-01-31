@@ -186,7 +186,7 @@ class PosyanduDashboard extends Component
             $originalName = $this->skFile->getClientOriginalName();
             $extension = $this->skFile->getClientOriginalExtension();
             $safeName = Str::slug(pathinfo($originalName, PATHINFO_FILENAME)) . '_' . time() . '.' . $extension;
-            $this->skFile->move($dir, $safeName);
+            File::copy($this->skFile->getRealPath(), $dir . DIRECTORY_SEPARATOR . $safeName);
 
             $this->posyandu->update([
                 'sk_posyandu' => 'sk_posyandu/' . $safeName

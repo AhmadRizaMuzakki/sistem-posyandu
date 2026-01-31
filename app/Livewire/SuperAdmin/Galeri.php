@@ -74,7 +74,11 @@ class Galeri extends Component
             foreach ($this->fotoFiles as $file) {
                 $ext = $file->getClientOriginalExtension();
                 $safeName = 'galeri_' . Str::random(8) . '.' . $ext;
-                $file->move($dir, $safeName);
+                $destFile = $dir . DIRECTORY_SEPARATOR . $safeName;
+                // Pakai copy agar jalan saat temp (storage) dan public/uploads beda filesystem/symlink
+                if (!File::copy($file->getRealPath(), $destFile)) {
+                    throw new FileException('Copy gagal ke: ' . $destFile);
+                }
                 $path = 'galeri/' . $safeName;
                 GaleriModel::create([
                     'path' => $path,
@@ -85,7 +89,7 @@ class Galeri extends Component
             }
         } catch (FileException $e) {
             session()->flash('messageType', 'error');
-            session()->flash('message', 'Gagal menyimpan file. Pastikan folder public/uploads/galeri ada dan bisa ditulis (chmod 775 atau 755).');
+            session()->flash('message', 'Gagal menyimpan file. Pastikan folder public/uploads/galeri ada dan bisa ditulis (chmod 775). Path: ' . $dir);
             return;
         } catch (\Throwable $e) {
             session()->flash('messageType', 'error');
