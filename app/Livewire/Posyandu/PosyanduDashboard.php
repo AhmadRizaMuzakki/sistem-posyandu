@@ -5,7 +5,10 @@ namespace App\Livewire\Posyandu;
 use App\Livewire\Posyandu\Traits\PosyanduHelper;
 use App\Livewire\Posyandu\Traits\DashboardHelper;
 use App\Livewire\Traits\NotificationModal;
+use App\Models\IbuMenyusui;
+use App\Models\Jadwal;
 use App\Models\Kader;
+use App\Models\KunjunganIbuMenyusui;
 use App\Models\Imunisasi;
 use App\Models\Pendidikan;
 use App\Models\SasaranBayibalita;
@@ -73,8 +76,36 @@ class PosyanduDashboard extends Component
                 ->pluck('pendidikan_terakhir')
                 ->toArray();
 
-            return compact('totalKader', 'totalSasaran', 'sasaranByCategory', 'pendidikanData', 
-                'kategoriSasaranList', 'jenisVaksinList', 'namaSasaranList', 'kategoriPendidikanList');
+            // Ringkasan absen petugas (bulan ini)
+            $bulanIni = (int) date('n');
+            $tahunIni = (int) date('Y');
+            $jadwalBulanIni = Jadwal::where('id_posyandu', $this->posyanduId)
+                ->whereMonth('tanggal', $bulanIni)
+                ->whereYear('tanggal', $tahunIni)
+                ->get();
+            $absenPetugas = [
+                'total' => $jadwalBulanIni->count(),
+                'hadir' => $jadwalBulanIni->where('presensi', 'hadir')->count(),
+                'tidak_hadir' => $jadwalBulanIni->where('presensi', 'tidak_hadir')->count(),
+                'belum_hadir' => $jadwalBulanIni->where('presensi', 'belum_hadir')->count(),
+            ];
+
+            // Ringkasan absen bayi/balita (bulan ini - kunjungan)
+            $totalBayi = IbuMenyusui::where('id_posyandu', $this->posyanduId)->count();
+            $bayiHadirBulanIni = KunjunganIbuMenyusui::whereHas('ibuMenyusui', fn ($q) => $q->where('id_posyandu', $this->posyanduId))
+                ->where('bulan', $bulanIni)
+                ->where('tahun', $tahunIni)
+                ->where('status', 'success')
+                ->count();
+            $absenBayi = [
+                'total' => $totalBayi,
+                'hadir' => $bayiHadirBulanIni,
+                'tidak_hadir' => $totalBayi - $bayiHadirBulanIni,
+            ];
+
+            return compact('totalKader', 'totalSasaran', 'sasaranByCategory', 'pendidikanData',
+                'kategoriSasaranList', 'jenisVaksinList', 'namaSasaranList', 'kategoriPendidikanList',
+                'absenPetugas', 'absenBayi');
         });
 
         // Mapping label kategori

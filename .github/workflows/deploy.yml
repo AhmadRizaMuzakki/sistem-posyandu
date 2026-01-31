@@ -3,125 +3,147 @@ name: 🚀 Multi-Stage Deploy (Staging & Production)
 on:
   push:
     branches:
-      - main      # Production
-      - staging   # Staging (Buat branch ini jika belum ada)
+      - main
+      - staging
 
-# Mencegah deploy bertumpuk jika ada push beruntun
 concurrency:
   group: ${{ github.ref }}
   cancel-in-progress: true
 
+# ===============================================================
+# JOB 1: BUILD (NO VENDOR, NO COMPOSER)
+# ===============================================================
 jobs:
-  # ----------------------------------------------------------------------
-  # JOB 1: BUILD (Berjalan sama untuk Staging & Production)
-  # ----------------------------------------------------------------------
   build:
-    name: 📦 Build Assets & Vendor
+    name: 📦 Build Frontend Assets
     runs-on: ubuntu-latest
     steps:
-      - name: 🚚 Get latest code
+      - name: 🚚 Checkout
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 2 # Cukup ambil history sedikit untuk diff
 
-      - name: 📦 Setup PHP (Faster Composer)
-        uses: shivammathur/setup-php@v2
-        with:
-          php-version: '8.2' # Sesuaikan versi PHP Hostinger Anda
-          extensions: mbstring, xml, ctype, iconv, intl, pdo_sqlite, dom, filter, json
-          coverage: none
-
-      - name: 📦 Install NPM dependencies
+      - name: 📦 Install NPM
         run: npm ci
 
-      - name: 🔨 Build Assets (Vite)
+      - name: 🔨 Build Vite
         run: npm run build
 
-      - name: 🎼 Install Composer Dependencies
-        run: composer install --no-dev --optimize-autoloader --prefer-dist --no-interaction --no-progress
-
-      # Kita siapkan folder artefak bersih di sini agar siap upload
-      - name: 📁 Prepare Deploy Artifact
+      - name: 📁 Prepare Artifact (NO VENDOR)
         run: |
-          mkdir -p deploy_package
-          # Copy semua file project ke folder deploy_package
+          mkdir deploy_package
           rsync -a \
-          --exclude="vendor" \
-          --exclude="**/vendor/**" \
-          --exclude="node_modules" \
-          --exclude=".git" \
-          --exclude=".github" \
-          --exclude=".env" \
-          . deploy_package/
+            --exclude=vendor \
+            --exclude=node_modules \
+            --exclude=.git \
+            --exclude=.github \
+            --exclude=.env \
+            . deploy_package/
 
-          echo "✅ Artifact siap. Mengecek manifest..."
-          ls -la deploy_package/public/build/
-
-      # Simpan hasil build agar bisa dipakai di job deploy berikutnya
       - name: 📤 Upload Artifact
         uses: actions/upload-artifact@v4
         with:
           name: app-build
           path: deploy_package/
-          retention-days: 1
 
-  # ----------------------------------------------------------------------
-  # JOB 2: DEPLOY STAGING (Hanya jalan jika branch = staging)
-  # ----------------------------------------------------------------------
+# ===============================================================
+# JOB 2: DEPLOY STAGING
+# ===============================================================
   deploy-staging:
-    name: 🚧 Deploy to Staging
+    name: 🚧 Deploy Staging
     needs: build
     if: github.ref == 'refs/heads/staging'
     runs-on: ubuntu-latest
-    environment: 
-      name: staging
-      url: https://staging.posyandukaranggan.com # Ganti URL Staging Anda
     steps:
       - name: 📥 Download Artifact
         uses: actions/download-artifact@v4
         with:
           name: app-build
-          path: . 
 
-      - name: 📂 FTP Sync (Changes Only)
+      # PUBLIC → public_html
+      - name: 📂 FTP Public (Staging)
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
           server: ${{ secrets.IP }}
           username: ${{ secrets.USERNAME }}
           password: ${{ secrets.PASSWORD }}
-          # GANTI path ini sesuai folder staging di Hostinger Anda
-          server-dir: /domains/posyandukaranggan.com/public_html/staging/ 
-          log-level: standard
-          # PENTING: State file memastikan hanya file berubah yang diupload
-          state-name: .ftp-deploy-sync-state-staging.json 
+          protocol: ftp
 
-  # ----------------------------------------------------------------------
-  # JOB 3: DEPLOY PRODUCTION (Hanya jalan jika branch = main)
-  # ----------------------------------------------------------------------
+          local-dir: ./public/
+          server-dir: /domains/posyandukaranggan.com/public_html/
+
+          state-name: .ftp-staging-public.json
+          log-level: standard
+
+      # APP → public_html/staging
+      - name: 📂 FTP App (Staging)
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.IP }}
+          username: ${{ secrets.USERNAME }}
+          password: ${{ secrets.PASSWORD }}
+          protocol: ftp
+
+          local-dir: ./
+          server-dir: /domains/posyandukaranggan.com/public_html/staging/
+
+          exclude: |
+            vendor/**
+            public/**
+            node_modules/**
+            .git/**
+            .github/**
+            .env
+
+          state-name: .ftp-staging-app.json
+          log-level: standard
+
+# ===============================================================
+# JOB 3: DEPLOY PRODUCTION
+# ===============================================================
   deploy-production:
-    name: 🎉 Deploy to Production
+    name: 🎉 Deploy Production
     needs: build
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
-    environment: 
-      name: production
-      url: https://posyandukaranggan.com
     steps:
       - name: 📥 Download Artifact
         uses: actions/download-artifact@v4
         with:
           name: app-build
-          path: .
 
-      - name: 📂 FTP Sync (Changes Only)
+      # PUBLIC → public_html
+      - name: 📂 FTP Public (Production)
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
           server: ${{ secrets.IP }}
           username: ${{ secrets.USERNAME }}
           password: ${{ secrets.PASSWORD }}
-          # Path Production Anda
-          server-dir: /domains/posyandukaranggan.com/posyandukaranggan/ 
-          log-level: verbose
-          # PENTING: Ini kuncinya. Action ini akan mengecek file ini di server.
-          # Jika file lokal == file server (hash-nya sama), dia SKIP upload.
-          state-name: .ftp-deploy-sync-state.json
+          protocol: ftp
+
+          local-dir: ./public/
+          server-dir: /domains/posyandukaranggan.com/public_html/
+
+          state-name: .ftp-prod-public.json
+          log-level: standard
+
+      # APP → folder laravel
+      - name: 📂 FTP App (Production)
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.IP }}
+          username: ${{ secrets.USERNAME }}
+          password: ${{ secrets.PASSWORD }}
+          protocol: ftp
+
+          local-dir: ./
+          server-dir: /domains/posyandukaranggan.com/posyandukaranggan/
+
+          exclude: |
+            vendor/**
+            public/**
+            node_modules/**
+            .git/**
+            .github/**
+            .env
+
+          state-name: .ftp-prod-app.json
+          log-level: standard
