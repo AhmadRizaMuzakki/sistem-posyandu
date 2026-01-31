@@ -9,9 +9,11 @@ use App\Livewire\Traits\NotificationModal;
 use App\Models\Kader;
 use Livewire\Component;
 use Livewire\Attributes\Layout;
+use Livewire\WithFileUploads;
 
 class Kaders extends Component
 {
+    use WithFileUploads;
     use KaderCrud {
         KaderCrud::storeKader as traitStoreKader;
         KaderCrud::editKader as traitEditKader;

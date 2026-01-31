@@ -685,46 +685,35 @@
             <div class="text-center mb-12">
                 <span class="inline-block py-1 px-3 rounded-full bg-teal-100 text-primary text-sm font-semibold mb-4">Momen Berharga</span>
                 <h2 class="text-4xl font-bold text-slate-900 mb-4">Galeri Kegiatan</h2>
-                <p class="text-slate-600 max-w-2xl mx-auto text-lg">Dokumentasi kegiatan dan momen berharga bersama keluarga di Posyandu Karanggan.</p>
+                <p class="text-slate-600 max-w-2xl mx-auto text-lg">Dokumentasi kegiatan dan momen berharga bersama keluarga di {{ $posyandu ? $posyandu->nama_posyandu : 'Posyandu Karanggan' }}.</p>
             </div>
             
-            <div class="grid md:grid-cols-3 gap-6">
-                <div class="group relative rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300">
-                    <div class="aspect-[4/3] relative overflow-hidden">
-                        <img src="https://images.unsplash.com/photo-1576765608535-5f04d1e3f289?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" alt="Kegiatan Posyandu" class="w-full h-full object-cover group-hover:scale-110 transition duration-500">
-                        <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
-                            <div class="absolute bottom-4 left-4 right-4 text-white">
-                                <h4 class="font-bold text-lg mb-1">Penimbangan Balita</h4>
-                                <p class="text-sm text-white/90">Pemantauan pertumbuhan anak secara berkala</p>
-                            </div>
-                        </div>
-                    </div>
+            @if(isset($galeriKegiatan) && $galeriKegiatan->isNotEmpty())
+                {{-- Grid 3x3 gaya Instagram: 3 kolom, foto persegi --}}
+                <div class="grid grid-cols-3 gap-1 sm:gap-2 max-w-4xl mx-auto">
+                    @foreach($galeriKegiatan as $item)
+                        @php $imgUrl = url('/storage/' . ltrim(str_replace('\\', '/', $item->path), '/')); @endphp
+                        <a href="{{ $imgUrl }}" target="_blank" rel="noopener" class="block group relative aspect-square rounded-lg overflow-hidden bg-slate-100 shadow-md hover:shadow-xl transition-all duration-300">
+                            <img src="{{ $imgUrl }}" alt="{{ $item->caption ?? 'Galeri kegiatan' }}" class="w-full h-full object-cover group-hover:scale-105 transition duration-500" loading="lazy" onerror="this.style.display='none'; this.nextElementSibling && (this.nextElementSibling.style.display='flex');">
+                            <span class="absolute inset-0 flex items-center justify-center text-slate-400 bg-slate-100" style="display:none"><i class="fa-solid fa-image text-3xl"></i></span>
+                            @if($item->caption)
+                                <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-3">
+                                    <p class="text-white text-sm font-medium line-clamp-2">{{ $item->caption }}</p>
+                                </div>
+                            @endif
+                        </a>
+                    @endforeach
                 </div>
-                
-                <div class="group relative rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300">
-                    <div class="aspect-[4/3] relative overflow-hidden">
-                        <img src="{{ asset('images/Desa_Karanggan_Foto.jpg') }}" alt="Imunisasi" class="w-full h-full object-cover group-hover:scale-110 transition duration-500">
-                        <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
-                            <div class="absolute bottom-4 left-4 right-4 text-white">
-                                <h4 class="font-bold text-lg mb-1">Program Imunisasi</h4>
-                                <p class="text-sm text-white/90">Vaksinasi untuk kesehatan anak</p>
-                            </div>
+            @else
+                <div class="grid grid-cols-3 gap-1 sm:gap-2 max-w-4xl mx-auto">
+                    @foreach(range(1, 9) as $i)
+                        <div class="aspect-square rounded-lg overflow-hidden bg-slate-100 flex items-center justify-center border border-slate-200">
+                            <i class="fa-solid fa-image text-slate-300 text-3xl"></i>
                         </div>
-                    </div>
+                    @endforeach
                 </div>
-                
-                <div class="group relative rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300">
-                    <div class="aspect-[4/3] relative overflow-hidden">
-                        <img src="https://images.unsplash.com/photo-1559757148-5c350d0d3c56?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" alt="Edukasi" class="w-full h-full object-cover group-hover:scale-110 transition duration-500">
-                        <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
-                            <div class="absolute bottom-4 left-4 right-4 text-white">
-                                <h4 class="font-bold text-lg mb-1">Penyuluhan Kesehatan</h4>
-                                <p class="text-sm text-white/90">Edukasi gizi dan kesehatan keluarga</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+                <p class="text-center text-slate-500 mt-6 text-sm">Belum ada foto galeri. Foto yang diunggah dari dashboard akan tampil di sini.</p>
+            @endif
         </div>
     </section>
 

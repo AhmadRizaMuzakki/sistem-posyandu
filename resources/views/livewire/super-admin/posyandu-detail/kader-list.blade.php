@@ -33,6 +33,7 @@
             <table class="w-full text-sm text-left text-gray-500">
                 <thead class="text-xs text-gray-700 uppercase bg-gray-50">
                     <tr>
+                        <th class="px-6 py-3">Foto</th>
                         <th class="px-6 py-3">NIK</th>
                         <th class="px-6 py-3">Nama</th>
                         <th class="px-6 py-3">Tanggal Lahir</th>
@@ -44,6 +45,13 @@
                 <tbody>
                     @foreach($posyandu->kader as $kader)
                     <tr class="bg-white border-b hover:bg-gray-50">
+                        <td class="px-6 py-4">
+                            @if($kader->foto_kader)
+                                <img src="{{ url('/storage/' . $kader->foto_kader) }}" alt="" class="w-10 h-10 rounded-full object-cover border">
+                            @else
+                                <span class="flex w-10 h-10 rounded-full bg-gray-200 items-center justify-center text-gray-500 text-xs">-</span>
+                            @endif
+                        </td>
                         <td class="px-6 py-4 font-medium text-gray-900">{{ $kader->nik_kader ?? '-' }}</td>
                         <td class="px-6 py-4">{{ $kader->nama_kader ?? $kader->user->name ?? '-' }}</td>
                         <td class="px-6 py-4">{{ $kader->tanggal_lahir ? \Carbon\Carbon::parse($kader->tanggal_lahir)->format('d/m/Y') : '-' }}</td>

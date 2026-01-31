@@ -6,9 +6,11 @@ use App\Livewire\SuperAdmin\Traits\KaderCrud;
 use App\Models\Posyandu;
 use Livewire\Component;
 use Livewire\Attributes\Layout;
+use Livewire\WithFileUploads;
 
 class PosyanduKader extends Component
 {
+    use WithFileUploads;
     use KaderCrud;
 
     public $posyandu;

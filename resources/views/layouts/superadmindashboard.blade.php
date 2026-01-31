@@ -38,7 +38,9 @@
 
             {{-- Sidebar Header --}}
             <div class="flex items-center justify-center h-16 border-b border-gray-100">
-                <span class="text-2xl font-bold text-primary">Posyandu Admin</span>
+                <a href="{{ route('index') }}">
+                    <span class="text-2xl font-bold text-primary">Posyandu Admin</span>
+                </a>
             </div>
 
             {{-- Daftar nama posyandu dari database --}}
@@ -59,7 +61,8 @@
                     request()->routeIs('posyandu.pendidikan') ||
                     request()->routeIs('posyandu.ibu-menyusui') ||
                     request()->routeIs('posyandu.jadwal') ||
-                    request()->routeIs('posyandu.laporan')) {
+                    request()->routeIs('posyandu.laporan') ||
+                    request()->routeIs('posyandu.galeri')) {
                     try {
                         $encryptedId = request()->route('id');
                         if ($encryptedId) {
@@ -111,6 +114,15 @@
                 >
                     <i class="ph ph-list text-lg mr-3 group-hover:text-primary"></i>
                     <span class="font-medium">Daftar Posyandu</span>
+                </a>
+
+                {{-- Galeri (menu navigasi) --}}
+                <a
+                    href="{{ route('superadmin.galeri') }}"
+                    class="flex items-center px-4 py-2 text-sm text-gray-600 hover:bg-gray-100 hover:text-primary rounded-lg transition-colors group mt-2"
+                >
+                    <i class="ph ph-images text-lg mr-3 group-hover:text-primary"></i>
+                    <span class="font-medium">Galeri</span>
                 </a>
 
                 <h3 class="mt-6 mb-1 pt-4 text-xs font-semibold text-gray-400 uppercase border-t border-gray-100">
@@ -235,6 +247,14 @@
                                 >
                                     <i class="ph ph-chart-bar text-lg mr-3 group-hover:text-primary"></i>
                                     <span class="font-medium">Laporan</span>
+                                </a>
+
+                                <a
+                                    :href="`/supervisor/posyandu/${posyandu.encryptedId}/galeri`"
+                                    class="flex items-center px-4 py-2 text-sm text-gray-600 hover:bg-gray-100 hover:text-primary rounded-lg transition-colors group"
+                                >
+                                    <i class="ph ph-images text-lg mr-3 group-hover:text-primary"></i>
+                                    <span class="font-medium">Galeri</span>
                                 </a>
                             </div>
                         </template>

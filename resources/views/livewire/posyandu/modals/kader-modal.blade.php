@@ -102,6 +102,25 @@
                             @error('jabatan_kader') <span class="text-red-500 text-xs">{{ $message }}</span>@enderror
                         </div>
 
+                        {{-- Foto Kader --}}
+                        <div>
+                            <label class="block text-gray-700 text-sm font-bold mb-2">Foto Kader</label>
+                            <input type="file" wire:model="fotoKaderFile" accept="image/*" class="shadow border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-primary focus:border-primary">
+                            <p class="text-xs text-gray-500 mt-1">Opsional. Maks. 2 MB (JPG, PNG, GIF, WebP).</p>
+                            @error('fotoKaderFile') <span class="text-red-500 text-xs">{{ $message }}</span>@enderror
+                            @if($fotoKaderFile)
+                                <div class="mt-2">
+                                    <p class="text-xs text-gray-600 mb-1">Preview:</p>
+                                    <img src="{{ $fotoKaderFile->temporaryUrl() }}" alt="Preview" class="h-24 w-24 object-cover rounded border">
+                                </div>
+                            @elseif($fotoKaderPreview)
+                                <div class="mt-2">
+                                    <p class="text-xs text-gray-600 mb-1">Foto saat ini:</p>
+                                    <img src="{{ url('/storage/' . $fotoKaderPreview) }}" alt="Foto kader" class="h-24 w-24 object-cover rounded border" onerror="this.style.display='none'">
+                                </div>
+                            @endif
+                        </div>
+
                         {{-- Pilih Posyandu (Read-only) --}}
                         <div>
                             <label class="block text-gray-700 text-sm font-bold mb-2">Tugaskan di Posyandu Mana? <span class="text-red-500">*</span></label>

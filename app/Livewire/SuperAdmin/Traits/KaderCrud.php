@@ -7,6 +7,8 @@ use App\Models\Kader;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Carbon\Carbon;
 
 trait KaderCrud
@@ -29,6 +31,10 @@ trait KaderCrud
     public $tahun_lahir;
     public $alamat_kader;
     public $jabatan_kader;
+    /** @var \Illuminate\Http\UploadedFile|null */
+    public $fotoKaderFile = null;
+    /** Path foto yang sudah tersimpan (untuk preview saat edit) */
+    public $fotoKaderPreview = null;
 
     /**
      * Buka modal tambah/edit Kader
@@ -71,6 +77,8 @@ trait KaderCrud
         $this->tahun_lahir = '';
         $this->alamat_kader = '';
         $this->jabatan_kader = '';
+        $this->fotoKaderFile = null;
+        $this->fotoKaderPreview = null;
     }
 
     /**
@@ -135,6 +143,7 @@ trait KaderCrud
             'tanggal_lahir' => 'required|date',
             'alamat_kader' => 'required|string|max:255',
             'jabatan_kader' => 'required|string|max:100',
+            'fotoKaderFile' => 'nullable|image|max:2048',
         ];
 
         $messages = [
@@ -158,6 +167,8 @@ trait KaderCrud
             'tanggal_lahir.date' => 'Tanggal lahir tidak valid.',
             'alamat_kader.required' => 'Alamat kader wajib diisi.',
             'jabatan_kader.required' => 'Jabatan kader wajib diisi.',
+            'fotoKaderFile.image' => 'File harus berupa gambar (jpeg, png, bmp, gif, webp).',
+            'fotoKaderFile.max' => 'Ukuran foto maksimal 2 MB.',
         ];
 
         // Jika sedang edit dan kader sudah punya user, email wajib
@@ -213,6 +224,17 @@ trait KaderCrud
                     $kader->id_users = $user->id;
                 }
 
+                // Upload foto: jika ada file baru, simpan dan hapus yang lama
+                if ($this->fotoKaderFile) {
+                    if ($kader->foto_kader && Storage::disk('public')->exists($kader->foto_kader)) {
+                        Storage::disk('public')->delete($kader->foto_kader);
+                    }
+                    $ext = $this->fotoKaderFile->getClientOriginalExtension();
+                    $safeName = 'kader_' . $kader->id_kader . '_' . Str::random(8) . '.' . $ext;
+                    $path = $this->fotoKaderFile->storeAs('foto_kader', $safeName, 'public');
+                    $kader->foto_kader = $path;
+                }
+
                 $kader->id_posyandu = $this->posyandu_id_kader;
                 $kader->nama_kader = $this->nama_kader;
                 $kader->nik_kader = $this->nik_kader;
@@ -237,8 +259,8 @@ trait KaderCrud
                     $userId = $user->id;
                 }
 
-                // Buat record Kader (dengan atau tanpa id_users)
-                Kader::create([
+                // Buat record Kader dulu, lalu upload foto jika ada
+                $newKader = Kader::create([
                     'id_users' => $userId,
                     'nama_kader' => $this->nama_kader,
                     'id_posyandu' => $this->posyandu_id_kader,
@@ -247,6 +269,13 @@ trait KaderCrud
                     'alamat_kader' => $this->alamat_kader,
                     'jabatan_kader' => $this->jabatan_kader,
                 ]);
+                if ($this->fotoKaderFile) {
+                    $ext = $this->fotoKaderFile->getClientOriginalExtension();
+                    $safeName = 'kader_' . $newKader->id_kader . '_' . Str::random(8) . '.' . $ext;
+                    $path = $this->fotoKaderFile->storeAs('foto_kader', $safeName, 'public');
+                    $newKader->foto_kader = $path;
+                    $newKader->save();
+                }
             }
         });
         
@@ -294,6 +323,8 @@ trait KaderCrud
         $this->alamat_kader = $kader->alamat_kader ?? '';
         $this->jabatan_kader = $kader->jabatan_kader ?? '';
         $this->password_kader = '';
+        $this->fotoKaderPreview = $kader->foto_kader;
+        $this->fotoKaderFile = null;
 
         $this->isKaderModalOpen = true;
     }
@@ -327,6 +358,10 @@ trait KaderCrud
 
         // Hapus user hanya jika tidak digunakan kader lain
         $user = $kader->user;
+
+        if ($kader->foto_kader && Storage::disk('public')->exists($kader->foto_kader)) {
+            Storage::disk('public')->delete($kader->foto_kader);
+        }
         
         DB::transaction(function () use ($kader, $user) {
             $kader->delete();

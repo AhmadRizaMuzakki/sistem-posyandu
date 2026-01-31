@@ -18,6 +18,7 @@ class Kader extends Model
         'tanggal_lahir',
         'alamat_kader',
         'jabatan_kader',
+        'foto_kader',
         'id_posyandu',
     ];
 

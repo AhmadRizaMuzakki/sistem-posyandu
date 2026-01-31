@@ -24,7 +24,7 @@ use App\Livewire\Posyandu\KaderImunisasi;
 use App\Livewire\SuperAdmin\PosyanduLaporan as SuperadminPosyanduLaporan;
 use App\Livewire\SuperAdmin\SuperAdminDashboard;
 
-Route::get('/', [IndexController::class, 'index']);
+Route::get('/', [IndexController::class, 'index'])->name('index');
 
 // Serve file dari storage/app/public via PHP (tanpa symlink).
 // Untuk Hostinger saat exec/symlink disabled; alternatif dari storage:link.
@@ -32,6 +32,7 @@ Route::get('/storage/{path}', StorageController::class)->where('path', '.*')->na
 
 Route::prefix('supervisor')->middleware(['auth', 'verified', 'role:superadmin'])->group(function () {
     Route::get('/', SuperAdminDashboard::class)->name('admin.dashboard');
+    Route::get('/galeri', \App\Livewire\SuperAdmin\Galeri::class)->name('superadmin.galeri');
 
     // Route list posyandu
     Route::get('/posyandu', PosyanduList::class)->name('posyandu.list');
@@ -49,6 +50,7 @@ Route::prefix('supervisor')->middleware(['auth', 'verified', 'role:superadmin'])
     Route::get('/posyandu/{id}/ibu-menyusui', \App\Livewire\SuperAdmin\PosyanduIbuMenyusui::class)->name('posyandu.ibu-menyusui');
     Route::get('/posyandu/{id}/jadwal', \App\Livewire\SuperAdmin\PosyanduJadwal::class)->name('posyandu.jadwal');
     Route::get('/posyandu/{id}/laporan', SuperadminPosyanduLaporan::class)->name('posyandu.laporan');
+    Route::get('/posyandu/{id}/galeri', \App\Livewire\SuperAdmin\PosyanduGaleri::class)->name('posyandu.galeri');
     Route::get('/posyandu/{id}/laporan/pdf/jenis-vaksin/{jenisVaksin}', [LaporanController::class, 'superadminPosyanduImunisasiPdfByJenisVaksin'])->name('superadmin.posyandu.laporan.pdf.jenis-vaksin');
     Route::get('/posyandu/{id}/laporan/pdf/nama/{nama}', [LaporanController::class, 'superadminPosyanduImunisasiPdfByNama'])->name('superadmin.posyandu.laporan.pdf.nama');
     Route::get('/posyandu/{id}/laporan/pdf/{kategori}', [LaporanController::class, 'superadminPosyanduImunisasiPdf'])->name('superadmin.posyandu.laporan.pdf.kategori');
@@ -72,6 +74,7 @@ Route::prefix('supervisor')->middleware(['auth', 'verified', 'role:superadmin'])
 
 Route::prefix('posyandu')->middleware(['auth', 'verified', 'role:adminPosyandu|superadmin'])->group(function () {
     Route::get('/', PosyanduDashboard::class)->name('adminPosyandu.dashboard');
+    Route::get('/galeri', \App\Livewire\Posyandu\Galeri::class)->name('adminPosyandu.galeri');
     Route::get('/petugas-kesehatan', \App\Livewire\Posyandu\PosyanduPetugasKesehatan::class)->name('adminPosyandu.petugas-kesehatan');
     Route::get('/sasaran', \App\Livewire\Posyandu\PosyanduSasaran::class)->name('adminPosyandu.sasaran');
     Route::get('/sasaran/{kategori}/pdf', [LaporanController::class, 'posyanduSasaranPdf'])->name('adminPosyandu.sasaran.pdf');

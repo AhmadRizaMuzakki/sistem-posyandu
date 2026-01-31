@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Posyandu;
+use App\Models\Galeri;
 use App\Models\JadwalKegiatan;
 use App\Models\SasaranBayibalita;
 use App\Models\SasaranIbuhamil;
@@ -134,6 +135,9 @@ class IndexController extends Controller
             $posyandu = null;
         }
 
+        // Galeri: tampilkan SEMUA foto yang diunggah dari dashboard Super Admin dan Posyandu (tanpa filter posyandu)
+        $galeriKegiatan = Galeri::latest()->take(12)->get();
+
         return view('index', [
             'posyandu' => $posyandu,
             'acaraList' => $acaraList,
@@ -151,6 +155,7 @@ class IndexController extends Controller
             'cakupanImunisasi' => $cakupanImunisasi,
             'currentMonth' => $currentMonth,
             'currentYear' => $currentYear,
+            'galeriKegiatan' => $galeriKegiatan,
         ]);
     }
 }

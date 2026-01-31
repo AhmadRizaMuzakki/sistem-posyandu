@@ -26,7 +26,9 @@
         <aside id="sidebar"
             class="fixed inset-y-0 left-0 z-30 w-64 transform -translate-x-full bg-white border-r border-gray-200 transition-transform duration-300 ease-in-out md:relative md:translate-x-0 shadow-lg md:shadow-none">
             <div class="flex items-center justify-center h-16 border-b border-gray-100">
+                <a href="{{ route('index') }}">
                 <span class="text-2xl font-bold text-primary">Posyandu Admin</span>
+                </a>
             </div>
 
             <nav class="mt-6 px-4 space-y-2">
@@ -102,6 +104,13 @@
                     class="flex items-center px-4 py-3 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
                     <i class="ph ph-chart-bar text-xl mr-3"></i>
                     <span class="font-medium">Laporan</span>
+                </a>
+
+                {{-- GALERI (menu navigasi) --}}
+                <a href="{{ route('adminPosyandu.galeri') }}"
+                    class="flex items-center px-4 py-3 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
+                    <i class="ph ph-images text-xl mr-3"></i>
+                    <span class="font-medium">Galeri</span>
                 </a>
 
             </nav>

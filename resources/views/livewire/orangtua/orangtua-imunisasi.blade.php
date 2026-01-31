@@ -2,12 +2,49 @@
     <div class="space-y-6">
         {{-- Header --}}
         <div class="bg-white rounded-lg shadow-sm p-6">
-            <div class="flex items-center justify-between mb-4">
+            <div class="flex flex-wrap items-center justify-between gap-4 mb-4">
                 <h2 class="text-xl font-semibold text-gray-800 flex items-center">
                     <i class="ph ph-syringe text-2xl mr-3 text-primary"></i>
                     Status Imunisasi
                 </h2>
+                @if($imunisasiList->count() > 0)
+                    <button wire:click="exportImunisasiPdf"
+                            class="inline-flex items-center px-4 py-2 bg-primary text-white text-sm font-medium rounded-lg hover:bg-primary-dark transition-colors">
+                        <i class="ph ph-file-pdf text-lg mr-2"></i>
+                        Export PDF
+                    </button>
+                @endif
             </div>
+
+            {{-- Filter --}}
+            @if((count($namaSasaranList ?? []) > 0) || (count($jenisImunisasiList ?? []) > 0))
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 pt-4 border-t border-gray-200">
+                    @if(count($namaSasaranList ?? []) > 0)
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Filter Nama Sasaran</label>
+                            <select wire:model.live="filterNama"
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-primary focus:border-primary text-sm">
+                                <option value="">Semua</option>
+                                @foreach($namaSasaranList as $nama)
+                                    <option value="{{ $nama }}">{{ $nama }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                    @endif
+                    @if(count($jenisImunisasiList ?? []) > 0)
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Filter Jenis Imunisasi</label>
+                            <select wire:model.live="filterJenisImunisasi"
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-primary focus:border-primary text-sm">
+                                <option value="">Semua</option>
+                                @foreach($jenisImunisasiList as $jenis)
+                                    <option value="{{ $jenis }}">{{ $jenis }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                    @endif
+                </div>
+            @endif
         </div>
 
         {{-- Daftar Imunisasi --}}
