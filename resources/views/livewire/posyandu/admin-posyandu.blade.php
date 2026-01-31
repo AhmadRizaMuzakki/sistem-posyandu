@@ -171,7 +171,7 @@
                             <div class="flex flex-col items-center space-y-3">
                                 <i class="ph ph-file-pdf text-6xl text-red-500"></i>
                                 <div class="text-center">
-                                    <a href="{{ asset($posyandu->sk_posyandu) }}" target="_blank" 
+                                    <a href="{{ uploads_asset($posyandu->sk_posyandu) }}" target="_blank" 
                                        class="text-primary hover:underline font-medium text-sm flex items-center justify-center space-x-2">
                                         <i class="ph ph-eye text-lg"></i>
                                         <span>Lihat File SK</span>

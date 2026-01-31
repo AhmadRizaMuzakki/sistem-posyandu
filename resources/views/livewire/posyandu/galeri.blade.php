@@ -26,7 +26,7 @@
             <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
                 @foreach($items as $item)
                     <div class="group relative aspect-[4/3] rounded-lg overflow-hidden bg-gray-100 border border-gray-200">
-                        <img src="{{ url('/storage/' . $item->path) }}" alt="{{ $item->caption ?? 'Galeri' }}"
+                        <img src="{{ uploads_asset($item->path) }}" alt="{{ $item->caption ?? 'Galeri' }}"
                             class="w-full h-full object-cover">
                         @if($item->caption)
                             <div class="absolute inset-x-0 bottom-0 p-2 bg-black/60 text-white text-xs line-clamp-2">{{ $item->caption }}</div>

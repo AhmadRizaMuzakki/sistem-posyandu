@@ -116,7 +116,7 @@
                             @elseif($fotoKaderPreview)
                                 <div class="mt-2">
                                     <p class="text-xs text-gray-600 mb-1">Foto saat ini:</p>
-                                    <img src="{{ url('/storage/' . $fotoKaderPreview) }}" alt="Foto kader" class="h-24 w-24 object-cover rounded border" onerror="this.style.display='none'">
+                                    <img src="{{ uploads_asset($fotoKaderPreview) }}" alt="Foto kader" class="h-24 w-24 object-cover rounded border" onerror="this.style.display='none'">
                                 </div>
                             @endif
                         </div>

@@ -7,7 +7,7 @@ use App\Models\Kader;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
 use Carbon\Carbon;
 
@@ -224,15 +224,22 @@ trait KaderCrud
                     $kader->id_users = $user->id;
                 }
 
-                // Upload foto: jika ada file baru, simpan dan hapus yang lama
+                // Upload foto: jika ada file baru, simpan ke public/uploads/foto_kader
                 if ($this->fotoKaderFile) {
-                    if ($kader->foto_kader && Storage::disk('public')->exists($kader->foto_kader)) {
-                        Storage::disk('public')->delete($kader->foto_kader);
+                    $dir = public_path('uploads/foto_kader');
+                    if (!File::isDirectory($dir)) {
+                        File::makeDirectory($dir, 0755, true);
+                    }
+                    if ($kader->foto_kader) {
+                        $oldFull = public_path('uploads/' . $kader->foto_kader);
+                        if (File::exists($oldFull)) {
+                            File::delete($oldFull);
+                        }
                     }
                     $ext = $this->fotoKaderFile->getClientOriginalExtension();
                     $safeName = 'kader_' . $kader->id_kader . '_' . Str::random(8) . '.' . $ext;
-                    $path = $this->fotoKaderFile->storeAs('foto_kader', $safeName, 'public');
-                    $kader->foto_kader = $path;
+                    $this->fotoKaderFile->move($dir, $safeName);
+                    $kader->foto_kader = 'foto_kader/' . $safeName;
                 }
 
                 $kader->id_posyandu = $this->posyandu_id_kader;
@@ -270,10 +277,14 @@ trait KaderCrud
                     'jabatan_kader' => $this->jabatan_kader,
                 ]);
                 if ($this->fotoKaderFile) {
+                    $dir = public_path('uploads/foto_kader');
+                    if (!File::isDirectory($dir)) {
+                        File::makeDirectory($dir, 0755, true);
+                    }
                     $ext = $this->fotoKaderFile->getClientOriginalExtension();
                     $safeName = 'kader_' . $newKader->id_kader . '_' . Str::random(8) . '.' . $ext;
-                    $path = $this->fotoKaderFile->storeAs('foto_kader', $safeName, 'public');
-                    $newKader->foto_kader = $path;
+                    $this->fotoKaderFile->move($dir, $safeName);
+                    $newKader->foto_kader = 'foto_kader/' . $safeName;
                     $newKader->save();
                 }
             }
@@ -359,10 +370,11 @@ trait KaderCrud
         // Hapus user hanya jika tidak digunakan kader lain
         $user = $kader->user;
 
-        if ($kader->foto_kader && Storage::disk('public')->exists($kader->foto_kader)) {
-            Storage::disk('public')->delete($kader->foto_kader);
+        $fotoFull = $kader->foto_kader ? public_path('uploads/' . $kader->foto_kader) : null;
+        if ($fotoFull && File::exists($fotoFull)) {
+            File::delete($fotoFull);
         }
-        
+
         DB::transaction(function () use ($kader, $user) {
             $kader->delete();
 

@@ -4,7 +4,7 @@ namespace App\Livewire\Posyandu;
 
 use App\Models\Galeri as GaleriModel;
 use App\Livewire\Posyandu\Traits\PosyanduHelper;
-use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
 use Livewire\Component;
 use Livewire\Attributes\Layout;
@@ -60,11 +60,16 @@ class Galeri extends Component
     {
         $this->validate();
         $caption = $this->caption ?: null;
+        $dir = public_path('uploads/galeri');
+        if (!File::isDirectory($dir)) {
+            File::makeDirectory($dir, 0755, true);
+        }
         $saved = 0;
         foreach ($this->fotoFiles as $file) {
             $ext = $file->getClientOriginalExtension();
             $safeName = 'galeri_' . $this->posyanduId . '_' . Str::random(8) . '.' . $ext;
-            $path = $file->storeAs('galeri', $safeName, 'public');
+            $file->move($dir, $safeName);
+            $path = 'galeri/' . $safeName;
             GaleriModel::create([
                 'path' => $path,
                 'caption' => $caption,
@@ -79,8 +84,9 @@ class Galeri extends Component
     public function deleteFoto($id)
     {
         $galeri = GaleriModel::where('id_posyandu', $this->posyanduId)->findOrFail($id);
-        if ($galeri->path && Storage::disk('public')->exists($galeri->path)) {
-            Storage::disk('public')->delete($galeri->path);
+        $fullPath = $galeri->path ? public_path('uploads/' . $galeri->path) : null;
+        if ($fullPath && File::exists($fullPath)) {
+            File::delete($fullPath);
         }
         $galeri->delete();
         session()->flash('message', 'Foto berhasil dihapus.');

@@ -10,12 +10,12 @@
             @if($posyandu->logo_posyandu)
                 <div class="relative group">
                     <img
-                        src="{{ asset($posyandu->logo_posyandu) }}"
+                        src="{{ uploads_asset($posyandu->logo_posyandu) }}"
                         alt="Logo {{ $posyandu->nama_posyandu }}"
                         class="w-48 h-48 object-contain rounded-lg border-2 border-gray-200 shadow-md hover:shadow-lg transition-shadow">
                     <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-10 rounded-lg transition-all flex items-center justify-center">
                         <a
-                            href="{{ asset($posyandu->logo_posyandu) }}"
+                            href="{{ uploads_asset($posyandu->logo_posyandu) }}"
                             target="_blank"
                             class="opacity-0 group-hover:opacity-100 transition-opacity bg-white px-4 py-2 rounded-lg shadow-md hover:shadow-lg flex items-center space-x-2">
                             <i class="ph ph-arrows-out text-lg text-primary"></i>
@@ -71,7 +71,7 @@
                         <div class="flex flex-col items-center space-y-3">
                             <i class="ph ph-file-pdf text-6xl text-red-500"></i>
                             <div class="text-center">
-                                <a href="{{ asset($posyandu->sk_posyandu) }}" target="_blank" 
+                                <a href="{{ uploads_asset($posyandu->sk_posyandu) }}" target="_blank" 
                                    class="text-primary hover:underline font-medium text-sm flex items-center justify-center space-x-2">
                                     <i class="ph ph-eye text-lg"></i>
                                     <span>Lihat File SK</span>

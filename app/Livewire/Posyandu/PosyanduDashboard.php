@@ -20,7 +20,7 @@ use App\Models\SasaranIbuhamil;
 use Livewire\Component;
 use Livewire\Attributes\Layout;
 use Livewire\WithFileUploads;
-use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -172,25 +172,24 @@ class PosyanduDashboard extends Component
         ]);
 
         try {
-            // Generate nama file yang aman
+            $dir = public_path('uploads/sk_posyandu');
+            if (!File::isDirectory($dir)) {
+                File::makeDirectory($dir, 0755, true);
+            }
+            if ($this->posyandu->sk_posyandu) {
+                $rel = ltrim(str_replace('/storage/', '', $this->posyandu->sk_posyandu), '/');
+                $oldFull = public_path('uploads/' . $rel);
+                if (File::exists($oldFull)) {
+                    File::delete($oldFull);
+                }
+            }
             $originalName = $this->skFile->getClientOriginalName();
             $extension = $this->skFile->getClientOriginalExtension();
             $safeName = Str::slug(pathinfo($originalName, PATHINFO_FILENAME)) . '_' . time() . '.' . $extension;
+            $this->skFile->move($dir, $safeName);
 
-            // Simpan file ke storage
-            $path = $this->skFile->storeAs('sk_posyandu', $safeName, 'public');
-
-            // Hapus file lama jika ada
-            if ($this->posyandu->sk_posyandu) {
-                $oldPath = str_replace('/storage/', '', $this->posyandu->sk_posyandu);
-                if (Storage::disk('public')->exists($oldPath)) {
-                    Storage::disk('public')->delete($oldPath);
-                }
-            }
-
-            // Update database dengan path file
             $this->posyandu->update([
-                'sk_posyandu' => '/storage/' . $path
+                'sk_posyandu' => 'sk_posyandu/' . $safeName
             ]);
 
             // Refresh data
@@ -247,9 +246,10 @@ class PosyanduDashboard extends Component
     {
         try {
             if ($this->posyandu->sk_posyandu) {
-                $oldPath = str_replace('/storage/', '', $this->posyandu->sk_posyandu);
-                if (Storage::disk('public')->exists($oldPath)) {
-                    Storage::disk('public')->delete($oldPath);
+                $rel = ltrim(str_replace('/storage/', '', $this->posyandu->sk_posyandu), '/');
+                $full = public_path('uploads/' . $rel);
+                if (File::exists($full)) {
+                    File::delete($full);
                 }
             }
 

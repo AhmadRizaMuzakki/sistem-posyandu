@@ -158,4 +158,22 @@ class IndexController extends Controller
             'galeriKegiatan' => $galeriKegiatan,
         ]);
     }
+
+    /**
+     * Halaman detail posyandu untuk publik (dari klik "Lihat Detail" di Daftar Posyandu).
+     * Menampilkan logo, info posyandu, dan daftar kader (tanpa NIK).
+     */
+    public function posyanduDetail(string $id)
+    {
+        $posyandu = Posyandu::with([
+            'kader.user',
+            'sasaran_bayibalita',
+            'sasaran_remaja',
+            'sasaran_dewasa',
+            'sasaran_ibuhamil',
+            'sasaran_pralansia',
+            'sasaran_lansia',
+        ])->findOrFail($id);
+        return view('posyandu-detail', ['posyandu' => $posyandu]);
+    }
 }

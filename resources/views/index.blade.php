@@ -408,7 +408,7 @@
                                 <div class="w-14 h-14 bg-gradient-to-br from-primary to-primaryDark rounded-xl flex items-center justify-center text-white text-xl font-bold shadow-lg group-hover:scale-110 transition-transform">
                                     <i class="fa-solid fa-hospital"></i>
                                 </div>
-                                <a href="?posyandu={{ $p->id_posyandu }}#beranda" 
+                                <a href="{{ route('posyandu.public.detail', $p->id_posyandu) }}" 
                                    class="text-primary hover:text-primaryDark transition-colors">
                                     <i class="fa-solid fa-arrow-right text-lg"></i>
                                 </a>
@@ -431,7 +431,7 @@
                                     Klik untuk melihat informasi dan jadwal kegiatan posyandu ini.
                                 </p>
                             @endif
-                            <a href="?posyandu={{ $p->id_posyandu }}#beranda" 
+                            <a href="{{ route('posyandu.public.detail', $p->id_posyandu) }}" 
                                class="inline-flex items-center text-sm font-semibold text-primary hover:text-primaryDark transition-colors">
                                 Lihat Detail
                                 <i class="fa-solid fa-arrow-right ml-2 text-xs"></i>
@@ -692,7 +692,7 @@
                 {{-- Grid 3x3 gaya Instagram: 3 kolom, foto persegi --}}
                 <div class="grid grid-cols-3 gap-1 sm:gap-2 max-w-4xl mx-auto">
                     @foreach($galeriKegiatan as $item)
-                        @php $imgUrl = url('/storage/' . ltrim(str_replace('\\', '/', $item->path), '/')); @endphp
+                        @php $imgUrl = uploads_asset($item->path); @endphp
                         <a href="{{ $imgUrl }}" target="_blank" rel="noopener" class="block group relative aspect-square rounded-lg overflow-hidden bg-slate-100 shadow-md hover:shadow-xl transition-all duration-300">
                             <img src="{{ $imgUrl }}" alt="{{ $item->caption ?? 'Galeri kegiatan' }}" class="w-full h-full object-cover group-hover:scale-105 transition duration-500" loading="lazy" onerror="this.style.display='none'; this.nextElementSibling && (this.nextElementSibling.style.display='flex');">
                             <span class="absolute inset-0 flex items-center justify-center text-slate-400 bg-slate-100" style="display:none"><i class="fa-solid fa-image text-3xl"></i></span>

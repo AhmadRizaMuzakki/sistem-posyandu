@@ -6,7 +6,7 @@ use App\Models\Posyandu;
 use Livewire\Component;
 use Livewire\Attributes\Layout;
 use Livewire\WithFileUploads;
-use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
@@ -123,43 +123,47 @@ class PosyanduList extends Component
                 'domisili_posyandu' => $this->domisili_posyandu ?: null,
             ];
 
-            // Upload SK jika ada file baru
+            // Upload SK ke public/uploads/sk_posyandu
             if ($this->skFile) {
-                // Hapus file lama jika ada
                 if ($this->currentSkPath) {
-                    $oldPath = str_replace('/storage/', '', $this->currentSkPath);
-                    if (Storage::disk('public')->exists($oldPath)) {
-                        Storage::disk('public')->delete($oldPath);
+                    $rel = ltrim(str_replace('/storage/', '', $this->currentSkPath), '/');
+                    $oldFull = public_path('uploads/' . $rel);
+                    if (File::exists($oldFull)) {
+                        File::delete($oldFull);
                     }
                 }
-
+                $dir = public_path('uploads/sk_posyandu');
+                if (!File::isDirectory($dir)) {
+                    File::makeDirectory($dir, 0755, true);
+                }
                 $originalName = $this->skFile->getClientOriginalName();
                 $extension = $this->skFile->getClientOriginalExtension();
                 $safeName = Str::slug(pathinfo($originalName, PATHINFO_FILENAME)) . '_' . time() . '.' . $extension;
-                $path = $this->skFile->storeAs('sk_posyandu', $safeName, 'public');
-                $data['sk_posyandu'] = '/storage/' . $path;
+                $this->skFile->move($dir, $safeName);
+                $data['sk_posyandu'] = 'sk_posyandu/' . $safeName;
             } elseif ($this->isEditMode && !$this->skFile) {
-                // Jika edit mode dan tidak ada file baru, pertahankan file lama
                 $data['sk_posyandu'] = $this->currentSkPath;
             }
 
-            // Upload logo jika ada file baru
+            // Upload logo ke public/uploads/logo_posyandu
             if ($this->logoFile) {
-                // Hapus file lama jika ada
                 if ($this->currentLogoPath) {
-                    $oldPath = str_replace('/storage/', '', $this->currentLogoPath);
-                    if (Storage::disk('public')->exists($oldPath)) {
-                        Storage::disk('public')->delete($oldPath);
+                    $rel = ltrim(str_replace('/storage/', '', $this->currentLogoPath), '/');
+                    $oldFull = public_path('uploads/' . $rel);
+                    if (File::exists($oldFull)) {
+                        File::delete($oldFull);
                     }
                 }
-
+                $dir = public_path('uploads/logo_posyandu');
+                if (!File::isDirectory($dir)) {
+                    File::makeDirectory($dir, 0755, true);
+                }
                 $originalName = $this->logoFile->getClientOriginalName();
                 $extension = $this->logoFile->getClientOriginalExtension();
                 $safeName = Str::slug(pathinfo($originalName, PATHINFO_FILENAME)) . '_' . time() . '.' . $extension;
-                $path = $this->logoFile->storeAs('logo_posyandu', $safeName, 'public');
-                $data['logo_posyandu'] = '/storage/' . $path;
+                $this->logoFile->move($dir, $safeName);
+                $data['logo_posyandu'] = 'logo_posyandu/' . $safeName;
             } elseif ($this->isEditMode && !$this->logoFile) {
-                // Jika edit mode dan tidak ada file baru, pertahankan file lama
                 $data['logo_posyandu'] = $this->currentLogoPath;
             }
 
@@ -233,22 +237,20 @@ class PosyanduList extends Component
             }
 
             DB::transaction(function () use ($posyandu) {
-                // Hapus file SK jika ada
                 if ($posyandu->sk_posyandu) {
-                    $oldPath = str_replace('/storage/', '', $posyandu->sk_posyandu);
-                    if (Storage::disk('public')->exists($oldPath)) {
-                        Storage::disk('public')->delete($oldPath);
+                    $rel = ltrim(str_replace('/storage/', '', $posyandu->sk_posyandu), '/');
+                    $full = public_path('uploads/' . $rel);
+                    if (File::exists($full)) {
+                        File::delete($full);
                     }
                 }
-
-                // Hapus logo jika ada
                 if ($posyandu->logo_posyandu) {
-                    $oldPath = str_replace('/storage/', '', $posyandu->logo_posyandu);
-                    if (Storage::disk('public')->exists($oldPath)) {
-                        Storage::disk('public')->delete($oldPath);
+                    $rel = ltrim(str_replace('/storage/', '', $posyandu->logo_posyandu), '/');
+                    $full = public_path('uploads/' . $rel);
+                    if (File::exists($full)) {
+                        File::delete($full);
                     }
                 }
-
                 $posyandu->delete();
             });
             $this->loadPosyandu();
@@ -275,9 +277,10 @@ class PosyanduList extends Component
             }
 
             if ($posyandu->logo_posyandu) {
-                $oldPath = str_replace('/storage/', '', $posyandu->logo_posyandu);
-                if (Storage::disk('public')->exists($oldPath)) {
-                    Storage::disk('public')->delete($oldPath);
+                $rel = ltrim(str_replace('/storage/', '', $posyandu->logo_posyandu), '/');
+                $full = public_path('uploads/' . $rel);
+                if (File::exists($full)) {
+                    File::delete($full);
                 }
             }
 
