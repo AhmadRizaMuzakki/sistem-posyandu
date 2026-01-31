@@ -198,7 +198,7 @@ class PosyanduDetail extends Component
             }
             if ($this->posyandu->sk_posyandu) {
                 $rel = ltrim(str_replace('/storage/', '', $this->posyandu->sk_posyandu), '/');
-                $oldFull = public_path('uploads/' . $rel);
+                $oldFull = uploads_base_path('uploads/' . $rel);
                 if (File::exists($oldFull)) {
                     File::delete($oldFull);
                 }
@@ -266,7 +266,7 @@ class PosyanduDetail extends Component
         try {
             if ($this->posyandu->sk_posyandu) {
                 $rel = ltrim(str_replace('/storage/', '', $this->posyandu->sk_posyandu), '/');
-                $full = public_path('uploads/' . $rel);
+                $full = uploads_base_path('uploads/' . $rel);
                 if (File::exists($full)) {
                     File::delete($full);
                 }

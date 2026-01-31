@@ -54,7 +54,7 @@ class Galeri extends Component
     {
         $this->validate();
         $caption = $this->caption ?: null;
-        $dir = public_path('uploads/galeri');
+        $dir = uploads_base_path('uploads/galeri');
         try {
             if (!File::isDirectory($dir)) {
                 File::makeDirectory($dir, 0755, true);
@@ -99,7 +99,7 @@ class Galeri extends Component
     public function deleteFoto($id)
     {
         $galeri = GaleriModel::findOrFail($id);
-        $fullPath = $galeri->path ? public_path('uploads/' . $galeri->path) : null;
+        $fullPath = $galeri->path ? uploads_base_path('uploads/' . $galeri->path) : null;
         if ($fullPath && File::exists($fullPath)) {
             File::delete($fullPath);
         }

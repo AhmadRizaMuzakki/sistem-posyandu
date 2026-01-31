@@ -127,7 +127,7 @@ class PosyanduList extends Component
             if ($this->skFile) {
                 if ($this->currentSkPath) {
                     $rel = ltrim(str_replace('/storage/', '', $this->currentSkPath), '/');
-                    $oldFull = public_path('uploads/' . $rel);
+                    $oldFull = uploads_base_path('uploads/' . $rel);
                     if (File::exists($oldFull)) {
                         File::delete($oldFull);
                     }
@@ -149,7 +149,7 @@ class PosyanduList extends Component
             if ($this->logoFile) {
                 if ($this->currentLogoPath) {
                     $rel = ltrim(str_replace('/storage/', '', $this->currentLogoPath), '/');
-                    $oldFull = public_path('uploads/' . $rel);
+                    $oldFull = uploads_base_path('uploads/' . $rel);
                     if (File::exists($oldFull)) {
                         File::delete($oldFull);
                     }
@@ -239,14 +239,14 @@ class PosyanduList extends Component
             DB::transaction(function () use ($posyandu) {
                 if ($posyandu->sk_posyandu) {
                     $rel = ltrim(str_replace('/storage/', '', $posyandu->sk_posyandu), '/');
-                    $full = public_path('uploads/' . $rel);
+                    $full = uploads_base_path('uploads/' . $rel);
                     if (File::exists($full)) {
                         File::delete($full);
                     }
                 }
                 if ($posyandu->logo_posyandu) {
                     $rel = ltrim(str_replace('/storage/', '', $posyandu->logo_posyandu), '/');
-                    $full = public_path('uploads/' . $rel);
+                    $full = uploads_base_path('uploads/' . $rel);
                     if (File::exists($full)) {
                         File::delete($full);
                     }
@@ -278,7 +278,7 @@ class PosyanduList extends Component
 
             if ($posyandu->logo_posyandu) {
                 $rel = ltrim(str_replace('/storage/', '', $posyandu->logo_posyandu), '/');
-                $full = public_path('uploads/' . $rel);
+                $full = uploads_base_path('uploads/' . $rel);
                 if (File::exists($full)) {
                     File::delete($full);
                 }

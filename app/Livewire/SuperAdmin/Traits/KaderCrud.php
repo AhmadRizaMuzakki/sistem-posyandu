@@ -226,12 +226,12 @@ trait KaderCrud
 
                 // Upload foto: jika ada file baru, simpan ke public/uploads/foto_kader
                 if ($this->fotoKaderFile) {
-                    $dir = public_path('uploads/foto_kader');
+                    $dir = uploads_base_path('uploads/foto_kader');
                     if (!File::isDirectory($dir)) {
                         File::makeDirectory($dir, 0755, true);
                     }
                     if ($kader->foto_kader) {
-                        $oldFull = public_path('uploads/' . $kader->foto_kader);
+                        $oldFull = uploads_base_path('uploads/' . $kader->foto_kader);
                         if (File::exists($oldFull)) {
                             File::delete($oldFull);
                         }
@@ -277,7 +277,7 @@ trait KaderCrud
                     'jabatan_kader' => $this->jabatan_kader,
                 ]);
                 if ($this->fotoKaderFile) {
-                    $dir = public_path('uploads/foto_kader');
+                    $dir = uploads_base_path('uploads/foto_kader');
                     if (!File::isDirectory($dir)) {
                         File::makeDirectory($dir, 0755, true);
                     }
@@ -370,7 +370,7 @@ trait KaderCrud
         // Hapus user hanya jika tidak digunakan kader lain
         $user = $kader->user;
 
-        $fotoFull = $kader->foto_kader ? public_path('uploads/' . $kader->foto_kader) : null;
+        $fotoFull = $kader->foto_kader ? uploads_base_path('uploads/' . $kader->foto_kader) : null;
         if ($fotoFull && File::exists($fotoFull)) {
             File::delete($fotoFull);
         }
