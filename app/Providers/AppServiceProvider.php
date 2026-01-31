@@ -27,9 +27,7 @@ class AppServiceProvider extends ServiceProvider
         if (!function_exists('uploads_base_path')) {
             function uploads_base_path(string $path = ''): string
             {
-                $base = is_dir(base_path('public_html'))
-                    ? base_path('public_html')
-                    : public_path();
+                $base = public_path();
                 return $path === '' ? $base : $base . DIRECTORY_SEPARATOR . str_replace(['/', '\\'], DIRECTORY_SEPARATOR, trim($path, '/\\'));
             }
         }
