@@ -47,7 +47,7 @@
                     <tr class="bg-white border-b hover:bg-gray-50">
                         <td class="px-6 py-4">
                             @if($kader->foto_kader)
-                                <img src="{{ url('/storage/' . $kader->foto_kader) }}" alt="" class="w-10 h-10 rounded-full object-cover border">
+                                <img src="{{ route('storage.serve', ['path' => $kader->foto_kader]) }}" alt="" class="w-10 h-10 rounded-full object-cover border">
                             @else
                                 <span class="flex w-10 h-10 rounded-full bg-gray-200 items-center justify-center text-gray-500 text-xs">-</span>
                             @endif
