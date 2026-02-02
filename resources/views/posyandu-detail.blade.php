@@ -34,7 +34,7 @@
                 </a>
                 <a href="{{ route('index') }}" class="flex items-center gap-2">
                     <div class="w-9 h-9 bg-primary rounded-full flex items-center justify-center text-white">
-                        <i class="fa-solid fa-heart-pulse"></i>
+                        <img src="{{ asset('images/home.jpeg') }}" alt="Logo Posyandu" class="w-full h-full object-cover">
                     </div>
                     <span class="font-bold text-slate-800">Posyandu Karanggan</span>
                 </a>

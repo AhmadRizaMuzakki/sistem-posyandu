@@ -387,14 +387,14 @@
                     @foreach($daftarPosyandu as $p)
                         <div class="group bg-white rounded-2xl p-6 border-2 border-slate-200 hover:border-primary transition-all duration-300 hover:shadow-xl hover:-translate-y-2">
                             <div class="flex items-center justify-between mb-4">
-                                <div class="w-20 h-20 rounded-xl flex items-center justify-center overflow-hidden bg-gradient-to-br from-primary to-primaryDark shadow-lg group-hover:scale-105 transition-transform flex-shrink-0">
+                                <div class="w-14 h-14 rounded-xl flex items-center justify-center overflow-hidden bg-white border border-slate-200 shadow-md group-hover:scale-105 transition-transform flex-shrink-0">
                                     @if($p->logo_posyandu)
-                                        <img src="{{ uploads_asset($p->logo_posyandu) }}" alt="Logo {{ $p->nama_posyandu }}" class="w-full h-full object-contain p-2" onerror="this.style.display='none'; this.nextElementSibling.classList.remove('hidden');">
-                                        <div class="hidden w-full h-full flex items-center justify-center text-white text-2xl">
-                                            <i class="fa-solid fa-hospital"></i>
+                                        <img src="{{ uploads_asset($p->logo_posyandu) }}" alt="Logo {{ $p->nama_posyandu }}" class="w-full h-full object-contain p-1" onerror="this.style.display='none'; this.nextElementSibling.classList.remove('hidden');">
+                                        <div class="hidden w-full h-full flex items-center justify-center bg-white">
+                                            <i class="fa-solid fa-hospital text-primary text-xl"></i>
                                         </div>
                                     @else
-                                        <i class="fa-solid fa-hospital text-white text-2xl"></i>
+                                        <i class="fa-solid fa-hospital text-primary text-xl"></i>
                                     @endif
                                 </div>
                                 <a href="{{ route('posyandu.public.detail', $p->id_posyandu) }}" 
