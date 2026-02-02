@@ -679,7 +679,7 @@
             <div class="text-center mb-12">
                 <span class="inline-block py-1 px-3 rounded-full bg-teal-100 text-primary text-sm font-semibold mb-4">Momen Berharga</span>
                 <h2 class="text-4xl font-bold text-slate-900 mb-4">Galeri Kegiatan</h2>
-                <p class="text-slate-600 max-w-2xl mx-auto text-lg">Dokumentasi kegiatan dan momen berharga bersama keluarga di {{ $posyandu ? $posyandu->nama_posyandu : 'Posyandu Karanggan' }}.</p>
+                <p class="text-slate-600 max-w-2xl mx-auto text-lg">Dokumentasi kegiatan dan momen berharga bersama keluarga di Posyandu Karanggan.</p>
             </div>
             
             @if(isset($galeriKegiatan) && $galeriKegiatan->isNotEmpty())
