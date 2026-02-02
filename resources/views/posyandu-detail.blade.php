@@ -127,8 +127,8 @@
             </div>
             @endif
 
-            {{-- Statistik singkat --}}
-            <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+            {{-- Statistik semua sasaran --}}
+            <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
                 <div class="bg-white rounded-xl shadow-sm border border-slate-100 p-4 text-center">
                     <p class="text-2xl font-bold text-primary">{{ $posyandu->kader ? $posyandu->kader->count() : 0 }}</p>
                     <p class="text-sm text-slate-500 mt-1">Kader</p>
@@ -138,8 +138,20 @@
                     <p class="text-sm text-slate-500 mt-1">Bayi/Balita</p>
                 </div>
                 <div class="bg-white rounded-xl shadow-sm border border-slate-100 p-4 text-center">
-                    <p class="text-2xl font-bold text-purple-600">{{ $posyandu->sasaran_ibuhamil ? $posyandu->sasaran_ibuhamil->count() : 0 }}</p>
+                    <p class="text-2xl font-bold text-cyan-600">{{ $posyandu->sasaran_remaja ? $posyandu->sasaran_remaja->count() : 0 }}</p>
+                    <p class="text-sm text-slate-500 mt-1">Remaja</p>
+                </div>
+                <div class="bg-white rounded-xl shadow-sm border border-slate-100 p-4 text-center">
+                    <p class="text-2xl font-bold text-orange-600">{{ $posyandu->sasaran_dewasa ? $posyandu->sasaran_dewasa->count() : 0 }}</p>
+                    <p class="text-sm text-slate-500 mt-1">Dewasa</p>
+                </div>
+                <div class="bg-white rounded-xl shadow-sm border border-slate-100 p-4 text-center">
+                    <p class="text-2xl font-bold text-pink-600">{{ $posyandu->sasaran_ibuhamil ? $posyandu->sasaran_ibuhamil->count() : 0 }}</p>
                     <p class="text-sm text-slate-500 mt-1">Ibu Hamil</p>
+                </div>
+                <div class="bg-white rounded-xl shadow-sm border border-slate-100 p-4 text-center">
+                    <p class="text-2xl font-bold text-amber-600">{{ $posyandu->sasaran_pralansia ? $posyandu->sasaran_pralansia->count() : 0 }}</p>
+                    <p class="text-sm text-slate-500 mt-1">Pralansia</p>
                 </div>
                 <div class="bg-white rounded-xl shadow-sm border border-slate-100 p-4 text-center">
                     <p class="text-2xl font-bold text-indigo-600">{{ $posyandu->sasaran_lansia ? $posyandu->sasaran_lansia->count() : 0 }}</p>
