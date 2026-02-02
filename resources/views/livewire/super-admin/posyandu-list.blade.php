@@ -178,7 +178,7 @@
                                     <div class="flex items-center space-x-2">
                                         <i class="ph ph-file text-xl text-primary"></i>
                                         <div>
-                                            <a href="{{ asset($currentSkPath) }}" target="_blank" class="text-primary hover:underline font-medium text-sm">
+                                            <a href="{{ uploads_asset($currentSkPath) }}" target="_blank" class="text-primary hover:underline font-medium text-sm">
                                                 Lihat File SK Saat Ini
                                             </a>
                                             <p class="text-xs text-gray-500">Kosongkan jika tidak ingin mengubah</p>
@@ -187,21 +187,43 @@
                                 </div>
                             </div>
                         @endif
-                        <input
-                            type="file"
-                            wire:model="skFile"
-                            accept=".pdf,.doc,.docx"
-                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-colors @error('skFile') border-red-500 @enderror">
+                        <div
+                            x-data="{
+                                isDragging: false,
+                                handleDrop(e) {
+                                    e.preventDefault();
+                                    this.isDragging = false;
+                                    const files = e.dataTransfer.files;
+                                    if (files.length) {
+                                        const input = this.$refs.skInput;
+                                        const dt = new DataTransfer();
+                                        dt.items.add(files[0]);
+                                        input.files = dt.files;
+                                        input.dispatchEvent(new Event('change', { bubbles: true }));
+                                    }
+                                }
+                            }"
+                            @dragover.prevent="isDragging = true"
+                            @dragleave="isDragging = false"
+                            @drop.prevent="handleDrop($event)"
+                            @click="$refs.skInput.click()"
+                            :class="isDragging ? 'border-primary bg-primary/5 ring-2 ring-primary/30' : 'border-gray-300 hover:border-primary/50'"
+                            class="relative border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-all duration-200 bg-gray-50 hover:bg-gray-100 @error('skFile') border-red-500 @enderror">
+                            <input type="file" wire:model="skFile" x-ref="skInput" accept=".pdf,.doc,.docx" class="hidden">
+                            <i class="ph ph-file-cloud text-4xl text-gray-400 mb-3 block"></i>
+                            <p class="text-gray-600 font-medium mb-1">
+                                <span x-text="isDragging ? 'Lepaskan file di sini' : 'Seret file ke sini atau klik untuk memilih'"></span>
+                            </p>
+                            <p class="text-xs text-gray-500">Format: PDF, DOC, DOCX (Maks. 5MB)</p>
+                            @if($skFile)
+                                <p class="mt-3 text-sm text-primary font-medium">
+                                    <i class="ph ph-check-circle mr-1"></i>{{ $skFile->getClientOriginalName() }}
+                                </p>
+                            @endif
+                        </div>
                         @error('skFile')
                             <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                         @enderror
-                        @if($skFile)
-                            <p class="mt-2 text-sm text-gray-600">
-                                <i class="ph ph-file text-lg mr-1"></i>
-                                {{ $skFile->getClientOriginalName() }}
-                            </p>
-                        @endif
-                        <p class="mt-1 text-xs text-gray-500">Format: PDF, DOC, DOCX (Maks. 5MB)</p>
                     </div>
 
                     {{-- Logo --}}
@@ -213,9 +235,9 @@
                             <div class="mb-2 p-3 bg-gray-50 rounded-lg border border-gray-200">
                                 <div class="flex items-center justify-between">
                                     <div class="flex items-center space-x-2">
-                                        <img src="{{ asset($currentLogoPath) }}" alt="Logo" class="w-16 h-16 object-cover rounded">
+                                        <img src="{{ uploads_asset($currentLogoPath) }}" alt="Logo" class="w-16 h-16 object-cover rounded">
                                         <div>
-                                            <a href="{{ asset($currentLogoPath) }}" target="_blank" class="text-primary hover:underline font-medium text-sm">
+                                            <a href="{{ uploads_asset($currentLogoPath) }}" target="_blank" class="text-primary hover:underline font-medium text-sm">
                                                 Lihat Logo Saat Ini
                                             </a>
                                             <p class="text-xs text-gray-500">Kosongkan jika tidak ingin mengubah</p>
@@ -224,21 +246,43 @@
                                 </div>
                             </div>
                         @endif
-                        <input
-                            type="file"
-                            wire:model="logoFile"
-                            accept="image/*"
-                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-colors @error('logoFile') border-red-500 @enderror">
+                        <div
+                            x-data="{
+                                isDragging: false,
+                                handleDrop(e) {
+                                    e.preventDefault();
+                                    this.isDragging = false;
+                                    const files = e.dataTransfer.files;
+                                    if (files.length) {
+                                        const input = this.$refs.logoInput;
+                                        const dt = new DataTransfer();
+                                        dt.items.add(files[0]);
+                                        input.files = dt.files;
+                                        input.dispatchEvent(new Event('change', { bubbles: true }));
+                                    }
+                                }
+                            }"
+                            @dragover.prevent="isDragging = true"
+                            @dragleave="isDragging = false"
+                            @drop.prevent="handleDrop($event)"
+                            @click="$refs.logoInput.click()"
+                            :class="isDragging ? 'border-primary bg-primary/5 ring-2 ring-primary/30' : 'border-gray-300 hover:border-primary/50'"
+                            class="relative border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-all duration-200 bg-gray-50 hover:bg-gray-100 @error('logoFile') border-red-500 @enderror">
+                            <input type="file" wire:model="logoFile" x-ref="logoInput" accept="image/jpeg,image/png,image/jpg" class="hidden">
+                            <i class="ph ph-image-square text-4xl text-gray-400 mb-3 block"></i>
+                            <p class="text-gray-600 font-medium mb-1">
+                                <span x-text="isDragging ? 'Lepaskan gambar di sini' : 'Seret gambar ke sini atau klik untuk memilih'"></span>
+                            </p>
+                            <p class="text-xs text-gray-500">Format: JPEG, PNG, JPG (Maks. 2MB)</p>
+                            @if($logoFile)
+                                <p class="mt-3 text-sm text-primary font-medium">
+                                    <i class="ph ph-check-circle mr-1"></i>{{ $logoFile->getClientOriginalName() }}
+                                </p>
+                            @endif
+                        </div>
                         @error('logoFile')
                             <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                         @enderror
-                        @if($logoFile)
-                            <p class="mt-2 text-sm text-gray-600">
-                                <i class="ph ph-image text-lg mr-1"></i>
-                                {{ $logoFile->getClientOriginalName() }}
-                            </p>
-                        @endif
-                        <p class="mt-1 text-xs text-gray-500">Format: JPEG, PNG, JPG (Maks. 2MB)</p>
                     </div>
 
                     {{-- Tombol Aksi --}}

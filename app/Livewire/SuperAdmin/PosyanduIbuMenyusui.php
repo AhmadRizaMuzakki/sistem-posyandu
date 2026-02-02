@@ -89,7 +89,6 @@ class PosyanduIbuMenyusui extends Component
             'sasaranList' => $sasaranList,
             'isIbuMenyusuiModalOpen' => $this->isIbuMenyusuiModalOpen,
             'isKunjunganModalOpen' => $this->isKunjunganModalOpen,
-            'isInputKunjunganModalOpen' => $this->isInputKunjunganModalOpen,
             'id_ibu_menyusui' => $this->id_ibu_menyusui,
             'bulanList' => $this->getBulanList(),
             'petugasKesehatanList' => $this->getPetugasKesehatanList(),

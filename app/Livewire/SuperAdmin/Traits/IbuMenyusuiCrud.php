@@ -10,6 +10,7 @@ use App\Models\SasaranPralansia;
 use App\Models\SasaranLansia;
 use App\Models\SasaranBayibalita;
 use App\Models\PetugasKesehatan;
+use App\Models\Kader;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 
@@ -18,7 +19,6 @@ trait IbuMenyusuiCrud
     // Modal State
     public $isIbuMenyusuiModalOpen = false;
     public $isKunjunganModalOpen = false;
-    public $isInputKunjunganModalOpen = false;
 
     // Field Form Ibu Menyusui
     public $id_ibu_menyusui = null;
@@ -36,15 +36,6 @@ trait IbuMenyusuiCrud
     public $id_petugas_penanggung_jawab;
     public $id_petugas_imunisasi;
     public $id_petugas_input;
-
-    // Field Input Kunjungan Bulk (per bulan)
-    public $bulan_input_kunjungan;
-    public $tahun_input_kunjungan;
-    public $tanggal_agenda_kunjungan;
-    public $selectedIbuMenyusui = []; // Array ID ibu menyusui yang dicentang (untuk Livewire array)
-    public $id_petugas_penanggung_jawab_bulk;
-    public $id_petugas_imunisasi_bulk;
-    public $id_petugas_input_bulk;
 
     /**
      * Buka modal tambah/edit Ibu Menyusui
@@ -174,9 +165,9 @@ trait IbuMenyusuiCrud
             $this->id_petugas_input = $kunjungan->id_petugas_input;
         } else {
             $this->id_kunjungan = null;
-            $this->id_petugas_penanggung_jawab = null;
+            $this->id_petugas_penanggung_jawab = $this->getPetugasIdFromKaderJabatan('Ketua');
             $this->id_petugas_imunisasi = null;
-            $this->id_petugas_input = null;
+            $this->id_petugas_input = $this->getPetugasIdFromKaderJabatan('Sekretaris');
         }
 
         $this->isKunjunganModalOpen = true;
@@ -294,192 +285,6 @@ trait IbuMenyusuiCrud
             11 => 'November',
             12 => 'Desember',
         ];
-    }
-
-    /**
-     * Buka modal input kunjungan per bulan
-     */
-    public function openInputKunjunganModal($bulan = null, $tahun = null)
-    {
-        $this->bulan_input_kunjungan = $bulan ?? date('n');
-        $this->tahun_input_kunjungan = $tahun ?? date('Y');
-        $this->tanggal_agenda_kunjungan = date('Y-m-d');
-        $this->selectedIbuMenyusui = [];
-        $this->id_petugas_penanggung_jawab_bulk = null;
-        $this->id_petugas_imunisasi_bulk = null;
-        
-        $this->isInputKunjunganModalOpen = true;
-        
-        // Load checkbox yang sudah ada untuk bulan ini setelah modal dibuka
-        $this->loadExistingKunjungan();
-    }
-
-    /**
-     * Updated hook untuk bulan input kunjungan
-     */
-    public function updatedBulanInputKunjungan()
-    {
-        $this->loadExistingKunjungan();
-    }
-
-    /**
-     * Updated hook untuk tahun input kunjungan
-     */
-    public function updatedTahunInputKunjungan()
-    {
-        $this->loadExistingKunjungan();
-    }
-
-    /**
-     * Tutup modal input kunjungan
-     */
-    public function closeInputKunjunganModal()
-    {
-        $this->bulan_input_kunjungan = null;
-        $this->tahun_input_kunjungan = null;
-        $this->tanggal_agenda_kunjungan = date('Y-m-d');
-        $this->selectedIbuMenyusui = [];
-        $this->id_petugas_penanggung_jawab_bulk = null;
-        $this->id_petugas_imunisasi_bulk = null;
-        $this->id_petugas_input_bulk = null;
-        $this->isInputKunjunganModalOpen = false;
-    }
-
-    /**
-     * Load kunjungan yang sudah ada untuk bulan yang dipilih
-     */
-    public function loadExistingKunjungan()
-    {
-        if (!$this->bulan_input_kunjungan || !$this->tahun_input_kunjungan) {
-            $this->selectedIbuMenyusui = [];
-            return;
-        }
-
-        // Dapatkan posyanduId
-        $posyanduId = $this->posyanduId ?? 
-                     (isset($this->id_posyandu_sasaran) ? $this->id_posyandu_sasaran : null) ??
-                     (method_exists($this, 'getPosyanduId') ? $this->getPosyanduId() : null);
-
-        if (!$posyanduId) {
-            $this->selectedIbuMenyusui = [];
-            return;
-        }
-
-        // Ambil kunjungan yang sudah ada dengan status success
-        $kunjungan = KunjunganIbuMenyusui::whereHas('ibuMenyusui', function($q) use ($posyanduId) {
-            $q->where('id_posyandu', $posyanduId);
-        })
-        ->where('bulan', $this->bulan_input_kunjungan)
-        ->where('tahun', $this->tahun_input_kunjungan)
-        ->where('status', 'success')
-        ->pluck('id_ibu_menyusui')
-        ->map(function($id) {
-            return (int)$id; // Pastikan integer untuk Livewire
-        })
-        ->toArray();
-
-        $this->selectedIbuMenyusui = array_values($kunjungan); // Pastikan array dengan key numerik
-
-        // Set tanggal agenda dan petugas dari kunjungan pertama jika ada
-        $firstKunjungan = KunjunganIbuMenyusui::whereHas('ibuMenyusui', function($q) use ($posyanduId) {
-            $q->where('id_posyandu', $posyanduId);
-        })
-        ->where('bulan', $this->bulan_input_kunjungan)
-        ->where('tahun', $this->tahun_input_kunjungan)
-        ->whereNotNull('tanggal_kunjungan')
-        ->first();
-
-        if ($firstKunjungan) {
-            if ($firstKunjungan->tanggal_kunjungan) {
-                $this->tanggal_agenda_kunjungan = is_string($firstKunjungan->tanggal_kunjungan) 
-                    ? $firstKunjungan->tanggal_kunjungan 
-                    : $firstKunjungan->tanggal_kunjungan->format('Y-m-d');
-            } else {
-                $this->tanggal_agenda_kunjungan = date('Y-m-d');
-            }
-            
-            // Load petugas jika ada
-            $this->id_petugas_penanggung_jawab_bulk = $firstKunjungan->id_petugas_penanggung_jawab;
-            $this->id_petugas_imunisasi_bulk = $firstKunjungan->id_petugas_imunisasi;
-            $this->id_petugas_input_bulk = $firstKunjungan->id_petugas_input;
-        } else {
-            $this->tanggal_agenda_kunjungan = date('Y-m-d');
-            $this->id_petugas_penanggung_jawab_bulk = null;
-            $this->id_petugas_imunisasi_bulk = null;
-            $this->id_petugas_input_bulk = null;
-        }
-    }
-
-    /**
-     * Simpan kunjungan bulk berdasarkan checkbox
-     */
-    public function storeBulkKunjungan()
-    {
-        $this->validate([
-            'bulan_input_kunjungan' => 'required|integer|min:1|max:12',
-            'tahun_input_kunjungan' => 'required|integer|min:2020|max:' . (date('Y') + 1),
-            'tanggal_agenda_kunjungan' => 'required|date',
-            'id_petugas_penanggung_jawab_bulk' => 'nullable|exists:petugas_kesehatan,id_petugas_kesehatan',
-            'id_petugas_imunisasi_bulk' => 'nullable|exists:petugas_kesehatan,id_petugas_kesehatan',
-            'id_petugas_input_bulk' => 'nullable|exists:petugas_kesehatan,id_petugas_kesehatan',
-        ], [
-            'bulan_input_kunjungan.required' => 'Bulan wajib dipilih.',
-            'tahun_input_kunjungan.required' => 'Tahun wajib dipilih.',
-            'tanggal_agenda_kunjungan.required' => 'Tanggal agenda wajib diisi.',
-            'id_petugas_penanggung_jawab_bulk.exists' => 'Petugas penanggung jawab tidak ditemukan.',
-            'id_petugas_imunisasi_bulk.exists' => 'Petugas imunisasi tidak ditemukan.',
-            'id_petugas_input_bulk.exists' => 'Petugas input tidak ditemukan.',
-        ]);
-
-        // Dapatkan posyanduId
-        $posyanduId = $this->posyanduId ?? 
-                     (isset($this->id_posyandu_sasaran) ? $this->id_posyandu_sasaran : null) ??
-                     (method_exists($this, 'getPosyanduId') ? $this->getPosyanduId() : null);
-
-        if (!$posyanduId) {
-            session()->flash('error', 'Posyandu tidak ditemukan.');
-            return;
-        }
-
-        // Ambil semua ibu menyusui dari posyandu ini
-        $allIbuMenyusui = IbuMenyusui::where('id_posyandu', $posyanduId)->pluck('id_ibu_menyusui')->toArray();
-
-        DB::transaction(function () use ($allIbuMenyusui, $posyanduId) {
-            // Hapus semua kunjungan untuk bulan dan tahun ini yang tidak dicentang
-            $ibuMenyusuiToRemove = array_diff($allIbuMenyusui, $this->selectedIbuMenyusui);
-            
-            if (!empty($ibuMenyusuiToRemove)) {
-                KunjunganIbuMenyusui::whereIn('id_ibu_menyusui', $ibuMenyusuiToRemove)
-                    ->where('bulan', $this->bulan_input_kunjungan)
-                    ->where('tahun', $this->tahun_input_kunjungan)
-                    ->delete();
-            }
-
-            // Simpan kunjungan untuk yang dicentang
-            if (!empty($this->selectedIbuMenyusui)) {
-                foreach ($this->selectedIbuMenyusui as $idIbuMenyusui) {
-                    $idIbuMenyusui = (int)$idIbuMenyusui; // Pastikan integer
-                    KunjunganIbuMenyusui::updateOrCreate(
-                        [
-                            'id_ibu_menyusui' => $idIbuMenyusui,
-                            'bulan' => $this->bulan_input_kunjungan,
-                            'tahun' => $this->tahun_input_kunjungan,
-                        ],
-                        [
-                            'status' => 'success',
-                            'tanggal_kunjungan' => $this->tanggal_agenda_kunjungan,
-                            'id_petugas_penanggung_jawab' => $this->id_petugas_penanggung_jawab_bulk ?: null,
-                            'id_petugas_imunisasi' => $this->id_petugas_imunisasi_bulk ?: null,
-                            'id_petugas_input' => $this->id_petugas_input_bulk ?: null,
-                        ]
-                    );
-                }
-            }
-        });
-
-        session()->flash('message', 'Data kunjungan berhasil disimpan.');
-        $this->refreshPosyandu();
-        $this->closeInputKunjunganModal();
     }
 
     /**
@@ -792,5 +597,48 @@ trait IbuMenyusuiCrud
         return PetugasKesehatan::where('id_posyandu', $posyanduId)
             ->orderBy('nama_petugas_kesehatan')
             ->get();
+    }
+
+    /**
+     * Ambil id_petugas_kesehatan dari kader dengan jabatan tertentu (Ketua/Sekretaris).
+     * Cocokkan via id_users atau nik.
+     */
+    private function getPetugasIdFromKaderJabatan(string $jabatan): ?int
+    {
+        $posyanduId = $this->posyanduId ?? 
+                     (isset($this->id_posyandu_sasaran) ? $this->id_posyandu_sasaran : null) ??
+                     (method_exists($this, 'getPosyanduId') ? $this->getPosyanduId() : null);
+
+        if (!$posyanduId) {
+            return null;
+        }
+
+        $kader = Kader::where('id_posyandu', $posyanduId)
+            ->where('jabatan_kader', $jabatan)
+            ->first();
+
+        if (!$kader) {
+            return null;
+        }
+
+        // Cari PetugasKesehatan yang sama: via id_users atau nik
+        $petugas = null;
+        if ($kader->id_users) {
+            $petugas = PetugasKesehatan::where('id_posyandu', $posyanduId)
+                ->where('id_users', $kader->id_users)
+                ->first();
+        }
+        if (!$petugas && $kader->nik_kader) {
+            $petugas = PetugasKesehatan::where('id_posyandu', $posyanduId)
+                ->where('nik_petugas_kesehatan', $kader->nik_kader)
+                ->first();
+        }
+        if (!$petugas && $kader->nama_kader) {
+            $petugas = PetugasKesehatan::where('id_posyandu', $posyanduId)
+                ->where('nama_petugas_kesehatan', $kader->nama_kader)
+                ->first();
+        }
+
+        return $petugas?->id_petugas_kesehatan;
     }
 }

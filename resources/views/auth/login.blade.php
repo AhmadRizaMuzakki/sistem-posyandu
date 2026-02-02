@@ -6,7 +6,7 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<meta name="csrf-token" content="{{ csrf_token() }}">
 	<meta name="description" content="Login ke Sistem Posyandu - Manajemen data posyandu">
-	<link rel="icon" type="image/x-icon" href="{{ asset('Login_v1/images/icons/favicon.ico') }}">
+	<link rel="icon" type="image/jpeg" href="{{ asset('images/Kades.jpg') }}">
 	<link rel="stylesheet" type="text/css" href="{{ asset('Login_v1/vendor/bootstrap/css/bootstrap.min.css') }}">
 	<link rel="stylesheet" type="text/css" href="{{ asset('Login_v1/fonts/font-awesome-4.7.0/css/font-awesome.min.css') }}">
 	<link rel="stylesheet" type="text/css" href="{{ asset('Login_v1/vendor/animate/animate.css') }}">

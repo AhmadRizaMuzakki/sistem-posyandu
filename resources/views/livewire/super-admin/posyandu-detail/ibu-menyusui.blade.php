@@ -17,13 +17,6 @@
                     <i class="ph ph-baby text-2xl mr-3 text-primary"></i>
                     Absensi Kehadiran
                 </h2>
-                <div class="flex gap-2">
-                    <button wire:click="openInputKunjunganModal"
-                            class="flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
-                        <i class="ph ph-calendar-check text-lg mr-2"></i>
-                        Input Kunjungan Per Bulan
-                    </button>
-                </div>
             </div>
 
             {{-- Filter Tahun --}}
@@ -149,6 +142,35 @@
                     <p>Belum ada data absensi (sasaran balita)</p>
                 </div>
             @endif
+
+            {{-- Keterangan: Jumlah sasaran hadir dan tidak hadir --}}
+            @php
+                $totalSasaran = $ibuMenyusuiList->count();
+                $jumlahHadir = $ibuMenyusuiList->filter(function($ibu) {
+                    foreach ($ibu->kunjungan as $k) {
+                        if ($k->status == 'success') return true;
+                    }
+                    return false;
+                })->count();
+                $jumlahTidakHadir = $totalSasaran - $jumlahHadir;
+            @endphp
+            <div class="mt-6 pt-6 border-t border-gray-200">
+                <h3 class="text-sm font-semibold text-gray-700 mb-3">Keterangan</h3>
+                <div class="flex flex-wrap gap-4">
+                    <div class="flex items-center gap-2 px-4 py-2 bg-green-50 text-green-800 rounded-lg">
+                        <i class="ph ph-check-circle text-xl"></i>
+                        <span><strong>Hadir:</strong> {{ $jumlahHadir }} sasaran</span>
+                    </div>
+                    <div class="flex items-center gap-2 px-4 py-2 bg-amber-50 text-amber-800 rounded-lg">
+                        <i class="ph ph-x-circle text-xl"></i>
+                        <span><strong>Tidak hadir:</strong> {{ $jumlahTidakHadir }} sasaran</span>
+                    </div>
+                    <div class="flex items-center gap-2 px-4 py-2 bg-gray-50 text-gray-700 rounded-lg">
+                        <i class="ph ph-users text-xl"></i>
+                        <span><strong>Total:</strong> {{ $totalSasaran }} sasaran (Tahun {{ $tahunFilter }})</span>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -158,6 +180,4 @@
     {{-- Modal Form Kunjungan --}}
     @include('livewire.super-admin.posyandu-detail.modals.kunjungan-ibu-menyusui-modal')
 
-    {{-- Modal Input Kunjungan Per Bulan --}}
-    @include('livewire.super-admin.posyandu-detail.modals.input-kunjungan-bulan-modal')
 </div>

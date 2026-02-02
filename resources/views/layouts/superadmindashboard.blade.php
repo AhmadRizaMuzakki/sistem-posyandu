@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ $title ?? 'Admin Dashboard' }}</title>
+    <link rel="icon" type="image/jpeg" href="{{ asset('images/Kades.jpg') }}">
 
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
@@ -317,11 +318,48 @@
                 </div>
 
                 <div class="flex items-center space-x-4">
-                    <button class="relative p-1 text-gray-400 hover:text-gray-500 focus:outline-none">
-                        <i class="ph ph-bell text-xl"></i>
-                        <span
-                            class="absolute top-0 right-0 block w-2 h-2 bg-red-500 rounded-full ring-2 ring-white"></span>
-                    </button>
+                    {{-- Notifikasi --}}
+                    <div class="relative" x-data="{ open: false }">
+                        <button @click="open = !open" @click.outside="open = false"
+                            class="relative p-2 text-gray-400 hover:text-primary hover:bg-gray-100 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-primary/30">
+                            <i class="ph ph-bell text-xl"></i>
+                            <span class="absolute top-1 right-1 block w-2 h-2 bg-red-500 rounded-full ring-2 ring-white"></span>
+                        </button>
+                        <div x-show="open" x-transition
+                            class="absolute right-0 mt-2 w-80 bg-white rounded-xl shadow-lg border border-gray-200 z-50 overflow-hidden"
+                            style="display: none;">
+                            <div class="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
+                                <h3 class="font-semibold text-gray-800">Notifikasi</h3>
+                                <span class="text-xs text-gray-500">Baru</span>
+                            </div>
+                            <div class="max-h-80 overflow-y-auto">
+                                <a href="{{ route('posyandu.list') }}" class="flex gap-3 px-4 py-3 hover:bg-gray-50 transition-colors border-b border-gray-50">
+                                    <div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                                        <i class="ph ph-buildings text-primary text-lg"></i>
+                                    </div>
+                                    <div class="flex-1 min-w-0">
+                                        <p class="text-sm font-medium text-gray-800">Kelola posyandu</p>
+                                        <p class="text-xs text-gray-500 mt-0.5">Periksa data posyandu yang terdaftar</p>
+                                    </div>
+                                </a>
+                                <a href="{{ route('superadmin.galeri') }}" class="flex gap-3 px-4 py-3 hover:bg-gray-50 transition-colors border-b border-gray-50">
+                                    <div class="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center flex-shrink-0">
+                                        <i class="ph ph-images text-amber-600 text-lg"></i>
+                                    </div>
+                                    <div class="flex-1 min-w-0">
+                                        <p class="text-sm font-medium text-gray-800">Galeri</p>
+                                        <p class="text-xs text-gray-500 mt-0.5">Unggah foto kegiatan posyandu</p>
+                                    </div>
+                                </a>
+                                <div class="px-4 py-3 text-center">
+                                    <p class="text-xs text-gray-400">Tidak ada notifikasi lain</p>
+                                </div>
+                            </div>
+                            <a href="#" class="block px-4 py-3 text-center text-sm font-medium text-primary hover:bg-gray-50 border-t border-gray-100">
+                                Lihat semua notifikasi
+                            </a>
+                        </div>
+                    </div>
                     <div class="relative flex items-center space-x-2">
                         <img class="w-8 h-8 rounded-full"
                             src="https://ui-avatars.com/api/?name=Admin+User&background=0D8ABC&color=fff"

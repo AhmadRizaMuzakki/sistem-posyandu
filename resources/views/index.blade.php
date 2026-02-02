@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Posyandu Karanggan - Sehat Bersama, Tumbuh Bahagia</title>
+    <link rel="icon" type="image/jpeg" href="{{ asset('images/Kades.jpg') }}">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -379,7 +380,9 @@
             <div class="text-center mb-12">
                 <span class="inline-block py-1 px-3 rounded-full bg-primary/10 text-primary text-sm font-semibold mb-4">Jaringan Posyandu</span>
                 <h2 class="text-4xl font-bold text-slate-900 mb-4">Daftar Posyandu</h2>
-                <p class="text-slate-600 max-w-2xl mx-auto text-lg">Temukan posyandu terdekat di wilayah Anda. Kami memiliki 12 posyandu yang siap melayani kesehatan keluarga Anda.</p>
+                <p class="text-slate-600 max-w-2xl mx-auto text-lg">
+                    Temukan posyandu terdekat di wilayah Anda. Kami memiliki {{ $daftarPosyandu ? $daftarPosyandu->count() : 0 }} posyandu yang siap melayani kesehatan keluarga Anda.
+                </p>
             </div>
             
             @if($daftarPosyandu && $daftarPosyandu->count() > 0)
