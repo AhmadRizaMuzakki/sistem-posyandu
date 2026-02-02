@@ -36,7 +36,7 @@
                 <i class="ph ph-clipboard-text text-2xl mr-3 text-primary"></i>
                 Laporan Absensi Bulan Ini
             </h2>
-            <p class="text-sm text-gray-500 mb-4">Ringkasan absen petugas kesehatan dan bayi/balita untuk {{ \Carbon\Carbon::now()->locale('id')->translatedFormat('F Y') }}</p>
+            <p class="text-sm text-gray-500 mb-4">Ringkasan absen petugas kesehatan untuk {{ \Carbon\Carbon::now()->locale('id')->translatedFormat('F Y') }}</p>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {{-- Card Absen Petugas --}}
                 <div class="border border-gray-200 rounded-xl p-5 hover:border-teal-200 transition-colors">
@@ -67,35 +67,6 @@
                             <i class="ph ph-list mr-1"></i> Halaman Laporan
                         </a>
                         <a href="{{ route('adminPosyandu.laporan.absensi.pdf') }}?bulan={{ date('n') }}&tahun={{ date('Y') }}" target="_blank" class="inline-flex items-center px-3 py-2 rounded-lg bg-teal-600 text-white text-sm font-medium hover:bg-teal-700 transition-colors">
-                            <i class="ph ph-file-pdf mr-1"></i> Export PDF
-                        </a>
-                    </div>
-                </div>
-                {{-- Card Absen Bayi --}}
-                <div class="border border-gray-200 rounded-xl p-5 hover:border-amber-200 transition-colors">
-                    <div class="flex items-center gap-2 mb-3">
-                        <i class="ph ph-baby text-2xl text-amber-600"></i>
-                        <h3 class="font-semibold text-gray-800">Absensi Bayi/Balita</h3>
-                    </div>
-                    <div class="space-y-2 text-sm mb-4">
-                        <div class="flex justify-between">
-                            <span class="text-gray-600">Total bayi/balita</span>
-                            <span class="font-semibold">{{ $absenBayi['total'] ?? 0 }}</span>
-                        </div>
-                        <div class="flex justify-between">
-                            <span class="text-gray-600">Hadir (kunjungan)</span>
-                            <span class="font-semibold text-green-600">{{ $absenBayi['hadir'] ?? 0 }}</span>
-                        </div>
-                        <div class="flex justify-between">
-                            <span class="text-gray-600">Tidak hadir</span>
-                            <span class="font-semibold text-red-600">{{ $absenBayi['tidak_hadir'] ?? 0 }}</span>
-                        </div>
-                    </div>
-                    <div class="flex flex-wrap gap-2">
-                        <a href="{{ route('adminPosyandu.laporan') }}" class="inline-flex items-center px-3 py-2 rounded-lg bg-gray-100 text-gray-700 text-sm font-medium hover:bg-gray-200 transition-colors">
-                            <i class="ph ph-list mr-1"></i> Halaman Laporan
-                        </a>
-                        <a href="{{ route('adminPosyandu.laporan.absensi-bayi.pdf') }}?bulan={{ date('n') }}&tahun={{ date('Y') }}" target="_blank" class="inline-flex items-center px-3 py-2 rounded-lg bg-amber-600 text-white text-sm font-medium hover:bg-amber-700 transition-colors">
                             <i class="ph ph-file-pdf mr-1"></i> Export PDF
                         </a>
                     </div>

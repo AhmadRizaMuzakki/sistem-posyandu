@@ -83,7 +83,6 @@
                     request()->routeIs('posyandu.sasaran') ||
                     request()->routeIs('posyandu.imunisasi') ||
                     request()->routeIs('posyandu.pendidikan') ||
-                    request()->routeIs('posyandu.ibu-menyusui') ||
                     request()->routeIs('posyandu.jadwal') ||
                     request()->routeIs('posyandu.laporan') ||
                     request()->routeIs('posyandu.galeri')) {
@@ -255,14 +254,6 @@
                                 >
                                     <i class="ph ph-graduation-cap text-lg mr-3"></i>
                                     <span class="font-medium">Pendidikan</span>
-                                </a>
-
-                                <a
-                                    :href="`/supervisor/posyandu/${posyandu.encryptedId}/ibu-menyusui`"
-                                    class="sidebar-menu-item flex items-center px-4 py-2 text-sm rounded-lg {{ request()->routeIs('posyandu.ibu-menyusui') ? 'active' : 'text-gray-600' }}"
-                                >
-                                    <i class="ph ph-baby text-lg mr-3"></i>
-                                    <span class="font-medium">Absensi</span>
                                 </a>
 
                                 <a

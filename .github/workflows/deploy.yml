@@ -17,6 +17,7 @@ jobs:
   build:
     name: 📦 Build Frontend Assets
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - name: 🚚 Checkout
         uses: actions/checkout@v4
@@ -52,6 +53,7 @@ jobs:
     needs: build
     if: github.ref == 'refs/heads/staging'
     runs-on: ubuntu-latest
+    timeout-minutes: 45
     steps:
       - name: 📥 Download Artifact
         uses: actions/download-artifact@v4
@@ -104,6 +106,7 @@ jobs:
     needs: build
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
+    timeout-minutes: 45
     steps:
       - name: 📥 Download Artifact
         uses: actions/download-artifact@v4

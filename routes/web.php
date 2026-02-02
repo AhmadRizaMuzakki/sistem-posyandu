@@ -48,7 +48,6 @@ Route::prefix('supervisor')->middleware(['auth', 'verified', 'role:superadmin'])
     Route::get('/posyandu/{id}/sasaran', PosyanduSasaran::class)->name('posyandu.sasaran');
     Route::get('/posyandu/{id}/imunisasi', PosyanduImunisasi::class)->name('posyandu.imunisasi');
     Route::get('/posyandu/{id}/pendidikan', PosyanduPendidikan::class)->name('posyandu.pendidikan');
-    Route::get('/posyandu/{id}/ibu-menyusui', \App\Livewire\SuperAdmin\PosyanduIbuMenyusui::class)->name('posyandu.ibu-menyusui');
     Route::get('/posyandu/{id}/jadwal', \App\Livewire\SuperAdmin\PosyanduJadwal::class)->name('posyandu.jadwal');
     Route::get('/posyandu/{id}/laporan', SuperadminPosyanduLaporan::class)->name('posyandu.laporan');
     Route::get('/posyandu/{id}/galeri', \App\Livewire\SuperAdmin\PosyanduGaleri::class)->name('posyandu.galeri');
@@ -56,7 +55,6 @@ Route::prefix('supervisor')->middleware(['auth', 'verified', 'role:superadmin'])
     Route::get('/posyandu/{id}/laporan/pdf/nama/{nama}', [LaporanController::class, 'superadminPosyanduImunisasiPdfByNama'])->name('superadmin.posyandu.laporan.pdf.nama');
     Route::get('/posyandu/{id}/laporan/pdf/{kategori}', [LaporanController::class, 'superadminPosyanduImunisasiPdf'])->name('superadmin.posyandu.laporan.pdf.kategori');
     Route::get('/posyandu/{id}/laporan/absensi/pdf', [LaporanController::class, 'superadminPosyanduAbsensiPdf'])->name('superadmin.posyandu.laporan.absensi.pdf');
-    Route::get('/posyandu/{id}/laporan/absensi-bayi/pdf', [LaporanController::class, 'superadminPosyanduAbsensiBayiPdf'])->name('superadmin.posyandu.laporan.absensi-bayi.pdf');
     Route::get('/posyandu/{id}/laporan/pdf', [LaporanController::class, 'superadminPosyanduImunisasiPdf'])->name('superadmin.posyandu.laporan.pdf');
     // Route kombinasi filter pendidikan (harus didefinisikan sebelum route tunggal)
     Route::get('/posyandu/{id}/pendidikan/pdf/kategori-sasaran/{kategoriSasaran}/pendidikan/{kategoriPendidikan}/nama/{nama}', [LaporanController::class, 'superadminPosyanduPendidikanPdfByAllFilters'])->name('superadmin.posyandu.pendidikan.pdf.all-filters');
@@ -81,14 +79,12 @@ Route::prefix('posyandu')->middleware(['auth', 'verified', 'role:adminPosyandu|s
     Route::get('/sasaran/{kategori}/pdf', [LaporanController::class, 'posyanduSasaranPdf'])->name('adminPosyandu.sasaran.pdf');
     Route::get('/imunisasi', KaderImunisasi::class)->name('adminPosyandu.imunisasi');
     Route::get('/pendidikan', \App\Livewire\Posyandu\Pendidikan::class)->name('adminPosyandu.pendidikan');
-    Route::get('/ibu-menyusui', \App\Livewire\Posyandu\PosyanduIbuMenyusui::class)->name('adminPosyandu.ibu-menyusui');
     Route::get('/jadwal', \App\Livewire\Posyandu\PosyanduJadwal::class)->name('adminPosyandu.jadwal');
     Route::get('/laporan', PosyanduLaporan::class)->name('adminPosyandu.laporan');
     Route::get('/laporan/pdf/jenis-vaksin/{jenisVaksin}', [LaporanController::class, 'posyanduImunisasiPdfByJenisVaksin'])->name('adminPosyandu.laporan.pdf.jenis-vaksin');
     Route::get('/laporan/pdf/nama/{nama}', [LaporanController::class, 'posyanduImunisasiPdfByNama'])->name('adminPosyandu.laporan.pdf.nama');
     Route::get('/laporan/pdf/{kategori}', [LaporanController::class, 'posyanduImunisasiPdf'])->name('adminPosyandu.laporan.pdf.kategori');
     Route::get('/laporan/absensi/pdf', [LaporanController::class, 'posyanduAbsensiPdf'])->name('adminPosyandu.laporan.absensi.pdf');
-    Route::get('/laporan/absensi-bayi/pdf', [LaporanController::class, 'posyanduAbsensiBayiPdf'])->name('adminPosyandu.laporan.absensi-bayi.pdf');
     Route::get('/laporan/pdf', [LaporanController::class, 'posyanduImunisasiPdf'])->name('adminPosyandu.laporan.pdf');
     // Route kombinasi filter pendidikan (harus didefinisikan sebelum route tunggal)
     Route::get('/pendidikan/pdf/kategori-sasaran/{kategoriSasaran}/pendidikan/{kategoriPendidikan}/nama/{nama}', [LaporanController::class, 'posyanduPendidikanPdfByAllFilters'])->name('adminPosyandu.pendidikan.pdf.all-filters');
