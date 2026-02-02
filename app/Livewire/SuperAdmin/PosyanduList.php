@@ -136,9 +136,12 @@ class PosyanduList extends Component
                 if (!File::isDirectory($dir)) {
                     File::makeDirectory($dir, 0755, true);
                 }
-                $originalName = $this->skFile->getClientOriginalName();
-                $extension = $this->skFile->getClientOriginalExtension();
-                $safeName = Str::slug(pathinfo($originalName, PATHINFO_FILENAME)) . '_' . time() . '.' . $extension;
+                $allowedDocMimes = ['application/pdf' => 'pdf', 'application/msword' => 'doc', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' => 'docx'];
+                $extension = safe_upload_extension($this->skFile, $allowedDocMimes);
+                if (!$extension) {
+                    throw new \InvalidArgumentException('Format file SK tidak valid.');
+                }
+                $safeName = Str::random(12) . '_' . time() . '.' . $extension;
                 File::copy($this->skFile->getRealPath(), $dir . DIRECTORY_SEPARATOR . $safeName);
                 $data['sk_posyandu'] = 'sk_posyandu/' . $safeName;
             } elseif ($this->isEditMode && !$this->skFile) {
@@ -158,9 +161,9 @@ class PosyanduList extends Component
                 if (!File::isDirectory($dir)) {
                     File::makeDirectory($dir, 0755, true);
                 }
-                $originalName = $this->logoFile->getClientOriginalName();
-                $extension = $this->logoFile->getClientOriginalExtension();
-                $safeName = Str::slug(pathinfo($originalName, PATHINFO_FILENAME)) . '_' . time() . '.' . $extension;
+                $allowedImageMimes = ['image/jpeg' => 'jpg', 'image/pjpeg' => 'jpg', 'image/png' => 'png', 'image/gif' => 'gif', 'image/webp' => 'webp'];
+                $extension = safe_upload_extension($this->logoFile, $allowedImageMimes) ?? 'jpg';
+                $safeName = Str::random(12) . '_' . time() . '.' . $extension;
                 File::copy($this->logoFile->getRealPath(), $dir . DIRECTORY_SEPARATOR . $safeName);
                 $data['logo_posyandu'] = 'logo_posyandu/' . $safeName;
             } elseif ($this->isEditMode && !$this->logoFile) {

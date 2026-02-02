@@ -16,127 +16,119 @@ use App\Models\Kader;
 use App\Models\Imunisasi;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 
 class IndexController extends Controller
 {
+    /** TTL cache dalam detik (5 menit). */
+    private const CACHE_TTL = 300;
+
     public function index(Request $request)
     {
-        // Ambil posyandu pertama sebagai default, atau bisa dikonfigurasi
-        // Jika ada parameter posyandu di query string, gunakan itu
         $posyanduId = $request->query('posyandu');
         $filterBulan = $request->query('filter_bulan');
         $search = $request->query('search');
-        
-        // Parse filter bulan jika ada
-        $filterBulan = $filterBulan ? (int)$filterBulan : null;
-        
+
+        $filterBulan = $filterBulan ? (int) $filterBulan : null;
+
         if ($posyanduId) {
-            $posyandu = Posyandu::find($posyanduId);
+            $posyandu = Posyandu::select('id_posyandu', 'nama_posyandu', 'alamat_posyandu', 'domisili_posyandu', 'logo_posyandu', 'sk_posyandu')
+                ->find($posyanduId);
         } else {
-            // Ambil posyandu pertama sebagai default
-            $posyandu = Posyandu::first();
+            $posyandu = Posyandu::select('id_posyandu', 'nama_posyandu', 'alamat_posyandu', 'domisili_posyandu', 'logo_posyandu', 'sk_posyandu')
+                ->first();
         }
 
-        // Ambil semua posyandu untuk filter dropdown dan daftar posyandu
-        $daftarPosyandu = Posyandu::select('id_posyandu', 'nama_posyandu', 'alamat_posyandu', 'domisili_posyandu', 'logo_posyandu')
-            ->orderBy('nama_posyandu')
-            ->get();
+        // Cache daftar posyandu (jarang berubah)
+        $daftarPosyandu = Cache::remember('index_daftar_posyandu', self::CACHE_TTL, function () {
+            return Posyandu::select('id_posyandu', 'nama_posyandu', 'alamat_posyandu', 'domisili_posyandu', 'logo_posyandu')
+                ->orderBy('nama_posyandu')
+                ->get();
+        });
 
-        // Ambil acara dari SEMUA posyandu untuk ditampilkan di halaman depan
-        $query = JadwalKegiatan::with('posyandu');
+        // Query acara dengan eager loading (hindari N+1)
+        $query = JadwalKegiatan::with('posyandu:id_posyandu,nama_posyandu');
 
-        // Filter berdasarkan bulan jika dipilih (menggunakan tahun saat ini)
+        $currentYear = Carbon::now()->year;
         if ($filterBulan && $filterBulan >= 1 && $filterBulan <= 12) {
-            $currentYear = Carbon::now()->year;
             $startOfMonth = Carbon::create($currentYear, $filterBulan, 1)->startOfDay();
             $endOfMonth = Carbon::create($currentYear, $filterBulan, 1)->endOfMonth()->endOfDay();
             $query->whereBetween('tanggal', [$startOfMonth->format('Y-m-d'), $endOfMonth->format('Y-m-d')]);
         } else {
-            // Default: tampilkan acara dari bulan ini dan beberapa bulan ke depan
             $today = Carbon::now()->startOfDay();
             $endDate = Carbon::now()->addMonths(2)->endOfMonth();
             $query->where('tanggal', '>=', $today->format('Y-m-d'))
-                  ->where('tanggal', '<=', $endDate->format('Y-m-d'));
+                ->where('tanggal', '<=', $endDate->format('Y-m-d'));
         }
 
-        // Search berdasarkan nama acara atau tempat
         if ($search) {
-            $query->where(function($q) use ($search) {
-                $q->where('nama_kegiatan', 'like', '%' . $search . '%')
-                  ->orWhere('tempat', 'like', '%' . $search . '%')
-                  ->orWhere('deskripsi', 'like', '%' . $search . '%');
+            $searchTerm = '%' . $search . '%';
+            $query->where(function ($q) use ($searchTerm) {
+                $q->where('nama_kegiatan', 'like', $searchTerm)
+                    ->orWhere('tempat', 'like', $searchTerm)
+                    ->orWhere('deskripsi', 'like', $searchTerm);
             });
         }
 
-        // Pagination: 12 acara per halaman
         $acaraList = $query->orderBy('tanggal', 'asc')
             ->orderBy('jam_mulai', 'asc')
             ->paginate(12)
-            ->withQueryString(); // Mempertahankan query string untuk filter
-        
-        // Generate list bulan untuk dropdown (hanya nama bulan, tanpa tahun)
-        $bulanList = [];
-        for ($i = 1; $i <= 12; $i++) {
-            $date = Carbon::create(Carbon::now()->year, $i, 1);
-            $bulanList[] = [
-                'value' => $i,
-                'label' => $date->locale('id')->translatedFormat('F'),
-            ];
-        }
-        
-        // Filter berdasarkan bulan ini di tahun ini
-        // Statistik diambil dari SEMUA posyandu dan difilter untuk bulan ini di tahun ini
+            ->withQueryString();
+
+        // Cache bulan list (static per tahun)
+        $bulanList = Cache::remember('index_bulan_list_' . $currentYear, 3600, function () use ($currentYear) {
+            $list = [];
+            for ($i = 1; $i <= 12; $i++) {
+                $date = Carbon::create($currentYear, $i, 1);
+                $list[] = [
+                    'value' => $i,
+                    'label' => $date->locale('id')->translatedFormat('F'),
+                ];
+            }
+            return $list;
+        });
+
         $currentMonth = Carbon::now()->month;
-        $currentYear = Carbon::now()->year;
-        $startOfMonth = Carbon::create($currentYear, $currentMonth, 1)->startOfDay();
-        $endOfMonth = Carbon::create($currentYear, $currentMonth, 1)->endOfMonth()->endOfDay();
-        
-        // Hitung statistik gabungan dari SEMUA posyandu yang dibuat/ditambahkan bulan ini di tahun ini
-        // Tidak ada filter id_posyandu, sehingga mencakup semua posyandu
-        $totalBalita = SasaranBayibalita::whereYear('created_at', $currentYear)
-            ->whereMonth('created_at', $currentMonth)
-            ->count();
-        $totalRemaja = SasaranRemaja::whereYear('created_at', $currentYear)
-            ->whereMonth('created_at', $currentMonth)
-            ->count();
-        $totalOrangtua = SasaranDewasa::whereYear('created_at', $currentYear)
-            ->whereMonth('created_at', $currentMonth)
-            ->count(); // Dewasa = Orangtua
-        $totalIbuHamil = SasaranIbuhamil::whereYear('created_at', $currentYear)
-            ->whereMonth('created_at', $currentMonth)
-            ->count();
-        $totalPralansia = SasaranPralansia::whereYear('created_at', $currentYear)
-            ->whereMonth('created_at', $currentMonth)
-            ->count();
-        $totalLansia = SasaranLansia::whereYear('created_at', $currentYear)
-            ->whereMonth('created_at', $currentMonth)
-            ->count();
-        $totalKader = Kader::count(); // Kader tidak difilter karena biasanya tidak berubah per bulan
-        
-        // Hitung cakupan imunisasi (persentase dari total bayi/balita yang sudah diimunisasi)
-        // Filter imunisasi dari SEMUA posyandu yang dibuat bulan ini di tahun ini
-        $totalBayiBalitaTerimunisasi = DB::table('imunisasi')
-            ->where('kategori_sasaran', 'bayibalita')
-            ->whereNotNull('id_sasaran')
-            ->whereYear('created_at', $currentYear)
-            ->whereMonth('created_at', $currentMonth)
-            ->distinct('id_sasaran')
-            ->count('id_sasaran');
-        
-        $cakupanImunisasi = $totalBalita > 0 
-            ? round(($totalBayiBalitaTerimunisasi / $totalBalita) * 100) 
+        $periodStart = Carbon::create($currentYear, $currentMonth, 1)->startOfDay();
+        $periodEnd = Carbon::create($currentYear, $currentMonth, 1)->endOfMonth()->endOfDay();
+
+        // Cache statistik (reduce 8+ queries ke 1 cache hit)
+        $stats = Cache::remember("index_stats_{$currentYear}_{$currentMonth}", self::CACHE_TTL, function () use ($periodStart, $periodEnd) {
+            $start = $periodStart->format('Y-m-d H:i:s');
+            $end = $periodEnd->format('Y-m-d H:i:s');
+
+            return [
+                'totalBalita' => SasaranBayibalita::whereBetween('created_at', [$start, $end])->count(),
+                'totalRemaja' => SasaranRemaja::whereBetween('created_at', [$start, $end])->count(),
+                'totalOrangtua' => SasaranDewasa::whereBetween('created_at', [$start, $end])->count(),
+                'totalIbuHamil' => SasaranIbuhamil::whereBetween('created_at', [$start, $end])->count(),
+                'totalPralansia' => SasaranPralansia::whereBetween('created_at', [$start, $end])->count(),
+                'totalLansia' => SasaranLansia::whereBetween('created_at', [$start, $end])->count(),
+                'totalKader' => Kader::count(),
+                'totalBayiBalitaTerimunisasi' => (int) DB::table('imunisasi')
+                    ->where('kategori_sasaran', 'bayibalita')
+                    ->whereNotNull('id_sasaran')
+                    ->whereBetween('created_at', [$start, $end])
+                    ->selectRaw('COUNT(DISTINCT id_sasaran) as cnt')
+                    ->value('cnt'),
+            ];
+        });
+
+        $totalBalita = $stats['totalBalita'];
+        $totalBayiBalitaTerimunisasi = $stats['totalBayiBalitaTerimunisasi'];
+        $cakupanImunisasi = $totalBalita > 0
+            ? min(100, round(($totalBayiBalitaTerimunisasi / $totalBalita) * 100))
             : 0;
-        // Batasi maksimal 100%
-        $cakupanImunisasi = min($cakupanImunisasi, 100);
-        
+
         if (!$posyandu) {
-            // Jika tidak ada posyandu, tetap tampilkan halaman dengan data kosong
             $posyandu = null;
         }
 
-        // Galeri: tampilkan SEMUA foto yang diunggah dari dashboard Super Admin dan Posyandu (tanpa filter posyandu)
-        $galeriKegiatan = Galeri::latest()->take(12)->get();
+        // Cache galeri (5 menit)
+        $galeriKegiatan = Cache::remember('index_galeri_12', self::CACHE_TTL, function () {
+            return Galeri::latest()->take(12)->get();
+        });
 
         return view('index', [
             'posyandu' => $posyandu,
@@ -146,12 +138,12 @@ class IndexController extends Controller
             'bulanList' => $bulanList,
             'search' => $search,
             'totalBalita' => $totalBalita,
-            'totalRemaja' => $totalRemaja,
-            'totalOrangtua' => $totalOrangtua,
-            'totalIbuHamil' => $totalIbuHamil,
-            'totalPralansia' => $totalPralansia,
-            'totalLansia' => $totalLansia,
-            'totalKader' => $totalKader,
+            'totalRemaja' => $stats['totalRemaja'],
+            'totalOrangtua' => $stats['totalOrangtua'],
+            'totalIbuHamil' => $stats['totalIbuHamil'],
+            'totalPralansia' => $stats['totalPralansia'],
+            'totalLansia' => $stats['totalLansia'],
+            'totalKader' => $stats['totalKader'],
             'cakupanImunisasi' => $cakupanImunisasi,
             'currentMonth' => $currentMonth,
             'currentYear' => $currentYear,
@@ -162,18 +154,22 @@ class IndexController extends Controller
     /**
      * Halaman detail posyandu untuk publik (dari klik "Lihat Detail" di Daftar Posyandu).
      * Menampilkan logo, info posyandu, dan daftar kader (tanpa NIK).
+     * Gunakan withCount untuk statistik (hindari N+1 & load koleksi besar).
      */
     public function posyanduDetail(string $id)
     {
-        $posyandu = Posyandu::with([
-            'kader.user',
-            'sasaran_bayibalita',
-            'sasaran_remaja',
-            'sasaran_dewasa',
-            'sasaran_ibuhamil',
-            'sasaran_pralansia',
-            'sasaran_lansia',
-        ])->findOrFail($id);
+        $posyandu = Posyandu::with(['kader.user'])
+            ->withCount([
+                'sasaran_bayibalita',
+                'sasaran_remaja',
+                'sasaran_dewasa',
+                'sasaran_ibuhamil',
+                'sasaran_pralansia',
+                'sasaran_lansia',
+                'kader',
+            ])
+            ->findOrFail($id);
+
         return view('posyandu-detail', ['posyandu' => $posyandu]);
     }
 }

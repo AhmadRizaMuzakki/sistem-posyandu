@@ -100,12 +100,12 @@
                         <dt class="text-sm font-medium text-slate-500">Jumlah Sasaran</dt>
                         <dd class="text-slate-800 mt-0.5">
                             @php
-                                $totalSasaran = ($posyandu->sasaran_bayibalita ? $posyandu->sasaran_bayibalita->count() : 0) +
-                                    ($posyandu->sasaran_remaja ? $posyandu->sasaran_remaja->count() : 0) +
-                                    ($posyandu->sasaran_dewasa ? $posyandu->sasaran_dewasa->count() : 0) +
-                                    ($posyandu->sasaran_ibuhamil ? $posyandu->sasaran_ibuhamil->count() : 0) +
-                                    ($posyandu->sasaran_pralansia ? $posyandu->sasaran_pralansia->count() : 0) +
-                                    ($posyandu->sasaran_lansia ? $posyandu->sasaran_lansia->count() : 0);
+                                $totalSasaran = ($posyandu->sasaran_bayibalita_count ?? 0) +
+                                    ($posyandu->sasaran_remaja_count ?? 0) +
+                                    ($posyandu->sasaran_dewasa_count ?? 0) +
+                                    ($posyandu->sasaran_ibuhamil_count ?? 0) +
+                                    ($posyandu->sasaran_pralansia_count ?? 0) +
+                                    ($posyandu->sasaran_lansia_count ?? 0);
                             @endphp
                             {{ number_format($totalSasaran, 0, ',', '.') }} orang
                         </dd>
@@ -127,34 +127,34 @@
             </div>
             @endif
 
-            {{-- Statistik semua sasaran --}}
+            {{-- Statistik semua sasaran (gunakan withCount, hindari N+1) --}}
             <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
                 <div class="bg-white rounded-xl shadow-sm border border-slate-100 p-4 text-center">
-                    <p class="text-2xl font-bold text-primary">{{ $posyandu->kader ? $posyandu->kader->count() : 0 }}</p>
+                    <p class="text-2xl font-bold text-primary">{{ $posyandu->kader_count ?? 0 }}</p>
                     <p class="text-sm text-slate-500 mt-1">Kader</p>
                 </div>
                 <div class="bg-white rounded-xl shadow-sm border border-slate-100 p-4 text-center">
-                    <p class="text-2xl font-bold text-green-600">{{ $posyandu->sasaran_bayibalita ? $posyandu->sasaran_bayibalita->count() : 0 }}</p>
+                    <p class="text-2xl font-bold text-green-600">{{ $posyandu->sasaran_bayibalita_count ?? 0 }}</p>
                     <p class="text-sm text-slate-500 mt-1">Bayi/Balita</p>
                 </div>
                 <div class="bg-white rounded-xl shadow-sm border border-slate-100 p-4 text-center">
-                    <p class="text-2xl font-bold text-cyan-600">{{ $posyandu->sasaran_remaja ? $posyandu->sasaran_remaja->count() : 0 }}</p>
+                    <p class="text-2xl font-bold text-cyan-600">{{ $posyandu->sasaran_remaja_count ?? 0 }}</p>
                     <p class="text-sm text-slate-500 mt-1">Remaja</p>
                 </div>
                 <div class="bg-white rounded-xl shadow-sm border border-slate-100 p-4 text-center">
-                    <p class="text-2xl font-bold text-orange-600">{{ $posyandu->sasaran_dewasa ? $posyandu->sasaran_dewasa->count() : 0 }}</p>
+                    <p class="text-2xl font-bold text-orange-600">{{ $posyandu->sasaran_dewasa_count ?? 0 }}</p>
                     <p class="text-sm text-slate-500 mt-1">Dewasa</p>
                 </div>
                 <div class="bg-white rounded-xl shadow-sm border border-slate-100 p-4 text-center">
-                    <p class="text-2xl font-bold text-pink-600">{{ $posyandu->sasaran_ibuhamil ? $posyandu->sasaran_ibuhamil->count() : 0 }}</p>
+                    <p class="text-2xl font-bold text-pink-600">{{ $posyandu->sasaran_ibuhamil_count ?? 0 }}</p>
                     <p class="text-sm text-slate-500 mt-1">Ibu Hamil</p>
                 </div>
                 <div class="bg-white rounded-xl shadow-sm border border-slate-100 p-4 text-center">
-                    <p class="text-2xl font-bold text-amber-600">{{ $posyandu->sasaran_pralansia ? $posyandu->sasaran_pralansia->count() : 0 }}</p>
+                    <p class="text-2xl font-bold text-amber-600">{{ $posyandu->sasaran_pralansia_count ?? 0 }}</p>
                     <p class="text-sm text-slate-500 mt-1">Pralansia</p>
                 </div>
                 <div class="bg-white rounded-xl shadow-sm border border-slate-100 p-4 text-center">
-                    <p class="text-2xl font-bold text-indigo-600">{{ $posyandu->sasaran_lansia ? $posyandu->sasaran_lansia->count() : 0 }}</p>
+                    <p class="text-2xl font-bold text-indigo-600">{{ $posyandu->sasaran_lansia_count ?? 0 }}</p>
                     <p class="text-sm text-slate-500 mt-1">Lansia</p>
                 </div>
             </div>
@@ -164,7 +164,7 @@
                 <h2 class="text-lg font-semibold text-slate-800 mb-4 flex items-center">
                     <i class="fa-solid fa-users text-primary mr-2"></i>
                     Daftar Kader
-                    <span class="ml-2 text-sm font-normal text-slate-500">({{ $posyandu->kader ? $posyandu->kader->count() : 0 }} kader)</span>
+                    <span class="ml-2 text-sm font-normal text-slate-500">({{ $posyandu->kader_count ?? 0 }} kader)</span>
                 </h2>
                 @if($posyandu->kader && $posyandu->kader->count() > 0)
                     <div class="overflow-x-auto">

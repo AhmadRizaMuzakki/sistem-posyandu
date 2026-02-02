@@ -163,9 +163,12 @@ class PosyanduInfo extends Component
                     File::delete($oldFull);
                 }
             }
-            $originalName = $this->skFile->getClientOriginalName();
-            $extension = $this->skFile->getClientOriginalExtension();
-            $safeName = Str::slug(pathinfo($originalName, PATHINFO_FILENAME)) . '_' . time() . '.' . $extension;
+            $allowedDocMimes = ['application/pdf' => 'pdf', 'application/msword' => 'doc', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' => 'docx'];
+            $extension = safe_upload_extension($this->skFile, $allowedDocMimes);
+            if (!$extension) {
+                throw new \InvalidArgumentException('Format file SK tidak valid.');
+            }
+            $safeName = Str::random(12) . '_' . time() . '.' . $extension;
             File::copy($this->skFile->getRealPath(), $dir . DIRECTORY_SEPARATOR . $safeName);
 
             $this->posyandu->update([

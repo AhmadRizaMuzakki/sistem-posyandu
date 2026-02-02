@@ -69,10 +69,11 @@ class Galeri extends Component
             session()->flash('message', 'Folder uploads/galeri tidak bisa dibuat. Buat manual: public/uploads/galeri dengan permission 775.');
             return;
         }
+        $allowedImageMimes = ['image/jpeg' => 'jpg', 'image/pjpeg' => 'jpg', 'image/png' => 'png', 'image/gif' => 'gif', 'image/webp' => 'webp'];
         $saved = 0;
         try {
             foreach ($this->fotoFiles as $file) {
-                $ext = $file->getClientOriginalExtension();
+                $ext = safe_upload_extension($file, $allowedImageMimes) ?? 'jpg';
                 $safeName = 'galeri_' . Str::random(8) . '.' . $ext;
                 $destFile = $dir . DIRECTORY_SEPARATOR . $safeName;
                 // Pakai copy agar jalan saat temp (storage) dan public/uploads beda filesystem/symlink
@@ -102,8 +103,12 @@ class Galeri extends Component
 
     public function deleteFoto($id)
     {
+        $id = filter_var($id, FILTER_VALIDATE_INT);
+        if ($id === false) {
+            abort(404);
+        }
         $galeri = GaleriModel::findOrFail($id);
-        $fullPath = $galeri->path ? uploads_base_path('uploads/' . $galeri->path) : null;
+        $fullPath = $galeri->path ? uploads_safe_full_path($galeri->path) : null;
         if ($fullPath && File::exists($fullPath)) {
             File::delete($fullPath);
         }

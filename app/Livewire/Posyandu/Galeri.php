@@ -64,9 +64,10 @@ class Galeri extends Component
         if (!File::isDirectory($dir)) {
             File::makeDirectory($dir, 0755, true);
         }
+        $allowedImageMimes = ['image/jpeg' => 'jpg', 'image/pjpeg' => 'jpg', 'image/png' => 'png', 'image/gif' => 'gif', 'image/webp' => 'webp'];
         $saved = 0;
         foreach ($this->fotoFiles as $file) {
-            $ext = $file->getClientOriginalExtension();
+            $ext = safe_upload_extension($file, $allowedImageMimes) ?? 'jpg';
             $safeName = 'galeri_' . $this->posyanduId . '_' . Str::random(8) . '.' . $ext;
             $destFile = $dir . DIRECTORY_SEPARATOR . $safeName;
             if (!File::copy($file->getRealPath(), $destFile)) {
@@ -88,8 +89,12 @@ class Galeri extends Component
 
     public function deleteFoto($id)
     {
+        $id = filter_var($id, FILTER_VALIDATE_INT);
+        if ($id === false) {
+            abort(404);
+        }
         $galeri = GaleriModel::where('id_posyandu', $this->posyanduId)->findOrFail($id);
-        $fullPath = $galeri->path ? uploads_base_path('uploads/' . $galeri->path) : null;
+        $fullPath = $galeri->path ? uploads_safe_full_path($galeri->path) : null;
         if ($fullPath && File::exists($fullPath)) {
             File::delete($fullPath);
         }

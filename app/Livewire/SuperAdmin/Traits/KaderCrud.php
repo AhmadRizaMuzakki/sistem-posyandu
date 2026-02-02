@@ -236,7 +236,8 @@ trait KaderCrud
                             File::delete($oldFull);
                         }
                     }
-                    $ext = $this->fotoKaderFile->getClientOriginalExtension();
+                    $allowedImageMimes = ['image/jpeg' => 'jpg', 'image/pjpeg' => 'jpg', 'image/png' => 'png', 'image/gif' => 'gif', 'image/webp' => 'webp'];
+                    $ext = safe_upload_extension($this->fotoKaderFile, $allowedImageMimes) ?? 'jpg';
                     $safeName = 'kader_' . $kader->id_kader . '_' . Str::random(8) . '.' . $ext;
                     $destFile = $dir . DIRECTORY_SEPARATOR . $safeName;
                     File::copy($this->fotoKaderFile->getRealPath(), $destFile);
@@ -282,7 +283,8 @@ trait KaderCrud
                     if (!File::isDirectory($dir)) {
                         File::makeDirectory($dir, 0755, true);
                     }
-                    $ext = $this->fotoKaderFile->getClientOriginalExtension();
+                    $allowedImageMimes = ['image/jpeg' => 'jpg', 'image/pjpeg' => 'jpg', 'image/png' => 'png', 'image/gif' => 'gif', 'image/webp' => 'webp'];
+                    $ext = safe_upload_extension($this->fotoKaderFile, $allowedImageMimes) ?? 'jpg';
                     $safeName = 'kader_' . $newKader->id_kader . '_' . Str::random(8) . '.' . $ext;
                     $destFile = $dir . DIRECTORY_SEPARATOR . $safeName;
                     File::copy($this->fotoKaderFile->getRealPath(), $destFile);
