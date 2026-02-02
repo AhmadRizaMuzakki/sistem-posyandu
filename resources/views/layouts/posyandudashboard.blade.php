@@ -13,6 +13,29 @@
         body {
             font-family: 'Inter', sans-serif;
         }
+        
+        /* Sidebar Menu Active State */
+        .sidebar-menu-item {
+            transition: all 0.3s ease;
+        }
+        
+        .sidebar-menu-item:hover {
+            background-color: #f3f4f6;
+        }
+        
+        .sidebar-menu-item.active {
+            background-color: #e9d5ff !important; /* Light purple/lavender background */
+            color: #7c3aed !important; /* Dark purple text */
+        }
+        
+        .sidebar-menu-item.active i {
+            color: #7c3aed !important; /* Dark purple icon */
+        }
+        
+        .sidebar-menu-item.active span {
+            color: #7c3aed !important; /* Dark purple text */
+            font-weight: 600;
+        }
     </style>
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
@@ -34,7 +57,7 @@
             <nav class="mt-6 px-4 space-y-2">
                 {{-- 1. DASHBOARD UTAMA --}}
                 <a href="{{ route('adminPosyandu.dashboard') }}"
-                    class="flex items-center px-4 py-3 text-white bg-primary rounded-lg transition-colors">
+                    class="sidebar-menu-item flex items-center px-4 py-3 rounded-lg {{ request()->routeIs('adminPosyandu.dashboard') ? 'active' : 'text-gray-600' }}">
                     <i class="ph ph-squares-four text-xl mr-3"></i>
                     <span class="font-medium">Dashboard</span>
                 </a>
@@ -45,70 +68,70 @@
                     {{-- 2. DATA POSYANDU --}}
                 @if (Auth::user()->hasRole('superadmin'))
                     <a href="{{ route('supervisor') }}"
-                    class="flex items-center px-4 py-3 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
+                    class="sidebar-menu-item flex items-center px-4 py-3 rounded-lg {{ request()->routeIs('supervisor') ? 'active' : 'text-gray-600' }}">
                     <i class="ph ph-buildings text-xl mr-3"></i>
                     <span class="font-medium">Posyandu</span>
                     </a>
                 @elseif (Auth::user()->hasRole('adminPosyandu'))
                     <a href="{{ route('adminPosyandu.dashboard') }}"
-                    class="flex items-center px-4 py-3 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
+                    class="sidebar-menu-item flex items-center px-4 py-3 rounded-lg {{ request()->routeIs('adminPosyandu.dashboard') ? 'active' : 'text-gray-600' }}">
                     <i class="ph ph-buildings text-xl mr-3"></i>
                     <span class="font-medium">Posyandu</span>
                     </a>
                 @endif
 
-                {{-- 8. JADWAL --}}{{-- 8. JADWAL --}}
+                {{-- 8. JADWAL --}}
                 <a href="{{ route('adminPosyandu.jadwal') }}"
-                    class="flex items-center px-4 py-3 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
+                    class="sidebar-menu-item flex items-center px-4 py-3 rounded-lg {{ request()->routeIs('adminPosyandu.jadwal') ? 'active' : 'text-gray-600' }}">
                     <i class="ph ph-calendar text-xl mr-3"></i>
                     <span class="font-medium">Jadwal</span>
                 </a>
                 
                 {{-- 3. DATA PETUGAS KESEHATAN --}}
                 <a href="{{ route('adminPosyandu.petugas-kesehatan') }}"
-                    class="flex items-center px-4 py-3 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
+                    class="sidebar-menu-item flex items-center px-4 py-3 rounded-lg {{ request()->routeIs('adminPosyandu.petugas-kesehatan') ? 'active' : 'text-gray-600' }}">
                     <i class="ph ph-stethoscope text-xl mr-3"></i>
                     <span class="font-medium">Petugas Kesehatan</span>
                 </a>
 
                 {{-- 4. DATA SASARAN --}}
                 <a href="{{ route('adminPosyandu.sasaran') }}"
-                    class="flex items-center px-4 py-3 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
+                    class="sidebar-menu-item flex items-center px-4 py-3 rounded-lg {{ request()->routeIs('adminPosyandu.sasaran') ? 'active' : 'text-gray-600' }}">
                     <i class="ph ph-baby text-xl mr-3"></i>
                     <span class="font-medium">Sasaran & Anak</span>
                 </a>
 
                 {{-- 5. DATA IMUNISASI --}}
                 <a href="{{ route('adminPosyandu.imunisasi') }}"
-                    class="flex items-center px-4 py-3 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
+                    class="sidebar-menu-item flex items-center px-4 py-3 rounded-lg {{ request()->routeIs('adminPosyandu.imunisasi') ? 'active' : 'text-gray-600' }}">
                     <i class="ph ph-syringe text-xl mr-3"></i>
                     <span class="font-medium">Imunisasi</span>
                 </a>
 
                 {{-- 6. DATA PENDIDIKAN --}}
                 <a href="{{ route('adminPosyandu.pendidikan') }}"
-                    class="flex items-center px-4 py-3 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
+                    class="sidebar-menu-item flex items-center px-4 py-3 rounded-lg {{ request()->routeIs('adminPosyandu.pendidikan') ? 'active' : 'text-gray-600' }}">
                     <i class="ph ph-graduation-cap text-xl mr-3"></i>
                     <span class="font-medium">Pendidikan</span>
                 </a>
 
                 {{-- 7. ABSENSI KEHADIRAN --}}
                 <a href="{{ route('adminPosyandu.ibu-menyusui') }}"
-                    class="flex items-center px-4 py-3 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
+                    class="sidebar-menu-item flex items-center px-4 py-3 rounded-lg {{ request()->routeIs('adminPosyandu.ibu-menyusui') ? 'active' : 'text-gray-600' }}">
                     <i class="ph ph-baby text-xl mr-3"></i>
                     <span class="font-medium">Absensi</span>
                 </a>
 
                 {{-- 9. LAPORAN --}}
                 <a href="{{ route('adminPosyandu.laporan') }}"
-                    class="flex items-center px-4 py-3 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
+                    class="sidebar-menu-item flex items-center px-4 py-3 rounded-lg {{ request()->routeIs('adminPosyandu.laporan') ? 'active' : 'text-gray-600' }}">
                     <i class="ph ph-chart-bar text-xl mr-3"></i>
                     <span class="font-medium">Laporan</span>
                 </a>
 
                 {{-- GALERI (menu navigasi) --}}
                 <a href="{{ route('adminPosyandu.galeri') }}"
-                    class="flex items-center px-4 py-3 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
+                    class="sidebar-menu-item flex items-center px-4 py-3 rounded-lg {{ request()->routeIs('adminPosyandu.galeri') ? 'active' : 'text-gray-600' }}">
                     <i class="ph ph-images text-xl mr-3"></i>
                     <span class="font-medium">Galeri</span>
                 </a>

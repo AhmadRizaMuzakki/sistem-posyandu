@@ -24,6 +24,29 @@
         .custom-scrollbar::-webkit-scrollbar-track {
             background: transparent;
         }
+        
+        /* Sidebar Menu Active State */
+        .sidebar-menu-item {
+            transition: all 0.3s ease;
+        }
+        
+        .sidebar-menu-item:hover {
+            background-color: #f3f4f6;
+        }
+        
+        .sidebar-menu-item.active {
+            background-color: #e9d5ff !important; /* Light purple/lavender background */
+            color: #7c3aed !important; /* Dark purple text */
+        }
+        
+        .sidebar-menu-item.active i {
+            color: #7c3aed !important; /* Dark purple icon */
+        }
+        
+        .sidebar-menu-item.active span {
+            color: #7c3aed !important; /* Dark purple text */
+            font-weight: 600;
+        }
     </style>
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
@@ -101,7 +124,7 @@
                 {{-- DASHBOARD UTAMA --}}
                 <a
                     href="{{ route('admin.dashboard') }}"
-                    class="flex items-center px-4 py-3 text-white bg-primary rounded-lg transition-colors"
+                    class="sidebar-menu-item flex items-center px-4 py-3 rounded-lg {{ request()->routeIs('admin.dashboard') ? 'active' : 'text-gray-600' }}"
                 >
                     <i class="ph ph-squares-four text-xl mr-3"></i>
                     <span class="font-medium">Dashboard</span>
@@ -110,18 +133,18 @@
                 {{-- Daftar Posyandu --}}
                 <a
                     href="{{ route('posyandu.list') }}"
-                    class="flex items-center px-4 py-2 text-sm text-gray-600 hover:bg-gray-100 hover:text-primary rounded-lg transition-colors group mt-4"
+                    class="sidebar-menu-item flex items-center px-4 py-2 text-sm rounded-lg mt-4 {{ request()->routeIs('posyandu.list') ? 'active' : 'text-gray-600' }}"
                 >
-                    <i class="ph ph-list text-lg mr-3 group-hover:text-primary"></i>
+                    <i class="ph ph-list text-lg mr-3"></i>
                     <span class="font-medium">Daftar Posyandu</span>
                 </a>
 
                 {{-- Galeri (menu navigasi) --}}
                 <a
                     href="{{ route('superadmin.galeri') }}"
-                    class="flex items-center px-4 py-2 text-sm text-gray-600 hover:bg-gray-100 hover:text-primary rounded-lg transition-colors group mt-2"
+                    class="sidebar-menu-item flex items-center px-4 py-2 text-sm rounded-lg mt-2 {{ request()->routeIs('superadmin.galeri') ? 'active' : 'text-gray-600' }}"
                 >
-                    <i class="ph ph-images text-lg mr-3 group-hover:text-primary"></i>
+                    <i class="ph ph-images text-lg mr-3"></i>
                     <span class="font-medium">Galeri</span>
                 </a>
 
@@ -179,81 +202,81 @@
 
                                 <a
                                     :href="`/supervisor/posyandu/${posyandu.encryptedId}/info`"
-                                    class="flex items-center px-4 py-2 text-sm text-gray-600 hover:bg-gray-100 hover:text-primary rounded-lg transition-colors group"
+                                    class="sidebar-menu-item flex items-center px-4 py-2 text-sm rounded-lg {{ request()->routeIs('posyandu.info') ? 'active' : 'text-gray-600' }}"
                                 >
-                                    <i class="ph ph-info text-lg mr-3 group-hover:text-primary"></i>
+                                    <i class="ph ph-info text-lg mr-3"></i>
                                     <span class="font-medium">Info Posyandu</span>
                                 </a>
 
                                 <a
                                     :href="`/supervisor/posyandu/${posyandu.encryptedId}/jadwal`"
-                                    class="flex items-center px-4 py-2 text-sm text-gray-600 hover:bg-gray-100 hover:text-primary rounded-lg transition-colors group"
+                                    class="sidebar-menu-item flex items-center px-4 py-2 text-sm rounded-lg {{ request()->routeIs('posyandu.jadwal') ? 'active' : 'text-gray-600' }}"
                                 >
-                                    <i class="ph ph-calendar text-lg mr-3 group-hover:text-primary"></i>
+                                    <i class="ph ph-calendar text-lg mr-3"></i>
                                     <span class="font-medium">Jadwal</span>
                                 </a>
 
                                 <a
                                     :href="`/supervisor/posyandu/${posyandu.encryptedId}/kader`"
-                                    class="flex items-center px-4 py-2 text-sm text-gray-600 hover:bg-gray-100 hover:text-primary rounded-lg transition-colors group"
+                                    class="sidebar-menu-item flex items-center px-4 py-2 text-sm rounded-lg {{ request()->routeIs('posyandu.kader') ? 'active' : 'text-gray-600' }}"
                                 >
-                                    <i class="ph ph-users text-lg mr-3 group-hover:text-primary"></i>
+                                    <i class="ph ph-users text-lg mr-3"></i>
                                     <span class="font-medium">Kader</span>
                                 </a>
 
                                 <a
                                     :href="`/supervisor/posyandu/${posyandu.encryptedId}/petugas-kesehatan`"
-                                    class="flex items-center px-4 py-2 text-sm text-gray-600 hover:bg-gray-100 hover:text-primary rounded-lg transition-colors group"
+                                    class="sidebar-menu-item flex items-center px-4 py-2 text-sm rounded-lg {{ request()->routeIs('posyandu.petugas-kesehatan') ? 'active' : 'text-gray-600' }}"
                                 >
-                                    <i class="ph ph-stethoscope text-lg mr-3 group-hover:text-primary"></i>
+                                    <i class="ph ph-stethoscope text-lg mr-3"></i>
                                     <span class="font-medium">Petugas Kesehatan</span>
                                 </a>
 
                                 <a
                                     :href="`/supervisor/posyandu/${posyandu.encryptedId}/sasaran`"
-                                    class="flex items-center px-4 py-2 text-sm text-gray-600 hover:bg-gray-100 hover:text-primary rounded-lg transition-colors group"
+                                    class="sidebar-menu-item flex items-center px-4 py-2 text-sm rounded-lg {{ request()->routeIs('posyandu.sasaran') ? 'active' : 'text-gray-600' }}"
                                 >
-                                    <i class="ph ph-baby text-lg mr-3 group-hover:text-primary"></i>
+                                    <i class="ph ph-baby text-lg mr-3"></i>
                                     <span class="font-medium">Sasaran</span>
                                 </a>
 
                                 <a
                                     :href="`/supervisor/posyandu/${posyandu.encryptedId}/imunisasi`"
-                                    class="flex items-center px-4 py-2 text-sm text-gray-600 hover:bg-gray-100 hover:text-primary rounded-lg transition-colors group"
+                                    class="sidebar-menu-item flex items-center px-4 py-2 text-sm rounded-lg {{ request()->routeIs('posyandu.imunisasi') ? 'active' : 'text-gray-600' }}"
                                 >
-                                    <i class="ph ph-syringe text-lg mr-3 group-hover:text-primary"></i>
+                                    <i class="ph ph-syringe text-lg mr-3"></i>
                                     <span class="font-medium">Imunisasi</span>
                                 </a>
 
                                 <a
                                     :href="`/supervisor/posyandu/${posyandu.encryptedId}/pendidikan`"
-                                    class="flex items-center px-4 py-2 text-sm text-gray-600 hover:bg-gray-100 hover:text-primary rounded-lg transition-colors group"
+                                    class="sidebar-menu-item flex items-center px-4 py-2 text-sm rounded-lg {{ request()->routeIs('posyandu.pendidikan') ? 'active' : 'text-gray-600' }}"
                                 >
-                                    <i class="ph ph-graduation-cap text-lg mr-3 group-hover:text-primary"></i>
+                                    <i class="ph ph-graduation-cap text-lg mr-3"></i>
                                     <span class="font-medium">Pendidikan</span>
                                 </a>
 
                                 <a
                                     :href="`/supervisor/posyandu/${posyandu.encryptedId}/ibu-menyusui`"
-                                    class="flex items-center px-4 py-2 text-sm text-gray-600 hover:bg-gray-100 hover:text-primary rounded-lg transition-colors group"
+                                    class="sidebar-menu-item flex items-center px-4 py-2 text-sm rounded-lg {{ request()->routeIs('posyandu.ibu-menyusui') ? 'active' : 'text-gray-600' }}"
                                 >
-                                    <i class="ph ph-baby text-lg mr-3 group-hover:text-primary"></i>
+                                    <i class="ph ph-baby text-lg mr-3"></i>
                                     <span class="font-medium">Absensi</span>
                                 </a>
 
                                 <a
                                     :href="`/supervisor/posyandu/${posyandu.encryptedId}/laporan`"
-                                    class="flex items-center px-4 py-2 text-sm text-gray-600 hover:bg-gray-100 hover:text-primary rounded-lg transition-colors group"
+                                    class="sidebar-menu-item flex items-center px-4 py-2 text-sm rounded-lg {{ request()->routeIs('posyandu.laporan') ? 'active' : 'text-gray-600' }}"
                                 >
-                                    <i class="ph ph-chart-bar text-lg mr-3 group-hover:text-primary"></i>
+                                    <i class="ph ph-chart-bar text-lg mr-3"></i>
                                     <span class="font-medium">Laporan</span>
                                 </a>
 
                                 <a
                                     :href="`/supervisor/posyandu/${posyandu.encryptedId}/galeri`"
-                                    class="flex items-center px-4 py-2 text-sm text-gray-600 hover:bg-gray-100 hover:text-primary rounded-lg transition-colors group"
+                                    class="sidebar-menu-item flex items-center px-4 py-2 text-sm rounded-lg {{ request()->routeIs('posyandu.galeri') ? 'active' : 'text-gray-600' }}"
                                 >
-                                    <i class="ph ph-images text-lg mr-3 group-hover:text-primary"></i>
+                                    <i class="ph ph-images text-lg mr-3"></i>
                                     <span class="font-medium">Galeri</span>
                                 </a>
                             </div>

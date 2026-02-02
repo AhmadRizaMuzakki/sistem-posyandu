@@ -4,27 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Posyandu Karanggan - Sehat Bersama, Tumbuh Bahagia</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    fontFamily: {
-                        sans: ['Inter', 'sans-serif'],
-                    },
-                    colors: {
-                        primary: '#0D9488', // Emerald Teal
-                        primaryDark: '#0F766E',
-                        secondary: '#FDBA74', // Soft Orange
-                        lightBg: '#F0FDFA', // Very Light Teal
-                    }
-                }
-            }
-        }
-    </script>
     <style>
         /* Custom Animations for UX Delight */
         .fade-in-up { animation: fadeInUp 0.8s ease-out; }
@@ -85,9 +67,9 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between items-center h-20">
                 <div class="flex items-center gap-2">
-                    <div class="w-10 h-10 bg-primary rounded-full flex items-center justify-center text-white font-bold text-xl">
-                        <i class="fa-solid fa-heart-pulse"></i>
-                    </div>
+                    <a href="#beranda" class="flex-shrink-0 block w-11 h-11 sm:w-12 sm:h-12 rounded-full overflow-hidden ring-2 ring-primary/20 shadow-md hover:ring-primary/40 hover:shadow-lg hover:scale-105 transition-all duration-300">
+                        <img src="{{ asset('images/home.jpeg') }}" alt="Logo Posyandu" class="w-full h-full object-cover">
+                    </a>
                     <a href="#beranda" class="font-bold text-xl tracking-tight text-slate-800 hover:text-primary transition">Posyandu Karanggan</a>
                 </div>
                 <div class="hidden md:flex space-x-8">
@@ -173,7 +155,7 @@
         
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center">
             <span class="inline-block py-1 px-3 rounded-full bg-teal-100 text-primary text-sm font-semibold mb-6 fade-in-up">
-                ? Melayani Sepenuh Hati untuk Keluarga Sehat
+                Melayani Sepenuh Hati untuk Keluarga Sehat
             </span>
             <h1 class="text-4xl md:text-6xl font-extrabold text-slate-900 tracking-tight mb-6 leading-tight fade-in-up" style="animation-delay: 0.1s;">
                 Mewujudkan Generasi Sehat <br>
@@ -405,16 +387,14 @@
                     @foreach($daftarPosyandu as $p)
                         <div class="group bg-white rounded-2xl p-6 border-2 border-slate-200 hover:border-primary transition-all duration-300 hover:shadow-xl hover:-translate-y-2">
                             <div class="flex items-center justify-between mb-4">
-                                <div class="w-14 h-14 rounded-xl flex items-center justify-center overflow-hidden bg-slate-100 shadow-lg group-hover:scale-110 transition-transform flex-shrink-0">
+                                <div class="w-20 h-20 rounded-xl flex items-center justify-center overflow-hidden bg-gradient-to-br from-primary to-primaryDark shadow-lg group-hover:scale-105 transition-transform flex-shrink-0">
                                     @if($p->logo_posyandu)
-                                        <img src="{{ uploads_asset($p->logo_posyandu) }}" alt="Logo {{ $p->nama_posyandu }}" class="w-full h-full object-contain p-1" onerror="this.style.display='none'; this.nextElementSibling.classList.remove('hidden');">
-                                        <div class="hidden w-full h-full bg-gradient-to-br from-primary to-primaryDark items-center justify-center text-white text-xl">
+                                        <img src="{{ uploads_asset($p->logo_posyandu) }}" alt="Logo {{ $p->nama_posyandu }}" class="w-full h-full object-contain p-2" onerror="this.style.display='none'; this.nextElementSibling.classList.remove('hidden');">
+                                        <div class="hidden w-full h-full flex items-center justify-center text-white text-2xl">
                                             <i class="fa-solid fa-hospital"></i>
                                         </div>
                                     @else
-                                        <div class="w-full h-full bg-gradient-to-br from-primary to-primaryDark flex items-center justify-center text-white text-xl">
-                                            <i class="fa-solid fa-hospital"></i>
-                                        </div>
+                                        <i class="fa-solid fa-hospital text-white text-2xl"></i>
                                     @endif
                                 </div>
                                 <a href="{{ route('posyandu.public.detail', $p->id_posyandu) }}" 
@@ -422,9 +402,11 @@
                                     <i class="fa-solid fa-arrow-right text-lg"></i>
                                 </a>
                             </div>
-                            <h3 class="text-xl font-bold text-slate-900 mb-2 group-hover:text-primary transition-colors">
+                            <a href="{{ route('posyandu.public.detail', $p->id_posyandu) }}" 
+                               class="inline-flex items-center text-xl font-bold text-slate-900 mb-2 hover:text-primary transition-colors group/name">
                                 {{ $p->nama_posyandu }}
-                            </h3>
+                                <i class="fa-solid fa-arrow-right ml-2 text-primary text-sm opacity-0 -translate-x-1 group-hover/name:opacity-100 group-hover/name:translate-x-0 transition-all"></i>
+                            </a>
                             @if($p->domisili_posyandu)
                                 <div class="flex items-center text-sm text-slate-500 mb-2">
                                     <i class="fa-solid fa-location-dot mr-2 text-primary"></i>
@@ -441,9 +423,9 @@
                                 </p>
                             @endif
                             <a href="{{ route('posyandu.public.detail', $p->id_posyandu) }}" 
-                               class="inline-flex items-center text-sm font-semibold text-primary hover:text-primaryDark transition-colors">
+                               class="inline-flex items-center gap-2 text-sm font-semibold text-primary hover:text-primaryDark transition-colors group/link">
                                 Lihat Detail
-                                <i class="fa-solid fa-arrow-right ml-2 text-xs"></i>
+                                <i class="fa-solid fa-arrow-right text-xs group-hover/link:translate-x-1 transition-transform"></i>
                             </a>
                         </div>
                     @endforeach
