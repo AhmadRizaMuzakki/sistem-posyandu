@@ -319,7 +319,7 @@
             <div class="flex flex-col md:flex-row items-center gap-12 md:gap-20">
                 <div class="md:w-1/2">
                     <div class="relative rounded-2xl overflow-hidden shadow-2xl">
-                        <img src="{{ file_exists(public_path('images/Kades.jpeg')) ? asset('images/Kades.jpeg') : 'https://images.unsplash.com/photo-1579684385180-1ea55c938de4?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80' }}" alt="Kegiatan Posyandu" class="w-full object-cover hover:scale-105 transition duration-700">
+                        <img src="{{ file_exists(public_path('images/Kades.png')) ? asset('images/Kades.png') : 'https://images.unsplash.com/photo-1579684385180-1ea55c938de4?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80' }}" alt="Kegiatan Posyandu" class="w-full object-cover hover:scale-105 transition duration-700">
                     </div>
                 </div>
                 <div class="md:w-1/2 md:pl-4">
