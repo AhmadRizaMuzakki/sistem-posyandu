@@ -88,9 +88,19 @@ class PosyanduDashboard extends Component
                 'belum_hadir' => $jadwalBulanIni->where('presensi', 'belum_hadir')->count(),
             ];
 
+            // Ringkasan status keluarga orangtua (dari sasaran dewasa, pralansia, lansia)
+            $statusKeluargaCount = [
+                'kepala_keluarga' => SasaranDewasa::where('id_posyandu', $this->posyanduId)->where('status_keluarga', 'kepala keluarga')->count()
+                    + SasaranPralansia::where('id_posyandu', $this->posyanduId)->where('status_keluarga', 'kepala keluarga')->count()
+                    + SasaranLansia::where('id_posyandu', $this->posyanduId)->where('status_keluarga', 'kepala keluarga')->count(),
+                'istri' => SasaranDewasa::where('id_posyandu', $this->posyanduId)->where('status_keluarga', 'istri')->count()
+                    + SasaranPralansia::where('id_posyandu', $this->posyanduId)->where('status_keluarga', 'istri')->count()
+                    + SasaranLansia::where('id_posyandu', $this->posyanduId)->where('status_keluarga', 'istri')->count(),
+            ];
+
             return compact('totalKader', 'totalSasaran', 'sasaranByCategory', 'pendidikanData',
                 'kategoriSasaranList', 'jenisVaksinList', 'namaSasaranList', 'kategoriPendidikanList',
-                'absenPetugas');
+                'absenPetugas', 'statusKeluargaCount');
         });
 
         // Mapping label kategori

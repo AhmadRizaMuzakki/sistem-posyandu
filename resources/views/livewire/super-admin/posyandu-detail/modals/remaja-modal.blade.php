@@ -325,6 +325,15 @@
                             @error('kelamin_orangtua_remaja') <span class="text-red-500 text-xs">{{ $message }}</span>@enderror
                         </div>
                         <div>
+                            <label class="block text-gray-700 text-sm font-bold mb-2">Status Keluarga Orangtua</label>
+                            <select wire:model="status_keluarga_orangtua_remaja" class="shadow border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-primary focus:border-primary">
+                                <option value="">Pilih Status Keluarga...</option>
+                                <option value="kepala keluarga">Kepala Keluarga</option>
+                                <option value="istri">Istri</option>
+                            </select>
+                            @error('status_keluarga_orangtua_remaja') <span class="text-red-500 text-xs">{{ $message }}</span>@enderror
+                        </div>
+                        <div>
                             <label class="block text-gray-700 text-sm font-bold mb-2">Pekerjaan Orangtua <span class="text-red-500">*</span></label>
                             <select wire:model="pekerjaan_orangtua_remaja" class="shadow border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-primary focus:border-primary">
                                 <option value="">Pilih Pekerjaan...</option>

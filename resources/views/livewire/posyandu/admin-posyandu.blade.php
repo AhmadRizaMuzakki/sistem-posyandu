@@ -72,6 +72,21 @@
                     </div>
                 </div>
             </div>
+
+            {{-- Card Status Keluarga Orangtua --}}
+            <div class="mt-6 pt-6 border-t border-gray-200">
+                <h3 class="text-sm font-semibold text-gray-700 mb-3">Status Keluarga Orangtua (Dewasa/Pralansia/Lansia)</h3>
+                <div class="flex flex-wrap gap-4">
+                    <div class="flex items-center gap-2 px-4 py-2 bg-blue-50 text-blue-800 rounded-lg">
+                        <i class="ph ph-user text-xl"></i>
+                        <span><strong>Kepala Keluarga:</strong> {{ $statusKeluargaCount['kepala_keluarga'] ?? 0 }} orang</span>
+                    </div>
+                    <div class="flex items-center gap-2 px-4 py-2 bg-purple-50 text-purple-800 rounded-lg">
+                        <i class="ph ph-heart text-xl"></i>
+                        <span><strong>Istri:</strong> {{ $statusKeluargaCount['istri'] ?? 0 }} orang</span>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <!-- Informasi Posyandu -->

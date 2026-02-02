@@ -53,6 +53,7 @@ trait RemajaCrud
     public $kepersertaan_bpjs_orangtua_remaja;
     public $nomor_bpjs_orangtua_remaja;
     public $nomor_telepon_orangtua_remaja;
+    public $status_keluarga_orangtua_remaja;
 
     /**
      * Buka modal tambah/edit Sasaran Remaja
@@ -114,6 +115,7 @@ trait RemajaCrud
         $this->kepersertaan_bpjs_orangtua_remaja = '';
         $this->nomor_bpjs_orangtua_remaja = '';
         $this->nomor_telepon_orangtua_remaja = '';
+        $this->status_keluarga_orangtua_remaja = '';
     }
 
     /**
@@ -146,6 +148,7 @@ trait RemajaCrud
             'pekerjaan_orangtua_remaja' => 'required|string',
             'pendidikan_orangtua_remaja' => 'nullable|string',
             'kelamin_orangtua_remaja' => 'required|in:Laki-laki,Perempuan',
+            'status_keluarga_orangtua_remaja' => 'nullable|in:kepala keluarga,istri',
             'kepersertaan_bpjs_orangtua_remaja' => 'nullable|in:PBI,NON PBI',
             'nomor_bpjs_orangtua_remaja' => 'nullable|string|max:50',
             'nomor_telepon_orangtua_remaja' => 'nullable|string|max:20',
@@ -291,7 +294,8 @@ trait RemajaCrud
                 $orangtua,
                 $this->posyanduId,
                 $this->rt_remaja,
-                $this->rw_remaja
+                $this->rw_remaja,
+                $this->status_keluarga_orangtua_remaja
             );
         }
 
@@ -438,6 +442,9 @@ trait RemajaCrud
                 $this->kepersertaan_bpjs_orangtua_remaja = $orangtua->kepersertaan_bpjs ?? '';
                 $this->nomor_bpjs_orangtua_remaja = $orangtua->nomor_bpjs ?? '';
                 $this->nomor_telepon_orangtua_remaja = $orangtua->nomor_telepon ?? '';
+                $this->status_keluarga_orangtua_remaja = method_exists($this, 'getStatusKeluargaOrangtuaFromSasaran')
+                    ? $this->getStatusKeluargaOrangtuaFromSasaran($remaja->nik_orangtua, $this->posyanduId)
+                    : '';
             } else {
                 $this->nama_orangtua_remaja = '';
                 $this->tempat_lahir_orangtua_remaja = '';
@@ -451,6 +458,7 @@ trait RemajaCrud
                 $this->kepersertaan_bpjs_orangtua_remaja = '';
                 $this->nomor_bpjs_orangtua_remaja = '';
                 $this->nomor_telepon_orangtua_remaja = '';
+                $this->status_keluarga_orangtua_remaja = '';
             }
         } else {
             $this->nama_orangtua_remaja = '';
@@ -465,6 +473,7 @@ trait RemajaCrud
             $this->kepersertaan_bpjs_orangtua_remaja = '';
             $this->nomor_bpjs_orangtua_remaja = '';
             $this->nomor_telepon_orangtua_remaja = '';
+            $this->status_keluarga_orangtua_remaja = '';
         }
 
         $this->isSasaranRemajaModalOpen = true;

@@ -110,6 +110,7 @@
                         {{-- Kolom Data Orang Tua (hanya untuk Balita dan Remaja) --}}
                         @if($isDetailed)
                             <th class="px-6 py-3">Nama Orang Tua</th>
+                            <th class="px-6 py-3">Status Keluarga Orang Tua</th>
                             <th class="px-6 py-3">Tempat Lahir Orang Tua</th>
                             <th class="px-6 py-3">Pekerjaan Orang Tua</th>
                             <th class="px-6 py-3">Pendidikan Orang Tua</th>
@@ -219,6 +220,15 @@
                                     $orangtua = $item->orangtua;
                                 }
 
+                                // Ambil status keluarga orangtua dari sasaran dewasa/pralansia/lansia
+                                $statusKeluargaOrtu = '-';
+                                if ($item->nik_orangtua && $item->id_posyandu) {
+                                    $sasaranOrtu = \App\Models\SasaranDewasa::where('nik_sasaran', $item->nik_orangtua)->where('id_posyandu', $item->id_posyandu)->first()
+                                        ?? \App\Models\SasaranPralansia::where('nik_sasaran', $item->nik_orangtua)->where('id_posyandu', $item->id_posyandu)->first()
+                                        ?? \App\Models\SasaranLansia::where('nik_sasaran', $item->nik_orangtua)->where('id_posyandu', $item->id_posyandu)->first();
+                                    $statusKeluargaOrtu = $sasaranOrtu && $sasaranOrtu->status_keluarga ? ucfirst($sasaranOrtu->status_keluarga) : '-';
+                                }
+
                                 // Tentukan apakah harus menampilkan strip
                                 $showStrip = false;
                                 if (isset($item->nik_orangtua) && $item->nik_orangtua == '-') {
@@ -236,6 +246,7 @@
                                     <span class="text-gray-400">-</span>
                                 @endif
                             </td>
+                            <td class="px-6 py-4">{{ $showStrip ? '-' : $statusKeluargaOrtu }}</td>
                             <td class="px-6 py-4">
                                 @if($showStrip)
                                     <span class="text-gray-400">-</span>

@@ -53,6 +53,7 @@ trait BalitaCrud
     public $kepersertaan_bpjs_orangtua;
     public $nomor_bpjs_orangtua;
     public $nomor_telepon_orangtua;
+    public $status_keluarga_orangtua;
 
     /**
      * Buka modal tambah/edit Sasaran Balita
@@ -113,6 +114,7 @@ trait BalitaCrud
         $this->kepersertaan_bpjs_orangtua = '';
         $this->nomor_bpjs_orangtua = '';
         $this->nomor_telepon_orangtua = '';
+        $this->status_keluarga_orangtua = '';
     }
 
     /**
@@ -146,6 +148,7 @@ trait BalitaCrud
             'pekerjaan_orangtua' => 'required|string',
             'pendidikan_orangtua' => 'nullable|string',
             'kelamin_orangtua' => 'required|in:Laki-laki,Perempuan',
+            'status_keluarga_orangtua' => 'nullable|in:kepala keluarga,istri',
             'kepersertaan_bpjs_orangtua' => 'nullable|in:PBI,NON PBI',
             'nomor_bpjs_orangtua' => 'nullable|string|max:50',
             'nomor_telepon_orangtua' => 'nullable|string|max:20',
@@ -292,10 +295,11 @@ trait BalitaCrud
             // Buat atau update record sasaran dewasa/pralansia/lansia berdasarkan umur orangtua
             // Panggil setelah user dibuat agar user sudah tersedia
             $this->createOrUpdateSasaranFromOrangtua(
-                $orangtua, 
+                $orangtua,
                 $this->id_posyandu_sasaran ?? $this->posyanduId,
                 $this->rt_sasaran,
-                $this->rw_sasaran
+                $this->rw_sasaran,
+                $this->status_keluarga_orangtua
             );
 
             $data = [
@@ -402,6 +406,7 @@ trait BalitaCrud
                 $this->kepersertaan_bpjs_orangtua = $orangtua->kepersertaan_bpjs ?? '';
                 $this->nomor_bpjs_orangtua = $orangtua->nomor_bpjs ?? '';
                 $this->nomor_telepon_orangtua = $orangtua->nomor_telepon ?? '';
+                $this->status_keluarga_orangtua = $this->getStatusKeluargaOrangtuaFromSasaran($balita->nik_orangtua, $this->id_posyandu_sasaran ?? $this->posyanduId);
             } else {
                 $this->nama_orangtua = '';
                 $this->tempat_lahir_orangtua = '';
@@ -429,6 +434,7 @@ trait BalitaCrud
             $this->kepersertaan_bpjs_orangtua = '';
             $this->nomor_bpjs_orangtua = '';
             $this->nomor_telepon_orangtua = '';
+            $this->status_keluarga_orangtua = '';
         }
 
         $this->isSasaranBalitaModalOpen = true;
@@ -953,9 +959,30 @@ trait BalitaCrud
     }
 
     /**
+     * Ambil status keluarga orangtua dari sasaran dewasa/pralansia/lansia (jika ada)
+     */
+    private function getStatusKeluargaOrangtuaFromSasaran($nikOrangtua, $idPosyandu)
+    {
+        if (!$nikOrangtua || !$idPosyandu) {
+            return '';
+        }
+        $sasaran = SasaranDewasa::where('nik_sasaran', $nikOrangtua)->where('id_posyandu', $idPosyandu)->first();
+        if ($sasaran) {
+            return $sasaran->status_keluarga ?? '';
+        }
+        $sasaran = SasaranPralansia::where('nik_sasaran', $nikOrangtua)->where('id_posyandu', $idPosyandu)->first();
+        if ($sasaran) {
+            return $sasaran->status_keluarga ?? '';
+        }
+        $sasaran = SasaranLansia::where('nik_sasaran', $nikOrangtua)->where('id_posyandu', $idPosyandu)->first();
+
+        return $sasaran ? ($sasaran->status_keluarga ?? '') : '';
+    }
+
+    /**
      * Buat atau update record sasaran dewasa/pralansia/lansia dari data orangtua
      */
-    private function createOrUpdateSasaranFromOrangtua($orangtua, $idPosyandu, $rt = null, $rw = null)
+    private function createOrUpdateSasaranFromOrangtua($orangtua, $idPosyandu, $rt = null, $rw = null, $statusKeluarga = null)
     {
         if (!$orangtua || !$orangtua->tanggal_lahir || !$idPosyandu) {
             return;
@@ -992,6 +1019,7 @@ trait BalitaCrud
             'nomor_bpjs' => $orangtua->nomor_bpjs,
             'nomor_telepon' => $orangtua->nomor_telepon,
             'nik_orangtua' => null, // Orangtua tidak punya orangtua
+            'status_keluarga' => $statusKeluarga ?: null,
         ];
 
         // Tentukan kategori berdasarkan umur
