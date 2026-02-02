@@ -5,7 +5,7 @@
             <div class="flex">
                 <!-- Logo -->
                 <div class="shrink-0 flex items-center">
-                    <img src="{{ asset('images/Kades.jpg') }}" alt="Logo" class="block h-9 w-auto rounded object-cover">
+                    <img src="{{ asset('images/home.jpeg') }}" alt="Logo" class="block h-9 w-auto rounded object-cover">
                 </div>
             </div>
 

@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Posyandu Karanggan - Sehat Bersama, Tumbuh Bahagia</title>
-    <link rel="icon" type="image/jpeg" href="{{ asset('images/Kades.jpg') }}">
+    <link rel="icon" type="image/jpeg" href="{{ asset('images/home.jpeg') }}">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -319,7 +319,7 @@
             <div class="flex flex-col md:flex-row items-center gap-12 md:gap-20">
                 <div class="md:w-1/2">
                     <div class="relative rounded-2xl overflow-hidden shadow-2xl">
-                        <img src="{{ file_exists(public_path('images/Kades.jpg')) ? asset('images/Kades.jpg') : 'https://images.unsplash.com/photo-1579684385180-1ea55c938de4?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80' }}" alt="Kegiatan Posyandu" class="w-full object-cover hover:scale-105 transition duration-700">
+                        <img src="{{ file_exists(public_path('images/Kades.jpeg')) ? asset('images/Kades.jpeg') : 'https://images.unsplash.com/photo-1579684385180-1ea55c938de4?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80' }}" alt="Kegiatan Posyandu" class="w-full object-cover hover:scale-105 transition duration-700">
                     </div>
                 </div>
                 <div class="md:w-1/2 md:pl-4">
