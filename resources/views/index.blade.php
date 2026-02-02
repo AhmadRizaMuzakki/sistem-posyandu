@@ -333,13 +333,13 @@
 
     <section class="py-20 bg-lightBg">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex flex-col md:flex-row items-center gap-12">
+            <div class="flex flex-col md:flex-row items-center gap-12 md:gap-20">
                 <div class="md:w-1/2">
                     <div class="relative rounded-2xl overflow-hidden shadow-2xl">
-                        <img src="https://images.unsplash.com/photo-1579684385180-1ea55c938de4?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" alt="Kegiatan Posyandu" class="w-full object-cover hover:scale-105 transition duration-700">
+                        <img src="{{ asset('images/Kades.jpg') }}" alt="Kegiatan Posyandu" class="w-full object-cover hover:scale-105 transition duration-700">
                     </div>
                 </div>
-                <div class="md:w-1/2">
+                <div class="md:w-1/2 md:pl-4">
                     <span class="inline-block py-1 px-3 rounded-full bg-primary/10 text-primary text-sm font-semibold mb-4">Program Prioritas</span>
                     <h2 class="text-4xl font-bold text-slate-900 mb-6">Pencegahan Stunting Sejak Dini</h2>
                     <p class="text-slate-600 mb-6 text-lg leading-relaxed">
@@ -405,8 +405,17 @@
                     @foreach($daftarPosyandu as $p)
                         <div class="group bg-white rounded-2xl p-6 border-2 border-slate-200 hover:border-primary transition-all duration-300 hover:shadow-xl hover:-translate-y-2">
                             <div class="flex items-center justify-between mb-4">
-                                <div class="w-14 h-14 bg-gradient-to-br from-primary to-primaryDark rounded-xl flex items-center justify-center text-white text-xl font-bold shadow-lg group-hover:scale-110 transition-transform">
-                                    <i class="fa-solid fa-hospital"></i>
+                                <div class="w-14 h-14 rounded-xl flex items-center justify-center overflow-hidden bg-slate-100 shadow-lg group-hover:scale-110 transition-transform flex-shrink-0">
+                                    @if($p->logo_posyandu)
+                                        <img src="{{ uploads_asset($p->logo_posyandu) }}" alt="Logo {{ $p->nama_posyandu }}" class="w-full h-full object-contain p-1" onerror="this.style.display='none'; this.nextElementSibling.classList.remove('hidden');">
+                                        <div class="hidden w-full h-full bg-gradient-to-br from-primary to-primaryDark items-center justify-center text-white text-xl">
+                                            <i class="fa-solid fa-hospital"></i>
+                                        </div>
+                                    @else
+                                        <div class="w-full h-full bg-gradient-to-br from-primary to-primaryDark flex items-center justify-center text-white text-xl">
+                                            <i class="fa-solid fa-hospital"></i>
+                                        </div>
+                                    @endif
                                 </div>
                                 <a href="{{ route('posyandu.public.detail', $p->id_posyandu) }}" 
                                    class="text-primary hover:text-primaryDark transition-colors">
