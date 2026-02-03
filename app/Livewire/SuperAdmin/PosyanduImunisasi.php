@@ -137,11 +137,45 @@ class PosyanduImunisasi extends Component
 
         $imunisasiList = $query->orderBy('tanggal_imunisasi', 'desc')->get();
 
+        // Keterangan per kategori: X sasaran sudah imunisasi dari Y total sasaran (tanpa filter search)
+        $kategoriConfig = [
+            'bayibalita' => ['label' => 'Bayi/Balita', 'model' => SasaranBayibalita::class, 'primaryKey' => 'id_sasaran_bayibalita'],
+            'remaja'     => ['label' => 'Remaja', 'model' => SasaranRemaja::class, 'primaryKey' => 'id_sasaran_remaja'],
+            'dewasa'     => ['label' => 'Dewasa', 'model' => SasaranDewasa::class, 'primaryKey' => 'id_sasaran_dewasa'],
+            'pralansia'  => ['label' => 'Pralansia', 'model' => SasaranPralansia::class, 'primaryKey' => 'id_sasaran_pralansia'],
+            'lansia'     => ['label' => 'Lansia', 'model' => SasaranLansia::class, 'primaryKey' => 'id_sasaran_lansia'],
+        ];
+        $imunisasiKeteranganPerKategori = collect();
+        foreach ($kategoriConfig as $kategori => $config) {
+            $totalSasaran = $config['model']::where('id_posyandu', $this->posyanduId)->count();
+            $sudahImunisasi = Imunisasi::where('id_posyandu', $this->posyanduId)
+                ->where('kategori_sasaran', $kategori)
+                ->select('id_sasaran')
+                ->groupBy('id_sasaran')
+                ->get()
+                ->count();
+            $imunisasiKeteranganPerKategori->push([
+                'kategori' => $kategori,
+                'label' => $config['label'],
+                'sudah_imunisasi' => $sudahImunisasi,
+                'total_sasaran' => $totalSasaran,
+            ]);
+        }
+        $totalSemuaSasaran = $imunisasiKeteranganPerKategori->sum('total_sasaran');
+        $totalSudahImunisasi = Imunisasi::where('id_posyandu', $this->posyanduId)
+            ->select('id_sasaran', 'kategori_sasaran')
+            ->groupBy('id_sasaran', 'kategori_sasaran')
+            ->get()
+            ->count();
+
         return view('livewire.super-admin.posyandu-imunisasi', [
             'title' => 'Imunisasi - ' . $this->posyandu->nama_posyandu,
             'daftarPosyandu' => $daftarPosyandu,
             'dataPosyandu' => $daftarPosyandu,
             'imunisasiList' => $imunisasiList,
+            'imunisasiKeteranganPerKategori' => $imunisasiKeteranganPerKategori,
+            'totalSemuaSasaran' => $totalSemuaSasaran,
+            'totalSudahImunisasi' => $totalSudahImunisasi,
             'isImunisasiModalOpen' => $this->isImunisasiModalOpen,
             'id_imunisasi' => $this->id_imunisasi,
             'petugasKesehatanList' => $this->getPetugasKesehatanList(),

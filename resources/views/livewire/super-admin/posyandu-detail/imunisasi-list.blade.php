@@ -104,5 +104,77 @@
             </button>
         </div>
     @endif
+
+    {{-- Card Keterangan: per kategori X dari Y sasaran (di bawah tabel) --}}
+    @if(isset($imunisasiKeteranganPerKategori))
+    <div class="mt-5 pt-5 border-t border-gray-100">
+        {{-- Header --}}
+        <div class="flex items-center gap-2 mb-3">
+            <div class="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                <i class="ph ph-chart-pie-slice text-primary text-sm"></i>
+            </div>
+            <div>
+                <h3 class="text-sm font-bold text-gray-800">Keterangan Imunisasi</h3>
+                <p class="text-xs text-gray-500">Per kategori · Tahun {{ date('Y') }}</p>
+            </div>
+        </div>
+
+        {{-- Kartu per kategori --}}
+        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 xl:grid-cols-6 gap-2">
+            @php
+                $kategoriStyles = [
+                    'bayibalita' => ['bar' => 'bg-amber-500', 'icon' => 'bg-amber-500/15', 'text' => 'text-amber-700', 'ph' => 'ph-baby'],
+                    'remaja'     => ['bar' => 'bg-violet-500', 'icon' => 'bg-violet-500/15', 'text' => 'text-violet-700', 'ph' => 'ph-person'],
+                    'dewasa'     => ['bar' => 'bg-emerald-500', 'icon' => 'bg-emerald-500/15', 'text' => 'text-emerald-700', 'ph' => 'ph-users-three'],
+                    'pralansia'  => ['bar' => 'bg-orange-500', 'icon' => 'bg-orange-500/15', 'text' => 'text-orange-700', 'ph' => 'ph-user-circle'],
+                    'lansia'     => ['bar' => 'bg-indigo-500', 'icon' => 'bg-indigo-500/15', 'text' => 'text-indigo-700', 'ph' => 'ph-user-gear'],
+                ];
+            @endphp
+            @foreach($imunisasiKeteranganPerKategori as $row)
+                @if($row['total_sasaran'] > 0)
+                @php
+                    $c = $kategoriStyles[$row['kategori']] ?? ['bar' => 'bg-primary', 'icon' => 'bg-primary/15', 'text' => 'text-gray-700', 'ph' => 'ph-syringe'];
+                    $persen = $row['total_sasaran'] > 0 ? round(($row['sudah_imunisasi'] / $row['total_sasaran']) * 100) : 0;
+                @endphp
+                <div class="bg-white rounded-lg p-3 shadow-sm border border-gray-100 hover:shadow transition-shadow">
+                    <div class="flex items-center justify-between gap-2 mb-1.5">
+                        <div class="w-7 h-7 rounded-md {{ $c['icon'] }} flex items-center justify-center flex-shrink-0">
+                            <i class="ph {{ $c['ph'] }} text-sm {{ $c['text'] }}"></i>
+                        </div>
+                        <span class="text-[10px] font-bold {{ $c['text'] }}">{{ $persen }}%</span>
+                    </div>
+                    <p class="text-[10px] font-semibold text-gray-400 uppercase tracking-wide">{{ $row['label'] }}</p>
+                    <p class="text-base font-bold text-gray-800 tabular-nums leading-tight">
+                        <span class="{{ $c['text'] }}">{{ $row['sudah_imunisasi'] }}</span><span class="text-gray-300">/</span><span class="text-gray-600">{{ $row['total_sasaran'] }}</span>
+                    </p>
+                    <div class="h-1 bg-gray-100 rounded-full overflow-hidden mt-1.5">
+                        <div class="h-full {{ $c['bar'] }} rounded-full transition-all duration-500" style="width: {{ min($persen, 100) }}%"></div>
+                    </div>
+                </div>
+                @endif
+            @endforeach
+        </div>
+
+        {{-- Total ringkasan --}}
+        @php
+            $totalPersen = $totalSemuaSasaran > 0 ? round(($totalSudahImunisasi / $totalSemuaSasaran) * 100) : 0;
+        @endphp
+        <div class="mt-3 px-3 py-2.5 rounded-lg bg-primary/5 border border-primary/10 flex flex-wrap items-center gap-3">
+            <div class="w-8 h-8 rounded-lg bg-primary flex items-center justify-center flex-shrink-0">
+                <i class="ph ph-clipboard-text text-white text-sm"></i>
+            </div>
+            <div>
+                <p class="text-xs text-gray-500">Total</p>
+                <p class="text-sm font-bold text-gray-800 tabular-nums">{{ $totalSudahImunisasi }} dari {{ $totalSemuaSasaran }} sasaran <span class="text-primary font-semibold">({{ $totalPersen }}%)</span></p>
+            </div>
+            <div class="flex-1 min-w-[80px] max-w-[120px]">
+                <div class="h-1.5 bg-gray-200 rounded-full overflow-hidden">
+                    <div class="h-full bg-primary rounded-full transition-all duration-500" style="width: {{ $totalPersen }}%"></div>
+                </div>
+            </div>
+            <span class="text-xs text-gray-400">Tahun {{ date('Y') }}</span>
+        </div>
+    </div>
+    @endif
 </div>
 
