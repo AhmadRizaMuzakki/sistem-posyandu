@@ -20,6 +20,14 @@
         <div class="flex items-center gap-3">
             <span class="text-sm text-gray-500">{{ $count }} sasaran</span>
 
+            @isset($importKategori)
+                <button wire:click="openImportModal('{{ $importKategori }}')"
+                        class="flex items-center px-3 py-2 text-xs font-medium text-green-700 border border-green-600 rounded-lg hover:bg-green-50 transition-colors">
+                    <i class="ph ph-upload-simple text-sm mr-2"></i>
+                    Import
+                </button>
+            @endisset
+
             @isset($exportUrl)
                 <a href="{{ $exportUrl }}"
                    target="_blank"

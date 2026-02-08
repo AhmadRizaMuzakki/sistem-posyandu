@@ -9,6 +9,7 @@ use App\Livewire\Posyandu\Traits\PralansiaCrud;
 use App\Livewire\Posyandu\Traits\LansiaCrud;
 use App\Livewire\SuperAdmin\Traits\IbuHamilCrud;
 use App\Livewire\SuperAdmin\Traits\OrangtuaCrud;
+use App\Livewire\SuperAdmin\Traits\SasaranImportTrait;
 use App\Livewire\Posyandu\Traits\PosyanduHelper;
 use App\Livewire\Posyandu\Traits\SasaranHelper;
 use App\Livewire\Posyandu\Traits\ModalHelper;
@@ -55,7 +56,7 @@ class PosyanduSasaran extends Component
         IbuHamilCrud::editIbuHamil as traitEditIbuHamil;
         IbuHamilCrud::deleteIbuHamil as traitDeleteIbuHamil;
     }
-    use OrangtuaCrud;
+    use OrangtuaCrud, SasaranImportTrait;
     use PosyanduHelper, SasaranHelper, ModalHelper, PosyanduCrudTrait;
 
     // Search properties for each sasaran type

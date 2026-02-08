@@ -15,6 +15,7 @@
     'editMethod' => 'editBalita',
     'deleteMethod' => 'deleteBalita',
     'emptyMessage' => 'Belum ada sasaran terdaftar',
+    'importKategori' => 'bayibalita',
     'exportUrl' => route('adminPosyandu.sasaran.pdf', ['kategori' => 'bayibalita']),
 ])
 
@@ -35,6 +36,7 @@
     'editMethod' => 'editRemaja',
     'deleteMethod' => 'deleteRemaja',
     'emptyMessage' => 'Belum ada sasaran remaja terdaftar',
+    'importKategori' => 'remaja',
     'exportUrl' => route('adminPosyandu.sasaran.pdf', ['kategori' => 'remaja']),
 ])
 
@@ -55,6 +57,7 @@
     'editMethod' => 'editDewasa',
     'deleteMethod' => 'deleteDewasa',
     'emptyMessage' => 'Belum ada sasaran dewasa terdaftar',
+    'importKategori' => 'dewasa',
     'exportUrl' => route('adminPosyandu.sasaran.pdf', ['kategori' => 'dewasa']),
 ])
 
@@ -75,6 +78,7 @@
     'editMethod' => 'editIbuHamil',
     'deleteMethod' => 'deleteIbuHamil',
     'emptyMessage' => 'Belum ada sasaran ibu hamil terdaftar',
+    'importKategori' => 'ibuhamil',
     'exportUrl' => route('adminPosyandu.sasaran.pdf', ['kategori' => 'ibuhamil']),
 ])
 
@@ -95,6 +99,7 @@
     'editMethod' => 'editPralansia',
     'deleteMethod' => 'deletePralansia',
     'emptyMessage' => 'Belum ada sasaran pralansia terdaftar',
+    'importKategori' => 'pralansia',
     'exportUrl' => route('adminPosyandu.sasaran.pdf', ['kategori' => 'pralansia']),
 ])
 
@@ -115,6 +120,7 @@
     'editMethod' => 'editLansia',
     'deleteMethod' => 'deleteLansia',
     'emptyMessage' => 'Belum ada sasaran lansia terdaftar',
+    'importKategori' => 'lansia',
     'exportUrl' => route('adminPosyandu.sasaran.pdf', ['kategori' => 'lansia']),
 ])
 

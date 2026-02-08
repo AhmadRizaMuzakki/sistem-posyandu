@@ -78,6 +78,7 @@ Route::prefix('posyandu')->middleware(['auth', 'verified', 'role:adminPosyandu|s
     Route::get('/galeri', \App\Livewire\Posyandu\Galeri::class)->name('adminPosyandu.galeri');
     Route::get('/petugas-kesehatan', \App\Livewire\Posyandu\PosyanduPetugasKesehatan::class)->name('adminPosyandu.petugas-kesehatan');
     Route::get('/sasaran', \App\Livewire\Posyandu\PosyanduSasaran::class)->name('adminPosyandu.sasaran');
+    Route::get('/sasaran/template-import/{kategori}', \App\Http\Controllers\TemplateImportController::class)->name('adminPosyandu.sasaran.template-import');
     Route::get('/sasaran/{kategori}/pdf', [LaporanController::class, 'posyanduSasaranPdf'])->name('adminPosyandu.sasaran.pdf');
     Route::get('/imunisasi', KaderImunisasi::class)->name('adminPosyandu.imunisasi');
     Route::get('/pendidikan', \App\Livewire\Posyandu\Pendidikan::class)->name('adminPosyandu.pendidikan');
