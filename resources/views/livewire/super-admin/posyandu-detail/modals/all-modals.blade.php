@@ -1,3 +1,6 @@
+{{-- Modal Import --}}
+@include('livewire.super-admin.posyandu-detail.modals.import-modal')
+
 {{-- Include semua modal sasaran --}}
 @include('livewire.super-admin.posyandu-detail.modals.balita-modal')
 @include('livewire.super-admin.posyandu-detail.modals.remaja-modal')

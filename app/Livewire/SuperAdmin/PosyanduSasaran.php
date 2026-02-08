@@ -18,7 +18,7 @@ use Livewire\Attributes\Layout;
 
 class PosyanduSasaran extends Component
 {
-    use BalitaCrud, RemajaCrud, DewasaCrud, PralansiaCrud, LansiaCrud, IbuHamilCrud, OrangtuaCrud;
+    use BalitaCrud, RemajaCrud, DewasaCrud, PralansiaCrud, LansiaCrud, IbuHamilCrud, OrangtuaCrud, SasaranImportTrait;
 
     /**
      * Simple pseudo-user class for orangtua data
@@ -311,6 +311,17 @@ class PosyanduSasaran extends Component
             'id_sasaran_pralansia' => $this->id_sasaran_pralansia,
             'id_sasaran_lansia' => $this->id_sasaran_lansia,
             'id_sasaran_ibuhamil' => $this->id_sasaran_ibuhamil,
+            'showImportModal' => $this->showImportModal,
+            'importKategori' => $this->importKategori,
+            'importResult' => $this->importResult,
+            'importKategoriLabels' => [
+                'bayibalita' => 'Bayi/Balita',
+                'remaja' => 'Remaja',
+                'dewasa' => 'Dewasa',
+                'ibuhamil' => 'Ibu Hamil',
+                'pralansia' => 'Pralansia',
+                'lansia' => 'Lansia',
+            ],
         ]);
     }
 }

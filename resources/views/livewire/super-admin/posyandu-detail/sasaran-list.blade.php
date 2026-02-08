@@ -15,6 +15,7 @@
     'editMethod' => 'editBalita',
     'deleteMethod' => 'deleteBalita',
     'emptyMessage' => 'Belum ada sasaran terdaftar',
+    'importKategori' => 'bayibalita',
     'exportUrl' => route('superadmin.posyandu.sasaran.pdf', [
         'id' => $posyandu->id_posyandu,
         'kategori' => 'bayibalita',
@@ -38,6 +39,7 @@
     'editMethod' => 'editRemaja',
     'deleteMethod' => 'deleteRemaja',
     'emptyMessage' => 'Belum ada sasaran remaja terdaftar',
+    'importKategori' => 'remaja',
     'exportUrl' => route('superadmin.posyandu.sasaran.pdf', [
         'id' => $posyandu->id_posyandu,
         'kategori' => 'remaja',
@@ -61,6 +63,7 @@
     'editMethod' => 'editDewasa',
     'deleteMethod' => 'deleteDewasa',
     'emptyMessage' => 'Belum ada sasaran dewasa terdaftar',
+    'importKategori' => 'dewasa',
     'exportUrl' => route('superadmin.posyandu.sasaran.pdf', [
         'id' => $posyandu->id_posyandu,
         'kategori' => 'dewasa',
@@ -84,6 +87,7 @@
     'editMethod' => 'editIbuHamil',
     'deleteMethod' => 'deleteIbuHamil',
     'emptyMessage' => 'Belum ada sasaran ibu hamil terdaftar',
+    'importKategori' => 'ibuhamil',
     'exportUrl' => route('superadmin.posyandu.sasaran.pdf', [
         'id' => $posyandu->id_posyandu,
         'kategori' => 'ibuhamil',
@@ -107,6 +111,7 @@
     'editMethod' => 'editPralansia',
     'deleteMethod' => 'deletePralansia',
     'emptyMessage' => 'Belum ada sasaran pralansia terdaftar',
+    'importKategori' => 'pralansia',
     'exportUrl' => route('superadmin.posyandu.sasaran.pdf', [
         'id' => $posyandu->id_posyandu,
         'kategori' => 'pralansia',
@@ -130,6 +135,7 @@
     'editMethod' => 'editLansia',
     'deleteMethod' => 'deleteLansia',
     'emptyMessage' => 'Belum ada sasaran lansia terdaftar',
+    'importKategori' => 'lansia',
     'exportUrl' => route('superadmin.posyandu.sasaran.pdf', [
         'id' => $posyandu->id_posyandu,
         'kategori' => 'lansia',
