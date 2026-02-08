@@ -400,11 +400,15 @@ trait SasaranImportTrait
     {
         $nikOrtu = preg_replace('/\D/', '', $this->getVal($row, 'nik_orangtua', 'nik_orangtua') ?? '') ?: $data['nik'];
         $namaOrtu = $this->getVal($row, 'nama_orangtua', 'nama_orangtua') ?? $data['nama'];
+        $tempatLahirOrtu = $this->getVal($row, 'tempat_lahir_orangtua', 'tempat_lahir_orangtua');
+        $tanggalLahirOrtu = $this->parseDate($this->getVal($row, 'tanggal_lahir_orangtua', 'tanggal_lahir_orangtua'));
 
-        return DB::transaction(function () use ($posyanduId, $data, $nikOrtu, $namaOrtu) {
+        return DB::transaction(function () use ($posyanduId, $data, $nikOrtu, $namaOrtu, $tempatLahirOrtu, $tanggalLahirOrtu) {
             $orangtua = Orangtua::firstOrCreate(['nik' => $nikOrtu], [
                 'nik' => $nikOrtu, 'nama' => $namaOrtu, 'no_kk' => $data['noKk'] ?: null,
-                'tempat_lahir' => null, 'tanggal_lahir' => null, 'pekerjaan' => 'Lainnya', 'kelamin' => 'Perempuan', 'alamat' => $data['alamat'],
+                'tempat_lahir' => $tempatLahirOrtu,
+                'tanggal_lahir' => $tanggalLahirOrtu,
+                'pekerjaan' => 'Lainnya', 'kelamin' => 'Perempuan', 'alamat' => $data['alamat'],
             ]);
             $email = ($data['noKk'] ?: $nikOrtu) . '@gmail.com';
             $user = User::firstOrCreate(['email' => $email], ['name' => $namaOrtu, 'password' => Hash::make($data['noKk'] ?: $nikOrtu), 'email_verified_at' => now()]);
