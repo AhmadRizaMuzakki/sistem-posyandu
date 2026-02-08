@@ -158,13 +158,19 @@ trait SasaranImportTrait
         try {
             $spreadsheet = \PhpOffice\PhpSpreadsheet\IOFactory::load($path);
             $sheet = $spreadsheet->getActiveSheet();
-            $rows = $sheet->toArray();
+            // formatData=true agar NIK/no_kk/nomor dibaca sebagai string (tanpa kehilangan digit)
+            $rows = $sheet->toArray(null, true, true, false);
             $header = array_shift($rows);
             $header = array_map('trim', array_map('strval', $header));
             $result = [];
             foreach ($rows as $row) {
-                $row = array_map('trim', array_map('strval', array_pad($row, count($header), '')));
-                $assoc = array_combine($header, array_pad($row, count($header), ''));
+                $row = array_map(function ($v) {
+                    if (is_float($v) && $v == floor($v) && strlen((string)(int)$v) >= 10) {
+                        return sprintf('%.0f', $v);
+                    }
+                    return trim((string) $v);
+                }, array_pad($row, count($header), ''));
+                $assoc = @array_combine($header, array_pad($row, count($header), '')) ?: [];
                 if ($assoc && $this->rowHasData($assoc)) {
                     $result[] = $assoc;
                 }
@@ -190,7 +196,7 @@ trait SasaranImportTrait
         foreach ($rows as $idx => $row) {
             $rowNum = $idx + 2; // 1-based + header
             try {
-                $nik = trim((string) ($row['nik_sasaran'] ?? $row['NIK'] ?? $row['nik'] ?? ''));
+                $nik = preg_replace('/\D/', '', $this->getVal($row, 'nik_sasaran', 'NIK', 'nik') ?? '');
                 if (empty($nik)) {
                     $result['errors']++;
                     continue;
@@ -252,13 +258,32 @@ trait SasaranImportTrait
         return null;
     }
 
-    protected function parseDate(?string $val): ?string
+    protected function parseDate($val): ?string
     {
-        if (empty($val)) {
+        if ($val === null || $val === '') {
+            return null;
+        }
+        if ($val instanceof \DateTimeInterface) {
+            return $val->format('Y-m-d');
+        }
+        $numVal = is_numeric($val) ? (float) $val : 0;
+        if ($numVal > 10000 && class_exists(\PhpOffice\PhpSpreadsheet\Shared\Date::class)) {
+            try {
+                $d = \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($numVal);
+                return $d ? $d->format('Y-m-d') : null;
+            } catch (\Throwable $e) {
+            }
+        }
+        $val = trim((string) $val);
+        if ($val === '') {
             return null;
         }
         try {
-            $val = str_replace(['/', '-'], '-', trim($val));
+            if (preg_match('#^(\d{1,2})[/\-](\d{1,2})[/\-](\d{4})$#', $val, $m)) {
+                $d = Carbon::createFromFormat('d/m/Y', $m[1] . '/' . $m[2] . '/' . $m[3]);
+                return $d ? $d->format('Y-m-d') : null;
+            }
+            $val = str_replace(['/', '-'], '-', $val);
             $d = Carbon::parse($val);
             return $d->format('Y-m-d');
         } catch (\Throwable $e) {
@@ -284,7 +309,7 @@ trait SasaranImportTrait
         $alamat = $this->getVal($row, 'alamat_sasaran', 'alamat', 'Alamat') ?? '-';
         $rt = $this->getVal($row, 'rt', 'RT');
         $rw = $this->getVal($row, 'rw', 'RW');
-        $statusKeluarga = $this->getVal($row, 'status_keluarga', 'Status Keluarga');
+        $statusKeluarga = $this->getVal($row, 'status_keluarga', 'status_kel', 'Status Keluarga');
         $kepersertaanBpjs = $this->getVal($row, 'kepersertaan_bpjs', 'Kepersertaan BPJS');
         if ($kepersertaanBpjs && !in_array($kepersertaanBpjs, ['PBI', 'NON PBI'])) {
             $kepersertaanBpjs = stripos($kepersertaanBpjs, 'PBI') !== false ? 'PBI' : 'NON PBI';

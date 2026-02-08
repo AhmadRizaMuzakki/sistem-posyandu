@@ -7,7 +7,7 @@ Import disesuaikan dengan **inputan form** setiap jenis sasaran. Gunakan templat
 - **Baris pertama** = header (nama kolom), jangan dihapus.
 - **Format tanggal:** `YYYY-MM-DD` (contoh: 2022-05-15) atau `DD/MM/YYYY`.
 - **Jenis kelamin:** harus persis `Laki-laki` atau `Perempuan`.
-- **Status keluarga:** `kepala keluarga`, `istri`, atau `anak`.
+- **Status keluarga:** `kepala keluarga`, `istri`, atau `anak`. Kolom boleh bernama `status_kel` (alias `status_keluarga`).
 - **Kepersertaan BPJS:** `PBI` atau `NON PBI`.
 - **NIK dan No KK:** angka saja (16 digit). Baris dengan NIK kosong akan gagal.
 - Jika **NIK + Posyandu** sudah ada di database, baris akan **dilewati** (tidak duplikat).
@@ -80,6 +80,8 @@ nik_sasaran,nama_sasaran,no_kk_sasaran,tempat_lahir,tanggal_lahir,jenis_kelamin,
 
 - **CSV:** Simpan dengan encoding **UTF-8**. Di Excel: Simpan Sebagai → CSV UTF-8.
 - **Excel:** .xlsx/.xls didukung jika PhpSpreadsheet terpasang di server.
+- **Tanggal Excel:** Format `DD/MM/YYYY` (contoh: 08/01/1998) dan serial date Excel otomatis didukung.
+- **NIK/No KK di Excel:** Format kolom sebagai **Teks** agar angka panjang tidak terpotong (klik kanan kolom → Format Sel → Teks).
 
 Agar import tidak gagal, pastikan:
 
