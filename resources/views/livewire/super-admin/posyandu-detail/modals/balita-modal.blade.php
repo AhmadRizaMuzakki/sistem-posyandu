@@ -306,6 +306,9 @@
                                 <option value="">Pilih Status Keluarga...</option>
                                 <option value="kepala keluarga">Kepala Keluarga</option>
                                 <option value="istri">Istri</option>
+                                <option value="mertua">Mertua</option>
+                                <option value="menantu">Menantu</option>
+                                <option value="kerabat lain">Kerabat Lain</option>
                             </select>
                             @error('status_keluarga_orangtua') <span class="text-red-500 text-xs">{{ $message }}</span>@enderror
                         </div>

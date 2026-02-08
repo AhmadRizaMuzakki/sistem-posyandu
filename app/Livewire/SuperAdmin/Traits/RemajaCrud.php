@@ -148,7 +148,7 @@ trait RemajaCrud
             'pekerjaan_orangtua_remaja' => 'required|string',
             'pendidikan_orangtua_remaja' => 'nullable|string',
             'kelamin_orangtua_remaja' => 'required|in:Laki-laki,Perempuan',
-            'status_keluarga_orangtua_remaja' => 'nullable|in:kepala keluarga,istri',
+            'status_keluarga_orangtua_remaja' => 'nullable|in:kepala keluarga,istri,mertua,menantu,kerabat lain',
             'kepersertaan_bpjs_orangtua_remaja' => 'nullable|in:PBI,NON PBI',
             'nomor_bpjs_orangtua_remaja' => 'nullable|string|max:50',
             'nomor_telepon_orangtua_remaja' => 'nullable|string|max:20',

@@ -176,13 +176,21 @@
                                     @endif
                                 </td>
                                 <td class="px-4 py-3 text-center">
-                                    <button type="button" 
-                                            wire:click="deleteKegiatan({{ $acara->id_jadwal_kegiatan }})" 
-                                            wire:confirm="Hapus acara ini?"
-                                            class="text-red-600 hover:bg-red-50 rounded-lg p-2 transition" 
-                                            title="Hapus">
-                                        <i class="ph ph-trash text-base"></i>
-                                    </button>
+                                    <div class="flex items-center justify-center gap-1">
+                                        <button type="button" 
+                                                wire:click="editKegiatan({{ $acara->id_jadwal_kegiatan }})" 
+                                                class="text-primary hover:bg-primary/10 rounded-lg p-2 transition" 
+                                                title="Edit">
+                                            <i class="ph ph-pencil text-base"></i>
+                                        </button>
+                                        <button type="button" 
+                                                wire:click="deleteKegiatan({{ $acara->id_jadwal_kegiatan }})" 
+                                                wire:confirm="Hapus acara ini?"
+                                                class="text-red-600 hover:bg-red-50 rounded-lg p-2 transition" 
+                                                title="Hapus">
+                                            <i class="ph ph-trash text-base"></i>
+                                        </button>
+                                    </div>
                                 </td>
                             </tr>
                         @endforeach

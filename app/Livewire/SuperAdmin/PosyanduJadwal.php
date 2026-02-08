@@ -34,6 +34,7 @@ class PosyanduJadwal extends Component
     public $deskripsi_kegiatan = '';
     public $jam_mulai = '';
     public $jam_selesai = '';
+    public $id_jadwal_kegiatan_edit = null;
 
     #[Layout('layouts.superadmindashboard')]
 
@@ -145,6 +146,32 @@ class PosyanduJadwal extends Component
         $this->presensi = 'belum_hadir';
     }
 
+    public function editKegiatan($id)
+    {
+        $k = JadwalKegiatan::findOrFail($id);
+        if ($k->id_posyandu != $this->posyanduId) {
+            abort(403, 'Unauthorized access');
+        }
+        $this->id_jadwal_kegiatan_edit = $k->id_jadwal_kegiatan;
+        $this->tanggal_acara = $k->tanggal->format('Y-m-d');
+        $this->nama_kegiatan = $k->nama_kegiatan ?? '';
+        $this->tempat = $k->tempat ?? '';
+        $this->deskripsi_kegiatan = $k->deskripsi ?? '';
+        $this->jam_mulai = $k->jam_mulai ? substr($k->jam_mulai, 0, 5) : '';
+        $this->jam_selesai = $k->jam_selesai ? substr($k->jam_selesai, 0, 5) : '';
+        $this->activeTab = 'jadwal';
+    }
+
+    public function cancelEditKegiatan()
+    {
+        $this->id_jadwal_kegiatan_edit = null;
+        $this->nama_kegiatan = '';
+        $this->tempat = '';
+        $this->deskripsi_kegiatan = '';
+        $this->jam_mulai = '';
+        $this->jam_selesai = '';
+    }
+
     public function saveKegiatan()
     {
         $this->validate([
@@ -162,22 +189,39 @@ class PosyanduJadwal extends Component
         $jamMulai = $this->normalizeTime($this->jam_mulai);
         $jamSelesai = $this->normalizeTime($this->jam_selesai);
 
-        JadwalKegiatan::create([
-            'id_posyandu' => $this->posyanduId,
-            'tanggal' => $this->tanggal_acara,
-            'nama_kegiatan' => trim($this->nama_kegiatan),
-            'tempat' => $this->tempat ? trim($this->tempat) : null,
-            'deskripsi' => $this->deskripsi_kegiatan ? trim($this->deskripsi_kegiatan) : null,
-            'jam_mulai' => $jamMulai,
-            'jam_selesai' => $jamSelesai,
-        ]);
+        if ($this->id_jadwal_kegiatan_edit) {
+            $k = JadwalKegiatan::findOrFail($this->id_jadwal_kegiatan_edit);
+            if ($k->id_posyandu != $this->posyanduId) {
+                abort(403, 'Unauthorized access');
+            }
+            $k->update([
+                'tanggal' => $this->tanggal_acara,
+                'nama_kegiatan' => trim($this->nama_kegiatan),
+                'tempat' => $this->tempat ? trim($this->tempat) : null,
+                'deskripsi' => $this->deskripsi_kegiatan ? trim($this->deskripsi_kegiatan) : null,
+                'jam_mulai' => $jamMulai,
+                'jam_selesai' => $jamSelesai,
+            ]);
+            session()->flash('message', 'Acara berhasil diperbarui.');
+        } else {
+            JadwalKegiatan::create([
+                'id_posyandu' => $this->posyanduId,
+                'tanggal' => $this->tanggal_acara,
+                'nama_kegiatan' => trim($this->nama_kegiatan),
+                'tempat' => $this->tempat ? trim($this->tempat) : null,
+                'deskripsi' => $this->deskripsi_kegiatan ? trim($this->deskripsi_kegiatan) : null,
+                'jam_mulai' => $jamMulai,
+                'jam_selesai' => $jamSelesai,
+            ]);
+            session()->flash('message', 'Acara berhasil disimpan.');
+        }
 
+        $this->id_jadwal_kegiatan_edit = null;
         $this->nama_kegiatan = '';
         $this->tempat = '';
         $this->deskripsi_kegiatan = '';
         $this->jam_mulai = '';
         $this->jam_selesai = '';
-        session()->flash('message', 'Acara berhasil disimpan.');
         session()->flash('messageType', 'success');
     }
 

@@ -3,9 +3,9 @@
     <div class="bg-gradient-to-r from-amber-500 to-amber-600 px-6 py-4">
         <h3 class="text-lg font-bold text-white flex items-center">
             <i class="ph ph-calendar-dots text-xl mr-2"></i>
-            Input Acara / Kegiatan
+            {{ $id_jadwal_kegiatan_edit ? 'Edit Acara / Kegiatan' : 'Input Acara / Kegiatan' }}
         </h3>
-        <p class="text-amber-100 text-sm mt-0.5">Nama acara wajib disertai tanggal</p>
+        <p class="text-amber-100 text-sm mt-0.5">{{ $id_jadwal_kegiatan_edit ? 'Perbarui data acara' : 'Nama acara wajib disertai tanggal' }}</p>
     </div>
     <div class="p-6 space-y-6">
         <form wire:submit.prevent="saveKegiatan" class="space-y-4">
@@ -55,10 +55,21 @@
                 @error('deskripsi_kegiatan') <span class="text-red-500 text-xs mt-1 block">{{ $message }}</span> @enderror
             </div>
             <div class="flex items-center justify-end gap-3">
+                @if($id_jadwal_kegiatan_edit)
+                    <button type="button"
+                            wire:click="cancelEditKegiatan"
+                            class="px-5 py-3 bg-gray-200 text-gray-700 rounded-lg font-medium hover:bg-gray-300 transition shadow-sm flex items-center">
+                        Batal
+                    </button>
+                @endif
                 <button type="submit"
                         class="px-6 py-3 bg-primary text-white rounded-lg font-medium hover:bg-primary/90 transition shadow-sm flex items-center">
                     <span wire:loading.remove wire:target="saveKegiatan">
-                        <i class="ph ph-plus-circle mr-2 text-lg"></i>Tambah Acara
+                        @if($id_jadwal_kegiatan_edit)
+                            <i class="ph ph-check-circle mr-2 text-lg"></i>Simpan Perubahan
+                        @else
+                            <i class="ph ph-plus-circle mr-2 text-lg"></i>Tambah Acara
+                        @endif
                     </span>
                     <span wire:loading wire:target="saveKegiatan" class="flex items-center">
                         <i class="ph ph-spinner animate-spin mr-2 text-lg"></i>Menyimpan...

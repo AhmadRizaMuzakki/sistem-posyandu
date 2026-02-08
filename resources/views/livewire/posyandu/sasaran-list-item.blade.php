@@ -109,6 +109,7 @@
 
                         {{-- Kolom untuk Lansia, Dewasa, Pralansia --}}
                         @if(!$isDetailed && !$isIbuHamil)
+                            <th class="px-6 py-3">Pekerjaan</th>
                             <th class="px-6 py-3">Alamat</th>
                             <th class="px-6 py-3">Kepersertaan BPJS</th>
                             <th class="px-6 py-3">Nomor BPJS</th>
@@ -205,6 +206,7 @@
 
                         {{-- Isi Kolom untuk Lansia, Dewasa, Pralansia --}}
                         @if(!$isDetailed && !$isIbuHamil)
+                            <td class="px-6 py-4">{{ $item->pekerjaan ?? '-' }}</td>
                             <td class="px-6 py-4">{{ $item->alamat_sasaran ?? '-' }}</td>
                             <td class="px-6 py-4">
                                 @if($item->kepersertaan_bpjs)
@@ -339,7 +341,7 @@
                                 if ($showPendidikanColumn) {
                                     $colspan += 1; // Pendidikan
                                 }
-                                $colspan += 4; // Alamat, Kepersertaan BPJS, Nomor BPJS, Nomor Telepon
+                                $colspan += 5; // Pekerjaan, Alamat, Kepersertaan BPJS, Nomor BPJS, Nomor Telepon
                             }
                         @endphp
                         <td colspan="{{ $colspan }}" class="px-6 py-8 text-center text-gray-500">

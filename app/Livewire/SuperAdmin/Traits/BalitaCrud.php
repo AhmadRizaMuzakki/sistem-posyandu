@@ -146,7 +146,7 @@ trait BalitaCrud
             'pekerjaan_orangtua' => 'required|string',
             'pendidikan_orangtua' => 'nullable|string',
             'kelamin_orangtua' => 'required|in:Laki-laki,Perempuan',
-            'status_keluarga_orangtua' => 'nullable|in:kepala keluarga,istri',
+            'status_keluarga_orangtua' => 'nullable|in:kepala keluarga,istri,mertua,menantu,kerabat lain',
             'kepersertaan_bpjs_orangtua' => 'nullable|in:PBI,NON PBI',
             'nomor_bpjs_orangtua' => 'nullable|string|max:50',
             'nomor_telepon_orangtua' => 'nullable|string|max:20',
