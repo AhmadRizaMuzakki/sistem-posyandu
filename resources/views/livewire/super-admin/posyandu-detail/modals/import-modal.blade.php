@@ -10,7 +10,7 @@
                     Import Sasaran {{ $importKategori ? (($importKategoriLabels[$importKategori] ?? ucfirst($importKategori))) : '' }}
                 </h3>
                 <p class="text-sm text-gray-500 mb-4">
-                    Upload file CSV (Excel & Google Sheets: File → Simpan/Download sebagai CSV). Baris pertama = header. Jika NIK + posyandu sudah ada, baris akan dilewati (tidak duplikat).
+                    Upload file CSV atau Excel (.xlsx, .xls). Baris pertama = header. Jika NIK + posyandu sudah ada, baris akan dilewati (tidak duplikat).
                 </p>
                 <p class="text-xs text-gray-500 mb-3">
                     Kolom minimal: nik_sasaran, nama_sasaran, no_kk_sasaran, tanggal_lahir, jenis_kelamin, alamat_sasaran. Format tanggal: YYYY-MM-DD atau DD/MM/YYYY.
@@ -18,7 +18,7 @@
                 <div class="space-y-2">
                     <input type="file"
                            wire:model="importFile"
-                           accept=".csv,.txt"
+                           accept=".csv,.txt,.xlsx,.xls"
                            class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-primary file:text-white hover:file:bg-primary/90">
                     @error('importFile')
                         <p class="text-sm text-red-600">{{ $message }}</p>
@@ -28,9 +28,34 @@
                     @endif
                 </div>
                 @if($importResult)
-                <div class="mt-4 p-3 bg-gray-50 rounded-lg text-sm">
-                    <p class="font-medium text-gray-700">Hasil Import:</p>
-                    <p>Ditambahkan: {{ $importResult['added'] }}, Dilewati (duplikat): {{ $importResult['skipped'] }}, Error: {{ $importResult['errors'] }}</p>
+                @php
+                    $total = ($importResult['added'] ?? 0) + ($importResult['skipped'] ?? 0) + ($importResult['errors'] ?? 0);
+                    $allSuccess = ($importResult['errors'] ?? 0) === 0 && ($importResult['added'] ?? 0) > 0;
+                    $partial = ($importResult['errors'] ?? 0) > 0 && ($importResult['added'] ?? 0) > 0;
+                    $allError = ($importResult['errors'] ?? 0) > 0 && ($importResult['added'] ?? 0) === 0;
+                    $allSkipped = $total > 0 && ($importResult['added'] ?? 0) === 0 && ($importResult['errors'] ?? 0) === 0;
+                @endphp
+                <div class="mt-4 p-3 rounded-lg text-sm {{ $allSuccess ? 'bg-green-50 border border-green-200' : ($allError ? 'bg-red-50 border border-red-200' : 'bg-amber-50 border border-amber-200') }}">
+                    <p class="font-medium {{ $allSuccess ? 'text-green-800' : ($allError ? 'text-red-800' : 'text-amber-800') }}">
+                        @if($allSuccess)
+                            <i class="ph ph-check-circle mr-1"></i> Berhasil
+                        @elseif($allError)
+                            <i class="ph ph-x-circle mr-1"></i> Gagal
+                        @else
+                            <i class="ph ph-warning mr-1"></i> Sebagian berhasil
+                        @endif
+                    </p>
+                    <ul class="mt-2 space-y-1 text-gray-700">
+                        <li><strong>Ditambahkan:</strong> {{ $importResult['added'] ?? 0 }}</li>
+                        <li><strong>Dilewati (duplikat):</strong> {{ $importResult['skipped'] ?? 0 }}</li>
+                        <li><strong>Gagal:</strong> {{ $importResult['errors'] ?? 0 }}</li>
+                    </ul>
+                    @if($allError && $total > 0)
+                        <p class="mt-2 text-xs text-red-700">Periksa kolom NIK, nama, no_kk, tanggal_lahir, jenis_kelamin, alamat. Format tanggal: YYYY-MM-DD atau DD/MM/YYYY.</p>
+                    @endif
+                    @if($allSkipped)
+                        <p class="mt-2 text-xs text-amber-700">Semua baris sudah terdaftar (NIK + posyandu sama). Tidak ada data baru.</p>
+                    @endif
                 </div>
                 @endif
             </div>

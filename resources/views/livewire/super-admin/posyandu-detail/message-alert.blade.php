@@ -37,15 +37,22 @@
                  x-on:click.away="show = false">
                 
                 {{-- Header --}}
-                <div class="px-6 py-4 flex items-center justify-between {{ session('messageType', 'success') === 'error' ? 'bg-red-500' : 'bg-green-500' }}">
+                @php
+                    $msgType = session('messageType', 'success');
+                    $headerBg = $msgType === 'error' ? 'bg-red-500' : ($msgType === 'warning' ? 'bg-amber-500' : 'bg-green-500');
+                    $headerTitle = $msgType === 'error' ? 'Terjadi Kesalahan' : ($msgType === 'warning' ? 'Perhatian' : 'Berhasil');
+                @endphp
+                <div class="px-6 py-4 flex items-center justify-between {{ $headerBg }}">
                     <div class="flex items-center">
-                        @if(session('messageType', 'success') === 'error')
+                        @if($msgType === 'error')
                             <i class="ph ph-x-circle text-2xl text-white mr-3"></i>
+                        @elseif($msgType === 'warning')
+                            <i class="ph ph-warning text-2xl text-white mr-3"></i>
                         @else
                             <i class="ph ph-check-circle text-2xl text-white mr-3"></i>
                         @endif
                         <h3 class="text-lg font-semibold text-white">
-                            {{ session('messageType', 'success') === 'error' ? 'Terjadi Kesalahan' : 'Berhasil' }}
+                            {{ $headerTitle }}
                         </h3>
                     </div>
                     <button x-on:click="show = false" class="text-white hover:text-gray-200">

@@ -52,10 +52,10 @@ trait SasaranImportTrait
     public function importSasaran()
     {
         $this->validate([
-            'importFile' => 'required|file|mimes:csv,txt|max:5120',
+            'importFile' => 'required|file|mimes:csv,txt,xlsx,xls|max:5120',
         ], [
             'importFile.required' => 'File wajib dipilih.',
-            'importFile.mimes' => 'Format file: CSV (Excel & Google Sheets bisa export ke CSV: File → Simpan/Download sebagai CSV).',
+            'importFile.mimes' => 'Format file: CSV, TXT, atau Excel (.xlsx, .xls).',
         ]);
 
         $path = $this->importFile->getRealPath();
@@ -67,13 +67,13 @@ trait SasaranImportTrait
         } elseif (class_exists(\PhpOffice\PhpSpreadsheet\IOFactory::class) && in_array($ext, ['xlsx', 'xls'])) {
             $rows = $this->readExcel($path);
         } elseif (in_array($ext, ['xlsx', 'xls'])) {
-            session()->flash('message', 'Untuk file Excel, jalankan: composer require phpoffice/phpspreadsheet (perlu ext-zip). Atau export ke CSV dari Excel/Google Sheets.');
+            session()->flash('message', 'Format Excel (.xlsx/.xls) memerlukan library PhpSpreadsheet. Di server tanpa ekstensi zip, gunakan file CSV (Excel/Google Sheets: File → Simpan sebagai CSV).');
             session()->flash('messageType', 'error');
             return;
         }
 
         if (empty($rows)) {
-            session()->flash('message', 'File kosong atau format tidak valid.');
+            session()->flash('message', 'File kosong atau format tidak valid. Pastikan baris pertama berisi header (nik_sasaran, nama_sasaran, no_kk_sasaran, tanggal_lahir, jenis_kelamin, alamat_sasaran) dan ada data di baris berikutnya.');
             session()->flash('messageType', 'error');
             return;
         }
@@ -82,12 +82,27 @@ trait SasaranImportTrait
         $this->importResult = $result;
         $this->refreshPosyandu();
 
-        $msg = "Import selesai. Ditambahkan: {$result['added']}, Dilewati (duplikat): {$result['skipped']}";
-        if ($result['errors'] > 0) {
-            $msg .= ", Error: {$result['errors']}";
+        $total = $result['added'] + $result['skipped'] + $result['errors'];
+        if ($result['errors'] === 0 && $result['added'] > 0) {
+            $msg = "Import berhasil. {$result['added']} data ditambahkan.";
+            if ($result['skipped'] > 0) {
+                $msg .= " {$result['skipped']} baris dilewati (NIK sudah ada, tidak duplikat).";
+            }
+            session()->flash('message', $msg);
+            session()->flash('messageType', 'success');
+        } elseif ($result['errors'] > 0 && $result['added'] > 0) {
+            $msg = "Import selesai dengan sebagian gagal. Berhasil: {$result['added']}, Dilewati (duplikat): {$result['skipped']}, Gagal: {$result['errors']}. Periksa baris yang gagal (NIK kosong atau format data tidak valid).";
+            session()->flash('message', $msg);
+            session()->flash('messageType', 'warning');
+        } elseif ($result['errors'] > 0 && $result['added'] === 0) {
+            $msg = "Tidak ada data yang berhasil diimport. Gagal: {$result['errors']} baris. Pastikan kolom: nik_sasaran, nama_sasaran, no_kk_sasaran, tanggal_lahir (YYYY-MM-DD atau DD/MM/YYYY), jenis_kelamin (Laki-laki/Perempuan), alamat_sasaran.";
+            session()->flash('message', $msg);
+            session()->flash('messageType', 'error');
+        } else {
+            $msg = "Semua {$total} baris sudah ada (duplikat). Tidak ada data baru yang ditambahkan.";
+            session()->flash('message', $msg);
+            session()->flash('messageType', 'warning');
         }
-        session()->flash('message', $msg);
-        session()->flash('messageType', $result['errors'] > 0 ? 'warning' : 'success');
     }
 
     protected function readCsv($path): array
