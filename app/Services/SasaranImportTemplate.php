@@ -4,7 +4,8 @@ namespace App\Services;
 
 /**
  * Template CSV import sasaran per kategori.
- * Kolom disesuaikan dengan input form masing-masing sasaran agar import tidak gagal.
+ * Baris 1 = header kolom, Baris 2+ = contoh data.
+ * Import memetakan data per kolom berdasarkan nama header (urutan kolom bebas).
  */
 class SasaranImportTemplate
 {
@@ -56,13 +57,41 @@ class SasaranImportTemplate
     public static function getCsvContent(string $kategori): string
     {
         $data = self::$templates[$kategori] ?? self::$templates['dewasa'];
-        $lines = [implode(',', $data['header'])];
+        $lines = [self::escapeCsvRow($data['header'])];
         foreach ($data['rows'] as $row) {
-            $lines[] = implode(',', array_map(function ($v) {
-                return strpos($v, ',') !== false ? '"' . str_replace('"', '""', $v) . '"' : $v;
-            }, $row));
+            $lines[] = self::escapeCsvRow($row);
         }
         return implode("\r\n", $lines);
+    }
+
+    /**
+     * Generate Excel (.xlsx) template - data per kolom agar tampil benar di Excel.
+     */
+    public static function getExcelContent(string $kategori): \PhpOffice\PhpSpreadsheet\Spreadsheet
+    {
+        $data = self::$templates[$kategori] ?? self::$templates['dewasa'];
+        $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+        $sheet->setTitle('Template');
+        $rowNum = 1;
+        $sheet->fromArray($data['header'], null, 'A' . $rowNum);
+        $rowNum++;
+        foreach ($data['rows'] as $row) {
+            $sheet->fromArray($row, null, 'A' . $rowNum);
+            $rowNum++;
+        }
+        foreach (range('A', $sheet->getHighestColumn()) as $col) {
+            $sheet->getColumnDimension($col)->setAutoSize(true);
+        }
+        return $spreadsheet;
+    }
+
+    protected static function escapeCsvRow(array $row): string
+    {
+        return implode(',', array_map(function ($v) {
+            return strpos($v, ',') !== false || strpos($v, '"') !== false || strpos($v, "\n") !== false
+                ? '"' . str_replace('"', '""', $v) . '"' : $v;
+        }, $row));
     }
 
     public static function getKategoriList(): array

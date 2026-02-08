@@ -108,11 +108,19 @@ trait SasaranImportTrait
             session()->flash('message', $msg);
             session()->flash('messageType', 'success');
         } elseif ($result['errors'] > 0 && $result['added'] > 0) {
-            $msg = "Import selesai dengan sebagian gagal. Berhasil: {$result['added']}, Dilewati (duplikat): {$result['skipped']}, Gagal: {$result['errors']}. Periksa baris yang gagal (NIK kosong atau format data tidak valid).";
+            $msg = "Import selesai dengan sebagian gagal. Berhasil: {$result['added']}, Dilewati (duplikat): {$result['skipped']}, Gagal: {$result['errors']}.";
+            if (!empty($result['errorDetails'])) {
+                $msg .= " Detail: " . $result['errorDetails'][0];
+            }
             session()->flash('message', $msg);
             session()->flash('messageType', 'warning');
         } elseif ($result['errors'] > 0 && $result['added'] === 0) {
-            $msg = "Tidak ada data yang berhasil diimport. Gagal: {$result['errors']} baris. Pastikan kolom: nik_sasaran, nama_sasaran, no_kk_sasaran, tanggal_lahir (YYYY-MM-DD atau DD/MM/YYYY), jenis_kelamin (Laki-laki/Perempuan), alamat_sasaran.";
+            $msg = "Tidak ada data yang berhasil diimport. Gagal: {$result['errors']} baris.";
+            if (!empty($result['errorDetails'])) {
+                $msg .= " Detail: " . $result['errorDetails'][0];
+            } else {
+                $msg .= " Pastikan kolom: nik_sasaran, nama_sasaran, no_kk_sasaran, tanggal_lahir (YYYY-MM-DD atau DD/MM/YYYY), jenis_kelamin (Laki-laki/Perempuan), alamat_sasaran.";
+            }
             session()->flash('message', $msg);
             session()->flash('messageType', 'error');
         } else {
@@ -124,27 +132,47 @@ trait SasaranImportTrait
 
     protected function readCsv($path): array
     {
-        $rows = [];
-        $handle = fopen($path, 'r');
-        if (!$handle) {
+        $content = file_get_contents($path);
+        if ($content === false) {
             return [];
         }
+        // Hapus BOM UTF-8 agar header kolom cocok (Excel sering tambah BOM)
+        $bom = "\xEF\xBB\xBF";
+        if (str_starts_with($content, $bom)) {
+            $content = substr($content, strlen($bom));
+        }
+        $lines = preg_split('/\r\n|\r|\n/', $content, -1, PREG_SPLIT_NO_EMPTY);
+        if (empty($lines)) {
+            return [];
+        }
+        // Deteksi delimiter otomatis: beda laptop/Excel bisa pakai , atau ;
+        $firstLine = $lines[0];
+        $delimiter = ',';
+        $candidates = [',' => str_getcsv($firstLine, ','), ';' => str_getcsv($firstLine, ';'), "\t" => str_getcsv($firstLine, "\t")];
+        $maxCols = 1;
+        foreach ($candidates as $d => $cols) {
+            $n = count($cols);
+            if ($n > $maxCols && $n > 1) {
+                $maxCols = $n;
+                $delimiter = $d;
+            }
+        }
+        $rows = [];
         $header = null;
-        while (($line = fgetcsv($handle, 0, ',')) !== false) {
-            $line = array_map(fn ($v) => trim((string) $v), $line);
+        foreach ($lines as $line) {
+            $cells = array_map(fn ($v) => trim((string) $v), str_getcsv($line, $delimiter));
             if ($header === null) {
-                $header = $line;
+                $header = $cells;
                 continue;
             }
-            $max = max(count($header), count($line));
+            $max = max(count($header), count($cells));
             $h = array_pad($header, $max, '');
-            $v = array_pad($line, $max, '');
+            $v = array_pad($cells, $max, '');
             $row = @array_combine($h, $v) ?: [];
             if ($row && $this->rowHasData($row)) {
                 $rows[] = $row;
             }
         }
-        fclose($handle);
         return $rows;
     }
 
@@ -190,15 +218,19 @@ trait SasaranImportTrait
 
     protected function processImportRows(array $rows): array
     {
-        $result = ['added' => 0, 'skipped' => 0, 'errors' => 0];
+        $result = ['added' => 0, 'skipped' => 0, 'errors' => 0, 'errorDetails' => []];
         $posyanduId = $this->posyanduId;
 
         foreach ($rows as $idx => $row) {
             $rowNum = $idx + 2; // 1-based + header
             try {
-                $nik = preg_replace('/\D/', '', $this->getVal($row, 'nik_sasaran', 'NIK', 'nik') ?? '');
-                if (empty($nik)) {
-                    $result['errors']++;
+                $nik = preg_replace('/\D/', '', $this->getVal($row, 'nik_sasaran', 'NIK Sasaran', 'NIK', 'nik') ?? '');
+                // Skip baris keterangan (row 2) dan baris dengan NIK tidak valid. Import per kolom: map by header.
+                if (strlen($nik) < 10) {
+                    if (empty($nik)) {
+                        $result['errors']++;
+                        $result['errorDetails'][] = "Baris {$rowNum}: NIK kosong.";
+                    }
                     continue;
                 }
 
@@ -213,9 +245,12 @@ trait SasaranImportTrait
                     $result['added']++;
                 } else {
                     $result['errors']++;
+                    $result['errorDetails'][] = "Baris {$rowNum} (NIK {$nik}): Insert gagal tanpa pengecualian.";
                 }
             } catch (\Throwable $e) {
                 $result['errors']++;
+                $nikDisplay = $nik ?? ($row['nik_sasaran'] ?? $row['nik'] ?? '?');
+                $result['errorDetails'][] = "Baris {$rowNum} (NIK {$nikDisplay}): " . $e->getMessage();
             }
         }
 

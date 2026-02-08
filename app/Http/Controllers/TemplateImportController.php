@@ -3,12 +3,13 @@
 namespace App\Http\Controllers;
 
 use App\Services\SasaranImportTemplate;
+use PhpOffice\PhpSpreadsheet\IOFactory;
 
 class TemplateImportController extends Controller
 {
     /**
-     * Unduh template CSV import sasaran per kategori.
-     * Kolom sama dengan input form sasaran agar import tidak gagal.
+     * Unduh template Excel import sasaran per kategori.
+     * Format .xlsx agar data tampil per kolom di Excel.
      */
     public function __invoke(string $kategori)
     {
@@ -17,15 +18,13 @@ class TemplateImportController extends Controller
             $kategori = 'dewasa';
         }
 
-        $csv = SasaranImportTemplate::getCsvContent($kategori);
-        $bom = "\xEF\xBB\xBF";
+        $spreadsheet = SasaranImportTemplate::getExcelContent($kategori);
+        $writer = IOFactory::createWriter($spreadsheet, 'Xlsx');
 
-        return response()->streamDownload(
-            function () use ($csv, $bom) {
-                echo $bom . $csv;
-            },
-            'template_import_' . $kategori . '.csv',
-            ['Content-Type' => 'text/csv; charset=UTF-8']
-        );
+        return response()->streamDownload(function () use ($writer) {
+            $writer->save('php://output');
+        }, 'template_import_' . $kategori . '.xlsx', [
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        ]);
     }
 }

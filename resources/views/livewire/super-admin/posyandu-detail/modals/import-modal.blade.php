@@ -10,7 +10,7 @@
                     Import Sasaran {{ $importKategori ? (($importKategoriLabels[$importKategori] ?? ucfirst($importKategori))) : '' }}
                 </h3>
                 <p class="text-sm text-gray-500 mb-4">
-                    Upload file CSV atau Excel (.xlsx, .xls). Baris pertama = header. Jika NIK + posyandu sudah ada, baris akan dilewati (tidak duplikat).
+                    Upload file CSV atau Excel (.xlsx, .xls). Baris pertama = header kolom, baris berikutnya = data. Import memetakan per kolom berdasarkan nama header (urutan kolom bebas). NIK + posyandu sudah ada akan dilewati.
                 </p>
                 <p class="text-xs text-gray-500 mb-2">
                     Kolom wajib: nik_sasaran, nama_sasaran, no_kk_sasaran, tanggal_lahir, jenis_kelamin, alamat_sasaran. Format tanggal: <strong>YYYY-MM-DD</strong> atau DD/MM/YYYY. Jenis kelamin: <strong>Laki-laki</strong> atau <strong>Perempuan</strong>. Status keluarga: kepala keluarga, istri, anak. Kepersertaan BPJS: <strong>PBI</strong> atau <strong>NON PBI</strong>.
@@ -21,9 +21,9 @@
                        rel="noopener"
                        class="inline-flex items-center gap-2 text-sm font-medium text-primary hover:underline">
                         <i class="ph ph-download-simple"></i>
-                        Unduh contoh CSV (template {{ $importKategori ? (($importKategoriLabels[$importKategori] ?? ucfirst($importKategori))) : '' }})
+                        Unduh template Excel (.xlsx) {{ $importKategori ? (($importKategoriLabels[$importKategori] ?? ucfirst($importKategori))) : '' }}
                     </a>
-                    <p class="text-xs text-gray-500 mt-1">Isi template sesuai kolom form; isi contoh bisa diganti dengan data Anda lalu simpan sebagai CSV/Excel.</p>
+                    <p class="text-xs text-gray-500 mt-1">Template Excel menampilkan data per kolom. Isi data lalu simpan dan upload untuk import.</p>
                 </div>
                 <div class="space-y-2">
                     <input type="file"
@@ -60,7 +60,16 @@
                         <li><strong>Dilewati (duplikat):</strong> {{ $importResult['skipped'] ?? 0 }}</li>
                         <li><strong>Gagal:</strong> {{ $importResult['errors'] ?? 0 }}</li>
                     </ul>
-                    @if($allError && $total > 0)
+                    @if(($allError || $partial) && !empty($importResult['errorDetails'] ?? []))
+                        <div class="mt-2 text-xs text-red-700 space-y-1">
+                            @foreach(array_slice($importResult['errorDetails'] ?? [], 0, 5) as $detail)
+                                <p>{{ $detail }}</p>
+                            @endforeach
+                            @if(count($importResult['errorDetails'] ?? []) > 5)
+                                <p>... dan {{ count($importResult['errorDetails']) - 5 }} error lainnya.</p>
+                            @endif
+                        </div>
+                    @elseif($allError && $total > 0)
                         <p class="mt-2 text-xs text-red-700">Periksa kolom NIK, nama, no_kk, tanggal_lahir, jenis_kelamin, alamat. Format tanggal: YYYY-MM-DD atau DD/MM/YYYY.</p>
                     @endif
                     @if($allSkipped)
