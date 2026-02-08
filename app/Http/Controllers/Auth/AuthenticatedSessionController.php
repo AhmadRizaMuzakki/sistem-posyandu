@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Auth;
 
+use App\Helpers\ActivityLogger;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
 use Illuminate\Http\RedirectResponse;
@@ -31,7 +32,11 @@ class AuthenticatedSessionController extends Controller
 
         /** @var \App\Models\User|null $user */
         $user = Auth::user();
-        
+
+        if ($user && $user->hasRole('superadmin')) {
+            ActivityLogger::login($user->id, $user->email);
+        }
+
         // 2. Gunakan redirect()->route() agar user DIPAKSA ke dashboard role-nya
         // Jangan gunakan intended() jika Anda ingin strict redirection berdasarkan role
         if ($user) {
@@ -57,6 +62,11 @@ class AuthenticatedSessionController extends Controller
      */
     public function destroy(Request $request): RedirectResponse
     {
+        $user = Auth::user();
+        if ($user && $user->hasRole('superadmin')) {
+            ActivityLogger::logout($user->id);
+        }
+
         Auth::guard('web')->logout();
 
         $request->session()->invalidate();

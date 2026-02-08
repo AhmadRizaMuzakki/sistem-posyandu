@@ -279,8 +279,8 @@
                 {{-- Menu tambahan --}}
                 <div class="pt-4 mt-4 border-t border-gray-100">
                     <a
-                        href="{{ route('admin.dashboard') }}"
-                        class="flex items-center px-4 py-3 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                        href="{{ route('pengaturan') }}"
+                        class="sidebar-menu-item flex items-center px-4 py-3 rounded-lg {{ request()->routeIs('pengaturan') ? 'active' : 'text-gray-600' }}"
                     >
                         <i class="ph ph-gear text-xl mr-3"></i>
                         <span class="font-medium">Pengaturan</span>

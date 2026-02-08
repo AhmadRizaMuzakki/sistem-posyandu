@@ -116,6 +116,13 @@
                     <span class="font-medium">Pendidikan</span>
                 </a>
 
+                {{-- 7. ABSENSI KEHADIRAN --}}
+                <a href="{{ route('adminPosyandu.ibu-menyusui') }}"
+                    class="sidebar-menu-item flex items-center px-4 py-3 rounded-lg {{ request()->routeIs('adminPosyandu.ibu-menyusui') ? 'active' : 'text-gray-600' }}">
+                    <i class="ph ph-baby text-xl mr-3"></i>
+                    <span class="font-medium">Absensi</span>
+                </a>
+
                 {{-- 9. LAPORAN --}}
                 <a href="{{ route('adminPosyandu.laporan') }}"
                     class="sidebar-menu-item flex items-center px-4 py-3 rounded-lg {{ request()->routeIs('adminPosyandu.laporan') ? 'active' : 'text-gray-600' }}">

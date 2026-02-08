@@ -33,6 +33,7 @@ Route::get('/storage/{path}', StorageController::class)->where('path', '.*')->na
 
 Route::prefix('supervisor')->middleware(['auth', 'verified', 'role:superadmin'])->group(function () {
     Route::get('/', SuperAdminDashboard::class)->name('admin.dashboard');
+    Route::get('/pengaturan', \App\Livewire\SuperAdmin\Pengaturan::class)->name('pengaturan');
     Route::get('/galeri', \App\Livewire\SuperAdmin\Galeri::class)->name('superadmin.galeri');
 
     // Route list posyandu

@@ -3,10 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\Imunisasi;
-use App\Models\IbuMenyusui;
 use App\Models\Jadwal;
 use App\Models\Kader;
-use App\Models\KunjunganIbuMenyusui;
 use App\Models\Posyandu;
 use App\Models\Pendidikan;
 use Carbon\Carbon;
@@ -1029,120 +1027,6 @@ class LaporanController extends Controller
             'user' => $user,
             'bulanLabel' => $bulanLabel,
             'presensiLabel' => $presensiLabel,
-        ], $fileName);
-    }
-
-    /**
-     * Laporan Absensi Bayi/Balita (Kunjungan) - Admin Posyandu. Filter: bulan, tahun, status (hadir/tidak_hadir).
-     */
-    public function posyanduAbsensiBayiPdf(Request $request): Response
-    {
-        $user = Auth::user();
-        $kader = Kader::with('posyandu')->where('id_users', $user->id)->first();
-        if (! $kader || ! $kader->posyandu) {
-            abort(403, 'Posyandu untuk akun ini tidak ditemukan.');
-        }
-        $posyandu = $kader->posyandu;
-        $bulan = (int) $request->query('bulan', now()->month);
-        $tahun = (int) $request->query('tahun', now()->year);
-        $statusFilter = $request->query('status');
-
-        $ibuMenyusuiList = IbuMenyusui::where('id_posyandu', $posyandu->id_posyandu)
-            ->orderBy('nama_bayi')
-            ->get();
-
-        $rows = [];
-        foreach ($ibuMenyusuiList as $ibu) {
-            $kunjungan = KunjunganIbuMenyusui::where('id_ibu_menyusui', $ibu->id_ibu_menyusui)
-                ->where('bulan', $bulan)
-                ->where('tahun', $tahun)
-                ->first();
-            $hadir = $kunjungan && ($kunjungan->status === 'success');
-            if ($statusFilter === 'hadir' && ! $hadir) {
-                continue;
-            }
-            if ($statusFilter === 'tidak_hadir' && $hadir) {
-                continue;
-            }
-            $rows[] = (object) [
-                'nama_bayi' => $ibu->nama_bayi ?? '-',
-                'nama_ibu' => $ibu->nama_ibu ?? '-',
-                'nama_suami' => $ibu->nama_suami ?? '-',
-                'status' => $hadir ? 'Hadir' : 'Tidak Hadir',
-                'tanggal_kunjungan' => $hadir && $kunjungan->tanggal_kunjungan
-                    ? Carbon::parse($kunjungan->tanggal_kunjungan)->format('d/m/Y')
-                    : '-',
-            ];
-        }
-
-        $bulanLabel = Carbon::create($tahun, $bulan, 1)->locale('id')->translatedFormat('F Y');
-        $statusLabel = $statusFilter === 'hadir' ? 'Hadir' : ($statusFilter === 'tidak_hadir' ? 'Tidak Hadir' : 'Semua');
-        $fileName = 'Laporan-Absensi-Bayi-'.$statusLabel.'-'.$bulanLabel.'-'.$posyandu->nama_posyandu.'-'.now('Asia/Jakarta')->format('Ymd_His').'.pdf';
-
-        return $this->renderPdf('pdf.laporan-posyandu-absensi-bayi', [
-            'posyandu' => $posyandu,
-            'rows' => $rows,
-            'generatedAt' => now('Asia/Jakarta'),
-            'user' => $user,
-            'bulanLabel' => $bulanLabel,
-            'statusLabel' => $statusLabel,
-        ], $fileName);
-    }
-
-    /**
-     * Laporan Absensi Bayi/Balita (Kunjungan) - Super Admin. Filter: bulan, tahun, status (hadir/tidak_hadir).
-     */
-    public function superadminPosyanduAbsensiBayiPdf(Request $request, string $id): Response
-    {
-        try {
-            $decryptedId = decrypt($id);
-        } catch (\Illuminate\Contracts\Encryption\DecryptException $e) {
-            abort(404, 'ID tidak valid');
-        }
-        $posyandu = Posyandu::findOrFail($decryptedId);
-        $bulan = (int) $request->query('bulan', now()->month);
-        $tahun = (int) $request->query('tahun', now()->year);
-        $statusFilter = $request->query('status');
-
-        $ibuMenyusuiList = IbuMenyusui::where('id_posyandu', $posyandu->id_posyandu)
-            ->orderBy('nama_bayi')
-            ->get();
-
-        $rows = [];
-        foreach ($ibuMenyusuiList as $ibu) {
-            $kunjungan = KunjunganIbuMenyusui::where('id_ibu_menyusui', $ibu->id_ibu_menyusui)
-                ->where('bulan', $bulan)
-                ->where('tahun', $tahun)
-                ->first();
-            $hadir = $kunjungan && ($kunjungan->status === 'success');
-            if ($statusFilter === 'hadir' && ! $hadir) {
-                continue;
-            }
-            if ($statusFilter === 'tidak_hadir' && $hadir) {
-                continue;
-            }
-            $rows[] = (object) [
-                'nama_bayi' => $ibu->nama_bayi ?? '-',
-                'nama_ibu' => $ibu->nama_ibu ?? '-',
-                'nama_suami' => $ibu->nama_suami ?? '-',
-                'status' => $hadir ? 'Hadir' : 'Tidak Hadir',
-                'tanggal_kunjungan' => $hadir && $kunjungan->tanggal_kunjungan
-                    ? Carbon::parse($kunjungan->tanggal_kunjungan)->format('d/m/Y')
-                    : '-',
-            ];
-        }
-
-        $bulanLabel = Carbon::create($tahun, $bulan, 1)->locale('id')->translatedFormat('F Y');
-        $statusLabel = $statusFilter === 'hadir' ? 'Hadir' : ($statusFilter === 'tidak_hadir' ? 'Tidak Hadir' : 'Semua');
-        $fileName = 'Laporan-Absensi-Bayi-'.$statusLabel.'-'.$bulanLabel.'-'.$posyandu->nama_posyandu.'-'.now('Asia/Jakarta')->format('Ymd_His').'.pdf';
-
-        return $this->renderPdf('pdf.laporan-posyandu-absensi-bayi', [
-            'posyandu' => $posyandu,
-            'rows' => $rows,
-            'generatedAt' => now('Asia/Jakarta'),
-            'user' => Auth::user(),
-            'bulanLabel' => $bulanLabel,
-            'statusLabel' => $statusLabel,
         ], $fileName);
     }
 
