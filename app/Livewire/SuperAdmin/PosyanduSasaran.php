@@ -9,6 +9,7 @@ use App\Livewire\SuperAdmin\Traits\PralansiaCrud;
 use App\Livewire\SuperAdmin\Traits\LansiaCrud;
 use App\Livewire\SuperAdmin\Traits\IbuHamilCrud;
 use App\Livewire\SuperAdmin\Traits\OrangtuaCrud;
+use App\Livewire\SuperAdmin\Traits\SasaranImportTrait;
 use App\Models\Posyandu;
 use App\Models\User;
 use App\Models\Orangtua;
