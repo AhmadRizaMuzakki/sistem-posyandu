@@ -420,6 +420,17 @@ class PosyanduSasaran extends Component
             'id_sasaran_pralansia' => $this->id_sasaran_pralansia,
             'id_sasaran_lansia' => $this->id_sasaran_lansia,
             'id_sasaran_ibuhamil' => $this->id_sasaran_ibuhamil,
+            'showImportModal' => $this->showImportModal,
+            'importKategori' => $this->importKategori,
+            'importResult' => $this->importResult,
+            'importKategoriLabels' => [
+                'bayibalita' => 'Bayi/Balita',
+                'remaja' => 'Remaja',
+                'dewasa' => 'Dewasa',
+                'ibuhamil' => 'Ibu Hamil',
+                'pralansia' => 'Pralansia',
+                'lansia' => 'Lansia',
+            ],
         ]);
     }
 }
