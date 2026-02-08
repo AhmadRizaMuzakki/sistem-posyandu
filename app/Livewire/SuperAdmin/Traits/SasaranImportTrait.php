@@ -49,6 +49,23 @@ trait SasaranImportTrait
         $this->importResult = null;
     }
 
+    /**
+     * Unduh file CSV contoh untuk import sesuai kategori sasaran.
+     * Kolom disesuaikan dengan input form masing-masing sasaran.
+     */
+    public function downloadTemplateImport()
+    {
+        $csv = \App\Services\SasaranImportTemplate::getCsvContent($this->importKategori ?: 'dewasa');
+        $bom = "\xEF\xBB\xBF";
+        return response()->streamDownload(
+            function () use ($csv, $bom) {
+                echo $bom . $csv;
+            },
+            'template_import_' . ($this->importKategori ?: 'dewasa') . '.csv',
+            ['Content-Type' => 'text/csv; charset=UTF-8']
+        );
+    }
+
     public function importSasaran()
     {
         $this->validate([

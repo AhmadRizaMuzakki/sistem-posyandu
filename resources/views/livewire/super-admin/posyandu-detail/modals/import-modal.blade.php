@@ -12,9 +12,19 @@
                 <p class="text-sm text-gray-500 mb-4">
                     Upload file CSV atau Excel (.xlsx, .xls). Baris pertama = header. Jika NIK + posyandu sudah ada, baris akan dilewati (tidak duplikat).
                 </p>
-                <p class="text-xs text-gray-500 mb-3">
-                    Kolom minimal: nik_sasaran, nama_sasaran, no_kk_sasaran, tanggal_lahir, jenis_kelamin, alamat_sasaran. Format tanggal: YYYY-MM-DD atau DD/MM/YYYY.
+                <p class="text-xs text-gray-500 mb-2">
+                    Kolom wajib: nik_sasaran, nama_sasaran, no_kk_sasaran, tanggal_lahir, jenis_kelamin, alamat_sasaran. Format tanggal: <strong>YYYY-MM-DD</strong> atau DD/MM/YYYY. Jenis kelamin: <strong>Laki-laki</strong> atau <strong>Perempuan</strong>. Status keluarga: kepala keluarga, istri, anak. Kepersertaan BPJS: <strong>PBI</strong> atau <strong>NON PBI</strong>.
                 </p>
+                <div class="mb-4">
+                    <a href="{{ route('superadmin.sasaran.template-import', ['kategori' => $importKategori ?: 'dewasa']) }}"
+                       target="_blank"
+                       rel="noopener"
+                       class="inline-flex items-center gap-2 text-sm font-medium text-primary hover:underline">
+                        <i class="ph ph-download-simple"></i>
+                        Unduh contoh CSV (template {{ $importKategori ? (($importKategoriLabels[$importKategori] ?? ucfirst($importKategori))) : '' }})
+                    </a>
+                    <p class="text-xs text-gray-500 mt-1">Isi template sesuai kolom form; isi contoh bisa diganti dengan data Anda lalu simpan sebagai CSV/Excel.</p>
+                </div>
                 <div class="space-y-2">
                     <input type="file"
                            wire:model="importFile"

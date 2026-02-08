@@ -69,6 +69,7 @@ Route::prefix('supervisor')->middleware(['auth', 'verified', 'role:superadmin'])
     Route::get('/posyandu/{id}/pendidikan/pdf', [LaporanController::class, 'superadminPosyanduPendidikanPdf'])->name('superadmin.posyandu.pendidikan.pdf');
     Route::get('/posyandu/{id}/sasaran/{kategori}/pdf', [LaporanController::class, 'superadminPosyanduSasaranPdf'])->name('superadmin.posyandu.sasaran.pdf');
     Route::get('/posyandu/{id}/sk/pdf', [LaporanController::class, 'superadminPosyanduSkPdf'])->name('superadmin.posyandu.sk.pdf');
+    Route::get('/sasaran/template-import/{kategori}', \App\Http\Controllers\TemplateImportController::class)->name('superadmin.sasaran.template-import');
 });
 
 
