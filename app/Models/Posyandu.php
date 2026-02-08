@@ -15,6 +15,7 @@ class Posyandu extends Model
         'jumlah_sasaran',
         'sk_posyandu',
         'domisili_posyandu',
+        'link_maps',
         'logo_posyandu',
     ];
 

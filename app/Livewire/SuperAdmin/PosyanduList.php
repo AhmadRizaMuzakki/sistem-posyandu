@@ -24,6 +24,7 @@ class PosyanduList extends Component
     public $nama_posyandu = '';
     public $alamat_posyandu = '';
     public $domisili_posyandu = '';
+    public $link_maps = '';
     public $skFile = null;
     public $logoFile = null;
     public $currentSkPath = null;
@@ -67,6 +68,7 @@ class PosyanduList extends Component
         $this->nama_posyandu = '';
         $this->alamat_posyandu = '';
         $this->domisili_posyandu = '';
+        $this->link_maps = '';
         $this->skFile = null;
         $this->logoFile = null;
         $this->currentSkPath = null;
@@ -102,6 +104,7 @@ class PosyanduList extends Component
             'nama_posyandu' => 'required|string|max:255',
             'alamat_posyandu' => 'nullable|string',
             'domisili_posyandu' => 'nullable|string|max:255',
+            'link_maps' => 'nullable|string|max:2048',
             'skFile' => 'nullable|file|mimes:pdf,doc,docx|max:5120',
             'logoFile' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
         ], [
@@ -121,6 +124,7 @@ class PosyanduList extends Component
                 'nama_posyandu' => $this->nama_posyandu,
                 'alamat_posyandu' => $this->alamat_posyandu ?: null,
                 'domisili_posyandu' => $this->domisili_posyandu ?: null,
+                'link_maps' => $this->link_maps ?: null,
             ];
 
             // Upload SK ke public/uploads/sk_posyandu
@@ -215,6 +219,7 @@ class PosyanduList extends Component
             $this->nama_posyandu = $posyandu->nama_posyandu;
             $this->alamat_posyandu = $posyandu->alamat_posyandu ?? '';
             $this->domisili_posyandu = $posyandu->domisili_posyandu ?? '';
+            $this->link_maps = $posyandu->link_maps ?? '';
             $this->currentSkPath = $posyandu->sk_posyandu;
             $this->currentLogoPath = $posyandu->logo_posyandu;
             $this->skFile = null;

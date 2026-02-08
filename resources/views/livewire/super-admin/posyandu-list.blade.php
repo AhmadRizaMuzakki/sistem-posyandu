@@ -167,6 +167,22 @@
                         @enderror
                     </div>
 
+                    {{-- Link Maps --}}
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            Link Google Maps
+                        </label>
+                        <input
+                            type="url"
+                            wire:model="link_maps"
+                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-colors @error('link_maps') border-red-500 @enderror"
+                            placeholder="https://www.google.com/maps/embed?pb=... atau https://maps.google.com/?q=...">
+                        <p class="mt-1 text-xs text-gray-500">Paste URL embed dari Google Maps (Share → Embed a map) atau link share lokasi</p>
+                        @error('link_maps')
+                            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                        @enderror
+                    </div>
+
                     {{-- File SK --}}
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-2">

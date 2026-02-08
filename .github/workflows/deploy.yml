@@ -68,6 +68,7 @@ jobs:
           username: ${{ secrets.USERNAME }}
           password: ${{ secrets.PASSWORD }}
           protocol: ftp
+          timeout: 3600000
 
           local-dir: ./public/
           server-dir: /domains/posyandukaranggan.com/public_html/
@@ -83,6 +84,7 @@ jobs:
           username: ${{ secrets.USERNAME }}
           password: ${{ secrets.PASSWORD }}
           protocol: ftp
+          timeout: 3600000
 
           local-dir: ./
           server-dir: /domains/posyandukaranggan.com/public_html/staging/
@@ -121,6 +123,7 @@ jobs:
           username: ${{ secrets.USERNAME }}
           password: ${{ secrets.PASSWORD }}
           protocol: ftp
+          timeout: 3600000
 
           local-dir: ./public/
           server-dir: /domains/posyandukaranggan.com/public_html/
@@ -136,6 +139,7 @@ jobs:
           username: ${{ secrets.USERNAME }}
           password: ${{ secrets.PASSWORD }}
           protocol: ftp
+          timeout: 3600000
 
           local-dir: ./
           server-dir: /domains/posyandukaranggan.com/posyandukaranggan/

@@ -114,6 +114,74 @@
                 </dl>
             </div>
 
+            {{-- Lokasi / Peta --}}
+            @if($posyandu->link_maps ?? false)
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-6">
+                <h2 class="text-lg font-semibold text-slate-800 mb-4 flex items-center">
+                    <i class="fa-solid fa-map-location-dot text-primary mr-2"></i>
+                    Lokasi Posyandu
+                </h2>
+                @php
+                    $linkMaps = $posyandu->link_maps;
+                    $isEmbed = str_contains($linkMaps, 'embed') || str_contains($linkMaps, '/embed');
+                    preg_match('/@(-?\d+\.?\d*),(-?\d+\.?\d*)/', $linkMaps, $coords);
+                    $lat = $coords[1] ?? null;
+                    $lng = $coords[2] ?? null;
+                @endphp
+                @if($isEmbed)
+                    <div class="rounded-xl overflow-hidden border border-slate-200 aspect-video">
+                        <iframe
+                            src="{{ $linkMaps }}"
+                            width="100%"
+                            height="100%"
+                            style="border:0; min-height: 350px;"
+                            allowfullscreen=""
+                            loading="lazy"
+                            referrerpolicy="no-referrer-when-downgrade">
+                        </iframe>
+                    </div>
+                @elseif($lat && $lng)
+                    <div id="map" class="rounded-xl overflow-hidden border border-slate-200" style="height: 350px;"></div>
+                    <a href="{{ $linkMaps }}" target="_blank" rel="noopener" class="inline-flex items-center gap-2 mt-3 text-primary hover:underline font-medium">
+                        <i class="fa-solid fa-external-link-alt"></i>
+                        Buka di Google Maps
+                    </a>
+                    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
+                    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+                    <script>
+                        document.addEventListener('DOMContentLoaded', function() {
+                            var map = L.map('map').setView([{{ $lat }}, {{ $lng }}], 16);
+                            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+                            }).addTo(map);
+                            L.marker([{{ $lat }}, {{ $lng }}]).addTo(map)
+                                .bindPopup('<strong>{{ addslashes($posyandu->nama_posyandu) }}</strong><br>{{ addslashes($posyandu->alamat_posyandu ?? $posyandu->domisili_posyandu ?? '') }}')
+                                .openPopup();
+                        });
+                    </script>
+                @else
+                    @php
+                        $embedUrl = str_contains($linkMaps, '?') ? $linkMaps . '&output=embed' : $linkMaps . '?output=embed';
+                    @endphp
+                    <div class="rounded-xl overflow-hidden border border-slate-200" style="height: 280px;">
+                        <iframe
+                            src="{{ $embedUrl }}"
+                            width="100%"
+                            height="100%"
+                            style="border:0; min-height: 280px;"
+                            allowfullscreen=""
+                            loading="lazy"
+                            referrerpolicy="no-referrer-when-downgrade">
+                        </iframe>
+                    </div>
+                    <a href="{{ $linkMaps }}" target="_blank" rel="noopener" class="inline-flex items-center gap-2 mt-3 text-primary hover:underline font-medium text-sm">
+                        <i class="fa-solid fa-external-link-alt"></i>
+                        Buka di Google Maps
+                    </a>
+                @endif
+            </div>
+            @endif
+
             {{-- SK Posyandu (hanya tampil jika ada, tanpa tombol upload/hapus) --}}
             @if($posyandu->sk_posyandu)
             <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-6">
