@@ -96,15 +96,55 @@ class PosyanduList extends Component
     }
 
     /**
+     * Sanitasi & validasi URL Google Maps embed.
+     * Mendukung paste URL saja atau full iframe HTML.
+     * Hanya mengizinkan https://www.google.com/maps/embed (mencegah XSS).
+     */
+    protected function sanitizeGoogleMapsEmbedUrl(?string $input): ?string
+    {
+        if (empty(trim((string) $input))) {
+            return null;
+        }
+        $input = trim($input);
+
+        // Ekstrak URL dari iframe jika user paste full iframe HTML
+        if (stripos($input, '<iframe') !== false && preg_match('/src\s*=\s*["\']([^"\']+)["\']/i', $input, $m)) {
+            $input = trim($m[1]);
+        }
+
+        // Decode HTML entities (e.g. &amp; -> &)
+        $input = html_entity_decode($input, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+
+        // Whitelist: hanya URL embed Google Maps
+        $allowedPrefix = 'https://www.google.com/maps/embed';
+        if (!str_starts_with($input, $allowedPrefix)) {
+            return null;
+        }
+        // Tolak javascript:, data:, dll
+        $lower = strtolower($input);
+        if (str_contains($lower, 'javascript:') || str_contains($lower, 'data:')) {
+            return null;
+        }
+        return $input;
+    }
+
+    /**
      * Simpan posyandu baru atau update
      */
     public function store()
     {
+        $linkMapsRaw = $this->link_maps;
+        $linkMapsSanitized = $this->sanitizeGoogleMapsEmbedUrl($linkMapsRaw);
+        if (!empty(trim((string) $linkMapsRaw)) && $linkMapsSanitized === null) {
+            $this->addError('link_maps', 'Link harus berupa URL embed Google Maps (Share → Embed a map) dari https://www.google.com/maps/embed?pb=...');
+            return;
+        }
+
         $this->validate([
             'nama_posyandu' => 'required|string|max:255',
             'alamat_posyandu' => 'nullable|string',
             'domisili_posyandu' => 'nullable|string|max:255',
-            'link_maps' => 'nullable|string|max:2048',
+            'link_maps' => 'nullable|string|max:4096',
             'skFile' => 'nullable|file|mimes:pdf,doc,docx|max:5120',
             'logoFile' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
         ], [
@@ -124,7 +164,7 @@ class PosyanduList extends Component
                 'nama_posyandu' => $this->nama_posyandu,
                 'alamat_posyandu' => $this->alamat_posyandu ?: null,
                 'domisili_posyandu' => $this->domisili_posyandu ?: null,
-                'link_maps' => $this->link_maps ?: null,
+                'link_maps' => $linkMapsSanitized ?? null,
             ];
 
             // Upload SK ke public/uploads/sk_posyandu

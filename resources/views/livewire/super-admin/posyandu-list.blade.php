@@ -167,17 +167,17 @@
                         @enderror
                     </div>
 
-                    {{-- Link Maps --}}
+                    {{-- Link Maps (Embed Google Maps) --}}
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-2">
-                            Link Google Maps
+                            Link Embed Google Maps
                         </label>
-                        <input
-                            type="url"
+                        <textarea
                             wire:model="link_maps"
+                            rows="2"
                             class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-colors @error('link_maps') border-red-500 @enderror"
-                            placeholder="https://www.google.com/maps/embed?pb=... atau https://maps.google.com/?q=...">
-                        <p class="mt-1 text-xs text-gray-500">Paste URL embed dari Google Maps (Share → Embed a map) atau link share lokasi</p>
+                            placeholder="Paste URL embed (https://www.google.com/maps/embed?pb=...) atau kode iframe lengkap dari Google Maps (Share → Embed a map)"></textarea>
+                        <p class="mt-1 text-xs text-gray-500">Paste URL embed atau full iframe dari Google Maps (Share → Embed a map). Hanya URL embed google.com/maps/embed yang diterima.</p>
                         @error('link_maps')
                             <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                         @enderror
