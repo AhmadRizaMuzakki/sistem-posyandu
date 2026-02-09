@@ -31,7 +31,7 @@ class PosyanduDashboard extends Component
     public $showUploadModal = false;
 
     public $gambarFile;
-    public $showUploadGambarModal = false;
+    public $showGambarModal = false;
     
     // Pendidikan properties
     public $showPendidikanModal = false;
@@ -279,10 +279,10 @@ class PosyanduDashboard extends Component
         $this->validate([
             'gambarFile' => 'required|image|mimes:jpeg,png,jpg|max:2048',
         ], [
-            'gambarFile.required' => 'Gambar harus diupload.',
+            'gambarFile.required' => 'Pilih gambar untuk diupload.',
             'gambarFile.image' => 'File harus berupa gambar.',
-            'gambarFile.mimes' => 'Format harus JPEG, PNG, atau JPG.',
-            'gambarFile.max' => 'Ukuran maksimal 2MB.',
+            'gambarFile.mimes' => 'Format: JPEG, PNG, JPG.',
+            'gambarFile.max' => 'Maksimal 2MB.',
         ]);
 
         try {
@@ -303,12 +303,14 @@ class PosyanduDashboard extends Component
             File::copy($this->gambarFile->getRealPath(), $dir . DIRECTORY_SEPARATOR . $safeName);
 
             $this->posyandu->update(['gambar_posyandu' => 'gambar_posyandu/' . $safeName]);
+
             $this->refreshPosyandu();
             cache()->forget("posyandu_dashboard_{$this->posyanduId}");
-            $this->gambarFile = null;
-            $this->showUploadGambarModal = false;
 
-            $this->showSuccessNotification('Gambar posyandu berhasil diupload.');
+            $this->gambarFile = null;
+            $this->showGambarModal = false;
+
+            $this->showSuccessNotification('Gambar posyandu berhasil diupload. Tampil di halaman detail di atas peta.');
         } catch (\Exception $e) {
             $this->showErrorNotification('Gagal mengupload gambar: ' . $e->getMessage());
         }

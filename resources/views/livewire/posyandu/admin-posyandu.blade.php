@@ -176,48 +176,47 @@
             </div>
         </div>
 
-        <!-- Card Gambar Posyandu (ditampilkan di halaman detail publik di atas peta) -->
+        <!-- Card Gambar Posyandu (tampil di halaman detail publik di atas peta) -->
         <div class="bg-white rounded-lg shadow-md p-6 mb-6">
             <h2 class="text-xl font-semibold text-gray-800 mb-4 flex items-center justify-between">
                 <div class="flex items-center">
                     <i class="ph ph-image text-2xl mr-3 text-primary"></i>
                     Gambar Posyandu
                 </div>
-                <div class="flex items-center space-x-2">
-                    <button 
-                        wire:click="$set('showUploadGambarModal', true)"
-                        class="px-4 py-2 text-sm bg-primary text-white rounded-lg hover:bg-primary-dark transition-colors flex items-center space-x-2">
-                        <i class="ph ph-upload text-sm"></i>
-                        <span>Upload Gambar</span>
-                    </button>
-                    @if($posyandu->gambar_posyandu)
-                    <button 
-                        wire:click="openConfirmModal('deleteGambar', 'Apakah Anda yakin ingin menghapus gambar posyandu ini?')"
-                        class="px-4 py-2 text-sm bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors flex items-center space-x-2">
-                        <i class="ph ph-trash text-sm"></i>
-                        <span>Hapus Gambar</span>
-                    </button>
-                    @endif
-                </div>
+                <button 
+                    wire:click="$set('showGambarModal', true)"
+                    class="px-4 py-2 text-sm bg-primary text-white rounded-lg hover:bg-primary-dark transition-colors flex items-center space-x-2">
+                    <i class="ph ph-upload text-sm"></i>
+                    <span>Upload</span>
+                </button>
             </h2>
-            <p class="text-xs text-gray-500 mb-3">Gambar ini ditampilkan di halaman detail posyandu (publik) di atas peta lokasi.</p>
+            <p class="text-sm text-gray-500 mb-4">Gambar ini ditampilkan di halaman detail posyandu (publik) di atas peta lokasi.</p>
             <div class="flex flex-col items-center justify-center py-6">
                 @if($posyandu->gambar_posyandu)
                     <div class="relative group w-full max-w-2xl">
-                        <div class="rounded-lg border-2 border-gray-200 overflow-hidden bg-gray-50">
-                            <img src="{{ uploads_asset($posyandu->gambar_posyandu) }}" alt="Gambar {{ $posyandu->nama_posyandu }}" class="w-full h-auto max-h-80 object-cover">
-                            <div class="p-3 flex items-center justify-between bg-white border-t border-gray-100">
-                                <a href="{{ uploads_asset($posyandu->gambar_posyandu) }}" target="_blank" class="text-primary hover:underline font-medium text-sm flex items-center space-x-2">
-                                    <i class="ph ph-eye text-lg"></i>
-                                    <span>Lihat Gambar</span>
-                                </a>
-                            </div>
+                        <img src="{{ uploads_asset($posyandu->gambar_posyandu) }}" alt="Gambar {{ $posyandu->nama_posyandu }}" class="w-full h-auto max-h-80 object-cover rounded-lg border-2 border-gray-200 shadow-md">
+                        <div class="mt-3 flex items-center justify-center gap-2">
+                            <a href="{{ uploads_asset($posyandu->gambar_posyandu) }}" target="_blank" class="text-primary hover:underline text-sm font-medium flex items-center gap-1">
+                                <i class="ph ph-eye"></i> Lihat full size
+                            </a>
+                            <button 
+                                wire:click="openConfirmModal('deleteGambar', 'Hapus gambar posyandu? Gambar tidak akan tampil di halaman detail.')"
+                                class="px-4 py-2 text-sm bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors flex items-center space-x-2">
+                                <i class="ph ph-trash text-sm"></i>
+                                <span>Hapus</span>
+                            </button>
                         </div>
                     </div>
                 @else
-                    <div class="w-full max-w-md p-6 bg-gray-100 rounded-lg border-2 border-dashed border-gray-300 flex flex-col items-center justify-center">
+                    <div class="w-full max-w-md p-8 bg-gray-100 rounded-lg border-2 border-dashed border-gray-300 flex flex-col items-center justify-center">
                         <i class="ph ph-image text-6xl text-gray-400 mb-3"></i>
                         <p class="text-sm text-gray-500 text-center px-4">Belum ada gambar posyandu. Upload untuk ditampilkan di halaman detail di atas peta.</p>
+                        <button 
+                            wire:click="$set('showGambarModal', true)"
+                            class="mt-4 px-4 py-2 text-sm bg-primary text-white rounded-lg hover:bg-primary-dark transition-colors flex items-center space-x-2">
+                            <i class="ph ph-upload text-sm"></i>
+                            <span>Upload</span>
+                        </button>
                     </div>
                 @endif
             </div>
@@ -456,7 +455,7 @@
 
     {{-- Modal Upload Gambar Posyandu --}}
     <div x-data="{ 
-        show: @entangle('showUploadGambarModal'),
+        show: @entangle('showGambarModal'),
         isDragging: false,
         fileName: '',
         fileSize: '',
@@ -472,17 +471,16 @@
     x-show="show"
     x-cloak
     class="fixed inset-0 z-50 overflow-y-auto"
-    style="display: none;"
-    x-on:close-modal.window="show = false">
+    style="display: none;">
         <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
             <div x-show="show" class="fixed inset-0 transition-opacity bg-gray-500 bg-opacity-75" x-on:click="show = false"></div>
             <div x-show="show" class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full" x-on:click.away="show = false">
                 <div class="bg-primary px-6 py-4 flex items-center justify-between">
                     <h3 class="text-lg font-semibold text-white">Upload Gambar Posyandu</h3>
-                    <button x-on:click="show = false" class="text-white hover:text-gray-200"><i class="ph ph-x text-xl"></i></button>
+                    <button type="button" x-on:click="show = false" class="text-white hover:text-gray-200"><i class="ph ph-x text-xl"></i></button>
                 </div>
                 <div class="bg-white px-6 py-4">
-                    <p class="text-sm text-gray-500 mb-4">Gambar ditampilkan di halaman detail posyandu (publik) di atas peta. Format: JPEG, PNG, JPG (Maks. 2MB).</p>
+                    <p class="text-sm text-gray-600 mb-4">Gambar ditampilkan di halaman detail posyandu (publik) di atas peta. Format: JPEG, PNG, JPG (Maks. 2MB).</p>
                     <form wire:submit.prevent="uploadGambar">
                         <div 
                             x-on:dragover.prevent="isDragging = true"
@@ -491,58 +489,42 @@
                                 isDragging = false;
                                 if ($event.dataTransfer.files.length > 0) {
                                     const file = $event.dataTransfer.files[0];
-                                    fileName = file.name;
-                                    fileSize = formatFileSize(file.size);
-                                    error = '';
-                                    if (file.size > 2097152) { error = 'Ukuran file melebihi 2MB'; fileName = ''; fileSize = ''; return; }
-                                    const ext = file.name.split('.').pop().toLowerCase();
-                                    if (!['jpeg','jpg','png'].includes(ext)) { error = 'Format harus JPEG, PNG, atau JPG.'; fileName = ''; fileSize = ''; return; }
-                                    const dt = new DataTransfer();
-                                    dt.items.add(file);
+                                    if (!file.type.match(/^image\/(jpeg|png|jpg)$/)) { error = 'Hanya JPEG, PNG, JPG'; return; }
+                                    if (file.size > 2097152) { error = 'Maksimal 2MB'; return; }
+                                    fileName = file.name; fileSize = formatFileSize(file.size); error = '';
+                                    const dt = new DataTransfer(); dt.items.add(file);
                                     $refs.gambarInput.files = dt.files;
                                     $refs.gambarInput.dispatchEvent(new Event('change', { bubbles: true }));
                                 }
                             "
-                            :class="isDragging ? 'border-primary bg-blue-50' : 'border-gray-300'"
-                            class="border-2 border-dashed rounded-lg p-8 text-center transition-colors cursor-pointer hover:border-primary hover:bg-gray-50"
+                            :class="isDragging ? 'border-primary bg-primary/5' : 'border-gray-300'"
+                            class="border-2 border-dashed rounded-lg p-8 text-center cursor-pointer hover:border-primary hover:bg-gray-50"
                             x-on:click="$refs.gambarInput.click()">
                             <input type="file" wire:model="gambarFile" x-ref="gambarInput" accept="image/jpeg,image/png,image/jpg" class="hidden"
                                 x-on:change="
                                     if ($event.target.files.length > 0) {
                                         const file = $event.target.files[0];
-                                        fileName = file.name;
-                                        fileSize = formatFileSize(file.size);
-                                        error = '';
-                                        if (file.size > 2097152) { error = 'Ukuran file melebihi 2MB'; fileName = ''; fileSize = ''; $refs.gambarInput.value = ''; return; }
-                                        const ext = file.name.split('.').pop().toLowerCase();
-                                        if (!['jpeg','jpg','png'].includes(ext)) { error = 'Format harus JPEG, PNG, atau JPG.'; fileName = ''; fileSize = ''; $refs.gambarInput.value = ''; return; }
+                                        if (!file.type.match(/^image\/(jpeg|png|jpg)$/)) { error = 'Hanya JPEG, PNG, JPG'; fileName = ''; return; }
+                                        if (file.size > 2097152) { error = 'Maksimal 2MB'; fileName = ''; return; }
+                                        fileName = file.name; fileSize = formatFileSize(file.size); error = '';
                                     }
                                 ">
-                            <div x-show="!fileName" class="space-y-4">
-                                <div class="flex justify-center"><i class="ph ph-image text-6xl text-gray-400"></i></div>
+                            <div x-show="!fileName" class="space-y-2">
+                                <i class="ph ph-image text-6xl text-gray-400"></i>
                                 <p class="text-gray-600 font-medium">Seret gambar ke sini atau klik untuk memilih</p>
                                 <p class="text-xs text-gray-400">JPEG, PNG, JPG (Maks. 2MB)</p>
                             </div>
-                            <div x-show="fileName" class="space-y-4">
-                                <div class="flex justify-center"><i class="ph ph-image text-6xl text-primary"></i></div>
+                            <div x-show="fileName" class="space-y-2">
+                                <i class="ph ph-image text-6xl text-primary"></i>
                                 <p class="text-gray-800 font-medium" x-text="fileName"></p>
                                 <p class="text-gray-500 text-sm" x-text="fileSize"></p>
-                                <button type="button" x-on:click="fileName = ''; fileSize = ''; error = ''; $refs.gambarInput.value = ''; @this.set('gambarFile', null);" class="text-red-600 hover:text-red-700 text-sm">
-                                    <i class="ph ph-trash mr-1"></i> Hapus
-                                </button>
                             </div>
                         </div>
-                        <div x-show="error" class="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg">
-                            <p class="text-red-600 text-sm" x-text="error"></p>
-                        </div>
-                        @error('gambarFile')
-                            <div class="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg">
-                                <p class="text-red-600 text-sm">{{ $message }}</p>
-                            </div>
-                        @enderror
+                        <div x-show="error" class="mt-3 p-2 bg-red-50 border border-red-200 rounded text-red-600 text-sm" x-text="error"></div>
+                        @error('gambarFile') <div class="mt-3 p-2 bg-red-50 border border-red-200 rounded text-red-600 text-sm">{{ $message }}</div> @enderror
                         <div class="mt-6 flex justify-end space-x-3">
-                            <button type="button" x-on:click="show = false" class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors">Batal</button>
-                            <button type="submit" :disabled="!fileName || error" class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark transition-colors disabled:opacity-50 disabled:cursor-not-allowed" wire:loading.attr="disabled">
+                            <button type="button" x-on:click="show = false" class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50">Batal</button>
+                            <button type="submit" :disabled="!fileName" class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark disabled:opacity-50" wire:loading.attr="disabled">
                                 <span wire:loading.remove wire:target="uploadGambar"><i class="ph ph-upload mr-2"></i> Upload</span>
                                 <span wire:loading wire:target="uploadGambar"><i class="ph ph-spinner ph-spin mr-2"></i> Mengupload...</span>
                             </button>

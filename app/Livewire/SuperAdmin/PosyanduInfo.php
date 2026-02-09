@@ -22,9 +22,8 @@ class PosyanduInfo extends Component
     public $skFile;
     public $showUploadModal = false;
 
-    // Modal upload Gambar Posyandu
     public $gambarFile;
-    public $showUploadGambarModal = false;
+    public $showGambarModal = false;
     
     // Modal konfirmasi (untuk kompatibilitas dengan confirm-modal)
     public $showConfirmModal = false;
@@ -241,17 +240,17 @@ class PosyanduInfo extends Component
     }
 
     /**
-     * Upload Gambar Posyandu (ditampilkan di halaman detail di atas peta)
+     * Upload Gambar Posyandu (tampil di halaman detail publik di atas peta)
      */
     public function uploadGambar()
     {
         $this->validate([
             'gambarFile' => 'required|image|mimes:jpeg,png,jpg|max:2048',
         ], [
-            'gambarFile.required' => 'Gambar harus diupload.',
+            'gambarFile.required' => 'Pilih gambar untuk diupload.',
             'gambarFile.image' => 'File harus berupa gambar.',
-            'gambarFile.mimes' => 'Format harus JPEG, PNG, atau JPG.',
-            'gambarFile.max' => 'Ukuran maksimal 2MB.',
+            'gambarFile.mimes' => 'Format: JPEG, PNG, JPG.',
+            'gambarFile.max' => 'Maksimal 2MB.',
         ]);
 
         try {
@@ -273,10 +272,11 @@ class PosyanduInfo extends Component
 
             $this->posyandu->update(['gambar_posyandu' => 'gambar_posyandu/' . $safeName]);
             $this->loadPosyandu();
-            $this->gambarFile = null;
-            $this->showUploadGambarModal = false;
 
-            session()->flash('message', 'Gambar posyandu berhasil diupload.');
+            $this->gambarFile = null;
+            $this->showGambarModal = false;
+
+            session()->flash('message', 'Gambar posyandu berhasil diupload. Tampil di halaman detail di atas peta.');
             session()->flash('messageType', 'success');
         } catch (\Exception $e) {
             session()->flash('message', 'Gagal mengupload gambar: ' . $e->getMessage());
