@@ -37,6 +37,7 @@
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tanggal</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tinggi (cm)</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Berat (kg)</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tensi</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Petugas Kesehatan</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Aksi</th>
                     </tr>
@@ -71,6 +72,13 @@
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
                                 @if(!is_null($imunisasi->berat_badan))
                                     {{ number_format($imunisasi->berat_badan, 1, ',', '.') }} kg
+                                @else
+                                    -
+                                @endif
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                                @if($imunisasi->sistol !== null && $imunisasi->diastol !== null)
+                                    {{ $imunisasi->sistol }}/{{ $imunisasi->diastol }} mmHg
                                 @else
                                     -
                                 @endif

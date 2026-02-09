@@ -158,6 +158,7 @@
                     <th>Jenis Imunisasi</th>
                     <th>Tinggi (cm)</th>
                     <th>Berat (kg)</th>
+                    <th>Tensi</th>
                     <th>Petugas</th>
                     <th>Keterangan</th>
                 </tr>
@@ -186,6 +187,13 @@
                         </td>
                         <td class="text-center">
                             {{ $imunisasi->berat_badan !== null ? number_format($imunisasi->berat_badan, 2) : '-' }}
+                        </td>
+                        <td class="text-center">
+                            @if($imunisasi->sistol !== null && $imunisasi->diastol !== null)
+                                {{ $imunisasi->sistol }}/{{ $imunisasi->diastol }}
+                            @else
+                                -
+                            @endif
                         </td>
                         <td>
                             {{ $imunisasi->user->name ?? '-' }}

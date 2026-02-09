@@ -55,6 +55,7 @@
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Kategori</th>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Jenis Imunisasi</th>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tanggal</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tensi</th>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Petugas Kesehatan</th>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Keterangan</th>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Aksi</th>
@@ -79,6 +80,13 @@
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
                                         {{ $imunisasi->tanggal_imunisasi ? \Carbon\Carbon::parse($imunisasi->tanggal_imunisasi)->format('d/m/Y') : '-' }}
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                                        @if($imunisasi->sistol !== null && $imunisasi->diastol !== null)
+                                            {{ $imunisasi->sistol }}/{{ $imunisasi->diastol }} <span class="text-gray-400 text-xs">mmHg</span>
+                                        @else
+                                            -
+                                        @endif
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
                                         {{ $imunisasi->petugasKesehatan->nama_petugas_kesehatan ?? '-' }}
@@ -466,6 +474,30 @@
                                             </span>
                                         </div>
                                         @error('berat_badan') <span class="text-red-500 text-xs">{{ $message }}</span>@enderror
+                                    </div>
+                                </div>
+
+                                {{-- Tensi (Tekanan Darah) --}}
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                    <div>
+                                        <label class="block text-gray-700 text-sm font-bold mb-2">Sistol (mmHg)</label>
+                                        <div class="flex">
+                                            <input type="number" min="50" max="300" wire:model="sistol"
+                                                class="shadow appearance-none border border-r-0 rounded-l w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-primary focus:border-primary"
+                                                placeholder="Contoh: 120">
+                                            <span class="inline-flex items-center px-3 border border-l-0 rounded-r bg-gray-50 text-gray-500 text-sm">mmHg</span>
+                                        </div>
+                                        @error('sistol') <span class="text-red-500 text-xs">{{ $message }}</span>@enderror
+                                    </div>
+                                    <div>
+                                        <label class="block text-gray-700 text-sm font-bold mb-2">Diastol (mmHg)</label>
+                                        <div class="flex">
+                                            <input type="number" min="30" max="200" wire:model="diastol"
+                                                class="shadow appearance-none border border-r-0 rounded-l w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-primary focus:border-primary"
+                                                placeholder="Contoh: 80">
+                                            <span class="inline-flex items-center px-3 border border-l-0 rounded-r bg-gray-50 text-gray-500 text-sm">mmHg</span>
+                                        </div>
+                                        @error('diastol') <span class="text-red-500 text-xs">{{ $message }}</span>@enderror
                                     </div>
                                 </div>
 

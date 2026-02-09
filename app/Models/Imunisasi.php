@@ -19,6 +19,8 @@ class Imunisasi extends Model
         'tanggal_imunisasi',
         'tinggi_badan',
         'berat_badan',
+        'sistol',
+        'diastol',
         'keterangan',
     ];
 
@@ -26,6 +28,8 @@ class Imunisasi extends Model
         'tanggal_imunisasi' => 'date',
         'tinggi_badan' => 'decimal:2',
         'berat_badan' => 'decimal:2',
+        'sistol' => 'integer',
+        'diastol' => 'integer',
     ];
 
     // Relasi ke Posyandu

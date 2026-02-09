@@ -115,6 +115,10 @@ class OrangtuaImunisasi extends Component
         $no = 1;
         foreach ($data['imunisasiList'] as $item) {
             foreach ($item['imunisasi'] as $im) {
+                $tensi = '-';
+                if ($im->sistol !== null && $im->diastol !== null) {
+                    $tensi = $im->sistol . '/' . $im->diastol;
+                }
                 $rows->push((object) [
                     'no' => $no++,
                     'nama_sasaran' => $item['sasaran']['nama'] ?? '-',
@@ -123,6 +127,9 @@ class OrangtuaImunisasi extends Component
                     'tanggal_imunisasi' => $im->tanggal_imunisasi ? $im->tanggal_imunisasi->format('d/m/Y') : '-',
                     'tinggi_badan' => $im->tinggi_badan !== null ? number_format($im->tinggi_badan, 1, ',', '.') : '-',
                     'berat_badan' => $im->berat_badan !== null ? number_format($im->berat_badan, 1, ',', '.') : '-',
+                    'sistol' => $im->sistol,
+                    'diastol' => $im->diastol,
+                    'tensi' => $tensi,
                     'keterangan' => $im->keterangan ?? '-',
                 ]);
             }

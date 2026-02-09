@@ -72,6 +72,7 @@
                     <th>Tanggal</th>
                     <th>Tinggi (cm)</th>
                     <th>Berat (kg)</th>
+                    <th>Tensi</th>
                     <th>Keterangan</th>
                 </tr>
             </thead>
@@ -85,6 +86,7 @@
                         <td class="text-center">{{ $row->tanggal_imunisasi }}</td>
                         <td class="text-center">{{ $row->tinggi_badan }}</td>
                         <td class="text-center">{{ $row->berat_badan }}</td>
+                        <td class="text-center">{{ $row->tensi ?? '-' }}</td>
                         <td>{{ $row->keterangan }}</td>
                     </tr>
                 @endforeach
