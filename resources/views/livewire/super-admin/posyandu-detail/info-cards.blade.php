@@ -90,6 +90,53 @@
         </div>
     </div>
 
+    {{-- Card Gambar Posyandu (ditampilkan di halaman detail publik di atas peta) --}}
+    <div class="bg-white rounded-lg shadow-sm p-6">
+        <h2 class="text-xl font-semibold text-gray-800 mb-4 flex items-center justify-between">
+            <div class="flex items-center">
+                <i class="ph ph-image text-2xl mr-3 text-primary"></i>
+                Gambar Posyandu
+            </div>
+            <div class="flex items-center space-x-2">
+                <button 
+                    wire:click="$set('showUploadGambarModal', true)"
+                    class="px-3 py-1.5 text-sm bg-primary text-white rounded-lg hover:bg-primary-dark transition-colors flex items-center space-x-1">
+                    <i class="ph ph-upload text-sm"></i>
+                    <span>Upload</span>
+                </button>
+                @if($posyandu->gambar_posyandu)
+                <button 
+                    wire:click="openConfirmModal('deleteGambar', 'Apakah Anda yakin ingin menghapus gambar posyandu ini?')"
+                    class="px-3 py-1.5 text-sm bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors flex items-center space-x-1">
+                    <i class="ph ph-trash text-sm"></i>
+                    <span>Hapus</span>
+                </button>
+                @endif
+            </div>
+        </h2>
+        <p class="text-xs text-gray-500 mb-3">Gambar ini ditampilkan di halaman detail posyandu (publik) di atas peta lokasi.</p>
+        <div class="flex flex-col items-center justify-center py-6">
+            @if($posyandu->gambar_posyandu)
+                <div class="relative group w-full max-w-2xl">
+                    <div class="rounded-lg border-2 border-gray-200 overflow-hidden bg-gray-50">
+                        <img src="{{ uploads_asset($posyandu->gambar_posyandu) }}" alt="Gambar {{ $posyandu->nama_posyandu }}" class="w-full h-auto max-h-80 object-cover">
+                        <div class="p-3 flex items-center justify-between bg-white border-t border-gray-100">
+                            <a href="{{ uploads_asset($posyandu->gambar_posyandu) }}" target="_blank" class="text-primary hover:underline font-medium text-sm flex items-center space-x-2">
+                                <i class="ph ph-eye text-lg"></i>
+                                <span>Lihat Gambar</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            @else
+                <div class="w-full max-w-md p-6 bg-gray-100 rounded-lg border-2 border-dashed border-gray-300 flex flex-col items-center justify-center">
+                    <i class="ph ph-image text-6xl text-gray-400 mb-3"></i>
+                    <p class="text-sm text-gray-500 text-center px-4">Belum ada gambar posyandu. Upload untuk ditampilkan di halaman detail di atas peta.</p>
+                </div>
+            @endif
+        </div>
+    </div>
+
     {{-- Grid Informasi dan Statistik --}}
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
     {{-- Card Informasi Posyandu --}}
@@ -299,5 +346,8 @@
 
 {{-- Modal Upload SK --}}
 @include('livewire.super-admin.posyandu-detail.partials.upload-sk')
+
+{{-- Modal Upload Gambar Posyandu --}}
+@include('livewire.super-admin.posyandu-detail.partials.upload-gambar')
 
 @include('components.confirm-modal')

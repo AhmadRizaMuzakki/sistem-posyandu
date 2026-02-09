@@ -384,6 +384,72 @@ class PosyanduList extends Component
     }
 
     /**
+     * Hapus logo dari preview di dalam modal (saat edit). File dihapus, preview hilang.
+     */
+    public function removeLogoInForm()
+    {
+        if (!$this->isEditMode || !$this->editingId) {
+            return;
+        }
+        try {
+            $posyandu = Posyandu::find($this->editingId);
+            if (!$posyandu) {
+                session()->flash('message', 'Posyandu tidak ditemukan.');
+                session()->flash('messageType', 'error');
+                return;
+            }
+            if ($posyandu->logo_posyandu) {
+                $rel = ltrim(str_replace('/storage/', '', $posyandu->logo_posyandu), '/');
+                $full = uploads_base_path('uploads/' . $rel);
+                if (File::exists($full)) {
+                    File::delete($full);
+                }
+                $posyandu->update(['logo_posyandu' => null]);
+            }
+            $this->currentLogoPath = null;
+            $this->loadPosyandu();
+            session()->flash('message', 'Logo dihapus. Simpan form untuk mengunggah logo baru.');
+            session()->flash('messageType', 'success');
+        } catch (\Exception $e) {
+            session()->flash('message', 'Gagal menghapus logo: ' . $e->getMessage());
+            session()->flash('messageType', 'error');
+        }
+    }
+
+    /**
+     * Hapus gambar posyandu dari preview di dalam modal (saat edit). File dihapus, preview hilang.
+     */
+    public function removeGambarInForm()
+    {
+        if (!$this->isEditMode || !$this->editingId) {
+            return;
+        }
+        try {
+            $posyandu = Posyandu::find($this->editingId);
+            if (!$posyandu) {
+                session()->flash('message', 'Posyandu tidak ditemukan.');
+                session()->flash('messageType', 'error');
+                return;
+            }
+            if ($posyandu->gambar_posyandu) {
+                $rel = ltrim(str_replace('/storage/', '', $posyandu->gambar_posyandu), '/');
+                $full = uploads_base_path('uploads/' . $rel);
+                if (File::exists($full)) {
+                    File::delete($full);
+                }
+                $posyandu->update(['gambar_posyandu' => null]);
+            }
+            $this->currentGambarPath = null;
+            $this->loadPosyandu();
+            session()->flash('message', 'Gambar posyandu dihapus. Simpan form untuk mengunggah gambar baru.');
+            session()->flash('messageType', 'success');
+        } catch (\Exception $e) {
+            session()->flash('message', 'Gagal menghapus gambar: ' . $e->getMessage());
+            session()->flash('messageType', 'error');
+        }
+    }
+
+    /**
      * Updated search - reload data
      */
     public function updatedSearch()

@@ -29,6 +29,9 @@ class PosyanduDashboard extends Component
 
     public $skFile;
     public $showUploadModal = false;
+
+    public $gambarFile;
+    public $showUploadGambarModal = false;
     
     // Pendidikan properties
     public $showPendidikanModal = false;
@@ -233,6 +236,8 @@ class PosyanduDashboard extends Component
     {
         if ($this->confirmAction === 'deleteSk') {
             $this->deleteSk();
+        } elseif ($this->confirmAction === 'deleteGambar') {
+            $this->deleteGambar();
         }
         $this->closeConfirmModal();
     }
@@ -263,6 +268,71 @@ class PosyanduDashboard extends Component
             $this->showSuccessNotification('File SK berhasil dihapus.');
         } catch (\Exception $e) {
             $this->showErrorNotification('Gagal menghapus file SK: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Upload Gambar Posyandu (ditampilkan di halaman detail publik di atas peta)
+     */
+    public function uploadGambar()
+    {
+        $this->validate([
+            'gambarFile' => 'required|image|mimes:jpeg,png,jpg|max:2048',
+        ], [
+            'gambarFile.required' => 'Gambar harus diupload.',
+            'gambarFile.image' => 'File harus berupa gambar.',
+            'gambarFile.mimes' => 'Format harus JPEG, PNG, atau JPG.',
+            'gambarFile.max' => 'Ukuran maksimal 2MB.',
+        ]);
+
+        try {
+            $dir = public_path('uploads/gambar_posyandu');
+            if (!File::isDirectory($dir)) {
+                File::makeDirectory($dir, 0755, true);
+            }
+            if ($this->posyandu->gambar_posyandu) {
+                $rel = ltrim(str_replace('/storage/', '', $this->posyandu->gambar_posyandu), '/');
+                $oldFull = uploads_base_path('uploads/' . $rel);
+                if (File::exists($oldFull)) {
+                    File::delete($oldFull);
+                }
+            }
+            $allowedImageMimes = ['image/jpeg' => 'jpg', 'image/pjpeg' => 'jpg', 'image/png' => 'png', 'image/gif' => 'gif', 'image/webp' => 'webp'];
+            $extension = safe_upload_extension($this->gambarFile, $allowedImageMimes) ?? 'jpg';
+            $safeName = Str::random(12) . '_' . time() . '.' . $extension;
+            File::copy($this->gambarFile->getRealPath(), $dir . DIRECTORY_SEPARATOR . $safeName);
+
+            $this->posyandu->update(['gambar_posyandu' => 'gambar_posyandu/' . $safeName]);
+            $this->refreshPosyandu();
+            cache()->forget("posyandu_dashboard_{$this->posyanduId}");
+            $this->gambarFile = null;
+            $this->showUploadGambarModal = false;
+
+            $this->showSuccessNotification('Gambar posyandu berhasil diupload.');
+        } catch (\Exception $e) {
+            $this->showErrorNotification('Gagal mengupload gambar: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Hapus Gambar Posyandu
+     */
+    public function deleteGambar()
+    {
+        try {
+            if ($this->posyandu->gambar_posyandu) {
+                $rel = ltrim(str_replace('/storage/', '', $this->posyandu->gambar_posyandu), '/');
+                $full = uploads_base_path('uploads/' . $rel);
+                if (File::exists($full)) {
+                    File::delete($full);
+                }
+            }
+            $this->posyandu->update(['gambar_posyandu' => null]);
+            $this->refreshPosyandu();
+            cache()->forget("posyandu_dashboard_{$this->posyanduId}");
+            $this->showSuccessNotification('Gambar posyandu berhasil dihapus.');
+        } catch (\Exception $e) {
+            $this->showErrorNotification('Gagal menghapus gambar: ' . $e->getMessage());
         }
     }
 

@@ -249,7 +249,7 @@
                         </label>
                         @if($isEditMode && $currentLogoPath)
                             <div class="mb-2 p-3 bg-gray-50 rounded-lg border border-gray-200">
-                                <div class="flex items-center justify-between">
+                                <div class="flex items-center justify-between gap-3">
                                     <div class="flex items-center space-x-2">
                                         <img src="{{ uploads_asset($currentLogoPath) }}" alt="Logo" class="w-16 h-16 object-cover rounded">
                                         <div>
@@ -259,6 +259,14 @@
                                             <p class="text-xs text-gray-500">Kosongkan jika tidak ingin mengubah</p>
                                         </div>
                                     </div>
+                                    <button type="button"
+                                            wire:click="removeLogoInForm"
+                                            wire:confirm="Hapus logo ini? File akan dihapus permanen."
+                                            class="flex-shrink-0 inline-flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-red-600 bg-red-50 hover:bg-red-100 rounded-lg transition-colors"
+                                            title="Hapus logo">
+                                        <i class="ph ph-trash text-lg"></i>
+                                        <span>Hapus</span>
+                                    </button>
                                 </div>
                             </div>
                         @endif
@@ -309,7 +317,7 @@
                         <p class="text-xs text-gray-500 mb-2">Gambar ini ditampilkan di halaman detail posyandu (publik) di atas peta lokasi.</p>
                         @if($isEditMode && $currentGambarPath)
                             <div class="mb-2 p-3 bg-gray-50 rounded-lg border border-gray-200">
-                                <div class="flex items-center justify-between">
+                                <div class="flex items-center justify-between gap-3">
                                     <div class="flex items-center space-x-2">
                                         <img src="{{ uploads_asset($currentGambarPath) }}" alt="Gambar" class="w-24 h-16 object-cover rounded">
                                         <div>
@@ -319,6 +327,14 @@
                                             <p class="text-xs text-gray-500">Kosongkan jika tidak ingin mengubah</p>
                                         </div>
                                     </div>
+                                    <button type="button"
+                                            wire:click="removeGambarInForm"
+                                            wire:confirm="Hapus gambar ini? File akan dihapus permanen."
+                                            class="flex-shrink-0 inline-flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-red-600 bg-red-50 hover:bg-red-100 rounded-lg transition-colors"
+                                            title="Hapus gambar">
+                                        <i class="ph ph-trash text-lg"></i>
+                                        <span>Hapus</span>
+                                    </button>
                                 </div>
                             </div>
                         @endif
