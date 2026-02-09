@@ -17,6 +17,7 @@ class Posyandu extends Model
         'domisili_posyandu',
         'link_maps',
         'logo_posyandu',
+        'gambar_posyandu',
     ];
 
     public function kader()
@@ -72,5 +73,10 @@ class Posyandu extends Model
     public function jadwalKegiatan()
     {
         return $this->hasMany(JadwalKegiatan::class, 'id_posyandu');
+    }
+
+    public function galeri()
+    {
+        return $this->hasMany(Galeri::class, 'id_posyandu');
     }
 }

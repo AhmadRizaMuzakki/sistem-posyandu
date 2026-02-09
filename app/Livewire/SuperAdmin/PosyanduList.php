@@ -27,8 +27,10 @@ class PosyanduList extends Component
     public $link_maps = '';
     public $skFile = null;
     public $logoFile = null;
+    public $gambarFile = null;
     public $currentSkPath = null;
     public $currentLogoPath = null;
+    public $currentGambarPath = null;
 
     #[Layout('layouts.superadmindashboard')]
 
@@ -71,8 +73,10 @@ class PosyanduList extends Component
         $this->link_maps = '';
         $this->skFile = null;
         $this->logoFile = null;
+        $this->gambarFile = null;
         $this->currentSkPath = null;
         $this->currentLogoPath = null;
+        $this->currentGambarPath = null;
         $this->showModal = false;
         $this->isEditMode = false;
         $this->editingId = null;
@@ -147,6 +151,7 @@ class PosyanduList extends Component
             'link_maps' => 'nullable|string|max:4096',
             'skFile' => 'nullable|file|mimes:pdf,doc,docx|max:5120',
             'logoFile' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
+            'gambarFile' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
         ], [
             'nama_posyandu.required' => 'Nama posyandu wajib diisi.',
             'nama_posyandu.max' => 'Nama posyandu maksimal 255 karakter.',
@@ -157,6 +162,9 @@ class PosyanduList extends Component
             'logoFile.image' => 'Logo harus berupa gambar.',
             'logoFile.mimes' => 'Logo harus berformat JPEG, PNG, atau JPG.',
             'logoFile.max' => 'Ukuran logo maksimal 2MB.',
+            'gambarFile.image' => 'Gambar posyandu harus berupa gambar.',
+            'gambarFile.mimes' => 'Gambar posyandu harus berformat JPEG, PNG, atau JPG.',
+            'gambarFile.max' => 'Ukuran gambar posyandu maksimal 2MB.',
         ]);
 
         try {
@@ -214,6 +222,28 @@ class PosyanduList extends Component
                 $data['logo_posyandu'] = $this->currentLogoPath;
             }
 
+            // Upload gambar posyandu (tampil di halaman detail di atas peta)
+            if ($this->gambarFile) {
+                if ($this->currentGambarPath) {
+                    $rel = ltrim(str_replace('/storage/', '', $this->currentGambarPath), '/');
+                    $oldFull = uploads_base_path('uploads/' . $rel);
+                    if (File::exists($oldFull)) {
+                        File::delete($oldFull);
+                    }
+                }
+                $dir = public_path('uploads/gambar_posyandu');
+                if (!File::isDirectory($dir)) {
+                    File::makeDirectory($dir, 0755, true);
+                }
+                $allowedImageMimes = ['image/jpeg' => 'jpg', 'image/pjpeg' => 'jpg', 'image/png' => 'png', 'image/gif' => 'gif', 'image/webp' => 'webp'];
+                $extension = safe_upload_extension($this->gambarFile, $allowedImageMimes) ?? 'jpg';
+                $safeName = Str::random(12) . '_' . time() . '.' . $extension;
+                File::copy($this->gambarFile->getRealPath(), $dir . DIRECTORY_SEPARATOR . $safeName);
+                $data['gambar_posyandu'] = 'gambar_posyandu/' . $safeName;
+            } elseif ($this->isEditMode && !$this->gambarFile) {
+                $data['gambar_posyandu'] = $this->currentGambarPath;
+            }
+
             DB::transaction(function () use ($data, &$message) {
                 if ($this->isEditMode && $this->editingId) {
                     // Update existing
@@ -262,8 +292,10 @@ class PosyanduList extends Component
             $this->link_maps = $posyandu->link_maps ?? '';
             $this->currentSkPath = $posyandu->sk_posyandu;
             $this->currentLogoPath = $posyandu->logo_posyandu;
+            $this->currentGambarPath = $posyandu->gambar_posyandu ?? null;
             $this->skFile = null;
             $this->logoFile = null;
+            $this->gambarFile = null;
             $this->showModal = true;
         } catch (\Exception $e) {
             session()->flash('message', 'Gagal memuat data posyandu: ' . $e->getMessage());
@@ -294,6 +326,13 @@ class PosyanduList extends Component
                 }
                 if ($posyandu->logo_posyandu) {
                     $rel = ltrim(str_replace('/storage/', '', $posyandu->logo_posyandu), '/');
+                    $full = uploads_base_path('uploads/' . $rel);
+                    if (File::exists($full)) {
+                        File::delete($full);
+                    }
+                }
+                if ($posyandu->gambar_posyandu) {
+                    $rel = ltrim(str_replace('/storage/', '', $posyandu->gambar_posyandu), '/');
                     $full = uploads_base_path('uploads/' . $rel);
                     if (File::exists($full)) {
                         File::delete($full);

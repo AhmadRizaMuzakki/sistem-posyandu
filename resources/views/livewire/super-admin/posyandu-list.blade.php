@@ -301,6 +301,66 @@
                         @enderror
                     </div>
 
+                    {{-- Gambar Posyandu (tampil di halaman detail di atas peta) --}}
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            Gambar Posyandu
+                        </label>
+                        <p class="text-xs text-gray-500 mb-2">Gambar ini ditampilkan di halaman detail posyandu (publik) di atas peta lokasi.</p>
+                        @if($isEditMode && $currentGambarPath)
+                            <div class="mb-2 p-3 bg-gray-50 rounded-lg border border-gray-200">
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center space-x-2">
+                                        <img src="{{ uploads_asset($currentGambarPath) }}" alt="Gambar" class="w-24 h-16 object-cover rounded">
+                                        <div>
+                                            <a href="{{ uploads_asset($currentGambarPath) }}" target="_blank" class="text-primary hover:underline font-medium text-sm">
+                                                Lihat Gambar Saat Ini
+                                            </a>
+                                            <p class="text-xs text-gray-500">Kosongkan jika tidak ingin mengubah</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        @endif
+                        <div
+                            x-data="{
+                                isDragging: false,
+                                handleDrop(e) {
+                                    e.preventDefault();
+                                    this.isDragging = false;
+                                    const files = e.dataTransfer.files;
+                                    if (files.length) {
+                                        const input = this.$refs.gambarInput;
+                                        const dt = new DataTransfer();
+                                        dt.items.add(files[0]);
+                                        input.files = dt.files;
+                                        input.dispatchEvent(new Event('change', { bubbles: true }));
+                                    }
+                                }
+                            }"
+                            @dragover.prevent="isDragging = true"
+                            @dragleave="isDragging = false"
+                            @drop.prevent="handleDrop($event)"
+                            @click="$refs.gambarInput.click()"
+                            :class="isDragging ? 'border-primary bg-primary/5 ring-2 ring-primary/30' : 'border-gray-300 hover:border-primary/50'"
+                            class="relative border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-all duration-200 bg-gray-50 hover:bg-gray-100 @error('gambarFile') border-red-500 @enderror">
+                            <input type="file" wire:model="gambarFile" x-ref="gambarInput" accept="image/jpeg,image/png,image/jpg" class="hidden">
+                            <i class="ph ph-image text-4xl text-gray-400 mb-3 block"></i>
+                            <p class="text-gray-600 font-medium mb-1">
+                                <span x-text="isDragging ? 'Lepaskan gambar di sini' : 'Seret gambar ke sini atau klik untuk memilih'"></span>
+                            </p>
+                            <p class="text-xs text-gray-500">Format: JPEG, PNG, JPG (Maks. 2MB). Ditampilkan di atas peta di halaman detail.</p>
+                            @if($gambarFile)
+                                <p class="mt-3 text-sm text-primary font-medium">
+                                    <i class="ph ph-check-circle mr-1"></i>{{ $gambarFile->getClientOriginalName() }}
+                                </p>
+                            @endif
+                        </div>
+                        @error('gambarFile')
+                            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                        @enderror
+                    </div>
+
                     {{-- Tombol Aksi --}}
                     <div class="flex items-center justify-end space-x-3 pt-4 border-t border-gray-200">
                         <button
