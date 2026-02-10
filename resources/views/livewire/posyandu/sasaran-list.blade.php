@@ -1,3 +1,16 @@
+{{-- Import Master: satu file Excel berisi semua kategori sasaran --}}
+<div class="mb-4 flex items-center justify-between rounded-lg border border-primary/30 bg-primary/5 px-4 py-3">
+    <p class="text-sm text-gray-700">
+        <i class="ph ph-file-xls text-primary mr-2"></i>
+        Satu file Excel berisi beberapa sheet (Bayi Balita, Remaja, Dewasa, Ibu Hamil, Pralansia, Lansia). Kolom tiap sheet sama seperti form—tanpa kolom gabungan.
+    </p>
+    <button wire:click="openImportModal('master')"
+            class="flex items-center px-4 py-2 text-sm font-medium text-white bg-primary rounded-lg hover:bg-primary/90 transition-colors">
+        <i class="ph ph-upload-simple text-lg mr-2"></i>
+        Import Master Excel
+    </button>
+</div>
+
 @php
     $bayibalitaData = $this->getFilteredSasaran($posyandu->sasaran_bayibalita, $search_bayibalita, $page_bayibalita, $perPage);
 @endphp

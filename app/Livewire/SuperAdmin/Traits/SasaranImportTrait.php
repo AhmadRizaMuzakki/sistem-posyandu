@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Livewire\WithFileUploads;
 use PhpOffice\PhpSpreadsheet\IOFactory;
+use PhpOffice\PhpSpreadsheet\Shared\Date as ExcelDate;
 
 trait SasaranImportTrait
 {
@@ -24,12 +25,15 @@ trait SasaranImportTrait
     public $importKategori = '';
     public $importResult = null;
     public $importFile = null;
+    /** Pesan error dari parseExcel saat exception (agar user tahu penyebab gagal). */
+    public $importParseError = null;
 
     public function openImportModal($kategori)
     {
         $this->importKategori = $kategori ?: 'dewasa';
         $this->importResult = null;
         $this->importFile = null;
+        $this->importParseError = null;
         $this->resetValidation('importFile');
         $this->showImportModal = true;
     }
@@ -59,13 +63,22 @@ trait SasaranImportTrait
             return;
         }
 
-        $rows = $this->parseImportFile($this->importFile);
+        $this->importParseError = null;
+        $rows = ($this->importKategori === 'master')
+            ? $this->parseImportFileMaster($this->importFile)
+            : $this->parseImportFile($this->importFile);
         if (empty($rows)) {
-            $this->importResult = ['added' => 0, 'skipped' => 0, 'errors' => 1, 'errorDetails' => ['Tidak ada baris data ditemukan. Pastikan baris pertama adalah header.']];
+            $details = ['Tidak ada baris data ditemukan. Pastikan baris pertama adalah header.'];
+            if (!empty($this->importParseError)) {
+                $details[] = 'Error: ' . $this->importParseError;
+            }
+            $this->importResult = ['added' => 0, 'skipped' => 0, 'errors' => 1, 'errorDetails' => $details];
             return;
         }
 
-        $result = $this->processImportRows($rows, $posyanduId);
+        $result = ($this->importKategori === 'master')
+            ? $this->processImportRowsMaster($rows, $posyanduId)
+            : $this->processImportRows($rows, $posyanduId);
         $this->importResult = $result;
         $this->importFile = null;
 
@@ -87,6 +100,86 @@ trait SasaranImportTrait
         }
 
         return $this->parseCsv($path);
+    }
+
+    /**
+     * Import master: hanya Excel. Baca tiap sheet; nama sheet = kategori (Bayi/Balita, Remaja, ...).
+     * Setiap baris dapat kolom yang sama seperti form untuk kategori itu.
+     */
+    private function parseImportFileMaster($file): array
+    {
+        $path = $file->getRealPath();
+        $ext = strtolower($file->getClientOriginalExtension());
+        if (!in_array($ext, ['xlsx', 'xls'])) {
+            $this->importParseError = 'Import master hanya mendukung file Excel (.xlsx, .xls). Gunakan template master yang berisi beberapa sheet per kategori.';
+            return [];
+        }
+        return $this->parseExcelMaster($path);
+    }
+
+    /**
+     * Map nama sheet (normalized) ke kode kategori.
+     */
+    private function getSheetNameToKategoriMap(): array
+    {
+        return [
+            'bayibalita' => 'bayibalita',
+            'remaja' => 'remaja',
+            'dewasa' => 'dewasa',
+            'ibuhamil' => 'ibuhamil',
+            'pralansia' => 'pralansia',
+            'lansia' => 'lansia',
+        ];
+    }
+
+    private function normalizeSheetNameToKategori(string $sheetName): ?string
+    {
+        $v = strtolower(trim($sheetName));
+        $v = str_replace([' ', '-', '/', '_'], '', $v);
+        $map = $this->getSheetNameToKategoriMap();
+        return $map[$v] ?? null;
+    }
+
+    private function parseExcelMaster(string $path): array
+    {
+        try {
+            $this->importParseError = null;
+            $spreadsheet = IOFactory::load($path);
+            $allRows = [];
+
+            foreach ($spreadsheet->getAllSheets() as $sheet) {
+                $sheetName = $sheet->getTitle();
+                $kategori = $this->normalizeSheetNameToKategori($sheetName);
+                if ($kategori === null) {
+                    continue; // sheet tidak dikenali, lewati
+                }
+                $data = $sheet->toArray(null, true, true, true);
+                if (empty($data)) continue;
+
+                $rawHeader = $data[0];
+                $normalizedByCol = [];
+                foreach ($rawHeader as $col => $val) {
+                    $trimmed = trim((string) $val);
+                    $normalizedByCol[$col] = $this->normalizeHeaders([$trimmed])[0];
+                }
+                for ($i = 1; $i < count($data); $i++) {
+                    $row = ['kategori' => $kategori];
+                    foreach ($rawHeader as $col => $_) {
+                        $h = $normalizedByCol[$col];
+                        if ($h !== '') {
+                            $row[$h] = trim((string) ($data[$i][$col] ?? ''));
+                        }
+                    }
+                    if (!empty($row['nik_sasaran'] ?? '')) {
+                        $allRows[] = $row;
+                    }
+                }
+            }
+            return $allRows;
+        } catch (\Throwable $e) {
+            $this->importParseError = $e->getMessage();
+            return [];
+        }
     }
 
     private function parseCsv(string $path): array
@@ -125,36 +218,48 @@ trait SasaranImportTrait
     private function parseExcel(string $path): array
     {
         try {
+            $this->importParseError = null;
             $spreadsheet = IOFactory::load($path);
             $sheet = $spreadsheet->getActiveSheet();
             $data = $sheet->toArray(null, true, true, true);
             if (empty($data)) return [];
 
-            $header = array_map('trim', array_values(array_filter($data[0])));
-            $header = $this->normalizeHeaders($header);
+            // Gunakan key kolom (A, B, C, ...) agar header dan baris data sejajar; jangan array_filter header
+            $rawHeader = $data[0];
+            $normalizedByCol = [];
+            foreach ($rawHeader as $col => $val) {
+                $trimmed = trim((string) $val);
+                $normalizedByCol[$col] = $this->normalizeHeaders([$trimmed])[0];
+            }
+
             $rows = [];
             for ($i = 1; $i < count($data); $i++) {
-                $cols = array_values($data[$i]);
                 $row = [];
-                foreach ($header as $j => $h) {
-                    $row[$h] = $cols[$j] ?? '';
+                foreach ($rawHeader as $col => $_) {
+                    $h = $normalizedByCol[$col];
+                    if ($h !== '') {
+                        $row[$h] = trim((string) ($data[$i][$col] ?? ''));
+                    }
                 }
-                if (!empty(trim($row['nik_sasaran'] ?? ''))) {
+                if (!empty($row['nik_sasaran'] ?? '')) {
                     $rows[] = $row;
                 }
             }
             return $rows;
         } catch (\Throwable $e) {
+            $this->importParseError = $e->getMessage();
             return [];
         }
     }
 
     private function normalizeHeaders(array $headers): array
     {
-        $map = ['status_kel' => 'status_keluarga'];
-        return array_map(function ($h) use ($map) {
-            $h = trim($h);
-            return $map[$h] ?? $h;
+        $aliasMap = ['status_kel' => 'status_keluarga'];
+        return array_map(function ($h) use ($aliasMap) {
+            $h = trim((string) $h);
+            $h = strtolower($h);
+            $h = str_replace(' ', '_', $h);
+            return $aliasMap[$h] ?? $h;
         }, $headers);
     }
 
@@ -186,6 +291,74 @@ trait SasaranImportTrait
             'errors' => $errors,
             'errorDetails' => $errorDetails,
         ];
+    }
+
+    /**
+     * Import master: setiap baris punya kolom "kategori" (bayibalita, remaja, dewasa, ibuhamil, pralansia, lansia).
+     */
+    private function processImportRowsMaster(array $rows, int $posyanduId): array
+    {
+        $added = 0;
+        $skipped = 0;
+        $errors = 0;
+        $errorDetails = [];
+        $validKategori = ['bayibalita', 'remaja', 'dewasa', 'pralansia', 'lansia', 'ibuhamil'];
+
+        foreach ($rows as $idx => $row) {
+            try {
+                $kategoriRaw = trim((string) ($row['kategori'] ?? ''));
+                if ($kategoriRaw === '') {
+                    $errors++;
+                    $errorDetails[] = 'Baris ' . ($idx + 2) . ': Kolom kategori wajib diisi (bayibalita, remaja, dewasa, ibuhamil, pralansia, lansia).';
+                    continue;
+                }
+                $kategori = $this->normalizeKategori($kategoriRaw);
+                if (!in_array($kategori, $validKategori, true)) {
+                    $errors++;
+                    $errorDetails[] = 'Baris ' . ($idx + 2) . ': Kategori tidak valid "' . $kategoriRaw . '". Gunakan: bayibalita, remaja, dewasa, ibuhamil, pralansia, lansia.';
+                    continue;
+                }
+                $prevKategori = $this->importKategori;
+                $this->importKategori = $kategori;
+                try {
+                    $exists = $this->checkSasaranExists($row, $posyanduId);
+                    if ($exists) {
+                        $skipped++;
+                    } else {
+                        $this->createSasaranFromRow($row, $posyanduId);
+                        $added++;
+                    }
+                } finally {
+                    $this->importKategori = $prevKategori;
+                }
+            } catch (\Throwable $e) {
+                $errors++;
+                $errorDetails[] = 'Baris ' . ($idx + 2) . ' (' . ($row['kategori'] ?? '') . '): ' . $e->getMessage();
+            }
+        }
+
+        return [
+            'added' => $added,
+            'skipped' => $skipped,
+            'errors' => $errors,
+            'errorDetails' => $errorDetails,
+        ];
+    }
+
+    private function normalizeKategori(string $value): string
+    {
+        $v = strtolower(trim($value));
+        $v = str_replace([' ', '-', '/', '_'], '', $v);
+        $map = [
+            'bayibalita' => 'bayibalita',
+            'balita' => 'bayibalita',
+            'remaja' => 'remaja',
+            'dewasa' => 'dewasa',
+            'ibuhamil' => 'ibuhamil',
+            'pralansia' => 'pralansia',
+            'lansia' => 'lansia',
+        ];
+        return $map[$v] ?? $v;
     }
 
     private function checkSasaranExists(array $row, int $posyanduId): bool
@@ -241,11 +414,17 @@ trait SasaranImportTrait
         }
     }
 
-    private function parseDate(?string $value): ?string
+    private function parseDate($value): ?string
     {
+        if ($value === null || $value === '') return null;
         $value = trim((string) $value);
-        if (empty($value)) return null;
+        if ($value === '') return null;
         try {
+            // Excel serial date (numeric)
+            if (is_numeric($value)) {
+                $d = ExcelDate::excelToDateTimeObject((float) $value);
+                return $d->format('Y-m-d');
+            }
             if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $value)) {
                 return $value;
             }
@@ -259,11 +438,11 @@ trait SasaranImportTrait
         }
     }
 
-    private function normalizeJenisKelamin(?string $value): ?string
+    private function normalizeJenisKelamin($value): ?string
     {
         $v = strtolower(trim((string) $value));
-        if ($v === 'laki-laki' || $v === 'laki laki') return 'Laki-laki';
-        if ($v === 'perempuan') return 'Perempuan';
+        if (in_array($v, ['laki-laki', 'laki laki', 'l', 'lk', 'laki'], true)) return 'Laki-laki';
+        if (in_array($v, ['perempuan', 'p', 'pr'], true)) return 'Perempuan';
         return null;
     }
 

@@ -1,4 +1,7 @@
 @if($showImportModal)
+@php
+    $isMaster = ($importKategori ?? '') === 'master';
+@endphp
 <div class="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
     <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
         <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" wire:click="closeImportModal"></div>
@@ -7,8 +10,30 @@
             <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
                 <h3 class="text-lg font-medium text-gray-900 mb-4 flex items-center">
                     <i class="ph ph-upload-simple text-xl mr-2 text-primary"></i>
-                    Import Sasaran {{ $importKategori ? (($importKategoriLabels[$importKategori] ?? ucfirst($importKategori))) : '' }}
+                    @if($isMaster)
+                        Import Master (Semua Kategori)
+                    @else
+                        Import Sasaran {{ $importKategori ? (($importKategoriLabels[$importKategori] ?? ucfirst($importKategori))) : '' }}
+                    @endif
                 </h3>
+                @if($isMaster)
+                <p class="text-sm text-gray-500 mb-4">
+                    Satu file Excel berisi <strong>beberapa sheet</strong>. Satu sheet = satu kategori (Bayi Balita, Remaja, Dewasa, Ibu Hamil, Pralansia, Lansia). Kolom di setiap sheet sama seperti form kategori itu—tidak ada kolom gabungan. Data di sheet Bayi/Balita masuk ke sasaran balita, dan seterusnya.
+                </p>
+                <p class="text-xs text-gray-500 mb-2">
+                    Hanya file Excel (.xlsx, .xls). Unduh template master, isi tiap sheet sesuai kategori. NIK + posyandu yang sudah ada akan dilewati.
+                </p>
+                <div class="mb-4">
+                    <a href="{{ route('adminPosyandu.sasaran.template-import', ['kategori' => 'master']) }}"
+                       target="_blank"
+                       rel="noopener"
+                       class="inline-flex items-center gap-2 text-sm font-medium text-primary hover:underline">
+                        <i class="ph ph-download-simple"></i>
+                        Unduh template Excel Master (.xlsx)
+                    </a>
+                    <p class="text-xs text-gray-500 mt-1">Template berisi 6 sheet: Bayi Balita, Remaja, Dewasa, Ibu Hamil, Pralansia, Lansia. Kolom per sheet sama seperti form masing-masing.</p>
+                </div>
+                @else
                 <p class="text-sm text-gray-500 mb-4">
                     Upload file CSV atau Excel (.xlsx, .xls). Baris pertama = header kolom, baris berikutnya = data. Import memetakan per kolom berdasarkan nama header (urutan kolom bebas). NIK + posyandu sudah ada akan dilewati.
                 </p>
@@ -25,6 +50,7 @@
                     </a>
                     <p class="text-xs text-gray-500 mt-1">Template Excel menampilkan data per kolom. Isi data lalu simpan dan upload untuk import.</p>
                 </div>
+                @endif
                 <div class="space-y-2">
                     <input type="file"
                            wire:model="importFile"

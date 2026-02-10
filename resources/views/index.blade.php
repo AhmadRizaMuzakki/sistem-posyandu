@@ -16,6 +16,50 @@
             to { opacity: 1; transform: translateY(0); }
         }
         
+        /* Custom Pagination Styling */
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+        .pagination > * {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .pagination a, .pagination span {
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+        .pagination a {
+            background: white;
+            border: 1px solid #e2e8f0;
+            color: #475569;
+            text-decoration: none;
+        }
+        .pagination a:hover {
+            background: #0D9488;
+            color: white;
+            border-color: #0D9488;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px -1px rgba(13, 148, 136, 0.2);
+        }
+        .pagination .active span {
+            background: #0D9488;
+            color: white;
+            border-color: #0D9488;
+            box-shadow: 0 2px 4px rgba(13, 148, 136, 0.2);
+        }
+        .pagination .disabled span {
+            background: #f1f5f9;
+            color: #94a3b8;
+            border-color: #e2e8f0;
+            cursor: not-allowed;
+        }
     </style>
 </head>
 <body class="font-sans text-slate-700 antialiased bg-white">
@@ -591,61 +635,10 @@
 
                 {{-- Pagination --}}
                 @if($acaraList->hasPages())
-                    @php
-                        $paginator = $acaraList;
-                        $current = $paginator->currentPage();
-                        $last = $paginator->lastPage();
-                        $from = $paginator->firstItem();
-                        $to = $paginator->lastItem();
-                        $total = $paginator->total();
-                        $prevUrl = $paginator->previousPageUrl();
-                        $nextUrl = $paginator->nextPageUrl();
-                        $getPageUrl = fn ($p) => $paginator->url($p);
-                        $pages = $last <= 7 ? range(1, $last) : array_unique(array_merge(
-                            [1],
-                            range(max(1, $current - 2), min($last, $current + 2)),
-                            [$last]
-                        ));
-                        sort($pages);
-                    @endphp
-                    <div class="mt-8 flex flex-col sm:flex-row items-center justify-between gap-4 bg-white rounded-2xl px-4 py-4 sm:px-6 shadow-lg border border-slate-200/80">
-                        <p class="text-sm text-slate-600 order-2 sm:order-1">
-                            Menampilkan <span class="font-semibold text-slate-800">{{ $from }}</span>–<span class="font-semibold text-slate-800">{{ $to }}</span> dari <span class="font-semibold text-slate-800">{{ $total }}</span> acara
-                        </p>
-                        <nav class="flex items-center gap-1.5 order-1 sm:order-2" aria-label="Navigasi halaman">
-                            @if($prevUrl)
-                                <a href="{{ $prevUrl }}" class="inline-flex items-center justify-center w-10 h-10 rounded-xl border border-slate-200 bg-white text-slate-600 hover:bg-primary hover:text-white hover:border-primary transition-all duration-200 shadow-sm" title="Sebelumnya">
-                                    <i class="fa-solid fa-chevron-left text-sm"></i>
-                                </a>
-                            @else
-                                <span class="inline-flex items-center justify-center w-10 h-10 rounded-xl border border-slate-100 bg-slate-50 text-slate-400 cursor-not-allowed" aria-disabled="true">
-                                    <i class="fa-solid fa-chevron-left text-sm"></i>
-                                </span>
-                            @endif
-                            <div class="flex items-center gap-1.5 mx-1 flex-wrap justify-center">
-                                @php $prevP = 0; @endphp
-                                @foreach($pages as $p)
-                                    @if($prevP && $p > $prevP + 1)
-                                        <span class="px-1 text-slate-400">…</span>
-                                    @endif
-                                    @if($p == $current)
-                                        <span class="inline-flex items-center justify-center min-w-[2.5rem] h-10 px-3 rounded-xl bg-primary text-white font-semibold shadow-md shadow-primary/25" aria-current="page">{{ $p }}</span>
-                                    @else
-                                        <a href="{{ $getPageUrl($p) }}" class="inline-flex items-center justify-center min-w-[2.5rem] h-10 px-3 rounded-xl border border-slate-200 bg-white text-slate-700 font-medium hover:bg-primary hover:text-white hover:border-primary transition-all duration-200 shadow-sm">{{ $p }}</a>
-                                    @endif
-                                    @php $prevP = $p; @endphp
-                                @endforeach
-                            </div>
-                            @if($nextUrl)
-                                <a href="{{ $nextUrl }}" class="inline-flex items-center justify-center w-10 h-10 rounded-xl border border-slate-200 bg-white text-slate-600 hover:bg-primary hover:text-white hover:border-primary transition-all duration-200 shadow-sm" title="Selanjutnya">
-                                    <i class="fa-solid fa-chevron-right text-sm"></i>
-                                </a>
-                            @else
-                                <span class="inline-flex items-center justify-center w-10 h-10 rounded-xl border border-slate-100 bg-slate-50 text-slate-400 cursor-not-allowed" aria-disabled="true">
-                                    <i class="fa-solid fa-chevron-right text-sm"></i>
-                                </span>
-                            @endif
-                        </nav>
+                    <div class="mt-8 flex justify-center">
+                        <div class="bg-white rounded-xl p-4 shadow-lg border border-slate-200">
+                            {{ $acaraList->links() }}
+                        </div>
                     </div>
                 @endif
             @else
