@@ -457,6 +457,43 @@ trait SasaranImportTrait
         return null;
     }
 
+    /** Hanya nilai PBI atau NON PBI; nilai numerik (nomor BPJS) dikembalikan null. */
+    private function normalizeKepersertaanBpjs($value): ?string
+    {
+        $v = strtoupper(trim((string) $value));
+        if ($v === 'PBI' || $v === 'NON PBI') return $v;
+        if (preg_match('/^\d+$/', $v)) return null; // nomor BPJS jangan masuk kolom kepersertaan
+        return null;
+    }
+
+    /** Map singkatan ke nilai enum pendidikan (SLTP, S1, D3, dll.). */
+    private function normalizePendidikan($value): ?string
+    {
+        $v = trim((string) $value);
+        if ($v === '') return null;
+        $enumValues = [
+            'Tidak/Belum Sekolah', 'Tidak Tamat SD/Sederajat', 'Tamat SD/Sederajat',
+            'SLTP/Sederajat', 'SLTA/Sederajat', 'Diploma I/II', 'Akademi/Diploma III/Sarjana Muda',
+            'Diploma IV/Strata I', 'Strata II', 'Strata III',
+        ];
+        $upper = strtoupper($v);
+        if (in_array($v, $enumValues, true)) return $v;
+        $map = [
+            'SD' => 'Tamat SD/Sederajat',
+            'SMP' => 'SLTP/Sederajat',
+            'SMA' => 'SLTA/Sederajat',
+            'SMK' => 'SLTA/Sederajat',
+            'S1' => 'Diploma IV/Strata I',
+            'S2' => 'Strata II',
+            'S3' => 'Strata III',
+            'D1' => 'Diploma I/II',
+            'D2' => 'Diploma I/II',
+            'D3' => 'Akademi/Diploma III/Sarjana Muda',
+            'D4' => 'Diploma IV/Strata I',
+        ];
+        return $map[$upper] ?? null;
+    }
+
     private function normalizePekerjaan(?string $value): ?string
     {
         $v = trim((string) $value);
@@ -464,9 +501,51 @@ trait SasaranImportTrait
         $map = [
             'ibu rumah tangga' => 'Mengurus Rumah Tangga',
             'irt' => 'Mengurus Rumah Tangga',
+            'pns' => 'Pegawai Negeri Sipil',
+            'tni' => 'Tentara Nasional Indonesia',
+            'polri' => 'Kepolisian RI',
+            'wiraswasta' => 'Wiraswasta',
+            'swasta' => 'Karyawan Swasta',
+            'petani' => 'Petani/Pekebun',
+            'nelayan' => 'Nelayan/Perikanan',
+            'guru' => 'Guru',
+            'dosen' => 'Dosen',
+            'bidan' => 'Bidan',
+            'perawat' => 'Perawat',
+            'dokter' => 'Dokter',
+            'pedagang' => 'Pedagang',
+            'buruh' => 'Buruh Harian Lepas',
+            'pensiunan' => 'Pensiunan',
+            'pelajar' => 'Pelajar/Mahasiswa',
+            'mahasiswa' => 'Pelajar/Mahasiswa',
         ];
         $lower = strtolower($v);
         return $map[$lower] ?? $v;
+    }
+
+    /** Pekerjaan untuk tabel orangtua: hanya nilai enum, selain itu 'Lainnya'. */
+    private function normalizePekerjaanOrangtua(?string $value): string
+    {
+        $allowed = [
+            'Belum/Tidak Bekerja', 'Mengurus Rumah Tangga', 'Pelajar/Mahasiswa', 'Pensiunan',
+            'Pegawai Negeri Sipil', 'Tentara Nasional Indonesia', 'Kepolisian RI', 'Perdagangan',
+            'Petani/Pekebun', 'Peternak', 'Nelayan/Perikanan', 'Industri', 'Konstruksi', 'Transportasi',
+            'Karyawan Swasta', 'Karyawan BUMN', 'Karyawan BUMD', 'Karyawan Honorer', 'Buruh Harian Lepas',
+            'Buruh Tani/Perkebunan', 'Buruh Nelayan/Perikanan', 'Buruh Peternakan', 'Pembantu Rumah Tangga',
+            'Tukang Cukur', 'Tukang Listrik', 'Tukang Batu', 'Tukang Kayu', 'Tukang Sol Sepatu', 'Tukang Las/Pandai Besi',
+            'Tukang Jahit', 'Tukang Gigi', 'Penata Rias', 'Penata Busana', 'Penata Rambut', 'Mekanik', 'Seniman',
+            'Tabib', 'Paraji', 'Perancang Busana', 'Penterjemah', 'Imam Masjid', 'Pendeta', 'Pastor', 'Wartawan',
+            'Ustadz/Mubaligh', 'Juru Masak', 'Promotor Acara', 'Anggota DPR-RI', 'Anggota DPD', 'Anggota BPK',
+            'Presiden', 'Wakil Presiden', 'Anggota Mahkamah Konstitusi', 'Anggota Kabinet/Kementerian', 'Duta Besar',
+            'Gubernur', 'Wakil Gubernur', 'Bupati', 'Wakil Bupati', 'Walikota', 'Wakil Walikota',
+            'Anggota DPRD Provinsi', 'Anggota DPRD Kabupaten/Kota', 'Dosen', 'Guru', 'Pilot', 'Pengacara', 'Notaris',
+            'Arsitek', 'Akuntan', 'Konsultan', 'Dokter', 'Bidan', 'Perawat', 'Apoteker', 'Psikiater/Psikolog',
+            'Penyiar Televisi', 'Penyiar Radio', 'Pelaut', 'Peneliti', 'Sopir', 'Pialang', 'Paranormal', 'Pedagang',
+            'Perangkat Desa', 'Kepala Desa', 'Biarawati', 'Wiraswasta', 'Lainnya',
+        ];
+        $v = $this->normalizePekerjaan($value);
+        if ($v === null || $v === '') return 'Belum/Tidak Bekerja';
+        return in_array($v, $allowed, true) ? $v : 'Lainnya';
     }
 
     private function createSasaranBayibalita(array $row, int $posyanduId, string $tanggalLahir, string $jenisKelamin): void
@@ -485,11 +564,11 @@ trait SasaranImportTrait
                     'no_kk' => trim($row['no_kk_sasaran'] ?? $row['no_kk_sasaran'] ?? $nikOrtu) ?: $nikOrtu,
                     'tempat_lahir' => trim($row['tempat_lahir_orangtua'] ?? '') ?: null,
                     'tanggal_lahir' => $this->parseDate($row['tanggal_lahir_orangtua'] ?? '') ?: now(),
-                    'pekerjaan' => $this->normalizePekerjaan($row['pekerjaan_orangtua'] ?? '') ?? 'Belum/Tidak Bekerja',
-                    'pendidikan' => trim($row['pendidikan_orangtua'] ?? '') ?: null,
+                    'pekerjaan' => $this->normalizePekerjaanOrangtua($row['pekerjaan_orangtua'] ?? ''),
+                    'pendidikan' => $this->normalizePendidikan($row['pendidikan_orangtua'] ?? ''),
                     'kelamin' => $this->normalizeJenisKelamin($row['kelamin_orangtua'] ?? '') ?? 'Perempuan',
                     'alamat' => trim($row['alamat_sasaran'] ?? '') ?: null,
-                    'kepersertaan_bpjs' => trim($row['kepersertaan_bpjs_orangtua'] ?? $row['kepersertaan_bpjs'] ?? '') ?: null,
+                    'kepersertaan_bpjs' => $this->normalizeKepersertaanBpjs($row['kepersertaan_bpjs_orangtua'] ?? $row['kepersertaan_bpjs'] ?? ''),
                     'nomor_bpjs' => trim($row['nomor_bpjs_orangtua'] ?? $row['nomor_bpjs'] ?? '') ?: null,
                     'nomor_telepon' => trim($row['nomor_telepon_orangtua'] ?? '') ?: null,
                 ]
@@ -522,7 +601,7 @@ trait SasaranImportTrait
                 'alamat_sasaran' => trim($row['alamat_sasaran'] ?? '') ?: null,
                 'rt' => trim($row['rt'] ?? '') ?: null,
                 'rw' => trim($row['rw'] ?? '') ?: null,
-                'kepersertaan_bpjs' => in_array(strtoupper(trim($row['kepersertaan_bpjs'] ?? '')), ['PBI', 'NON PBI']) ? strtoupper(trim($row['kepersertaan_bpjs'])) : null,
+                'kepersertaan_bpjs' => $this->normalizeKepersertaanBpjs($row['kepersertaan_bpjs'] ?? ''),
                 'nomor_bpjs' => trim($row['nomor_bpjs'] ?? '') ?: null,
             ]);
 
@@ -594,8 +673,8 @@ trait SasaranImportTrait
                 'no_kk' => $row['no_kk_sasaran'] ?? $nikOrtu,
                 'tempat_lahir' => trim($row['tempat_lahir_orangtua'] ?? '') ?: null,
                 'tanggal_lahir' => $this->parseDate($row['tanggal_lahir_orangtua'] ?? '') ?: now(),
-                'pekerjaan' => $this->normalizePekerjaan($row['pekerjaan_orangtua'] ?? '') ?? 'Belum/Tidak Bekerja',
-                'pendidikan' => trim($row['pendidikan_orangtua'] ?? '') ?: null,
+                'pekerjaan' => $this->normalizePekerjaanOrangtua($row['pekerjaan_orangtua'] ?? ''),
+                'pendidikan' => $this->normalizePendidikan($row['pendidikan_orangtua'] ?? ''),
                 'kelamin' => $this->normalizeJenisKelamin($row['kelamin_orangtua'] ?? '') ?? 'Perempuan',
                 'alamat' => trim($row['alamat_sasaran'] ?? '') ?: null,
             ]
@@ -617,10 +696,10 @@ trait SasaranImportTrait
             'alamat_sasaran' => trim($row['alamat_sasaran'] ?? '') ?: null,
             'rt' => trim($row['rt'] ?? '') ?: null,
             'rw' => trim($row['rw'] ?? '') ?: null,
-            'kepersertaan_bpjs' => in_array(strtoupper(trim($row['kepersertaan_bpjs'] ?? '')), ['PBI', 'NON PBI']) ? strtoupper(trim($row['kepersertaan_bpjs'])) : null,
+            'kepersertaan_bpjs' => $this->normalizeKepersertaanBpjs($row['kepersertaan_bpjs'] ?? ''),
             'nomor_bpjs' => trim($row['nomor_bpjs'] ?? '') ?: null,
             'nomor_telepon' => trim($row['nomor_telepon'] ?? '') ?: null,
-            'pendidikan' => trim($row['pendidikan'] ?? '') ?: null,
+            'pendidikan' => $this->normalizePendidikan($row['pendidikan'] ?? ''),
         ]);
     }
 
@@ -639,11 +718,11 @@ trait SasaranImportTrait
             'status_keluarga' => in_array($row['status_keluarga'] ?? '', ['kepala keluarga', 'istri', 'anak', 'mertua', 'menantu', 'kerabat lain']) ? $row['status_keluarga'] : null,
             'umur_sasaran' => $umur,
             'pekerjaan' => $this->normalizePekerjaan($row['pekerjaan'] ?? '') ?? trim($row['pekerjaan'] ?? '') ?: null,
-            'pendidikan' => trim($row['pendidikan'] ?? '') ?: null,
+            'pendidikan' => $this->normalizePendidikan($row['pendidikan'] ?? ''),
             'alamat_sasaran' => trim($row['alamat_sasaran'] ?? '') ?: null,
             'rt' => trim($row['rt'] ?? '') ?: null,
             'rw' => trim($row['rw'] ?? '') ?: null,
-            'kepersertaan_bpjs' => in_array(strtoupper(trim($row['kepersertaan_bpjs'] ?? '')), ['PBI', 'NON PBI']) ? strtoupper(trim($row['kepersertaan_bpjs'])) : null,
+            'kepersertaan_bpjs' => $this->normalizeKepersertaanBpjs($row['kepersertaan_bpjs'] ?? ''),
             'nomor_bpjs' => trim($row['nomor_bpjs'] ?? '') ?: null,
             'nomor_telepon' => trim($row['nomor_telepon'] ?? '') ?: null,
             'nik_orangtua' => null,
@@ -665,11 +744,11 @@ trait SasaranImportTrait
             'status_keluarga' => in_array($row['status_keluarga'] ?? '', ['kepala keluarga', 'istri', 'anak', 'mertua', 'menantu', 'kerabat lain']) ? $row['status_keluarga'] : null,
             'umur_sasaran' => $umur,
             'pekerjaan' => $this->normalizePekerjaan($row['pekerjaan'] ?? '') ?? trim($row['pekerjaan'] ?? '') ?: null,
-            'pendidikan' => trim($row['pendidikan'] ?? '') ?: null,
+            'pendidikan' => $this->normalizePendidikan($row['pendidikan'] ?? ''),
             'alamat_sasaran' => trim($row['alamat_sasaran'] ?? '') ?: null,
             'rt' => trim($row['rt'] ?? '') ?: null,
             'rw' => trim($row['rw'] ?? '') ?: null,
-            'kepersertaan_bpjs' => in_array(strtoupper(trim($row['kepersertaan_bpjs'] ?? '')), ['PBI', 'NON PBI']) ? strtoupper(trim($row['kepersertaan_bpjs'])) : null,
+            'kepersertaan_bpjs' => $this->normalizeKepersertaanBpjs($row['kepersertaan_bpjs'] ?? ''),
             'nomor_bpjs' => trim($row['nomor_bpjs'] ?? '') ?: null,
             'nomor_telepon' => trim($row['nomor_telepon'] ?? '') ?: null,
             'nik_orangtua' => null,
@@ -691,11 +770,11 @@ trait SasaranImportTrait
             'status_keluarga' => in_array($row['status_keluarga'] ?? '', ['kepala keluarga', 'istri', 'anak', 'mertua', 'menantu', 'kerabat lain']) ? $row['status_keluarga'] : null,
             'umur_sasaran' => $umur,
             'pekerjaan' => $this->normalizePekerjaan($row['pekerjaan'] ?? '') ?? trim($row['pekerjaan'] ?? '') ?: null,
-            'pendidikan' => trim($row['pendidikan'] ?? '') ?: null,
+            'pendidikan' => $this->normalizePendidikan($row['pendidikan'] ?? ''),
             'alamat_sasaran' => trim($row['alamat_sasaran'] ?? '') ?: null,
             'rt' => trim($row['rt'] ?? '') ?: null,
             'rw' => trim($row['rw'] ?? '') ?: null,
-            'kepersertaan_bpjs' => in_array(strtoupper(trim($row['kepersertaan_bpjs'] ?? '')), ['PBI', 'NON PBI']) ? strtoupper(trim($row['kepersertaan_bpjs'])) : null,
+            'kepersertaan_bpjs' => $this->normalizeKepersertaanBpjs($row['kepersertaan_bpjs'] ?? ''),
             'nomor_bpjs' => trim($row['nomor_bpjs'] ?? '') ?: null,
             'nomor_telepon' => trim($row['nomor_telepon'] ?? '') ?: null,
             'nik_orangtua' => null,
@@ -717,11 +796,11 @@ trait SasaranImportTrait
             'umur_sasaran' => $umur,
             'minggu_kandungan' => is_numeric($row['minggu_kandungan'] ?? '') ? (int) $row['minggu_kandungan'] : null,
             'pekerjaan' => $this->normalizePekerjaan($row['pekerjaan'] ?? '') ?? trim($row['pekerjaan'] ?? '') ?: null,
-            'pendidikan' => trim($row['pendidikan'] ?? '') ?: null,
+            'pendidikan' => $this->normalizePendidikan($row['pendidikan'] ?? ''),
             'alamat_sasaran' => trim($row['alamat_sasaran'] ?? '') ?: null,
             'rt' => trim($row['rt'] ?? '') ?: null,
             'rw' => trim($row['rw'] ?? '') ?: null,
-            'kepersertaan_bpjs' => in_array(strtoupper(trim($row['kepersertaan_bpjs'] ?? '')), ['PBI', 'NON PBI']) ? strtoupper(trim($row['kepersertaan_bpjs'])) : null,
+            'kepersertaan_bpjs' => $this->normalizeKepersertaanBpjs($row['kepersertaan_bpjs'] ?? ''),
             'nomor_bpjs' => trim($row['nomor_bpjs'] ?? '') ?: null,
             'nomor_telepon' => trim($row['nomor_telepon'] ?? '') ?: null,
             'nama_suami' => trim($row['nama_suami'] ?? '') ?: null,
