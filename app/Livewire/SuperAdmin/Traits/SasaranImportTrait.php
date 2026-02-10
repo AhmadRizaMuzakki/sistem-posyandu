@@ -156,18 +156,24 @@ trait SasaranImportTrait
                 $data = $sheet->toArray(null, true, true, true);
                 if (empty($data)) continue;
 
-                $rawHeader = $data[0];
+                // Baris bisa 0-based atau 1-based dari PhpSpreadsheet; pakai key pertama untuk header
+                $rowKeys = array_keys($data);
+                $headerKey = $rowKeys[0];
+                $rawHeader = $data[$headerKey];
+                if (!is_array($rawHeader) || empty($rawHeader)) continue;
+
                 $normalizedByCol = [];
                 foreach ($rawHeader as $col => $val) {
                     $trimmed = trim((string) $val);
                     $normalizedByCol[$col] = $this->normalizeHeaders([$trimmed])[0];
                 }
-                for ($i = 1; $i < count($data); $i++) {
+                for ($i = 1; $i < count($rowKeys); $i++) {
+                    $rowKey = $rowKeys[$i];
                     $row = ['kategori' => $kategori];
                     foreach ($rawHeader as $col => $_) {
                         $h = $normalizedByCol[$col];
                         if ($h !== '') {
-                            $row[$h] = trim((string) ($data[$i][$col] ?? ''));
+                            $row[$h] = trim((string) ($data[$rowKey][$col] ?? ''));
                         }
                     }
                     if (!empty($row['nik_sasaran'] ?? '')) {
@@ -224,8 +230,12 @@ trait SasaranImportTrait
             $data = $sheet->toArray(null, true, true, true);
             if (empty($data)) return [];
 
-            // Gunakan key kolom (A, B, C, ...) agar header dan baris data sejajar; jangan array_filter header
-            $rawHeader = $data[0];
+            // Baris bisa 0-based atau 1-based; pakai key pertama untuk header
+            $rowKeys = array_keys($data);
+            $headerKey = $rowKeys[0];
+            $rawHeader = $data[$headerKey];
+            if (!is_array($rawHeader)) return [];
+
             $normalizedByCol = [];
             foreach ($rawHeader as $col => $val) {
                 $trimmed = trim((string) $val);
@@ -233,12 +243,13 @@ trait SasaranImportTrait
             }
 
             $rows = [];
-            for ($i = 1; $i < count($data); $i++) {
+            for ($i = 1; $i < count($rowKeys); $i++) {
+                $rowKey = $rowKeys[$i];
                 $row = [];
                 foreach ($rawHeader as $col => $_) {
                     $h = $normalizedByCol[$col];
                     if ($h !== '') {
-                        $row[$h] = trim((string) ($data[$i][$col] ?? ''));
+                        $row[$h] = trim((string) ($data[$rowKey][$col] ?? ''));
                     }
                 }
                 if (!empty($row['nik_sasaran'] ?? '')) {
