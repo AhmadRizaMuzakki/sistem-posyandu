@@ -119,6 +119,33 @@
             </div>
         </div>
 
+        <!-- Import Sasaran (per kategori & master) -->
+        <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+            <h2 class="text-xl font-semibold text-gray-800 mb-4 flex items-center">
+                <i class="ph ph-upload-simple text-2xl mr-3 text-primary"></i>
+                Import Sasaran
+            </h2>
+            <p class="text-sm text-gray-500 mb-4">Impor data sasaran dari file Excel/CSV. Satu file master (banyak sheet) atau satu file per kategori.</p>
+            <div class="flex flex-wrap items-center gap-3">
+                <button wire:click="openImportModal('master')"
+                        class="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-primary rounded-lg hover:bg-primary/90 transition-colors">
+                    <i class="ph ph-file-xls text-lg mr-2"></i>
+                    Import Master Excel
+                </button>
+                <span class="text-gray-400">|</span>
+                <span class="text-sm text-gray-600">Import per kategori:</span>
+                @foreach(['bayibalita' => 'Bayi Balita', 'remaja' => 'Remaja', 'dewasa' => 'Dewasa', 'ibuhamil' => 'Ibu Hamil', 'pralansia' => 'Pralansia', 'lansia' => 'Lansia'] as $kode => $label)
+                    <button wire:click="openImportModal('{{ $kode }}')"
+                            class="inline-flex items-center px-3 py-1.5 text-sm font-medium text-green-700 border border-green-600 rounded-lg hover:bg-green-50 transition-colors">
+                        {{ $label }}
+                    </button>
+                @endforeach
+            </div>
+            <p class="text-xs text-gray-400 mt-3">
+                <a href="{{ route('adminPosyandu.sasaran') }}" class="text-primary hover:underline">Kelola daftar sasaran</a> untuk tambah manual, edit, atau export.
+            </p>
+        </div>
+
         <!-- Card SK Posyandu -->
         <div class="bg-white rounded-lg shadow-md p-6 mb-6">
             <h2 class="text-xl font-semibold text-gray-800 mb-4 flex items-center justify-between">
@@ -800,6 +827,7 @@
 </script>
 @endpush
 
+@include('livewire.posyandu.modals.import-modal')
 @include('components.confirm-modal')
 
 

@@ -4,6 +4,7 @@ namespace App\Livewire\Posyandu;
 
 use App\Livewire\Posyandu\Traits\PosyanduHelper;
 use App\Livewire\Posyandu\Traits\DashboardHelper;
+use App\Livewire\SuperAdmin\Traits\SasaranImportTrait;
 use App\Livewire\Traits\NotificationModal;
 use App\Models\Jadwal;
 use App\Models\Kader;
@@ -25,7 +26,7 @@ use Illuminate\Support\Str;
 
 class PosyanduDashboard extends Component
 {
-    use PosyanduHelper, DashboardHelper, WithFileUploads, NotificationModal;
+    use PosyanduHelper, DashboardHelper, SasaranImportTrait, WithFileUploads, NotificationModal;
 
     public $skFile;
     public $showUploadModal = false;
@@ -47,6 +48,15 @@ class PosyanduDashboard extends Component
     public function mount()
     {
         $this->initializePosyandu();
+    }
+
+    /**
+     * Override: clear dashboard cache setelah import sasaran agar angka total terbaru.
+     */
+    protected function refreshPosyandu()
+    {
+        cache()->forget("posyandu_dashboard_{$this->posyanduId}");
+        $this->loadPosyandu();
     }
 
     public function render()
@@ -119,6 +129,17 @@ class PosyanduDashboard extends Component
         return view('livewire.posyandu.admin-posyandu', array_merge($cachedData, [
             'posyandu' => $this->posyandu,
             'kategoriLabels' => $kategoriLabels,
+            'showImportModal' => $this->showImportModal ?? false,
+            'importKategori' => $this->importKategori ?? '',
+            'importResult' => $this->importResult,
+            'importKategoriLabels' => [
+                'bayibalita' => 'Bayi/Balita',
+                'remaja' => 'Remaja',
+                'dewasa' => 'Dewasa',
+                'ibuhamil' => 'Ibu Hamil',
+                'pralansia' => 'Pralansia',
+                'lansia' => 'Lansia',
+            ],
         ]));
     }
 

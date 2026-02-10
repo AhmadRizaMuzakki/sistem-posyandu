@@ -103,18 +103,28 @@ trait SasaranImportTrait
     }
 
     /**
-     * Import master: hanya Excel. Baca tiap sheet; nama sheet = kategori (Bayi/Balita, Remaja, ...).
-     * Setiap baris dapat kolom yang sama seperti form untuk kategori itu.
+     * Import master: Excel (banyak sheet) atau CSV (satu file dengan kolom "kategori" per baris).
      */
     private function parseImportFileMaster($file): array
     {
         $path = $file->getRealPath();
         $ext = strtolower($file->getClientOriginalExtension());
-        if (!in_array($ext, ['xlsx', 'xls'])) {
-            $this->importParseError = 'Import master hanya mendukung file Excel (.xlsx, .xls). Gunakan template master yang berisi beberapa sheet per kategori.';
-            return [];
+        if (in_array($ext, ['xlsx', 'xls'])) {
+            return $this->parseExcelMaster($path);
         }
-        return $this->parseExcelMaster($path);
+        if (in_array($ext, ['csv', 'txt'])) {
+            return $this->parseCsvMaster($path);
+        }
+        $this->importParseError = 'Import master: gunakan file Excel (.xlsx, .xls) atau CSV (.csv, .txt).';
+        return [];
+    }
+
+    /**
+     * CSV master: satu file, baris pertama = header. Wajib ada kolom "kategori" (bayibalita, remaja, dewasa, ibuhamil, pralansia, lansia).
+     */
+    private function parseCsvMaster(string $path): array
+    {
+        return $this->parseCsv($path);
     }
 
     /**
