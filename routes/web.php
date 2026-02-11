@@ -52,6 +52,7 @@ Route::prefix('supervisor')->middleware(['auth', 'verified', 'role:superadmin'])
     Route::get('/posyandu/{id}/jadwal', \App\Livewire\SuperAdmin\PosyanduJadwal::class)->name('posyandu.jadwal');
     Route::get('/posyandu/{id}/laporan', SuperadminPosyanduLaporan::class)->name('posyandu.laporan');
     Route::get('/posyandu/{id}/galeri', \App\Livewire\SuperAdmin\PosyanduGaleri::class)->name('posyandu.galeri');
+    Route::get('/posyandu/{id}/perpustakaan', \App\Livewire\SuperAdmin\PosyanduPerpustakaan::class)->name('posyandu.perpustakaan');
     Route::get('/posyandu/{id}/laporan/pdf/jenis-vaksin/{jenisVaksin}', [LaporanController::class, 'superadminPosyanduImunisasiPdfByJenisVaksin'])->name('superadmin.posyandu.laporan.pdf.jenis-vaksin');
     Route::get('/posyandu/{id}/laporan/pdf/nama/{nama}', [LaporanController::class, 'superadminPosyanduImunisasiPdfByNama'])->name('superadmin.posyandu.laporan.pdf.nama');
     Route::get('/posyandu/{id}/laporan/pdf/{kategori}', [LaporanController::class, 'superadminPosyanduImunisasiPdf'])->name('superadmin.posyandu.laporan.pdf.kategori');
@@ -100,6 +101,7 @@ Route::prefix('posyandu')->middleware(['auth', 'verified', 'role:adminPosyandu|s
     Route::get('/pendidikan/pdf/{kategori}', [LaporanController::class, 'posyanduPendidikanPdf'])->name('adminPosyandu.pendidikan.pdf.kategori');
     Route::get('/pendidikan/pdf', [LaporanController::class, 'posyanduPendidikanPdf'])->name('adminPosyandu.pendidikan.pdf');
     Route::get('/sk/pdf', [LaporanController::class, 'posyanduSkPdf'])->name('adminPosyandu.sk.pdf');
+    Route::get('/perpustakaan', \App\Livewire\Posyandu\Perpustakaan::class)->name('adminPosyandu.perpustakaan');
 });
 
 Route::prefix('orangtua')->middleware(['auth', 'verified', 'role:orangtua|superadmin'])->group(function () {

@@ -85,7 +85,8 @@
                     request()->routeIs('posyandu.pendidikan') ||
                     request()->routeIs('posyandu.jadwal') ||
                     request()->routeIs('posyandu.laporan') ||
-                    request()->routeIs('posyandu.galeri')) {
+                    request()->routeIs('posyandu.galeri') ||
+                    request()->routeIs('posyandu.perpustakaan')) {
                     try {
                         $encryptedId = request()->route('id');
                         if ($encryptedId) {
@@ -270,6 +271,14 @@
                                 >
                                     <i class="ph ph-images text-lg mr-3"></i>
                                     <span class="font-medium">Galeri</span>
+                                </a>
+
+                                <a
+                                    :href="`/supervisor/posyandu/${posyandu.encryptedId}/perpustakaan`"
+                                    class="sidebar-menu-item flex items-center px-4 py-2 text-sm rounded-lg {{ request()->routeIs('posyandu.perpustakaan') ? 'active' : 'text-gray-600' }}"
+                                >
+                                    <i class="ph ph-books text-lg mr-3"></i>
+                                    <span class="font-medium">Perpustakaan</span>
                                 </a>
                             </div>
                         </template>

@@ -22,6 +22,10 @@
             }
         };
     </script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <style>
+        [x-cloak] { display: none !important; }
+    </style>
 </head>
 <body class="font-sans text-slate-700 antialiased bg-slate-50">
 
@@ -239,6 +243,352 @@
                     </div>
                 @endif
             </div>
+
+            {{-- Perpustakaan Digital --}}
+            @if($posyandu->perpustakaan && $posyandu->perpustakaan->count() > 0)
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-6" x-data="publicFlipbook()">
+                <h2 class="text-lg font-semibold text-slate-800 mb-4 flex items-center">
+                    <i class="fa-solid fa-book-open text-primary mr-2"></i>
+                    Perpustakaan Digital
+                    <span class="ml-2 text-sm font-normal text-slate-500">({{ $posyandu->perpustakaan->count() }} buku)</span>
+                </h2>
+                
+                <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                    @foreach($posyandu->perpustakaan as $book)
+                        <div class="group cursor-pointer" 
+                             @click="openBook({
+                                 judul: '{{ addslashes($book->judul) }}',
+                                 penulis: '{{ addslashes($book->penulis ?? '') }}',
+                                 isPdf: {{ $book->file_path ? 'true' : 'false' }},
+                                 pdfUrl: '{{ $book->file_path ? uploads_asset($book->file_path) : '' }}',
+                                 pages: @js($book->halaman_images ? array_map(function($p) { return uploads_asset($p); }, $book->halaman_images) : [])
+                             })">
+                            <div class="relative aspect-[3/4] rounded-xl overflow-hidden bg-slate-100 border border-slate-200 shadow-md group-hover:shadow-xl transition-all duration-300">
+                                @if($book->cover_image)
+                                    <img src="{{ uploads_asset($book->cover_image) }}" alt="{{ $book->judul }}" 
+                                         class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
+                                @else
+                                    <div class="w-full h-full bg-gradient-to-br from-primary/20 to-primary/40 flex items-center justify-center">
+                                        <i class="fa-solid fa-book text-4xl text-primary/60"></i>
+                                    </div>
+                                @endif
+                                
+                                {{-- Overlay --}}
+                                <div class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                    <span class="px-4 py-2 bg-white rounded-full text-primary text-sm font-medium">
+                                        <i class="fa-solid fa-book-open mr-1"></i> Baca
+                                    </span>
+                                </div>
+                                
+                                {{-- Badge kategori --}}
+                                @if($book->kategori)
+                                    @php
+                                        $kategoriLabels = [
+                                            'kesehatan' => 'Kesehatan',
+                                            'gizi' => 'Gizi',
+                                            'parenting' => 'Parenting',
+                                            'ibu_hamil' => 'Ibu Hamil',
+                                            'bayi_balita' => 'Bayi/Balita',
+                                            'lansia' => 'Lansia',
+                                            'umum' => 'Umum',
+                                        ];
+                                    @endphp
+                                    <span class="absolute top-2 left-2 px-2 py-0.5 text-xs font-medium rounded-full bg-primary text-white">
+                                        {{ $kategoriLabels[$book->kategori] ?? ucfirst($book->kategori) }}
+                                    </span>
+                                @endif
+                                
+                                {{-- Jumlah halaman / PDF --}}
+                                <span class="absolute bottom-2 right-2 px-2 py-0.5 text-xs font-medium rounded-full bg-black/60 text-white flex items-center gap-1">
+                                    @if($book->file_path)
+                                        <i class="fa-solid fa-file-pdf"></i> PDF
+                                    @else
+                                        {{ $book->jumlah_halaman }} hal
+                                    @endif
+                                </span>
+                            </div>
+                            <div class="mt-2 px-1">
+                                <h3 class="font-medium text-slate-800 text-sm line-clamp-2">{{ $book->judul }}</h3>
+                                @if($book->penulis)
+                                    <p class="text-xs text-slate-500 mt-0.5 line-clamp-1">{{ $book->penulis }}</p>
+                                @endif
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+
+                {{-- Flipbook Modal --}}
+                <div x-show="showFlipbook" x-cloak
+                     class="fixed inset-0 z-50 bg-slate-900/95"
+                     @keydown.escape.window="closeBook()"
+                     @keydown.left.window="prevPage()"
+                     @keydown.right.window="nextPage()">
+                    
+                    {{-- Header --}}
+                    <div class="absolute top-0 left-0 right-0 z-10 bg-gradient-to-b from-black/80 to-transparent p-4">
+                        <div class="max-w-6xl mx-auto flex items-center justify-between">
+                            <div class="text-white">
+                                <h2 class="text-xl font-bold" x-text="currentBook?.judul"></h2>
+                                <p class="text-sm text-white/70">
+                                    <span x-text="currentBook?.penulis"></span>
+                                    <span x-show="currentBook?.isPdf" class="ml-2 px-2 py-0.5 bg-red-500/80 rounded text-xs">PDF</span>
+                                </p>
+                            </div>
+                            <button @click="closeBook()" class="p-2 rounded-full bg-white/10 text-white hover:bg-white/20 transition">
+                                <i class="fa-solid fa-xmark text-2xl"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    {{-- Book Display --}}
+                    <div class="h-full flex items-center justify-center px-4 py-20">
+                        <div class="relative w-full max-w-5xl h-[70vh]">
+                            {{-- Loading for PDF --}}
+                            <div x-show="loading" class="absolute inset-0 flex items-center justify-center bg-slate-800 rounded-lg">
+                                <div class="text-center text-white">
+                                    <i class="fa-solid fa-spinner text-5xl animate-spin mb-4"></i>
+                                    <p>Memuat PDF...</p>
+                                </div>
+                            </div>
+
+                            <div x-show="!loading" class="relative h-full flex items-center justify-center">
+                                {{-- Left Page --}}
+                                <div class="relative w-1/2 h-full bg-white shadow-2xl rounded-l-lg overflow-hidden"
+                                     :class="currentPage === 0 || (isPdf && currentPage <= 1) ? 'opacity-50' : ''">
+                                    <template x-if="isPdf">
+                                        <canvas x-ref="leftCanvas" class="w-full h-full object-contain"></canvas>
+                                    </template>
+                                    <template x-if="!isPdf && currentPage > 0">
+                                        <img :src="pages[currentPage - 1]" class="w-full h-full object-contain bg-slate-100" alt="">
+                                    </template>
+                                    <template x-if="!isPdf && currentPage === 0">
+                                        <div class="w-full h-full bg-gradient-to-r from-slate-200 to-slate-100 flex items-center justify-center">
+                                            <div class="text-center text-slate-400">
+                                                <i class="fa-solid fa-book-open text-5xl mb-4"></i>
+                                                <p class="text-sm">Cover Depan</p>
+                                            </div>
+                                        </div>
+                                    </template>
+                                    <div class="absolute bottom-4 left-4 px-3 py-1 bg-black/50 text-white text-sm rounded-full" x-show="isPdf ? currentPage > 1 : currentPage > 0">
+                                        <span x-text="isPdf ? currentPage - 1 : currentPage"></span>
+                                    </div>
+                                </div>
+
+                                {{-- Spine --}}
+                                <div class="w-2 h-full bg-gradient-to-r from-slate-400 via-slate-300 to-slate-400 shadow-inner"></div>
+
+                                {{-- Right Page --}}
+                                <div class="relative w-1/2 h-full bg-white shadow-2xl rounded-r-lg overflow-hidden"
+                                     :class="(!isPdf && currentPage >= pages.length) || (isPdf && currentPage > totalPages) ? 'opacity-50' : ''">
+                                    <template x-if="isPdf">
+                                        <canvas x-ref="rightCanvas" class="w-full h-full object-contain"></canvas>
+                                    </template>
+                                    <template x-if="!isPdf && currentPage < pages.length">
+                                        <img :src="pages[currentPage]" class="w-full h-full object-contain bg-slate-100" alt="">
+                                    </template>
+                                    <template x-if="!isPdf && currentPage >= pages.length">
+                                        <div class="w-full h-full bg-gradient-to-l from-slate-200 to-slate-100 flex items-center justify-center">
+                                            <div class="text-center text-slate-400">
+                                                <i class="fa-solid fa-circle-check text-5xl mb-4"></i>
+                                                <p class="text-sm">Selesai</p>
+                                            </div>
+                                        </div>
+                                    </template>
+                                    <div class="absolute bottom-4 right-4 px-3 py-1 bg-black/50 text-white text-sm rounded-full" x-show="isPdf ? currentPage <= totalPages : currentPage < pages.length">
+                                        <span x-text="isPdf ? currentPage : currentPage + 1"></span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {{-- Navigation Arrows --}}
+                            <button @click="prevPage()" 
+                                    class="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-16 p-4 rounded-full bg-white/10 text-white hover:bg-white/20 transition disabled:opacity-30"
+                                    :disabled="isPdf ? currentPage <= 1 : currentPage === 0">
+                                <i class="fa-solid fa-chevron-left text-2xl"></i>
+                            </button>
+                            <button @click="nextPage()" 
+                                    class="absolute right-0 top-1/2 -translate-y-1/2 translate-x-16 p-4 rounded-full bg-white/10 text-white hover:bg-white/20 transition disabled:opacity-30"
+                                    :disabled="isPdf ? currentPage >= totalPages : currentPage >= pages.length">
+                                <i class="fa-solid fa-chevron-right text-2xl"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    {{-- Footer --}}
+                    <div class="absolute bottom-0 left-0 right-0 z-10 bg-gradient-to-t from-black/80 to-transparent p-4">
+                        <div class="max-w-6xl mx-auto">
+                            <div class="flex items-center justify-center gap-4 text-white">
+                                <span class="text-sm">Halaman</span>
+                                <div class="flex items-center gap-2">
+                                    <button @click="goToFirst()" class="px-2 py-1 text-sm hover:bg-white/20 rounded">
+                                        <i class="fa-solid fa-backward-step"></i>
+                                    </button>
+                                    <span class="px-4 py-1 bg-white/20 rounded-full text-sm font-medium">
+                                        <span x-text="isPdf ? currentPage : currentPage + 1"></span> / <span x-text="isPdf ? totalPages : pages.length"></span>
+                                    </span>
+                                    <button @click="goToLast()" class="px-2 py-1 text-sm hover:bg-white/20 rounded">
+                                        <i class="fa-solid fa-forward-step"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            {{-- Thumbnails (only for image-based books) --}}
+                            <div x-show="!isPdf" class="mt-4 flex gap-2 justify-center overflow-x-auto pb-2 max-w-full">
+                                <template x-for="(page, index) in pages" :key="index">
+                                    <button @click="currentPage = index % 2 === 0 ? index : index - 1" 
+                                            class="flex-shrink-0 w-12 h-16 rounded overflow-hidden border-2 transition-all hover:scale-110"
+                                            :class="index === currentPage || index === currentPage - 1 ? 'border-primary ring-2 ring-primary/50' : 'border-white/30 hover:border-white/60'">
+                                        <img :src="page" class="w-full h-full object-cover" alt="">
+                                    </button>
+                                </template>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {{-- PDF.js for public page --}}
+            <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+            <script>
+                pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+                
+                function publicFlipbook() {
+                    return {
+                        showFlipbook: false,
+                        currentBook: null,
+                        currentPage: 0,
+                        pages: [],
+                        isPdf: false,
+                        pdfDoc: null,
+                        totalPages: 0,
+                        loading: false,
+                        
+                        async openBook(book) {
+                            this.currentBook = book;
+                            this.isPdf = book.isPdf;
+                            this.showFlipbook = true;
+                            
+                            if (book.isPdf && book.pdfUrl) {
+                                this.loading = true;
+                                this.currentPage = 1;
+                                try {
+                                    this.pdfDoc = await pdfjsLib.getDocument(book.pdfUrl).promise;
+                                    this.totalPages = this.pdfDoc.numPages;
+                                    this.loading = false;
+                                    await this.$nextTick();
+                                    await this.renderPdfPages();
+                                } catch (error) {
+                                    console.error('Error loading PDF:', error);
+                                    this.loading = false;
+                                }
+                            } else {
+                                this.pages = book.pages || [];
+                                this.currentPage = 0;
+                            }
+                        },
+                        
+                        closeBook() {
+                            this.showFlipbook = false;
+                            this.currentBook = null;
+                            this.pages = [];
+                            this.pdfDoc = null;
+                            this.isPdf = false;
+                        },
+                        
+                        async renderPdfPages() {
+                            if (!this.pdfDoc) return;
+                            
+                            const leftCanvas = this.$refs.leftCanvas;
+                            const rightCanvas = this.$refs.rightCanvas;
+                            
+                            if (leftCanvas) {
+                                leftCanvas.getContext('2d').clearRect(0, 0, leftCanvas.width, leftCanvas.height);
+                            }
+                            if (rightCanvas) {
+                                rightCanvas.getContext('2d').clearRect(0, 0, rightCanvas.width, rightCanvas.height);
+                            }
+                            
+                            const leftPageNum = this.currentPage - 1;
+                            const rightPageNum = this.currentPage;
+                            
+                            if (leftPageNum >= 1 && leftCanvas) {
+                                await this.renderPdfPage(leftPageNum, leftCanvas);
+                            }
+                            if (rightPageNum <= this.totalPages && rightCanvas) {
+                                await this.renderPdfPage(rightPageNum, rightCanvas);
+                            }
+                        },
+                        
+                        async renderPdfPage(pageNum, canvas) {
+                            const page = await this.pdfDoc.getPage(pageNum);
+                            const containerHeight = canvas.parentElement.clientHeight || 600;
+                            const containerWidth = canvas.parentElement.clientWidth || 400;
+                            
+                            const viewport = page.getViewport({ scale: 1 });
+                            const scale = Math.min(containerWidth / viewport.width, containerHeight / viewport.height) * 1.5;
+                            const scaledViewport = page.getViewport({ scale });
+                            
+                            canvas.height = scaledViewport.height;
+                            canvas.width = scaledViewport.width;
+                            
+                            const context = canvas.getContext('2d');
+                            await page.render({
+                                canvasContext: context,
+                                viewport: scaledViewport
+                            }).promise;
+                        },
+                        
+                        async nextPage() {
+                            if (this.isPdf) {
+                                if (this.currentPage < this.totalPages) {
+                                    this.currentPage += 2;
+                                    if (this.currentPage > this.totalPages) this.currentPage = this.totalPages;
+                                    await this.renderPdfPages();
+                                }
+                            } else {
+                                if (this.currentPage < this.pages.length) {
+                                    this.currentPage += 2;
+                                    if (this.currentPage > this.pages.length) this.currentPage = this.pages.length;
+                                }
+                            }
+                        },
+                        
+                        async prevPage() {
+                            if (this.isPdf) {
+                                if (this.currentPage > 1) {
+                                    this.currentPage -= 2;
+                                    if (this.currentPage < 1) this.currentPage = 1;
+                                    await this.renderPdfPages();
+                                }
+                            } else {
+                                if (this.currentPage > 0) {
+                                    this.currentPage -= 2;
+                                    if (this.currentPage < 0) this.currentPage = 0;
+                                }
+                            }
+                        },
+                        
+                        async goToFirst() {
+                            if (this.isPdf) {
+                                this.currentPage = 1;
+                                await this.renderPdfPages();
+                            } else {
+                                this.currentPage = 0;
+                            }
+                        },
+                        
+                        async goToLast() {
+                            if (this.isPdf) {
+                                this.currentPage = this.totalPages;
+                                await this.renderPdfPages();
+                            } else {
+                                this.currentPage = Math.max(0, this.pages.length - 1);
+                            }
+                        }
+                    }
+                }
+            </script>
+            @endif
 
             <div class="text-center pt-4">
                 <a href="{{ route('index') }}#posyandu" class="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-primary text-white font-medium hover:bg-primaryDark transition shadow-lg shadow-primary/20">

@@ -158,7 +158,11 @@ class IndexController extends Controller
      */
     public function posyanduDetail(string $id)
     {
-        $posyandu = Posyandu::with(['kader.user', 'galeri' => fn ($q) => $q->latest()->take(24)])
+        $posyandu = Posyandu::with([
+                'kader.user', 
+                'galeri' => fn ($q) => $q->latest()->take(24),
+                'perpustakaan' => fn ($q) => $q->where('is_active', true)->latest()
+            ])
             ->withCount([
                 'sasaran_bayibalita',
                 'sasaran_remaja',

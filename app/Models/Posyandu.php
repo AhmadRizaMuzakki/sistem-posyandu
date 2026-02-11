@@ -79,4 +79,9 @@ class Posyandu extends Model
     {
         return $this->hasMany(Galeri::class, 'id_posyandu');
     }
+
+    public function perpustakaan()
+    {
+        return $this->hasMany(Perpustakaan::class, 'id_posyandu');
+    }
 }

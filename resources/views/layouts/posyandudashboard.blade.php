@@ -130,6 +130,13 @@
                     <span class="font-medium">Galeri</span>
                 </a>
 
+                {{-- PERPUSTAKAAN (menu navigasi) --}}
+                <a href="{{ route('adminPosyandu.perpustakaan') }}"
+                    class="sidebar-menu-item flex items-center px-4 py-3 rounded-lg {{ request()->routeIs('adminPosyandu.perpustakaan') ? 'active' : 'text-gray-600' }}">
+                    <i class="ph ph-books text-xl mr-3"></i>
+                    <span class="font-medium">Perpustakaan</span>
+                </a>
+
             </nav>
         </aside>
 
