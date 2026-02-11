@@ -402,23 +402,35 @@
                 <script>
                     pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
                     
+                    // Store PDF documents outside Alpine to avoid proxy issues
+                    window._pdfDocuments = {};
+                    
                     function pdfFlipbook(config) {
+                        const instanceId = 'pdf_' + Date.now();
+                        
                         return {
                             pdfUrl: config.pdfUrl,
                             title: config.title,
-                            pdfDoc: null,
+                            instanceId: instanceId,
                             currentPage: 1,
                             totalPages: 0,
                             loading: true,
                             
+                            get pdfDoc() {
+                                return window._pdfDocuments[this.instanceId];
+                            },
+                            
+                            set pdfDoc(doc) {
+                                window._pdfDocuments[this.instanceId] = doc;
+                            },
+                            
                             async loadPdf() {
                                 try {
-                                    console.log('Loading PDF from:', this.pdfUrl);
-                                    this.pdfDoc = await pdfjsLib.getDocument(this.pdfUrl).promise;
-                                    this.totalPages = this.pdfDoc.numPages;
-                                    console.log('PDF loaded, total pages:', this.totalPages);
+                                    const loadingTask = pdfjsLib.getDocument(this.pdfUrl);
+                                    const doc = await loadingTask.promise;
+                                    window._pdfDocuments[this.instanceId] = doc;
+                                    this.totalPages = doc.numPages;
                                     this.loading = false;
-                                    // Wait for DOM to update
                                     await this.$nextTick();
                                     setTimeout(() => this.renderPages(), 100);
                                 } catch (error) {
@@ -430,24 +442,21 @@
                             async renderPages() {
                                 const leftCanvas = this.$refs.leftCanvas;
                                 const rightCanvas = this.$refs.rightCanvas;
+                                const doc = window._pdfDocuments[this.instanceId];
                                 
-                                if (!leftCanvas || !rightCanvas) {
-                                    console.error('Canvas not found');
+                                if (!leftCanvas || !rightCanvas || !doc) {
                                     return;
                                 }
                                 
-                                // Clear canvases
                                 const leftCtx = leftCanvas.getContext('2d');
                                 const rightCtx = rightCanvas.getContext('2d');
                                 leftCtx.clearRect(0, 0, leftCanvas.width, leftCanvas.height);
                                 rightCtx.clearRect(0, 0, rightCanvas.width, rightCanvas.height);
                                 
-                                // Single page view - render current page on right canvas
                                 if (this.currentPage <= this.totalPages) {
                                     await this.renderPage(this.currentPage, rightCanvas);
                                 }
                                 
-                                // Render previous page on left if exists
                                 if (this.currentPage > 1) {
                                     await this.renderPage(this.currentPage - 1, leftCanvas);
                                 }
@@ -455,7 +464,10 @@
                             
                             async renderPage(pageNum, canvas) {
                                 try {
-                                    const page = await this.pdfDoc.getPage(pageNum);
+                                    const doc = window._pdfDocuments[this.instanceId];
+                                    if (!doc) return;
+                                    
+                                    const page = await doc.getPage(pageNum);
                                     const container = canvas.parentElement;
                                     const containerHeight = container.clientHeight || 500;
                                     const containerWidth = container.clientWidth || 400;
@@ -475,8 +487,6 @@
                                         canvasContext: context,
                                         viewport: scaledViewport
                                     }).promise;
-                                    
-                                    console.log('Rendered page', pageNum);
                                 } catch (error) {
                                     console.error('Error rendering page', pageNum, error);
                                 }
@@ -499,6 +509,10 @@
                             async goToPage(pageNum) {
                                 this.currentPage = Math.max(1, Math.min(pageNum, this.totalPages));
                                 await this.renderPages();
+                            },
+                            
+                            destroy() {
+                                delete window._pdfDocuments[this.instanceId];
                             }
                         }
                     }

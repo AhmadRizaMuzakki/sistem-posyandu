@@ -407,19 +407,25 @@
                 <script>
                     pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
                     
+                    window._pdfDocuments = window._pdfDocuments || {};
+                    
                     function pdfFlipbook(config) {
+                        const instanceId = 'pdf_' + Date.now();
+                        
                         return {
                             pdfUrl: config.pdfUrl,
                             title: config.title,
-                            pdfDoc: null,
+                            instanceId: instanceId,
                             currentPage: 1,
                             totalPages: 0,
                             loading: true,
                             
                             async loadPdf() {
                                 try {
-                                    this.pdfDoc = await pdfjsLib.getDocument(this.pdfUrl).promise;
-                                    this.totalPages = this.pdfDoc.numPages;
+                                    const loadingTask = pdfjsLib.getDocument(this.pdfUrl);
+                                    const doc = await loadingTask.promise;
+                                    window._pdfDocuments[this.instanceId] = doc;
+                                    this.totalPages = doc.numPages;
                                     this.loading = false;
                                     await this.$nextTick();
                                     setTimeout(() => this.renderPages(), 100);
@@ -432,8 +438,9 @@
                             async renderPages() {
                                 const leftCanvas = this.$refs.leftCanvas;
                                 const rightCanvas = this.$refs.rightCanvas;
+                                const doc = window._pdfDocuments[this.instanceId];
                                 
-                                if (!leftCanvas || !rightCanvas) return;
+                                if (!leftCanvas || !rightCanvas || !doc) return;
                                 
                                 const leftCtx = leftCanvas.getContext('2d');
                                 const rightCtx = rightCanvas.getContext('2d');
@@ -451,7 +458,10 @@
                             
                             async renderPage(pageNum, canvas) {
                                 try {
-                                    const page = await this.pdfDoc.getPage(pageNum);
+                                    const doc = window._pdfDocuments[this.instanceId];
+                                    if (!doc) return;
+                                    
+                                    const page = await doc.getPage(pageNum);
                                     const container = canvas.parentElement;
                                     const containerHeight = container.clientHeight || 500;
                                     const containerWidth = container.clientWidth || 400;
@@ -493,6 +503,10 @@
                             async goToPage(pageNum) {
                                 this.currentPage = Math.max(1, Math.min(pageNum, this.totalPages));
                                 await this.renderPages();
+                            },
+                            
+                            destroy() {
+                                delete window._pdfDocuments[this.instanceId];
                             }
                         }
                     }

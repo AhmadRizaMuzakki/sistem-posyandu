@@ -453,6 +453,9 @@
             <script>
                 pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
                 
+                // Store PDF documents outside Alpine to avoid proxy issues
+                window._publicPdfDoc = null;
+                
                 function publicFlipbook() {
                     return {
                         showFlipbook: false,
@@ -460,7 +463,6 @@
                         currentPage: 0,
                         pages: [],
                         isPdf: false,
-                        pdfDoc: null,
                         totalPages: 0,
                         loading: false,
                         
@@ -473,8 +475,9 @@
                                 this.loading = true;
                                 this.currentPage = 1;
                                 try {
-                                    this.pdfDoc = await pdfjsLib.getDocument(book.pdfUrl).promise;
-                                    this.totalPages = this.pdfDoc.numPages;
+                                    const loadingTask = pdfjsLib.getDocument(book.pdfUrl);
+                                    window._publicPdfDoc = await loadingTask.promise;
+                                    this.totalPages = window._publicPdfDoc.numPages;
                                     this.loading = false;
                                     await this.$nextTick();
                                     setTimeout(() => this.renderPdfPages(), 100);
@@ -492,12 +495,13 @@
                             this.showFlipbook = false;
                             this.currentBook = null;
                             this.pages = [];
-                            this.pdfDoc = null;
+                            window._publicPdfDoc = null;
                             this.isPdf = false;
                         },
                         
                         async renderPdfPages() {
-                            if (!this.pdfDoc) return;
+                            const doc = window._publicPdfDoc;
+                            if (!doc) return;
                             
                             const leftCanvas = this.$refs.leftCanvas;
                             const rightCanvas = this.$refs.rightCanvas;
@@ -507,12 +511,10 @@
                             leftCanvas.getContext('2d').clearRect(0, 0, leftCanvas.width, leftCanvas.height);
                             rightCanvas.getContext('2d').clearRect(0, 0, rightCanvas.width, rightCanvas.height);
                             
-                            // Render current page on right
                             if (this.currentPage <= this.totalPages) {
                                 await this.renderPdfPage(this.currentPage, rightCanvas);
                             }
                             
-                            // Render previous page on left
                             if (this.currentPage > 1) {
                                 await this.renderPdfPage(this.currentPage - 1, leftCanvas);
                             }
@@ -520,7 +522,10 @@
                         
                         async renderPdfPage(pageNum, canvas) {
                             try {
-                                const page = await this.pdfDoc.getPage(pageNum);
+                                const doc = window._publicPdfDoc;
+                                if (!doc) return;
+                                
+                                const page = await doc.getPage(pageNum);
                                 const container = canvas.parentElement;
                                 const containerHeight = container.clientHeight || 500;
                                 const containerWidth = container.clientWidth || 400;
