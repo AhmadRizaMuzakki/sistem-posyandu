@@ -84,4 +84,9 @@ class Posyandu extends Model
     {
         return $this->hasMany(Perpustakaan::class, 'id_posyandu');
     }
+
+    public function gambarPosyandu()
+    {
+        return $this->hasMany(GambarPosyandu::class, 'id_posyandu')->orderBy('urutan');
+    }
 }

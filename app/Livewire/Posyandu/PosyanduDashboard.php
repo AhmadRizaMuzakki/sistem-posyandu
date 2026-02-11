@@ -8,6 +8,7 @@ use App\Livewire\SuperAdmin\Traits\SasaranImportTrait;
 use App\Livewire\Traits\NotificationModal;
 use App\Models\Jadwal;
 use App\Models\Kader;
+use App\Models\GambarPosyandu;
 use App\Models\Imunisasi;
 use App\Models\Pendidikan;
 use App\Models\SasaranBayibalita;
@@ -31,7 +32,9 @@ class PosyanduDashboard extends Component
     public $skFile;
     public $showUploadModal = false;
 
-    public $gambarFile;
+    // Multi gambar upload
+    public $gambarFiles = [];
+    public $gambarCaption = '';
     public $showGambarModal = false;
     
     // Pendidikan properties
@@ -293,17 +296,20 @@ class PosyanduDashboard extends Component
     }
 
     /**
-     * Upload Gambar Posyandu (ditampilkan di halaman detail publik di atas peta)
+     * Upload Gambar Posyandu (multiple) - tampil di halaman detail publik sebagai galeri
      */
     public function uploadGambar()
     {
         $this->validate([
-            'gambarFile' => 'required|image|mimes:jpeg,png,jpg|max:2048',
+            'gambarFiles' => 'required|array|min:1',
+            'gambarFiles.*' => 'image|mimes:jpeg,png,jpg|max:2048',
+            'gambarCaption' => 'nullable|string|max:255',
         ], [
-            'gambarFile.required' => 'Pilih gambar untuk diupload.',
-            'gambarFile.image' => 'File harus berupa gambar.',
-            'gambarFile.mimes' => 'Format: JPEG, PNG, JPG.',
-            'gambarFile.max' => 'Maksimal 2MB.',
+            'gambarFiles.required' => 'Pilih minimal satu gambar untuk diupload.',
+            'gambarFiles.min' => 'Pilih minimal satu gambar untuk diupload.',
+            'gambarFiles.*.image' => 'File harus berupa gambar.',
+            'gambarFiles.*.mimes' => 'Format: JPEG, PNG, JPG.',
+            'gambarFiles.*.max' => 'Maksimal 2MB per file.',
         ]);
 
         try {
@@ -311,49 +317,80 @@ class PosyanduDashboard extends Component
             if (!File::isDirectory($dir)) {
                 File::makeDirectory($dir, 0755, true);
             }
-            if ($this->posyandu->gambar_posyandu) {
-                $rel = ltrim(str_replace('/storage/', '', $this->posyandu->gambar_posyandu), '/');
-                $oldFull = uploads_base_path('uploads/' . $rel);
-                if (File::exists($oldFull)) {
-                    File::delete($oldFull);
-                }
-            }
-            $allowedImageMimes = ['image/jpeg' => 'jpg', 'image/pjpeg' => 'jpg', 'image/png' => 'png', 'image/gif' => 'gif', 'image/webp' => 'webp'];
-            $extension = safe_upload_extension($this->gambarFile, $allowedImageMimes) ?? 'jpg';
-            $safeName = Str::random(12) . '_' . time() . '.' . $extension;
-            File::copy($this->gambarFile->getRealPath(), $dir . DIRECTORY_SEPARATOR . $safeName);
 
-            $this->posyandu->update(['gambar_posyandu' => 'gambar_posyandu/' . $safeName]);
+            $allowedImageMimes = ['image/jpeg' => 'jpg', 'image/pjpeg' => 'jpg', 'image/png' => 'png', 'image/gif' => 'gif', 'image/webp' => 'webp'];
+            $maxUrutan = GambarPosyandu::where('id_posyandu', $this->posyanduId)->max('urutan') ?? 0;
+
+            foreach ($this->gambarFiles as $file) {
+                $extension = safe_upload_extension($file, $allowedImageMimes) ?? 'jpg';
+                $safeName = Str::random(12) . '_' . time() . '_' . Str::random(4) . '.' . $extension;
+                File::copy($file->getRealPath(), $dir . DIRECTORY_SEPARATOR . $safeName);
+
+                $maxUrutan++;
+                GambarPosyandu::create([
+                    'id_posyandu' => $this->posyanduId,
+                    'path' => 'gambar_posyandu/' . $safeName,
+                    'caption' => $this->gambarCaption ?: null,
+                    'urutan' => $maxUrutan,
+                ]);
+            }
 
             $this->refreshPosyandu();
             cache()->forget("posyandu_dashboard_{$this->posyanduId}");
 
-            $this->gambarFile = null;
+            $this->gambarFiles = [];
+            $this->gambarCaption = '';
             $this->showGambarModal = false;
 
-            $this->showSuccessNotification('Gambar posyandu berhasil diupload. Tampil di halaman detail di atas peta.');
+            $this->showSuccessNotification('Gambar berhasil diupload ke galeri posyandu.');
         } catch (\Exception $e) {
             $this->showErrorNotification('Gagal mengupload gambar: ' . $e->getMessage());
         }
     }
 
     /**
-     * Hapus Gambar Posyandu
+     * Hapus satu gambar dari galeri
+     */
+    public function deleteGambarPosyandu($id)
+    {
+        try {
+            $gambar = GambarPosyandu::where('id', $id)
+                ->where('id_posyandu', $this->posyanduId)
+                ->first();
+
+            if ($gambar) {
+                $full = uploads_base_path('uploads/' . $gambar->path);
+                if (File::exists($full)) {
+                    File::delete($full);
+                }
+                $gambar->delete();
+            }
+
+            $this->refreshPosyandu();
+            cache()->forget("posyandu_dashboard_{$this->posyanduId}");
+            $this->showSuccessNotification('Gambar berhasil dihapus.');
+        } catch (\Exception $e) {
+            $this->showErrorNotification('Gagal menghapus gambar: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Hapus semua gambar posyandu (legacy method)
      */
     public function deleteGambar()
     {
         try {
-            if ($this->posyandu->gambar_posyandu) {
-                $rel = ltrim(str_replace('/storage/', '', $this->posyandu->gambar_posyandu), '/');
-                $full = uploads_base_path('uploads/' . $rel);
+            $gambarList = GambarPosyandu::where('id_posyandu', $this->posyanduId)->get();
+            foreach ($gambarList as $gambar) {
+                $full = uploads_base_path('uploads/' . $gambar->path);
                 if (File::exists($full)) {
                     File::delete($full);
                 }
+                $gambar->delete();
             }
-            $this->posyandu->update(['gambar_posyandu' => null]);
             $this->refreshPosyandu();
             cache()->forget("posyandu_dashboard_{$this->posyanduId}");
-            $this->showSuccessNotification('Gambar posyandu berhasil dihapus.');
+            $this->showSuccessNotification('Semua gambar berhasil dihapus.');
         } catch (\Exception $e) {
             $this->showErrorNotification('Gagal menghapus gambar: ' . $e->getMessage());
         }

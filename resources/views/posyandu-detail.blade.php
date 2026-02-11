@@ -78,6 +78,218 @@
                 </div>
             </div>
 
+            {{-- Galeri Foto Posyandu - Carousel --}}
+            @if($posyandu->gambarPosyandu && $posyandu->gambarPosyandu->count() > 0)
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-6" 
+                 x-data="{ 
+                     currentSlide: 0,
+                     autoPlay: true,
+                     autoPlayInterval: null,
+                     lightboxOpen: false,
+                     images: {{ Js::from($posyandu->gambarPosyandu->map(fn($g) => ['url' => uploads_asset($g->path), 'caption' => $g->caption])) }},
+                     
+                     init() {
+                         this.startAutoPlay();
+                     },
+                     
+                     startAutoPlay() {
+                         if (this.images.length > 1) {
+                             this.autoPlayInterval = setInterval(() => {
+                                 if (this.autoPlay && !this.lightboxOpen) {
+                                     this.nextSlide();
+                                 }
+                             }, 4000);
+                         }
+                     },
+                     
+                     stopAutoPlay() {
+                         if (this.autoPlayInterval) {
+                             clearInterval(this.autoPlayInterval);
+                         }
+                     },
+                     
+                     nextSlide() {
+                         this.currentSlide = (this.currentSlide + 1) % this.images.length;
+                     },
+                     
+                     prevSlide() {
+                         this.currentSlide = (this.currentSlide - 1 + this.images.length) % this.images.length;
+                     },
+                     
+                     goToSlide(index) {
+                         this.currentSlide = index;
+                     },
+                     
+                     openLightbox() {
+                         this.lightboxOpen = true;
+                         this.autoPlay = false;
+                     },
+                     
+                     closeLightbox() {
+                         this.lightboxOpen = false;
+                         this.autoPlay = true;
+                     },
+                     
+                     nextImage() {
+                         this.nextSlide();
+                     },
+                     
+                     prevImage() {
+                         this.prevSlide();
+                     }
+                 }"
+                 x-init="init()"
+                 @mouseenter="autoPlay = false"
+                 @mouseleave="autoPlay = true"
+                 @keydown.escape.window="closeLightbox()"
+                 @keydown.right.window="lightboxOpen && nextImage()"
+                 @keydown.left.window="lightboxOpen && prevImage()">
+                
+                <h2 class="text-lg font-semibold text-slate-800 mb-4 flex items-center">
+                    <i class="fa-solid fa-images text-primary mr-2"></i>
+                    Galeri Foto Posyandu
+                    <span class="ml-2 text-sm font-normal text-slate-500">({{ $posyandu->gambarPosyandu->count() }} foto)</span>
+                </h2>
+                
+                {{-- Carousel Container --}}
+                <div class="relative">
+                    {{-- Main Carousel --}}
+                    <div class="relative overflow-hidden rounded-xl bg-slate-100 aspect-[16/9] sm:aspect-[2/1] cursor-pointer"
+                         @click="openLightbox()">
+                        @foreach($posyandu->gambarPosyandu as $index => $gambar)
+                        <div class="absolute inset-0 transition-all duration-500 ease-in-out"
+                             x-show="currentSlide === {{ $index }}"
+                             x-transition:enter="transform transition ease-out duration-500"
+                             x-transition:enter-start="opacity-0 translate-x-full"
+                             x-transition:enter-end="opacity-100 translate-x-0"
+                             x-transition:leave="transform transition ease-in duration-300"
+                             x-transition:leave-start="opacity-100 translate-x-0"
+                             x-transition:leave-end="opacity-0 -translate-x-full">
+                            <img src="{{ uploads_asset($gambar->path) }}" 
+                                 alt="{{ $gambar->caption ?? 'Foto Posyandu' }}" 
+                                 class="w-full h-full object-cover"
+                                 onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect fill=%22%23f1f5f9%22 width=%22100%22 height=%22100%22/><text x=%2250%22 y=%2250%22 text-anchor=%22middle%22 dy=%22.3em%22 fill=%22%2394a3b8%22 font-size=%2220%22>No Image</text></svg>'">
+                            
+                            {{-- Caption Overlay --}}
+                            @if($gambar->caption)
+                            <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 via-black/40 to-transparent p-4 sm:p-6">
+                                <p class="text-white text-sm sm:text-base font-medium">{{ $gambar->caption }}</p>
+                            </div>
+                            @endif
+                            
+                            {{-- Click to expand hint --}}
+                            <div class="absolute top-4 right-4 px-3 py-1.5 bg-black/50 rounded-full text-white text-xs flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <i class="fa-solid fa-expand"></i>
+                                <span class="hidden sm:inline">Klik untuk perbesar</span>
+                            </div>
+                        </div>
+                        @endforeach
+                        
+                        {{-- Slide Counter --}}
+                        <div class="absolute top-4 left-4 px-3 py-1.5 bg-black/50 rounded-full text-white text-sm font-medium">
+                            <span x-text="currentSlide + 1"></span> / {{ $posyandu->gambarPosyandu->count() }}
+                        </div>
+                    </div>
+                    
+                    {{-- Navigation Arrows --}}
+                    @if($posyandu->gambarPosyandu->count() > 1)
+                    <button @click.stop="prevSlide()" 
+                            class="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-white/90 shadow-lg text-slate-700 hover:bg-primary hover:text-white transition-all flex items-center justify-center z-10">
+                        <i class="fa-solid fa-chevron-left text-lg"></i>
+                    </button>
+                    <button @click.stop="nextSlide()" 
+                            class="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-white/90 shadow-lg text-slate-700 hover:bg-primary hover:text-white transition-all flex items-center justify-center z-10">
+                        <i class="fa-solid fa-chevron-right text-lg"></i>
+                    </button>
+                    @endif
+                </div>
+                
+                {{-- Thumbnail Strip & Dots --}}
+                @if($posyandu->gambarPosyandu->count() > 1)
+                <div class="mt-4">
+                    {{-- Thumbnails (visible on larger screens) --}}
+                    <div class="hidden sm:flex gap-2 overflow-x-auto pb-2 scrollbar-thin">
+                        @foreach($posyandu->gambarPosyandu as $index => $gambar)
+                        <button @click="goToSlide({{ $index }})" 
+                                class="flex-shrink-0 w-20 h-14 rounded-lg overflow-hidden border-2 transition-all hover:scale-105"
+                                :class="currentSlide === {{ $index }} ? 'border-primary ring-2 ring-primary/30 shadow-md' : 'border-slate-200 hover:border-slate-300'">
+                            <img src="{{ uploads_asset($gambar->path) }}" 
+                                 alt="" 
+                                 class="w-full h-full object-cover">
+                        </button>
+                        @endforeach
+                    </div>
+                    
+                    {{-- Dots (visible on mobile) --}}
+                    <div class="flex sm:hidden justify-center gap-2 pt-2">
+                        @foreach($posyandu->gambarPosyandu as $index => $gambar)
+                        <button @click="goToSlide({{ $index }})" 
+                                class="w-2.5 h-2.5 rounded-full transition-all"
+                                :class="currentSlide === {{ $index }} ? 'bg-primary w-6' : 'bg-slate-300 hover:bg-slate-400'">
+                        </button>
+                        @endforeach
+                    </div>
+                </div>
+                @endif
+
+                {{-- Lightbox Modal --}}
+                <div x-show="lightboxOpen" x-cloak
+                     class="fixed inset-0 z-50 bg-black/95 flex items-center justify-center"
+                     x-transition:enter="transition ease-out duration-300"
+                     x-transition:enter-start="opacity-0"
+                     x-transition:enter-end="opacity-100"
+                     x-transition:leave="transition ease-in duration-200"
+                     x-transition:leave-start="opacity-100"
+                     x-transition:leave-end="opacity-0">
+                    
+                    {{-- Close Button --}}
+                    <button @click="closeLightbox()" class="absolute top-4 right-4 z-10 p-3 rounded-full bg-white/10 text-white hover:bg-white/20 transition">
+                        <i class="fa-solid fa-xmark text-2xl"></i>
+                    </button>
+                    
+                    {{-- Image Counter --}}
+                    <div class="absolute top-4 left-4 z-10 px-4 py-2 bg-black/50 rounded-full text-white text-sm">
+                        <span x-text="currentSlide + 1"></span> / <span x-text="images.length"></span>
+                    </div>
+                    
+                    {{-- Navigation: Previous --}}
+                    <button @click="prevImage()" 
+                            class="absolute left-4 top-1/2 -translate-y-1/2 z-10 p-4 rounded-full bg-white/10 text-white hover:bg-white/20 transition">
+                        <i class="fa-solid fa-chevron-left text-2xl"></i>
+                    </button>
+                    
+                    {{-- Main Image --}}
+                    <div class="max-w-5xl max-h-[80vh] px-16">
+                        <img :src="images[currentSlide]?.url" 
+                             :alt="images[currentSlide]?.caption || 'Foto Posyandu'" 
+                             class="max-w-full max-h-[80vh] object-contain rounded-lg shadow-2xl">
+                        
+                        {{-- Caption --}}
+                        <div x-show="images[currentSlide]?.caption" class="mt-4 text-center">
+                            <p class="text-white text-lg" x-text="images[currentSlide]?.caption"></p>
+                        </div>
+                    </div>
+                    
+                    {{-- Navigation: Next --}}
+                    <button @click="nextImage()" 
+                            class="absolute right-4 top-1/2 -translate-y-1/2 z-10 p-4 rounded-full bg-white/10 text-white hover:bg-white/20 transition">
+                        <i class="fa-solid fa-chevron-right text-2xl"></i>
+                    </button>
+                    
+                    {{-- Thumbnail strip --}}
+                    <div class="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 max-w-[90vw] overflow-x-auto px-4 py-2">
+                        <template x-for="(img, i) in images" :key="i">
+                            <button @click="currentSlide = i" 
+                                    class="flex-shrink-0 w-16 h-16 rounded-lg overflow-hidden border-2 transition-all hover:scale-105"
+                                    :class="i === currentSlide ? 'border-primary ring-2 ring-primary/50' : 'border-white/30 hover:border-white/60'">
+                                <img :src="img.url" class="w-full h-full object-cover" alt="">
+                            </button>
+                        </template>
+                    </div>
+                </div>
+            </div>
+            @endif
+
             {{-- Informasi Posyandu --}}
             <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-6">
                 <h2 class="text-lg font-semibold text-slate-800 mb-4 flex items-center">

@@ -32,7 +32,7 @@ trait PosyanduHelper
      */
     protected function loadPosyandu()
     {
-        $posyandu = Posyandu::find($this->posyanduId);
+        $posyandu = Posyandu::with(['gambarPosyandu'])->find($this->posyanduId);
 
         if (!$posyandu) {
             abort(404, 'Posyandu tidak ditemukan');

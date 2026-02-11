@@ -161,7 +161,8 @@ class IndexController extends Controller
         $posyandu = Posyandu::with([
                 'kader.user', 
                 'galeri' => fn ($q) => $q->latest()->take(24),
-                'perpustakaan' => fn ($q) => $q->where('is_active', true)->latest()
+                'perpustakaan' => fn ($q) => $q->where('is_active', true)->latest(),
+                'gambarPosyandu' => fn ($q) => $q->orderBy('urutan')
             ])
             ->withCount([
                 'sasaran_bayibalita',

@@ -97,41 +97,53 @@
                 <i class="ph ph-image text-2xl mr-3 text-primary"></i>
                 Gambar Posyandu
             </div>
-            <div class="flex items-center space-x-2">
-                <button 
-                    wire:click="$set('showGambarModal', true)"
-                    class="px-3 py-1.5 text-sm bg-primary text-white rounded-lg hover:bg-primary-dark transition-colors flex items-center space-x-1">
-                    <i class="ph ph-upload text-sm"></i>
-                    <span>Upload</span>
-                </button>
-                @if($posyandu->gambar_posyandu)
-                <button 
-                    wire:click="openConfirmModal('deleteGambar', 'Hapus gambar posyandu? Gambar tidak akan tampil di halaman detail.')"
-                    class="px-3 py-1.5 text-sm bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors flex items-center space-x-1">
-                    <i class="ph ph-trash text-sm"></i>
-                    <span>Hapus</span>
-                </button>
-                @endif
-            </div>
+            <button 
+                wire:click="$set('showGambarModal', true)"
+                class="px-3 py-1.5 text-sm bg-primary text-white rounded-lg hover:bg-primary-dark transition-colors flex items-center space-x-1">
+                <i class="ph ph-plus text-sm"></i>
+                <span>Tambah Gambar</span>
+            </button>
         </h2>
-        <p class="text-sm text-gray-500 mb-4">Gambar ini ditampilkan di halaman detail posyandu (publik) di atas peta lokasi.</p>
-        <div class="flex flex-col items-center justify-center py-6">
-            @if($posyandu->gambar_posyandu)
-                <div class="relative group w-full max-w-2xl">
-                    <img src="{{ uploads_asset($posyandu->gambar_posyandu) }}" alt="Gambar {{ $posyandu->nama_posyandu }}" class="w-full h-auto max-h-80 object-cover rounded-lg border-2 border-gray-200 shadow-md">
-                    <div class="mt-3 flex items-center justify-center">
-                        <a href="{{ uploads_asset($posyandu->gambar_posyandu) }}" target="_blank" class="text-primary hover:underline text-sm font-medium flex items-center gap-1">
-                            <i class="ph ph-eye"></i> Lihat full size
+        <p class="text-sm text-gray-500 mb-4">Gambar-gambar ini ditampilkan di halaman detail posyandu (publik) sebagai galeri foto.</p>
+        
+        @php
+            $gambarList = $posyandu->gambarPosyandu ?? collect();
+        @endphp
+
+        @if($gambarList->count() > 0)
+            <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+                @foreach($gambarList as $gambar)
+                <div class="relative group aspect-square rounded-lg overflow-hidden border border-gray-200 shadow-sm">
+                    <img src="{{ uploads_asset($gambar->path) }}" 
+                         alt="{{ $gambar->caption ?? 'Gambar Posyandu' }}" 
+                         class="w-full h-full object-cover">
+                    {{-- Overlay actions --}}
+                    <div class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                        <a href="{{ uploads_asset($gambar->path) }}" target="_blank" 
+                           class="w-9 h-9 rounded-full bg-white text-gray-700 flex items-center justify-center hover:bg-primary hover:text-white transition-colors">
+                            <i class="ph ph-eye text-lg"></i>
                         </a>
+                        <button wire:click="deleteGambarPosyandu({{ $gambar->id }})"
+                                wire:confirm="Hapus gambar ini?"
+                                class="w-9 h-9 rounded-full bg-white text-red-600 flex items-center justify-center hover:bg-red-600 hover:text-white transition-colors">
+                            <i class="ph ph-trash text-lg"></i>
+                        </button>
                     </div>
+                    @if($gambar->caption)
+                    <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-2">
+                        <p class="text-white text-xs truncate">{{ $gambar->caption }}</p>
+                    </div>
+                    @endif
                 </div>
-            @else
-                <div class="w-full p-6 bg-gray-100 rounded-lg border-2 border-dashed border-gray-300 flex flex-col items-center justify-center">
-                    <i class="ph ph-image text-6xl text-gray-400 mb-3"></i>
-                    <p class="text-sm text-gray-500 text-center px-4">Belum ada gambar posyandu. Upload untuk ditampilkan di halaman detail di atas peta.</p>
-                </div>
-            @endif
-        </div>
+                @endforeach
+            </div>
+        @else
+            <div class="w-full p-8 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300 flex flex-col items-center justify-center">
+                <i class="ph ph-images text-6xl text-gray-400 mb-3"></i>
+                <p class="text-sm text-gray-500 text-center">Belum ada gambar posyandu.</p>
+                <p class="text-xs text-gray-400 mt-1">Klik "Tambah Gambar" untuk mengunggah foto.</p>
+            </div>
+        @endif
     </div>
 
     {{-- Grid Informasi dan Statistik --}}
