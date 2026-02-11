@@ -340,11 +340,8 @@
                         <div class="relative w-full max-w-5xl h-[70vh]">
                             <div class="relative h-full flex items-center justify-center">
                                 <div class="relative w-1/2 h-full bg-white shadow-2xl rounded-l-lg overflow-hidden flex items-center justify-center"
-                                     :class="currentPage <= 1 ? 'bg-gray-100' : ''">
-                                    <canvas x-ref="leftCanvas" class="max-w-full max-h-full"></canvas>
-                                    <div x-show="currentPage <= 1" class="absolute inset-0 flex items-center justify-center text-gray-400">
-                                        <div class="text-center"><i class="ph ph-book-open text-5xl mb-2"></i><p class="text-sm">Cover</p></div>
-                                    </div>
+                                     :class="currentPage <= 1 ? 'bg-gray-50' : ''">
+                                    <canvas x-ref="leftCanvas" class="max-w-full max-h-full" :class="currentPage <= 1 ? 'hidden' : ''"></canvas>
                                     <div class="absolute bottom-4 left-4 px-3 py-1 bg-black/50 text-white text-sm rounded-full" x-show="currentPage > 1">
                                         <span x-text="currentPage - 1"></span>
                                     </div>
@@ -425,13 +422,15 @@
                                 for (let i = 1; i <= this.totalPages; i++) {
                                     const page = await doc.getPage(i);
                                     const viewport = page.getViewport({ scale: 1 });
-                                    const scale = ((container.clientWidth || 350) * 0.95) / viewport.width;
+                                    const scale = (((container.clientWidth || 350) * 0.95) / viewport.width) * 2;
                                     const scaledViewport = page.getViewport({ scale });
                                     const wrapper = document.createElement('div');
                                     wrapper.className = 'relative bg-white rounded-lg shadow-lg overflow-hidden';
                                     const canvas = document.createElement('canvas');
                                     canvas.width = scaledViewport.width;
                                     canvas.height = scaledViewport.height;
+                                    canvas.style.width = (scaledViewport.width / 2) + 'px';
+                                    canvas.style.height = (scaledViewport.height / 2) + 'px';
                                     canvas.className = 'w-full h-auto';
                                     const pageNum = document.createElement('div');
                                     pageNum.className = 'absolute bottom-2 right-2 px-2 py-1 bg-black/50 text-white text-xs rounded-full';
@@ -458,10 +457,13 @@
                                     const page = await doc.getPage(pageNum);
                                     const container = canvas.parentElement;
                                     const viewport = page.getViewport({ scale: 1 });
-                                    const scale = Math.min(((container.clientWidth || 400) * 0.9) / viewport.width, ((container.clientHeight || 500) * 0.9) / viewport.height);
+                                    const baseScale = Math.min(((container.clientWidth || 400) * 0.9) / viewport.width, ((container.clientHeight || 500) * 0.9) / viewport.height);
+                                    const scale = baseScale * 2;
                                     const scaledViewport = page.getViewport({ scale });
                                     canvas.width = scaledViewport.width;
                                     canvas.height = scaledViewport.height;
+                                    canvas.style.width = (scaledViewport.width / 2) + 'px';
+                                    canvas.style.height = (scaledViewport.height / 2) + 'px';
                                     await page.render({ canvasContext: canvas.getContext('2d'), viewport: scaledViewport }).promise;
                                 } catch (e) { console.error('Error rendering page', pageNum, e); }
                             },

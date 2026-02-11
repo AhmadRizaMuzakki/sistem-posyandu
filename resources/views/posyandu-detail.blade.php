@@ -371,14 +371,14 @@
                             <div class="relative h-full flex items-center justify-center">
                                 {{-- Left Page --}}
                                 <div class="relative w-1/2 h-full bg-white shadow-2xl rounded-l-lg overflow-hidden flex items-center justify-center"
-                                     :class="(currentPage === 0 && !isPdf) || (isPdf && currentPage <= 1) ? 'bg-slate-100' : ''">
+                                     :class="(currentPage === 0 && !isPdf) || (isPdf && currentPage <= 1) ? 'bg-slate-50' : ''">
                                     <template x-if="isPdf">
-                                        <canvas x-ref="leftCanvas" class="max-w-full max-h-full"></canvas>
+                                        <canvas x-ref="leftCanvas" class="max-w-full max-h-full" :class="currentPage <= 1 ? 'hidden' : ''"></canvas>
                                     </template>
                                     <template x-if="!isPdf && currentPage > 0">
                                         <img :src="pages[currentPage - 1]" class="max-w-full max-h-full object-contain" alt="">
                                     </template>
-                                    <div x-show="(!isPdf && currentPage === 0) || (isPdf && currentPage <= 1)" class="absolute inset-0 flex items-center justify-center text-slate-400">
+                                    <div x-show="!isPdf && currentPage === 0" class="absolute inset-0 flex items-center justify-center text-slate-400">
                                         <div class="text-center"><i class="fa-solid fa-book-open text-5xl mb-4"></i><p class="text-sm">Cover</p></div>
                                     </div>
                                     <div class="absolute bottom-4 left-4 px-3 py-1 bg-black/50 text-white text-sm rounded-full" x-show="isPdf ? currentPage > 1 : currentPage > 0">
@@ -511,7 +511,7 @@
                             for (let i = 1; i <= this.totalPages; i++) {
                                 const page = await doc.getPage(i);
                                 const viewport = page.getViewport({ scale: 1 });
-                                const scale = ((container.clientWidth || 350) * 0.95) / viewport.width;
+                                const scale = (((container.clientWidth || 350) * 0.95) / viewport.width) * 2;
                                 const scaledViewport = page.getViewport({ scale });
                                 
                                 const wrapper = document.createElement('div');
@@ -519,6 +519,8 @@
                                 const canvas = document.createElement('canvas');
                                 canvas.width = scaledViewport.width;
                                 canvas.height = scaledViewport.height;
+                                canvas.style.width = (scaledViewport.width / 2) + 'px';
+                                canvas.style.height = (scaledViewport.height / 2) + 'px';
                                 canvas.className = 'w-full h-auto';
                                 const pageNum = document.createElement('div');
                                 pageNum.className = 'absolute bottom-2 right-2 px-2 py-1 bg-black/50 text-white text-xs rounded-full';
@@ -547,10 +549,13 @@
                                 const page = await doc.getPage(pageNum);
                                 const container = canvas.parentElement;
                                 const viewport = page.getViewport({ scale: 1 });
-                                const scale = Math.min(((container.clientWidth || 400) * 0.9) / viewport.width, ((container.clientHeight || 500) * 0.9) / viewport.height);
+                                const baseScale = Math.min(((container.clientWidth || 400) * 0.9) / viewport.width, ((container.clientHeight || 500) * 0.9) / viewport.height);
+                                const scale = baseScale * 2;
                                 const scaledViewport = page.getViewport({ scale });
                                 canvas.width = scaledViewport.width;
                                 canvas.height = scaledViewport.height;
+                                canvas.style.width = (scaledViewport.width / 2) + 'px';
+                                canvas.style.height = (scaledViewport.height / 2) + 'px';
                                 await page.render({ canvasContext: canvas.getContext('2d'), viewport: scaledViewport }).promise;
                             } catch (e) { console.error('Error rendering page', pageNum, e); }
                         },

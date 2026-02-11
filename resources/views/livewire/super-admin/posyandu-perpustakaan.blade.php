@@ -338,14 +338,8 @@
                             <div class="relative h-full flex items-center justify-center">
                                 {{-- Left Page --}}
                                 <div class="relative w-1/2 h-full bg-white shadow-2xl rounded-l-lg overflow-hidden flex items-center justify-center"
-                                     :class="currentPage <= 1 ? 'bg-gray-100' : ''">
-                                    <canvas x-ref="leftCanvas" class="max-w-full max-h-full"></canvas>
-                                    <div x-show="currentPage <= 1" class="absolute inset-0 flex items-center justify-center text-gray-400">
-                                        <div class="text-center">
-                                            <i class="ph ph-book-open text-5xl mb-2"></i>
-                                            <p class="text-sm">Cover</p>
-                                        </div>
-                                    </div>
+                                     :class="currentPage <= 1 ? 'bg-gray-50' : ''">
+                                    <canvas x-ref="leftCanvas" class="max-w-full max-h-full" :class="currentPage <= 1 ? 'hidden' : ''"></canvas>
                                     <div class="absolute bottom-4 left-4 px-3 py-1 bg-black/50 text-white text-sm rounded-full" x-show="currentPage > 1">
                                         <span x-text="currentPage - 1"></span>
                                     </div>
@@ -475,7 +469,8 @@
                                     const page = await doc.getPage(i);
                                     const viewport = page.getViewport({ scale: 1 });
                                     const containerWidth = container.clientWidth || 350;
-                                    const scale = (containerWidth * 0.95) / viewport.width;
+                                    // Increase scale for better quality (2x for retina)
+                                    const scale = ((containerWidth * 0.95) / viewport.width) * 2;
                                     const scaledViewport = page.getViewport({ scale });
                                     
                                     const wrapper = document.createElement('div');
@@ -484,6 +479,9 @@
                                     const canvas = document.createElement('canvas');
                                     canvas.width = scaledViewport.width;
                                     canvas.height = scaledViewport.height;
+                                    // Scale down display size while keeping high resolution
+                                    canvas.style.width = (scaledViewport.width / 2) + 'px';
+                                    canvas.style.height = (scaledViewport.height / 2) + 'px';
                                     canvas.className = 'w-full h-auto';
                                     
                                     const pageNum = document.createElement('div');
@@ -530,14 +528,19 @@
                                     const containerWidth = container.clientWidth || 400;
                                     
                                     const viewport = page.getViewport({ scale: 1 });
-                                    const scale = Math.min(
+                                    const baseScale = Math.min(
                                         (containerWidth * 0.9) / viewport.width, 
                                         (containerHeight * 0.9) / viewport.height
                                     );
+                                    // Higher resolution for sharper text
+                                    const scale = baseScale * 2;
                                     const scaledViewport = page.getViewport({ scale });
                                     
                                     canvas.width = scaledViewport.width;
                                     canvas.height = scaledViewport.height;
+                                    // Display at original size for crisp rendering
+                                    canvas.style.width = (scaledViewport.width / 2) + 'px';
+                                    canvas.style.height = (scaledViewport.height / 2) + 'px';
                                     
                                     const context = canvas.getContext('2d');
                                     await page.render({ canvasContext: context, viewport: scaledViewport }).promise;
