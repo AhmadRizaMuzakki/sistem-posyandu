@@ -335,8 +335,15 @@
                             {{-- Book Display --}}
                             <div x-show="!loading" class="relative h-full flex items-center justify-center">
                                 {{-- Left Page --}}
-                                <div class="relative w-1/2 h-full bg-white shadow-2xl rounded-l-lg overflow-hidden">
-                                    <canvas x-ref="leftCanvas" class="w-full h-full object-contain"></canvas>
+                                <div class="relative w-1/2 h-full bg-white shadow-2xl rounded-l-lg overflow-hidden flex items-center justify-center"
+                                     :class="currentPage <= 1 ? 'bg-gray-100' : ''">
+                                    <canvas x-ref="leftCanvas" class="max-w-full max-h-full"></canvas>
+                                    <div x-show="currentPage <= 1" class="absolute inset-0 flex items-center justify-center text-gray-400">
+                                        <div class="text-center">
+                                            <i class="ph ph-book-open text-5xl mb-2"></i>
+                                            <p class="text-sm">Cover</p>
+                                        </div>
+                                    </div>
                                     <div class="absolute bottom-4 left-4 px-3 py-1 bg-black/50 text-white text-sm rounded-full" x-show="currentPage > 1">
                                         <span x-text="currentPage - 1"></span>
                                     </div>
@@ -346,8 +353,8 @@
                                 <div class="w-2 h-full bg-gradient-to-r from-gray-400 via-gray-300 to-gray-400 shadow-inner"></div>
 
                                 {{-- Right Page --}}
-                                <div class="relative w-1/2 h-full bg-white shadow-2xl rounded-r-lg overflow-hidden">
-                                    <canvas x-ref="rightCanvas" class="w-full h-full object-contain"></canvas>
+                                <div class="relative w-1/2 h-full bg-white shadow-2xl rounded-r-lg overflow-hidden flex items-center justify-center">
+                                    <canvas x-ref="rightCanvas" class="max-w-full max-h-full"></canvas>
                                     <div class="absolute bottom-4 right-4 px-3 py-1 bg-black/50 text-white text-sm rounded-full" x-show="currentPage <= totalPages">
                                         <span x-text="currentPage"></span>
                                     </div>
@@ -374,13 +381,19 @@
                             <div class="flex items-center justify-center gap-4 text-white">
                                 <span class="text-sm">Halaman</span>
                                 <div class="flex items-center gap-2">
-                                    <button @click="goToPage(1)" class="px-2 py-1 text-sm hover:bg-white/20 rounded">
+                                    <button @click="goToPage(1)" class="px-2 py-1 text-sm hover:bg-white/20 rounded" :disabled="currentPage <= 1">
                                         <i class="ph ph-skip-back"></i>
+                                    </button>
+                                    <button @click="prevPage()" class="px-2 py-1 text-sm hover:bg-white/20 rounded" :disabled="currentPage <= 1">
+                                        <i class="ph ph-caret-left"></i>
                                     </button>
                                     <span class="px-4 py-1 bg-white/20 rounded-full text-sm font-medium">
                                         <span x-text="currentPage"></span> / <span x-text="totalPages"></span>
                                     </span>
-                                    <button @click="goToPage(totalPages)" class="px-2 py-1 text-sm hover:bg-white/20 rounded">
+                                    <button @click="nextPage()" class="px-2 py-1 text-sm hover:bg-white/20 rounded" :disabled="currentPage >= totalPages">
+                                        <i class="ph ph-caret-right"></i>
+                                    </button>
+                                    <button @click="goToPage(totalPages)" class="px-2 py-1 text-sm hover:bg-white/20 rounded" :disabled="currentPage >= totalPages">
                                         <i class="ph ph-skip-forward"></i>
                                     </button>
                                 </div>
@@ -408,7 +421,8 @@
                                     this.pdfDoc = await pdfjsLib.getDocument(this.pdfUrl).promise;
                                     this.totalPages = this.pdfDoc.numPages;
                                     this.loading = false;
-                                    await this.renderPages();
+                                    await this.$nextTick();
+                                    setTimeout(() => this.renderPages(), 100);
                                 } catch (error) {
                                     console.error('Error loading PDF:', error);
                                     this.loading = false;
@@ -419,64 +433,65 @@
                                 const leftCanvas = this.$refs.leftCanvas;
                                 const rightCanvas = this.$refs.rightCanvas;
                                 
-                                leftCanvas.getContext('2d').clearRect(0, 0, leftCanvas.width, leftCanvas.height);
-                                rightCanvas.getContext('2d').clearRect(0, 0, rightCanvas.width, rightCanvas.height);
+                                if (!leftCanvas || !rightCanvas) return;
                                 
-                                const leftPageNum = this.currentPage - 1;
-                                const rightPageNum = this.currentPage;
+                                const leftCtx = leftCanvas.getContext('2d');
+                                const rightCtx = rightCanvas.getContext('2d');
+                                leftCtx.clearRect(0, 0, leftCanvas.width, leftCanvas.height);
+                                rightCtx.clearRect(0, 0, rightCanvas.width, rightCanvas.height);
                                 
-                                if (leftPageNum >= 1) {
-                                    await this.renderPage(leftPageNum, leftCanvas);
+                                if (this.currentPage <= this.totalPages) {
+                                    await this.renderPage(this.currentPage, rightCanvas);
                                 }
-                                if (rightPageNum <= this.totalPages) {
-                                    await this.renderPage(rightPageNum, rightCanvas);
+                                
+                                if (this.currentPage > 1) {
+                                    await this.renderPage(this.currentPage - 1, leftCanvas);
                                 }
                             },
                             
                             async renderPage(pageNum, canvas) {
-                                const page = await this.pdfDoc.getPage(pageNum);
-                                const containerHeight = canvas.parentElement.clientHeight;
-                                const containerWidth = canvas.parentElement.clientWidth;
-                                
-                                const viewport = page.getViewport({ scale: 1 });
-                                const scale = Math.min(containerWidth / viewport.width, containerHeight / viewport.height) * 1.5;
-                                const scaledViewport = page.getViewport({ scale });
-                                
-                                canvas.height = scaledViewport.height;
-                                canvas.width = scaledViewport.width;
-                                
-                                const context = canvas.getContext('2d');
-                                await page.render({
-                                    canvasContext: context,
-                                    viewport: scaledViewport
-                                }).promise;
+                                try {
+                                    const page = await this.pdfDoc.getPage(pageNum);
+                                    const container = canvas.parentElement;
+                                    const containerHeight = container.clientHeight || 500;
+                                    const containerWidth = container.clientWidth || 400;
+                                    
+                                    const viewport = page.getViewport({ scale: 1 });
+                                    const scale = Math.min(
+                                        (containerWidth * 0.9) / viewport.width, 
+                                        (containerHeight * 0.9) / viewport.height
+                                    );
+                                    const scaledViewport = page.getViewport({ scale });
+                                    
+                                    canvas.width = scaledViewport.width;
+                                    canvas.height = scaledViewport.height;
+                                    
+                                    const context = canvas.getContext('2d');
+                                    await page.render({
+                                        canvasContext: context,
+                                        viewport: scaledViewport
+                                    }).promise;
+                                } catch (error) {
+                                    console.error('Error rendering page', pageNum, error);
+                                }
                             },
                             
                             async nextPage() {
                                 if (this.currentPage < this.totalPages) {
-                                    this.currentPage += 2;
-                                    if (this.currentPage > this.totalPages) {
-                                        this.currentPage = this.totalPages;
-                                    }
+                                    this.currentPage++;
                                     await this.renderPages();
                                 }
                             },
                             
                             async prevPage() {
                                 if (this.currentPage > 1) {
-                                    this.currentPage -= 2;
-                                    if (this.currentPage < 1) {
-                                        this.currentPage = 1;
-                                    }
+                                    this.currentPage--;
                                     await this.renderPages();
                                 }
                             },
                             
                             async goToPage(pageNum) {
                                 this.currentPage = Math.max(1, Math.min(pageNum, this.totalPages));
-                                if (this.currentPage % 2 === 0) {
-                                    this.currentPage++;
-                                }
                                 await this.renderPages();
                             }
                         }

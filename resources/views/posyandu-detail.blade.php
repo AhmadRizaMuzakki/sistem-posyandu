@@ -353,22 +353,20 @@
 
                             <div x-show="!loading" class="relative h-full flex items-center justify-center">
                                 {{-- Left Page --}}
-                                <div class="relative w-1/2 h-full bg-white shadow-2xl rounded-l-lg overflow-hidden"
-                                     :class="currentPage === 0 || (isPdf && currentPage <= 1) ? 'opacity-50' : ''">
+                                <div class="relative w-1/2 h-full bg-white shadow-2xl rounded-l-lg overflow-hidden flex items-center justify-center"
+                                     :class="(currentPage === 0 && !isPdf) || (isPdf && currentPage <= 1) ? 'bg-slate-100' : ''">
                                     <template x-if="isPdf">
-                                        <canvas x-ref="leftCanvas" class="w-full h-full object-contain"></canvas>
+                                        <canvas x-ref="leftCanvas" class="max-w-full max-h-full"></canvas>
                                     </template>
                                     <template x-if="!isPdf && currentPage > 0">
-                                        <img :src="pages[currentPage - 1]" class="w-full h-full object-contain bg-slate-100" alt="">
+                                        <img :src="pages[currentPage - 1]" class="max-w-full max-h-full object-contain" alt="">
                                     </template>
-                                    <template x-if="!isPdf && currentPage === 0">
-                                        <div class="w-full h-full bg-gradient-to-r from-slate-200 to-slate-100 flex items-center justify-center">
-                                            <div class="text-center text-slate-400">
-                                                <i class="fa-solid fa-book-open text-5xl mb-4"></i>
-                                                <p class="text-sm">Cover Depan</p>
-                                            </div>
+                                    <div x-show="(!isPdf && currentPage === 0) || (isPdf && currentPage <= 1)" class="absolute inset-0 flex items-center justify-center text-slate-400">
+                                        <div class="text-center">
+                                            <i class="fa-solid fa-book-open text-5xl mb-4"></i>
+                                            <p class="text-sm">Cover</p>
                                         </div>
-                                    </template>
+                                    </div>
                                     <div class="absolute bottom-4 left-4 px-3 py-1 bg-black/50 text-white text-sm rounded-full" x-show="isPdf ? currentPage > 1 : currentPage > 0">
                                         <span x-text="isPdf ? currentPage - 1 : currentPage"></span>
                                     </div>
@@ -378,22 +376,19 @@
                                 <div class="w-2 h-full bg-gradient-to-r from-slate-400 via-slate-300 to-slate-400 shadow-inner"></div>
 
                                 {{-- Right Page --}}
-                                <div class="relative w-1/2 h-full bg-white shadow-2xl rounded-r-lg overflow-hidden"
-                                     :class="(!isPdf && currentPage >= pages.length) || (isPdf && currentPage > totalPages) ? 'opacity-50' : ''">
+                                <div class="relative w-1/2 h-full bg-white shadow-2xl rounded-r-lg overflow-hidden flex items-center justify-center">
                                     <template x-if="isPdf">
-                                        <canvas x-ref="rightCanvas" class="w-full h-full object-contain"></canvas>
+                                        <canvas x-ref="rightCanvas" class="max-w-full max-h-full"></canvas>
                                     </template>
                                     <template x-if="!isPdf && currentPage < pages.length">
-                                        <img :src="pages[currentPage]" class="w-full h-full object-contain bg-slate-100" alt="">
+                                        <img :src="pages[currentPage]" class="max-w-full max-h-full object-contain" alt="">
                                     </template>
-                                    <template x-if="!isPdf && currentPage >= pages.length">
-                                        <div class="w-full h-full bg-gradient-to-l from-slate-200 to-slate-100 flex items-center justify-center">
-                                            <div class="text-center text-slate-400">
-                                                <i class="fa-solid fa-circle-check text-5xl mb-4"></i>
-                                                <p class="text-sm">Selesai</p>
-                                            </div>
+                                    <div x-show="!isPdf && currentPage >= pages.length" class="absolute inset-0 flex items-center justify-center text-slate-400 bg-slate-100">
+                                        <div class="text-center">
+                                            <i class="fa-solid fa-circle-check text-5xl mb-4"></i>
+                                            <p class="text-sm">Selesai</p>
                                         </div>
-                                    </template>
+                                    </div>
                                     <div class="absolute bottom-4 right-4 px-3 py-1 bg-black/50 text-white text-sm rounded-full" x-show="isPdf ? currentPage <= totalPages : currentPage < pages.length">
                                         <span x-text="isPdf ? currentPage : currentPage + 1"></span>
                                     </div>
@@ -420,13 +415,19 @@
                             <div class="flex items-center justify-center gap-4 text-white">
                                 <span class="text-sm">Halaman</span>
                                 <div class="flex items-center gap-2">
-                                    <button @click="goToFirst()" class="px-2 py-1 text-sm hover:bg-white/20 rounded">
+                                    <button @click="goToFirst()" class="px-2 py-1 text-sm hover:bg-white/20 rounded" :disabled="isPdf ? currentPage <= 1 : currentPage <= 0">
                                         <i class="fa-solid fa-backward-step"></i>
+                                    </button>
+                                    <button @click="prevPage()" class="px-2 py-1 text-sm hover:bg-white/20 rounded" :disabled="isPdf ? currentPage <= 1 : currentPage <= 0">
+                                        <i class="fa-solid fa-chevron-left"></i>
                                     </button>
                                     <span class="px-4 py-1 bg-white/20 rounded-full text-sm font-medium">
                                         <span x-text="isPdf ? currentPage : currentPage + 1"></span> / <span x-text="isPdf ? totalPages : pages.length"></span>
                                     </span>
-                                    <button @click="goToLast()" class="px-2 py-1 text-sm hover:bg-white/20 rounded">
+                                    <button @click="nextPage()" class="px-2 py-1 text-sm hover:bg-white/20 rounded" :disabled="isPdf ? currentPage >= totalPages : currentPage >= pages.length">
+                                        <i class="fa-solid fa-chevron-right"></i>
+                                    </button>
+                                    <button @click="goToLast()" class="px-2 py-1 text-sm hover:bg-white/20 rounded" :disabled="isPdf ? currentPage >= totalPages : currentPage >= pages.length">
                                         <i class="fa-solid fa-forward-step"></i>
                                     </button>
                                 </div>
@@ -476,7 +477,7 @@
                                     this.totalPages = this.pdfDoc.numPages;
                                     this.loading = false;
                                     await this.$nextTick();
-                                    await this.renderPdfPages();
+                                    setTimeout(() => this.renderPdfPages(), 100);
                                 } catch (error) {
                                     console.error('Error loading PDF:', error);
                                     this.loading = false;
@@ -501,48 +502,53 @@
                             const leftCanvas = this.$refs.leftCanvas;
                             const rightCanvas = this.$refs.rightCanvas;
                             
-                            if (leftCanvas) {
-                                leftCanvas.getContext('2d').clearRect(0, 0, leftCanvas.width, leftCanvas.height);
-                            }
-                            if (rightCanvas) {
-                                rightCanvas.getContext('2d').clearRect(0, 0, rightCanvas.width, rightCanvas.height);
+                            if (!leftCanvas || !rightCanvas) return;
+                            
+                            leftCanvas.getContext('2d').clearRect(0, 0, leftCanvas.width, leftCanvas.height);
+                            rightCanvas.getContext('2d').clearRect(0, 0, rightCanvas.width, rightCanvas.height);
+                            
+                            // Render current page on right
+                            if (this.currentPage <= this.totalPages) {
+                                await this.renderPdfPage(this.currentPage, rightCanvas);
                             }
                             
-                            const leftPageNum = this.currentPage - 1;
-                            const rightPageNum = this.currentPage;
-                            
-                            if (leftPageNum >= 1 && leftCanvas) {
-                                await this.renderPdfPage(leftPageNum, leftCanvas);
-                            }
-                            if (rightPageNum <= this.totalPages && rightCanvas) {
-                                await this.renderPdfPage(rightPageNum, rightCanvas);
+                            // Render previous page on left
+                            if (this.currentPage > 1) {
+                                await this.renderPdfPage(this.currentPage - 1, leftCanvas);
                             }
                         },
                         
                         async renderPdfPage(pageNum, canvas) {
-                            const page = await this.pdfDoc.getPage(pageNum);
-                            const containerHeight = canvas.parentElement.clientHeight || 600;
-                            const containerWidth = canvas.parentElement.clientWidth || 400;
-                            
-                            const viewport = page.getViewport({ scale: 1 });
-                            const scale = Math.min(containerWidth / viewport.width, containerHeight / viewport.height) * 1.5;
-                            const scaledViewport = page.getViewport({ scale });
-                            
-                            canvas.height = scaledViewport.height;
-                            canvas.width = scaledViewport.width;
-                            
-                            const context = canvas.getContext('2d');
-                            await page.render({
-                                canvasContext: context,
-                                viewport: scaledViewport
-                            }).promise;
+                            try {
+                                const page = await this.pdfDoc.getPage(pageNum);
+                                const container = canvas.parentElement;
+                                const containerHeight = container.clientHeight || 500;
+                                const containerWidth = container.clientWidth || 400;
+                                
+                                const viewport = page.getViewport({ scale: 1 });
+                                const scale = Math.min(
+                                    (containerWidth * 0.9) / viewport.width, 
+                                    (containerHeight * 0.9) / viewport.height
+                                );
+                                const scaledViewport = page.getViewport({ scale });
+                                
+                                canvas.width = scaledViewport.width;
+                                canvas.height = scaledViewport.height;
+                                
+                                const context = canvas.getContext('2d');
+                                await page.render({
+                                    canvasContext: context,
+                                    viewport: scaledViewport
+                                }).promise;
+                            } catch (error) {
+                                console.error('Error rendering page', pageNum, error);
+                            }
                         },
                         
                         async nextPage() {
                             if (this.isPdf) {
                                 if (this.currentPage < this.totalPages) {
-                                    this.currentPage += 2;
-                                    if (this.currentPage > this.totalPages) this.currentPage = this.totalPages;
+                                    this.currentPage++;
                                     await this.renderPdfPages();
                                 }
                             } else {
@@ -556,8 +562,7 @@
                         async prevPage() {
                             if (this.isPdf) {
                                 if (this.currentPage > 1) {
-                                    this.currentPage -= 2;
-                                    if (this.currentPage < 1) this.currentPage = 1;
+                                    this.currentPage--;
                                     await this.renderPdfPages();
                                 }
                             } else {
