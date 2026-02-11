@@ -30,7 +30,7 @@
 					@csrf
 
 					<span class="login100-form-title">Sistem Posyandu</span>
-					<p class="txt1" style="text-align: center; margin-top: -40px; margin-bottom: 24px;">Silakan login dengan Email atau No KK</p>
+					<p class="txt1" style="text-align: center; margin-top: -40px; margin-bottom: 24px;">Silakan login dengan Email</p>
 
 					@if (session('status'))
 						<div class="alert alert-success mb-3" role="alert">{{ session('status') }}</div>
@@ -42,8 +42,8 @@
 						</div>
 					@endif
 
-					<div class="wrap-input100 validate-input @error('email') alert-validate @enderror" data-validate="@error('email'){{ $message }}@else Email atau No KK wajib diisi @enderror">
-						<input class="input100" type="text" name="email" placeholder="Email atau No KK" value="{{ old('email') }}" required autofocus autocomplete="username">
+					<div class="wrap-input100 validate-input @error('email') alert-validate @enderror" data-validate="@error('email'){{ $message }}@else Email wajib diisi @enderror">
+						<input class="input100" type="text" name="email" placeholder="Email" value="{{ old('email') }}" required autofocus autocomplete="username">
 						<span class="focus-input100"></span>
 						<span class="symbol-input100"><i class="fa fa-user" aria-hidden="true"></i></span>
 					</div>
@@ -64,22 +64,6 @@
 					<div class="container-login100-form-btn">
 						<button type="submit" class="login100-form-btn">Login</button>
 					</div>
-
-					@if (Route::has('password.request'))
-						<div class="text-center p-t-12">
-							<span class="txt1">Lupa </span>
-							<a class="txt2" href="{{ route('password.request') }}">Username / Password?</a>
-						</div>
-					@endif
-
-					@if (Route::has('register'))
-						<div class="text-center p-t-20">
-							<a class="txt2" href="{{ route('register') }}">
-								Buat akun baru
-								<i class="fa fa-long-arrow-right m-l-5" aria-hidden="true"></i>
-							</a>
-						</div>
-					@endif
 				</form>
 			</div>
 		</div>

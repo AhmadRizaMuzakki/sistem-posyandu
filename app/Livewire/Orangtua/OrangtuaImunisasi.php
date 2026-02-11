@@ -58,33 +58,58 @@ class OrangtuaImunisasi extends Component
             $allSasaran->push(['id' => $s->id_sasaran_lansia, 'kategori' => 'lansia', 'nama' => $s->nama_sasaran, 'nik' => $s->nik_sasaran, 'tanggal_lahir' => $s->tanggal_lahir]);
         }
 
+        // Optimasi: Batch query semua imunisasi sekaligus (menghindari N+1)
+        $sasaranConditions = $allSasaran->map(fn($s) => [
+            'id' => $s['id'],
+            'kategori' => $s['kategori']
+        ])->toArray();
+
+        // Build batch query
+        $allImunisasi = collect();
+        if (!empty($sasaranConditions)) {
+            $query = Imunisasi::where(function($q) use ($sasaranConditions) {
+                foreach ($sasaranConditions as $cond) {
+                    $q->orWhere(function($subQ) use ($cond) {
+                        $subQ->where('id_sasaran', $cond['id'])
+                             ->where('kategori_sasaran', $cond['kategori']);
+                    });
+                }
+            });
+
+            if ($this->filterJenisImunisasi !== '') {
+                $query->where('jenis_imunisasi', $this->filterJenisImunisasi);
+            }
+
+            $allImunisasi = $query->orderBy('tanggal_imunisasi', 'desc')->get();
+        }
+
+        // Group imunisasi by sasaran
+        $groupedImunisasi = $allImunisasi->groupBy(function($im) {
+            return $im->kategori_sasaran . '_' . $im->id_sasaran;
+        });
+
+        // Ambil semua jenis imunisasi dari hasil query
+        $jenisImunisasiList = $allImunisasi->pluck('jenis_imunisasi')
+            ->unique()
+            ->filter()
+            ->sort()
+            ->values()
+            ->toArray();
+
+        // Build imunisasiList berdasarkan grouped data
         $imunisasiList = collect();
         foreach ($allSasaran as $sasaran) {
             if ($this->filterNama !== '' && $sasaran['nama'] !== $this->filterNama) {
                 continue;
             }
-            $query = Imunisasi::where('id_sasaran', $sasaran['id'])
-                ->where('kategori_sasaran', $sasaran['kategori'])
-                ->orderBy('tanggal_imunisasi', 'desc');
-            if ($this->filterJenisImunisasi !== '') {
-                $query->where('jenis_imunisasi', $this->filterJenisImunisasi);
-            }
-            $imunisasi = $query->get();
+
+            $key = $sasaran['kategori'] . '_' . $sasaran['id'];
+            $imunisasi = $groupedImunisasi->get($key, collect());
+
             if ($imunisasi->count() > 0) {
                 $imunisasiList->push(['sasaran' => $sasaran, 'imunisasi' => $imunisasi]);
             }
         }
-
-        $jenisImunisasiList = collect();
-        foreach ($allSasaran as $sasaran) {
-            $im = Imunisasi::where('id_sasaran', $sasaran['id'])
-                ->where('kategori_sasaran', $sasaran['kategori'])
-                ->pluck('jenis_imunisasi')
-                ->unique()
-                ->filter();
-            $jenisImunisasiList = $jenisImunisasiList->merge($im);
-        }
-        $jenisImunisasiList = $jenisImunisasiList->unique()->sort()->values()->toArray();
 
         return [
             'allSasaran' => $allSasaran,

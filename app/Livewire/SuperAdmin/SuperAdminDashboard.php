@@ -50,15 +50,9 @@ class SuperAdminDashboard extends Component
             ->pluck('jenis_imunisasi')
             ->toArray();
 
-        $allImunisasiList = Imunisasi::get();
-        $allNamaSasaranList = collect();
-        foreach ($allImunisasiList as $imunisasi) {
-            $sasaran = $imunisasi->sasaran;
-            if ($sasaran && $sasaran->nama_sasaran) {
-                $allNamaSasaranList->push($sasaran->nama_sasaran);
-            }
-        }
-        $allNamaSasaranList = $allNamaSasaranList->unique()->sort()->values()->toArray();
+        // Optimasi: Ambil nama sasaran tanpa N+1 query
+        // Mengambil distinct id_sasaran + kategori_sasaran lalu batch load nama
+        $allNamaSasaranList = $this->getAllNamaSasaran();
 
         $allKategoriPendidikanList = Pendidikan::distinct()
             ->orderBy('pendidikan_terakhir')
@@ -153,6 +147,44 @@ class SuperAdminDashboard extends Component
             'pralansia' => \App\Models\SasaranPralansia::count(),
             'lansia' => \App\Models\SasaranLansia::count(),
         ];
+    }
+
+    /**
+     * Ambil semua nama sasaran dari imunisasi tanpa N+1 query
+     * Optimasi: Query langsung ke masing-masing tabel sasaran
+     */
+    private function getAllNamaSasaran(): array
+    {
+        $namaList = collect();
+
+        // Ambil distinct id_sasaran per kategori dari imunisasi
+        $imunisasiGroups = Imunisasi::select('id_sasaran', 'kategori_sasaran')
+            ->distinct()
+            ->get()
+            ->groupBy('kategori_sasaran');
+
+        $kategoris = [
+            'bayibalita' => [\App\Models\SasaranBayibalita::class, 'id_sasaran_bayibalita'],
+            'remaja' => [\App\Models\SasaranRemaja::class, 'id_sasaran_remaja'],
+            'dewasa' => [\App\Models\SasaranDewasa::class, 'id_sasaran_dewasa'],
+            'pralansia' => [\App\Models\SasaranPralansia::class, 'id_sasaran_pralansia'],
+            'lansia' => [\App\Models\SasaranLansia::class, 'id_sasaran_lansia'],
+        ];
+
+        foreach ($kategoris as $kategori => [$modelClass, $primaryKey]) {
+            if (!isset($imunisasiGroups[$kategori])) continue;
+
+            $ids = $imunisasiGroups[$kategori]->pluck('id_sasaran')->unique()->filter()->values()->toArray();
+            if (empty($ids)) continue;
+
+            $names = $modelClass::whereIn($primaryKey, $ids)
+                ->whereNotNull('nama_sasaran')
+                ->pluck('nama_sasaran');
+
+            $namaList = $namaList->merge($names);
+        }
+
+        return $namaList->unique()->sort()->values()->toArray();
     }
 
     /**

@@ -112,15 +112,23 @@ class LaporanController extends Controller
         $namaDecoded = urldecode($nama);
 
         // Get all imunisasi for this posyandu
-        $imunisasiList = Imunisasi::with(['user'])
+        $allImunisasi = Imunisasi::with(['user'])
             ->where('id_posyandu', $posyandu->id_posyandu)
             ->orderBy('tanggal_imunisasi', 'desc')
-            ->get()
+            ->get();
+
+        // Preload sasaran untuk menghindari N+1 query
+        Imunisasi::preloadSasaran($allImunisasi);
+
+        $imunisasiList = $allImunisasi
             ->filter(function ($imunisasi) use ($namaDecoded) {
                 $sasaran = $imunisasi->sasaran;
                 return $sasaran && $sasaran->nama_sasaran === $namaDecoded;
             })
             ->values();
+
+        // Clear cache setelah selesai
+        Imunisasi::clearSasaranCache();
 
         $fileName = 'Laporan-Imunisasi-'.str_replace(['/', ' '], ['-', '-'], $namaDecoded).'-'.$posyandu->nama_posyandu.'-'.now('Asia/Jakarta')->format('Ymd_His').'.pdf';
 
@@ -222,15 +230,23 @@ class LaporanController extends Controller
         $namaDecoded = urldecode($nama);
 
         // Get all imunisasi for this posyandu
-        $imunisasiList = Imunisasi::with(['user'])
+        $allImunisasi = Imunisasi::with(['user'])
             ->where('id_posyandu', $posyandu->id_posyandu)
             ->orderBy('tanggal_imunisasi', 'desc')
-            ->get()
+            ->get();
+
+        // Preload sasaran untuk menghindari N+1 query
+        Imunisasi::preloadSasaran($allImunisasi);
+
+        $imunisasiList = $allImunisasi
             ->filter(function ($imunisasi) use ($namaDecoded) {
                 $sasaran = $imunisasi->sasaran;
                 return $sasaran && $sasaran->nama_sasaran === $namaDecoded;
             })
             ->values();
+
+        // Clear cache setelah selesai
+        Imunisasi::clearSasaranCache();
 
         $user = Auth::user();
         $fileName = 'Laporan-Imunisasi-'.str_replace(['/', ' '], ['-', '-'], $namaDecoded).'-'.$posyandu->nama_posyandu.'-'.now('Asia/Jakarta')->format('Ymd_His').'.pdf';
