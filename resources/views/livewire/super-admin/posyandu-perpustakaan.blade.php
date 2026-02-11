@@ -292,43 +292,50 @@
         {{-- Modal Flipbook --}}
         @if($showFlipbookModal && $viewingBook)
             @if($viewingBook->file_path)
-                {{-- PDF Flipbook Viewer --}}
+                {{-- PDF Viewer (Responsive: Scroll on mobile, Flipbook on desktop) --}}
                 <div class="fixed inset-0 z-50 overflow-hidden bg-gray-900/95" aria-modal="true"
-                     x-data="pdfFlipbook({
+                     x-data="pdfViewer({
                          pdfUrl: '{{ uploads_asset($viewingBook->file_path) }}',
                          title: @js($viewingBook->judul)
                      })"
-                     x-init="loadPdf()"
+                     x-init="init()"
                      @keydown.escape.window="$wire.closeFlipbook()"
-                     @keydown.left.window="prevPage()"
-                     @keydown.right.window="nextPage()">
+                     @keydown.left.window="!isMobile && prevPage()"
+                     @keydown.right.window="!isMobile && nextPage()"
+                     @resize.window="checkMobile()">
                     
                     {{-- Header --}}
                     <div class="absolute top-0 left-0 right-0 z-10 bg-gradient-to-b from-black/80 to-transparent p-4">
                         <div class="max-w-6xl mx-auto flex items-center justify-between">
                             <div class="text-white">
-                                <h2 class="text-xl font-bold" x-text="title"></h2>
-                                <p class="text-sm text-white/70">{{ $viewingBook->penulis ?? '' }} <span class="ml-2 px-2 py-0.5 bg-red-500/80 rounded text-xs">PDF</span></p>
+                                <h2 class="text-lg md:text-xl font-bold" x-text="title"></h2>
+                                <p class="text-xs md:text-sm text-white/70">{{ $viewingBook->penulis ?? '' }} <span class="ml-2 px-2 py-0.5 bg-red-500/80 rounded text-xs">PDF</span></p>
                             </div>
                             <button wire:click="closeFlipbook" class="p-2 rounded-full bg-white/10 text-white hover:bg-white/20 transition">
-                                <i class="ph ph-x text-2xl"></i>
+                                <i class="ph ph-x text-xl md:text-2xl"></i>
                             </button>
                         </div>
                     </div>
 
-                    {{-- PDF Container --}}
-                    <div class="h-full flex items-center justify-center px-4 py-20">
-                        <div class="relative w-full max-w-5xl h-[70vh]">
-                            {{-- Loading State --}}
-                            <div x-show="loading" class="absolute inset-0 flex items-center justify-center bg-gray-800 rounded-lg">
-                                <div class="text-center text-white">
-                                    <i class="ph ph-spinner text-5xl animate-spin mb-4"></i>
-                                    <p>Memuat PDF...</p>
-                                </div>
-                            </div>
+                    {{-- Loading State --}}
+                    <div x-show="loading" class="h-full flex items-center justify-center">
+                        <div class="text-center text-white">
+                            <i class="ph ph-spinner text-5xl animate-spin mb-4"></i>
+                            <p>Memuat PDF...</p>
+                        </div>
+                    </div>
 
-                            {{-- Book Display --}}
-                            <div x-show="!loading" class="relative h-full flex items-center justify-center">
+                    {{-- Mobile: Scroll View --}}
+                    <div x-show="!loading && isMobile" x-cloak class="h-full overflow-y-auto pt-20 pb-4 px-4">
+                        <div x-ref="mobileContainer" class="max-w-lg mx-auto space-y-4">
+                            {{-- Pages will be rendered here --}}
+                        </div>
+                    </div>
+
+                    {{-- Desktop: Flipbook View --}}
+                    <div x-show="!loading && !isMobile" x-cloak class="h-full flex items-center justify-center px-4 py-20">
+                        <div class="relative w-full max-w-5xl h-[70vh]">
+                            <div class="relative h-full flex items-center justify-center">
                                 {{-- Left Page --}}
                                 <div class="relative w-1/2 h-full bg-white shadow-2xl rounded-l-lg overflow-hidden flex items-center justify-center"
                                      :class="currentPage <= 1 ? 'bg-gray-100' : ''">
@@ -358,20 +365,20 @@
 
                             {{-- Navigation Arrows --}}
                             <button @click="prevPage()" 
-                                    class="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-16 p-4 rounded-full bg-white/10 text-white hover:bg-white/20 transition disabled:opacity-30 disabled:cursor-not-allowed"
+                                    class="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-16 p-4 rounded-full bg-white/10 text-white hover:bg-white/20 transition disabled:opacity-30"
                                     :disabled="currentPage <= 1">
                                 <i class="ph ph-caret-left text-3xl"></i>
                             </button>
                             <button @click="nextPage()" 
-                                    class="absolute right-0 top-1/2 -translate-y-1/2 translate-x-16 p-4 rounded-full bg-white/10 text-white hover:bg-white/20 transition disabled:opacity-30 disabled:cursor-not-allowed"
+                                    class="absolute right-0 top-1/2 -translate-y-1/2 translate-x-16 p-4 rounded-full bg-white/10 text-white hover:bg-white/20 transition disabled:opacity-30"
                                     :disabled="currentPage >= totalPages">
                                 <i class="ph ph-caret-right text-3xl"></i>
                             </button>
                         </div>
                     </div>
 
-                    {{-- Footer Controls --}}
-                    <div class="absolute bottom-0 left-0 right-0 z-10 bg-gradient-to-t from-black/80 to-transparent p-4">
+                    {{-- Footer Controls (Desktop only) --}}
+                    <div x-show="!loading && !isMobile" class="absolute bottom-0 left-0 right-0 z-10 bg-gradient-to-t from-black/80 to-transparent p-4">
                         <div class="max-w-6xl mx-auto">
                             <div class="flex items-center justify-center gap-4 text-white">
                                 <span class="text-sm">Halaman</span>
@@ -401,11 +408,9 @@
                 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
                 <script>
                     pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+                    window._pdfDocuments = window._pdfDocuments || {};
                     
-                    // Store PDF documents outside Alpine to avoid proxy issues
-                    window._pdfDocuments = {};
-                    
-                    function pdfFlipbook(config) {
+                    function pdfViewer(config) {
                         const instanceId = 'pdf_' + Date.now();
                         
                         return {
@@ -415,13 +420,26 @@
                             currentPage: 1,
                             totalPages: 0,
                             loading: true,
+                            isMobile: window.innerWidth < 768,
+                            mobileRendered: false,
                             
-                            get pdfDoc() {
-                                return window._pdfDocuments[this.instanceId];
+                            async init() {
+                                this.checkMobile();
+                                await this.loadPdf();
                             },
                             
-                            set pdfDoc(doc) {
-                                window._pdfDocuments[this.instanceId] = doc;
+                            checkMobile() {
+                                const wasMobile = this.isMobile;
+                                this.isMobile = window.innerWidth < 768;
+                                if (wasMobile !== this.isMobile && !this.loading) {
+                                    this.$nextTick(() => {
+                                        if (this.isMobile && !this.mobileRendered) {
+                                            this.renderMobilePages();
+                                        } else if (!this.isMobile) {
+                                            this.renderDesktopPages();
+                                        }
+                                    });
+                                }
                             },
                             
                             async loadPdf() {
@@ -432,21 +450,61 @@
                                     this.totalPages = doc.numPages;
                                     this.loading = false;
                                     await this.$nextTick();
-                                    setTimeout(() => this.renderPages(), 100);
+                                    setTimeout(() => {
+                                        if (this.isMobile) {
+                                            this.renderMobilePages();
+                                        } else {
+                                            this.renderDesktopPages();
+                                        }
+                                    }, 100);
                                 } catch (error) {
                                     console.error('Error loading PDF:', error);
                                     this.loading = false;
                                 }
                             },
                             
-                            async renderPages() {
+                            async renderMobilePages() {
+                                const doc = window._pdfDocuments[this.instanceId];
+                                const container = this.$refs.mobileContainer;
+                                if (!doc || !container) return;
+                                
+                                container.innerHTML = '';
+                                this.mobileRendered = true;
+                                
+                                for (let i = 1; i <= this.totalPages; i++) {
+                                    const page = await doc.getPage(i);
+                                    const viewport = page.getViewport({ scale: 1 });
+                                    const containerWidth = container.clientWidth || 350;
+                                    const scale = (containerWidth * 0.95) / viewport.width;
+                                    const scaledViewport = page.getViewport({ scale });
+                                    
+                                    const wrapper = document.createElement('div');
+                                    wrapper.className = 'relative bg-white rounded-lg shadow-lg overflow-hidden';
+                                    
+                                    const canvas = document.createElement('canvas');
+                                    canvas.width = scaledViewport.width;
+                                    canvas.height = scaledViewport.height;
+                                    canvas.className = 'w-full h-auto';
+                                    
+                                    const pageNum = document.createElement('div');
+                                    pageNum.className = 'absolute bottom-2 right-2 px-2 py-1 bg-black/50 text-white text-xs rounded-full';
+                                    pageNum.textContent = i + ' / ' + this.totalPages;
+                                    
+                                    wrapper.appendChild(canvas);
+                                    wrapper.appendChild(pageNum);
+                                    container.appendChild(wrapper);
+                                    
+                                    const context = canvas.getContext('2d');
+                                    await page.render({ canvasContext: context, viewport: scaledViewport }).promise;
+                                }
+                            },
+                            
+                            async renderDesktopPages() {
                                 const leftCanvas = this.$refs.leftCanvas;
                                 const rightCanvas = this.$refs.rightCanvas;
                                 const doc = window._pdfDocuments[this.instanceId];
                                 
-                                if (!leftCanvas || !rightCanvas || !doc) {
-                                    return;
-                                }
+                                if (!leftCanvas || !rightCanvas || !doc) return;
                                 
                                 const leftCtx = leftCanvas.getContext('2d');
                                 const rightCtx = rightCanvas.getContext('2d');
@@ -456,7 +514,6 @@
                                 if (this.currentPage <= this.totalPages) {
                                     await this.renderPage(this.currentPage, rightCanvas);
                                 }
-                                
                                 if (this.currentPage > 1) {
                                     await this.renderPage(this.currentPage - 1, leftCanvas);
                                 }
@@ -483,10 +540,7 @@
                                     canvas.height = scaledViewport.height;
                                     
                                     const context = canvas.getContext('2d');
-                                    await page.render({
-                                        canvasContext: context,
-                                        viewport: scaledViewport
-                                    }).promise;
+                                    await page.render({ canvasContext: context, viewport: scaledViewport }).promise;
                                 } catch (error) {
                                     console.error('Error rendering page', pageNum, error);
                                 }
@@ -495,20 +549,20 @@
                             async nextPage() {
                                 if (this.currentPage < this.totalPages) {
                                     this.currentPage++;
-                                    await this.renderPages();
+                                    await this.renderDesktopPages();
                                 }
                             },
                             
                             async prevPage() {
                                 if (this.currentPage > 1) {
                                     this.currentPage--;
-                                    await this.renderPages();
+                                    await this.renderDesktopPages();
                                 }
                             },
                             
                             async goToPage(pageNum) {
                                 this.currentPage = Math.max(1, Math.min(pageNum, this.totalPages));
-                                await this.renderPages();
+                                await this.renderDesktopPages();
                             },
                             
                             destroy() {
@@ -518,34 +572,49 @@
                     }
                 </script>
             @else
-                {{-- Image-based Flipbook Viewer --}}
+                {{-- Image-based Viewer (Responsive: Scroll on mobile, Flipbook on desktop) --}}
                 <div class="fixed inset-0 z-50 overflow-hidden bg-gray-900/95" aria-modal="true"
-                     x-data="flipbook({
+                     x-data="imageViewer({
                          pages: @js($viewingBook->halaman_images ? array_map(function($p) { return uploads_asset($p); }, $viewingBook->halaman_images) : []),
                          title: @js($viewingBook->judul)
                      })"
+                     x-init="checkMobile()"
                      @keydown.escape.window="$wire.closeFlipbook()"
-                     @keydown.left.window="prevPage()"
-                     @keydown.right.window="nextPage()">
+                     @keydown.left.window="!isMobile && prevPage()"
+                     @keydown.right.window="!isMobile && nextPage()"
+                     @resize.window="checkMobile()">
                     
                     {{-- Header --}}
                     <div class="absolute top-0 left-0 right-0 z-10 bg-gradient-to-b from-black/80 to-transparent p-4">
                         <div class="max-w-6xl mx-auto flex items-center justify-between">
                             <div class="text-white">
-                                <h2 class="text-xl font-bold" x-text="title"></h2>
-                                <p class="text-sm text-white/70">{{ $viewingBook->penulis ?? '' }}</p>
+                                <h2 class="text-lg md:text-xl font-bold" x-text="title"></h2>
+                                <p class="text-xs md:text-sm text-white/70">{{ $viewingBook->penulis ?? '' }}</p>
                             </div>
                             <button wire:click="closeFlipbook" class="p-2 rounded-full bg-white/10 text-white hover:bg-white/20 transition">
-                                <i class="ph ph-x text-2xl"></i>
+                                <i class="ph ph-x text-xl md:text-2xl"></i>
                             </button>
                         </div>
                     </div>
 
-                    {{-- Flipbook Container --}}
-                    <div class="h-full flex items-center justify-center px-4 py-20">
+                    {{-- Mobile: Scroll View --}}
+                    <div x-show="isMobile" x-cloak class="h-full overflow-y-auto pt-20 pb-4 px-4">
+                        <div class="max-w-lg mx-auto space-y-4">
+                            <template x-for="(page, index) in pages" :key="index">
+                                <div class="relative bg-white rounded-lg shadow-lg overflow-hidden">
+                                    <img :src="page" class="w-full h-auto" alt="">
+                                    <div class="absolute bottom-2 right-2 px-2 py-1 bg-black/50 text-white text-xs rounded-full">
+                                        <span x-text="(index + 1) + ' / ' + pages.length"></span>
+                                    </div>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+
+                    {{-- Desktop: Flipbook View --}}
+                    <div x-show="!isMobile" x-cloak class="h-full flex items-center justify-center px-4 py-20">
                         <div class="relative w-full max-w-5xl h-[70vh]">
-                            {{-- Book --}}
-                            <div class="relative h-full flex items-center justify-center perspective-1000">
+                            <div class="relative h-full flex items-center justify-center">
                                 {{-- Left Page --}}
                                 <div class="relative w-1/2 h-full bg-white shadow-2xl rounded-l-lg overflow-hidden"
                                      :class="currentPage === 0 ? 'opacity-50' : ''">
@@ -560,7 +629,6 @@
                                             </div>
                                         </div>
                                     </template>
-                                    {{-- Page number --}}
                                     <div class="absolute bottom-4 left-4 px-3 py-1 bg-black/50 text-white text-sm rounded-full" x-show="currentPage > 0">
                                         <span x-text="currentPage"></span>
                                     </div>
@@ -583,7 +651,6 @@
                                             </div>
                                         </div>
                                     </template>
-                                    {{-- Page number --}}
                                     <div class="absolute bottom-4 right-4 px-3 py-1 bg-black/50 text-white text-sm rounded-full" x-show="currentPage < pages.length">
                                         <span x-text="currentPage + 1"></span>
                                     </div>
@@ -592,22 +659,21 @@
 
                             {{-- Navigation Arrows --}}
                             <button @click="prevPage()" 
-                                    class="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-16 p-4 rounded-full bg-white/10 text-white hover:bg-white/20 transition disabled:opacity-30 disabled:cursor-not-allowed"
+                                    class="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-16 p-4 rounded-full bg-white/10 text-white hover:bg-white/20 transition disabled:opacity-30"
                                     :disabled="currentPage === 0">
                                 <i class="ph ph-caret-left text-3xl"></i>
                             </button>
                             <button @click="nextPage()" 
-                                    class="absolute right-0 top-1/2 -translate-y-1/2 translate-x-16 p-4 rounded-full bg-white/10 text-white hover:bg-white/20 transition disabled:opacity-30 disabled:cursor-not-allowed"
+                                    class="absolute right-0 top-1/2 -translate-y-1/2 translate-x-16 p-4 rounded-full bg-white/10 text-white hover:bg-white/20 transition disabled:opacity-30"
                                     :disabled="currentPage >= pages.length">
                                 <i class="ph ph-caret-right text-3xl"></i>
                             </button>
                         </div>
                     </div>
 
-                    {{-- Footer Controls --}}
-                    <div class="absolute bottom-0 left-0 right-0 z-10 bg-gradient-to-t from-black/80 to-transparent p-4">
+                    {{-- Footer Controls (Desktop only) --}}
+                    <div x-show="!isMobile" class="absolute bottom-0 left-0 right-0 z-10 bg-gradient-to-t from-black/80 to-transparent p-4">
                         <div class="max-w-6xl mx-auto">
-                            {{-- Page indicator --}}
                             <div class="flex items-center justify-center gap-4 text-white">
                                 <span class="text-sm">Halaman</span>
                                 <div class="flex items-center gap-2">
@@ -638,11 +704,16 @@
                 </div>
 
                 <script>
-                    function flipbook(config) {
+                    function imageViewer(config) {
                         return {
                             pages: config.pages || [],
                             title: config.title || '',
                             currentPage: 0,
+                            isMobile: window.innerWidth < 768,
+                            
+                            checkMobile() {
+                                this.isMobile = window.innerWidth < 768;
+                            },
                             
                             nextPage() {
                                 if (this.currentPage < this.pages.length) {
@@ -663,7 +734,6 @@
                             },
                             
                             goToPage(index) {
-                                // Make the clicked page appear on the right side
                                 this.currentPage = index % 2 === 0 ? index : index - 1;
                             }
                         }
