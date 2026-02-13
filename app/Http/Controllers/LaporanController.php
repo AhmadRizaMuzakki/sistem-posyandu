@@ -17,9 +17,24 @@ use Illuminate\Support\Facades\Auth;
 class LaporanController extends Controller
 {
     /**
+     * Apply filter bulan & tahun pada query imunisasi.
+     */
+    private function applyBulanTahunFilter($query, Request $request): void
+    {
+        $bulan = $request->query('bulan');
+        $tahun = $request->query('tahun');
+        if ($bulan && is_numeric($bulan) && $bulan >= 1 && $bulan <= 12) {
+            $query->whereMonth('tanggal_imunisasi', (int) $bulan);
+        }
+        if ($tahun && is_numeric($tahun) && $tahun >= 2000 && $tahun <= 2100) {
+            $query->whereYear('tanggal_imunisasi', (int) $tahun);
+        }
+    }
+
+    /**
      * Generate laporan imunisasi Posyandu (admin Posyandu) dalam bentuk PDF.
      */
-    public function posyanduImunisasiPdf(?string $kategori = null): Response
+    public function posyanduImunisasiPdf(Request $request, ?string $kategori = null): Response
     {
         $user = Auth::user();
 
@@ -41,6 +56,8 @@ class LaporanController extends Controller
             $query->where('kategori_sasaran', $kategori);
         }
 
+        $this->applyBulanTahunFilter($query, $request);
+
         $imunisasiList = $query->orderBy('tanggal_imunisasi', 'desc')->get();
 
         $kategoriLabel = $kategori && $kategori !== 'semua' ? $this->getKategoriLabel($kategori) : 'Semua';
@@ -59,7 +76,7 @@ class LaporanController extends Controller
     /**
      * Generate laporan imunisasi Posyandu berdasarkan jenis vaksin (admin Posyandu).
      */
-    public function posyanduImunisasiPdfByJenisVaksin(string $jenisVaksin): Response
+    public function posyanduImunisasiPdfByJenisVaksin(Request $request, string $jenisVaksin): Response
     {
         $user = Auth::user();
 
@@ -73,11 +90,11 @@ class LaporanController extends Controller
 
         $posyandu = $kader->posyandu;
 
-        $imunisasiList = Imunisasi::with(['user'])
+        $query = Imunisasi::with(['user'])
             ->where('id_posyandu', $posyandu->id_posyandu)
-            ->where('jenis_imunisasi', urldecode($jenisVaksin))
-            ->orderBy('tanggal_imunisasi', 'desc')
-            ->get();
+            ->where('jenis_imunisasi', urldecode($jenisVaksin));
+        $this->applyBulanTahunFilter($query, $request);
+        $imunisasiList = $query->orderBy('tanggal_imunisasi', 'desc')->get();
 
         $jenisVaksinLabel = urldecode($jenisVaksin);
         $fileName = 'Laporan-Imunisasi-'.str_replace(['/', ' '], ['-', '-'], $jenisVaksinLabel).'-'.$posyandu->nama_posyandu.'-'.now('Asia/Jakarta')->format('Ymd_His').'.pdf';
@@ -96,7 +113,7 @@ class LaporanController extends Controller
     /**
      * Generate laporan imunisasi Posyandu berdasarkan nama sasaran (admin Posyandu).
      */
-    public function posyanduImunisasiPdfByNama(string $nama): Response
+    public function posyanduImunisasiPdfByNama(Request $request, string $nama): Response
     {
         $user = Auth::user();
 
@@ -112,10 +129,10 @@ class LaporanController extends Controller
         $namaDecoded = urldecode($nama);
 
         // Get all imunisasi for this posyandu
-        $allImunisasi = Imunisasi::with(['user'])
-            ->where('id_posyandu', $posyandu->id_posyandu)
-            ->orderBy('tanggal_imunisasi', 'desc')
-            ->get();
+        $query = Imunisasi::with(['user'])
+            ->where('id_posyandu', $posyandu->id_posyandu);
+        $this->applyBulanTahunFilter($query, $request);
+        $allImunisasi = $query->orderBy('tanggal_imunisasi', 'desc')->get();
 
         // Preload sasaran untuk menghindari N+1 query
         Imunisasi::preloadSasaran($allImunisasi);
@@ -146,7 +163,7 @@ class LaporanController extends Controller
     /**
      * Generate laporan imunisasi Posyandu untuk Super Admin (berdasarkan ID Posyandu).
      */
-    public function superadminPosyanduImunisasiPdf(string $id, ?string $kategori = null): Response
+    public function superadminPosyanduImunisasiPdf(Request $request, string $id, ?string $kategori = null): Response
     {
         try {
             $decryptedId = decrypt($id);
@@ -163,6 +180,8 @@ class LaporanController extends Controller
         if ($kategori && $kategori !== 'semua') {
             $query->where('kategori_sasaran', $kategori);
         }
+
+        $this->applyBulanTahunFilter($query, $request);
 
         $imunisasiList = $query->orderBy('tanggal_imunisasi', 'desc')->get();
 
@@ -184,7 +203,7 @@ class LaporanController extends Controller
     /**
      * Generate laporan imunisasi Posyandu berdasarkan jenis vaksin untuk Super Admin.
      */
-    public function superadminPosyanduImunisasiPdfByJenisVaksin(string $id, string $jenisVaksin): Response
+    public function superadminPosyanduImunisasiPdfByJenisVaksin(Request $request, string $id, string $jenisVaksin): Response
     {
         try {
             $decryptedId = decrypt($id);
@@ -194,11 +213,11 @@ class LaporanController extends Controller
 
         $posyandu = Posyandu::findOrFail($decryptedId);
 
-        $imunisasiList = Imunisasi::with(['user'])
+        $query = Imunisasi::with(['user'])
             ->where('id_posyandu', $posyandu->id_posyandu)
-            ->where('jenis_imunisasi', urldecode($jenisVaksin))
-            ->orderBy('tanggal_imunisasi', 'desc')
-            ->get();
+            ->where('jenis_imunisasi', urldecode($jenisVaksin));
+        $this->applyBulanTahunFilter($query, $request);
+        $imunisasiList = $query->orderBy('tanggal_imunisasi', 'desc')->get();
 
         $user = Auth::user();
         $jenisVaksinLabel = urldecode($jenisVaksin);
@@ -218,7 +237,7 @@ class LaporanController extends Controller
     /**
      * Generate laporan imunisasi Posyandu berdasarkan nama sasaran untuk Super Admin.
      */
-    public function superadminPosyanduImunisasiPdfByNama(string $id, string $nama): Response
+    public function superadminPosyanduImunisasiPdfByNama(Request $request, string $id, string $nama): Response
     {
         try {
             $decryptedId = decrypt($id);
@@ -230,10 +249,10 @@ class LaporanController extends Controller
         $namaDecoded = urldecode($nama);
 
         // Get all imunisasi for this posyandu
-        $allImunisasi = Imunisasi::with(['user'])
-            ->where('id_posyandu', $posyandu->id_posyandu)
-            ->orderBy('tanggal_imunisasi', 'desc')
-            ->get();
+        $query = Imunisasi::with(['user'])
+            ->where('id_posyandu', $posyandu->id_posyandu);
+        $this->applyBulanTahunFilter($query, $request);
+        $allImunisasi = $query->orderBy('tanggal_imunisasi', 'desc')->get();
 
         // Preload sasaran untuk menghindari N+1 query
         Imunisasi::preloadSasaran($allImunisasi);

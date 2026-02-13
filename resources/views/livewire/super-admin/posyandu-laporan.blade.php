@@ -56,6 +56,27 @@
                     <h3 class="text-base font-semibold text-gray-800">Export dengan Filter</h3>
                 </div>
                 <div class="space-y-4">
+                    {{-- Filter Tahun & Bulan --}}
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Filter Tahun</label>
+                            <select id="filterTahunImunisasi" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-primary focus:border-primary">
+                                <option value="">Semua Tahun</option>
+                                @foreach(range(now()->year, now()->year - 5) as $y)
+                                    <option value="{{ $y }}" {{ $y == now()->year ? 'selected' : '' }}>{{ $y }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Filter Bulan</label>
+                            <select id="filterBulanImunisasi" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-primary focus:border-primary">
+                                <option value="">Semua Bulan</option>
+                                @foreach(range(1, 12) as $m)
+                                    <option value="{{ $m }}" {{ $m == now()->month ? 'selected' : '' }}>{{ \Carbon\Carbon::create(now()->year, $m, 1)->locale('id')->translatedFormat('F') }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                    </div>
                     {{-- Filter Kategori Sasaran --}}
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-2">Filter berdasarkan Kategori Sasaran</label>
@@ -227,17 +248,25 @@
         const kategori = document.getElementById('filterKategori').value;
         const jenisVaksin = document.getElementById('filterJenisVaksin').value;
         const namaSasaran = document.getElementById('filterNamaSasaran').value;
-        
-        if (kategori) {
-            window.open(kategori, '_blank');
-        } else if (jenisVaksin) {
-            window.open(jenisVaksin, '_blank');
-        } else if (namaSasaran) {
-            window.open(namaSasaran, '_blank');
+        const tahun = document.getElementById('filterTahunImunisasi').value;
+        const bulan = document.getElementById('filterBulanImunisasi').value;
+
+        let url = kategori || jenisVaksin || namaSasaran;
+        if (!url) {
+            url = '{{ route("superadmin.posyandu.laporan.pdf", ["id" => encrypt($posyandu->id_posyandu)]) }}';
+        }
+        const params = new URLSearchParams();
+        if (tahun) params.append('tahun', tahun);
+        if (bulan) params.append('bulan', bulan);
+        const qs = params.toString();
+        if (qs) url += (url.includes('?') ? '&' : '?') + qs;
+
+        if (kategori || jenisVaksin || namaSasaran || tahun || bulan) {
+            window.open(url, '_blank');
         } else {
             window.dispatchEvent(new CustomEvent('show-alert', {
                 detail: {
-                    message: 'Pilih salah satu filter terlebih dahulu',
+                    message: 'Pilih minimal satu filter terlebih dahulu',
                     type: 'warning'
                 }
             }));

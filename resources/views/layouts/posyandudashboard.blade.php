@@ -150,58 +150,84 @@
                     <i class="ph ph-list text-2xl"></i>
                 </button>
 
-                <div class="hidden md:flex relative mx-4 w-full max-w-md">
-                    <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
-                        <i class="ph ph-magnifying-glass text-lg"></i>
-                    </span>
-                    <input type="text"
-                        class="w-full py-2 pl-10 pr-4 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
-                        placeholder="Cari data...">
+                {{-- Widget: Tanggal & Jam + Statistik + Quick links --}}
+                @php
+                    $kaderHeader = \App\Models\Kader::where('id_users', Auth::id())->first();
+                    $posyanduHeader = $kaderHeader?->posyandu;
+                    $totalSasaranHeader = 0;
+                    $imunisasiBulanIniHeader = 0;
+                    $jadwalHariIniHeader = 0;
+                    if ($posyanduHeader) {
+                        $pid = $posyanduHeader->id_posyandu;
+                        $totalSasaranHeader = \App\Models\SasaranBayibalita::where('id_posyandu', $pid)->count()
+                            + \App\Models\SasaranRemaja::where('id_posyandu', $pid)->count()
+                            + \App\Models\SasaranDewasa::where('id_posyandu', $pid)->count()
+                            + \App\Models\SasaranIbuhamil::where('id_posyandu', $pid)->count()
+                            + \App\Models\SasaranPralansia::where('id_posyandu', $pid)->count()
+                            + \App\Models\SasaranLansia::where('id_posyandu', $pid)->count();
+                        $imunisasiBulanIniHeader = \App\Models\Imunisasi::where('id_posyandu', $pid)->whereMonth('tanggal_imunisasi', now()->month)->whereYear('tanggal_imunisasi', now()->year)->count();
+                        $jadwalHariIniHeader = \App\Models\Jadwal::where('id_posyandu', $pid)->whereDate('tanggal_jadwal', now()->toDateString())->count();
+                    }
+                    $jam = (int) now()->format('H');
+                    $salam = ($jam >= 19 || $jam <= 2) ? 'Malam' : (($jam >= 3 && $jam <= 10) ? 'Pagi' : (($jam >= 11 && $jam <= 14) ? 'Siang' : (($jam >= 15 && $jam <= 17) ? 'Sore' : 'Magrib')));
+                @endphp
+                <div class="hidden md:flex items-center gap-3 flex-1 ml-4 overflow-x-auto">
+                    {{-- Tanggal & Jam --}}
+                    <div class="flex items-center gap-2 px-3 py-2 bg-gray-50 rounded-lg border border-gray-100 flex-shrink-0">
+                        <i class="ph ph-calendar-blank text-primary text-lg"></i>
+                        <div>
+                            <p class="text-xs text-gray-500 leading-tight">Selamat {{ $salam }}</p>
+                            <p class="text-sm font-medium text-gray-800" x-data="{ now: new Date() }" x-init="setInterval(() => { now = new Date() }, 1000)" x-text="now.toLocaleDateString('id-ID', { weekday: 'short', day: 'numeric', month: 'short' }) + ' · ' + now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })"></p>
+                        </div>
+                    </div>
+                    {{-- Widget Statistik --}}
+                    @if($posyanduHeader)
+                    <a href="{{ route('adminPosyandu.sasaran') }}" class="hidden xl:flex items-center gap-2 px-3 py-2 bg-green-50 rounded-lg border border-green-100 flex-shrink-0 hover:bg-green-100/80 transition-colors">
+                        <i class="ph ph-users-three text-green-600 text-lg"></i>
+                        <div>
+                            <p class="text-xs text-green-600/80">Total Sasaran</p>
+                            <p class="text-sm font-semibold text-green-800">{{ number_format($totalSasaranHeader) }}</p>
+                        </div>
+                    </a>
+                    <a href="{{ route('adminPosyandu.imunisasi') }}" class="hidden xl:flex items-center gap-2 px-3 py-2 bg-blue-50 rounded-lg border border-blue-100 flex-shrink-0 hover:bg-blue-100/80 transition-colors">
+                        <i class="ph ph-syringe text-blue-600 text-lg"></i>
+                        <div>
+                            <p class="text-xs text-blue-600/80">Imunisasi {{ now()->translatedFormat('M') }}</p>
+                            <p class="text-sm font-semibold text-blue-800">{{ number_format($imunisasiBulanIniHeader) }}</p>
+                        </div>
+                    </a>
+                    <a href="{{ route('adminPosyandu.jadwal') }}" class="hidden xl:flex items-center gap-2 px-3 py-2 bg-amber-50 rounded-lg border border-amber-100 flex-shrink-0 hover:bg-amber-100/80 transition-colors">
+                        <i class="ph ph-calendar-check text-amber-600 text-lg"></i>
+                        <div>
+                            <p class="text-xs text-amber-600/80">Jadwal Hari Ini</p>
+                            <p class="text-sm font-semibold text-amber-800">{{ $jadwalHariIniHeader }}</p>
+                        </div>
+                    </a>
+                    @endif
+                    {{-- Quick links --}}
+                    <a href="{{ route('adminPosyandu.imunisasi') }}" class="hidden lg:flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:bg-primary/5 hover:text-primary rounded-lg transition-colors flex-shrink-0">
+                        <i class="ph ph-syringe text-lg"></i>
+                        <span>Imunisasi</span>
+                    </a>
+                    <a href="{{ route('adminPosyandu.jadwal') }}" class="hidden lg:flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:bg-primary/5 hover:text-primary rounded-lg transition-colors flex-shrink-0">
+                        <i class="ph ph-calendar text-lg"></i>
+                        <span>Jadwal</span>
+                    </a>
+                    <a href="{{ route('adminPosyandu.sasaran') }}" class="hidden lg:flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:bg-primary/5 hover:text-primary rounded-lg transition-colors flex-shrink-0">
+                        <i class="ph ph-users-three text-lg"></i>
+                        <span>Sasaran</span>
+                    </a>
+                    <a href="{{ route('adminPosyandu.laporan') }}" class="hidden lg:flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:bg-primary/5 hover:text-primary rounded-lg transition-colors flex-shrink-0">
+                        <i class="ph ph-file-pdf text-lg"></i>
+                        <span>Laporan</span>
+                    </a>
+                    <a href="{{ route('adminPosyandu.galeri') }}" class="hidden lg:flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:bg-primary/5 hover:text-primary rounded-lg transition-colors flex-shrink-0">
+                        <i class="ph ph-images text-lg"></i>
+                        <span>Galeri</span>
+                    </a>
                 </div>
 
                 <div class="flex items-center space-x-4">
-                    {{-- Notifikasi --}}
-                    <div class="relative" x-data="{ open: false }">
-                        <button @click="open = !open" @click.outside="open = false"
-                            class="relative p-2 text-gray-400 hover:text-primary hover:bg-gray-100 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-primary/30">
-                            <i class="ph ph-bell text-xl"></i>
-                            <span class="absolute top-1 right-1 block w-2 h-2 bg-red-500 rounded-full ring-2 ring-white"></span>
-                        </button>
-                        <div x-show="open" x-transition
-                            class="absolute right-0 mt-2 w-80 bg-white rounded-xl shadow-lg border border-gray-200 z-50 overflow-hidden"
-                            style="display: none;">
-                            <div class="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
-                                <h3 class="font-semibold text-gray-800">Notifikasi</h3>
-                                <span class="text-xs text-gray-500">Baru</span>
-                            </div>
-                            <div class="max-h-80 overflow-y-auto">
-                                <a href="#" class="flex gap-3 px-4 py-3 hover:bg-gray-50 transition-colors border-b border-gray-50">
-                                    <div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                                        <i class="ph ph-calendar-check text-primary text-lg"></i>
-                                    </div>
-                                    <div class="flex-1 min-w-0">
-                                        <p class="text-sm font-medium text-gray-800">Jadwal posyandu bulan ini</p>
-                                        <p class="text-xs text-gray-500 mt-0.5">Pastikan jadwal sudah diisi untuk {{ now()->locale('id')->translatedFormat('F Y') }}</p>
-                                    </div>
-                                </a>
-                                <a href="{{ route('adminPosyandu.laporan') }}" class="flex gap-3 px-4 py-3 hover:bg-gray-50 transition-colors border-b border-gray-50">
-                                    <div class="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center flex-shrink-0">
-                                        <i class="ph ph-chart-bar text-amber-600 text-lg"></i>
-                                    </div>
-                                    <div class="flex-1 min-w-0">
-                                        <p class="text-sm font-medium text-gray-800">Laporan bulanan</p>
-                                        <p class="text-xs text-gray-500 mt-0.5">Lengkapi laporan kehadiran dan imunisasi</p>
-                                    </div>
-                                </a>
-                                <div class="px-4 py-3 text-center">
-                                    <p class="text-xs text-gray-400">Tidak ada notifikasi lain</p>
-                                </div>
-                            </div>
-                            <a href="#" class="block px-4 py-3 text-center text-sm font-medium text-primary hover:bg-gray-50 border-t border-gray-100">
-                                Lihat semua notifikasi
-                            </a>
-                        </div>
-                    </div>
                     <div class="relative flex items-center space-x-2">
                         <img class="w-8 h-8 rounded-full"
                             src="https://ui-avatars.com/api/?name={{ urlencode(Auth::user()->name ?? 'Admin') }}&background=0D8ABC&color=fff"
