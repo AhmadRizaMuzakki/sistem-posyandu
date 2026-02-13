@@ -102,13 +102,14 @@
                         <li><strong>Gagal:</strong> {{ $importResult['errors'] ?? 0 }}</li>
                     </ul>
                     @if(($allError || $partial) && !empty($importResult['errorDetails'] ?? []))
-                        <div class="mt-3 text-xs text-red-700 space-y-1 max-h-32 overflow-y-auto">
-                            @foreach(array_slice($importResult['errorDetails'] ?? [], 0, 5) as $detail)
-                                <p>{{ $detail }}</p>
+                        <div class="mt-3 text-xs text-red-700 space-y-2 max-h-40 overflow-y-auto">
+                            @foreach(array_slice($importResult['errorDetails'] ?? [], 0, 8) as $detail)
+                                <p class="leading-relaxed">{{ $detail }}</p>
                             @endforeach
-                            @if(count($importResult['errorDetails'] ?? []) > 5)
-                                <p>... dan {{ count($importResult['errorDetails']) - 5 }} error lainnya.</p>
+                            @if(count($importResult['errorDetails'] ?? []) > 8)
+                                <p class="text-red-600/80">... dan {{ count($importResult['errorDetails']) - 8 }} baris lainnya gagal.</p>
                             @endif
+                            <p class="text-red-600/90 mt-2 font-medium">Tips: Gunakan format pendidikan (SMP, SMA, S1) dan pekerjaan (PNS, Wiraswasta) sesuai template. Kepersertaan BPJS: PBI atau NON PBI.</p>
                         </div>
                     @elseif($allError && $total > 0)
                         <p class="mt-2 text-xs text-red-700">Periksa kolom wajib dan format data (tanggal, jenis kelamin, pendidikan, pekerjaan).</p>

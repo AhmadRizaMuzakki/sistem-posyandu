@@ -150,81 +150,19 @@
                     <i class="ph ph-list text-2xl"></i>
                 </button>
 
-                {{-- Widget: Tanggal & Jam + Statistik + Quick links --}}
-                @php
-                    $kaderHeader = \App\Models\Kader::where('id_users', Auth::id())->first();
-                    $posyanduHeader = $kaderHeader?->posyandu;
-                    $totalSasaranHeader = 0;
-                    $imunisasiBulanIniHeader = 0;
-                    $jadwalHariIniHeader = 0;
-                    if ($posyanduHeader) {
-                        $pid = $posyanduHeader->id_posyandu;
-                        $totalSasaranHeader = \App\Models\SasaranBayibalita::where('id_posyandu', $pid)->count()
-                            + \App\Models\SasaranRemaja::where('id_posyandu', $pid)->count()
-                            + \App\Models\SasaranDewasa::where('id_posyandu', $pid)->count()
-                            + \App\Models\SasaranIbuhamil::where('id_posyandu', $pid)->count()
-                            + \App\Models\SasaranPralansia::where('id_posyandu', $pid)->count()
-                            + \App\Models\SasaranLansia::where('id_posyandu', $pid)->count();
-                        $imunisasiBulanIniHeader = \App\Models\Imunisasi::where('id_posyandu', $pid)->whereMonth('tanggal_imunisasi', now()->month)->whereYear('tanggal_imunisasi', now()->year)->count();
-                        $jadwalHariIniHeader = \App\Models\Jadwal::where('id_posyandu', $pid)->whereDate('tanggal_jadwal', now()->toDateString())->count();
-                    }
-                    $jam = (int) now()->format('H');
-                    $salam = ($jam >= 19 || $jam <= 2) ? 'Malam' : (($jam >= 3 && $jam <= 10) ? 'Pagi' : (($jam >= 11 && $jam <= 14) ? 'Siang' : (($jam >= 15 && $jam <= 17) ? 'Sore' : 'Magrib')));
-                @endphp
-                <div class="hidden md:flex items-center gap-3 flex-1 ml-4 overflow-x-auto">
-                    {{-- Tanggal & Jam --}}
-                    <div class="flex items-center gap-2 px-3 py-2 bg-gray-50 rounded-lg border border-gray-100 flex-shrink-0">
-                        <i class="ph ph-calendar-blank text-primary text-lg"></i>
+                {{-- Salam + Jam --}}
+                <div class="hidden md:flex items-center flex-1 ml-4">
+                    <div class="flex items-center gap-2 px-3 py-2 bg-gray-50 rounded-lg border border-gray-100">
+                        <i class="ph ph-clock text-primary text-lg"></i>
                         <div>
+                            @php
+                                $jam = (int) now('Asia/Jakarta')->format('H');
+                                $salam = ($jam >= 19 || $jam <= 2) ? 'Malam' : (($jam >= 3 && $jam <= 10) ? 'Pagi' : (($jam >= 11 && $jam <= 14) ? 'Siang' : (($jam >= 15 && $jam <= 17) ? 'Sore' : 'Magrib')));
+                            @endphp
                             <p class="text-xs text-gray-500 leading-tight">Selamat {{ $salam }}</p>
-                            <p class="text-sm font-medium text-gray-800" x-data="{ now: new Date() }" x-init="setInterval(() => { now = new Date() }, 1000)" x-text="now.toLocaleDateString('id-ID', { weekday: 'short', day: 'numeric', month: 'short' }) + ' · ' + now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })"></p>
+                            <p class="text-sm font-medium text-gray-800" x-data="{ now: new Date() }" x-init="setInterval(() => { now = new Date() }, 1000)" x-text="now.toLocaleDateString('id-ID', { weekday: 'short', day: 'numeric', month: 'short' }) + ' · ' + now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' })"></p>
                         </div>
                     </div>
-                    {{-- Widget Statistik --}}
-                    @if($posyanduHeader)
-                    <a href="{{ route('adminPosyandu.sasaran') }}" class="hidden xl:flex items-center gap-2 px-3 py-2 bg-green-50 rounded-lg border border-green-100 flex-shrink-0 hover:bg-green-100/80 transition-colors">
-                        <i class="ph ph-users-three text-green-600 text-lg"></i>
-                        <div>
-                            <p class="text-xs text-green-600/80">Total Sasaran</p>
-                            <p class="text-sm font-semibold text-green-800">{{ number_format($totalSasaranHeader) }}</p>
-                        </div>
-                    </a>
-                    <a href="{{ route('adminPosyandu.imunisasi') }}" class="hidden xl:flex items-center gap-2 px-3 py-2 bg-blue-50 rounded-lg border border-blue-100 flex-shrink-0 hover:bg-blue-100/80 transition-colors">
-                        <i class="ph ph-syringe text-blue-600 text-lg"></i>
-                        <div>
-                            <p class="text-xs text-blue-600/80">Imunisasi {{ now()->translatedFormat('M') }}</p>
-                            <p class="text-sm font-semibold text-blue-800">{{ number_format($imunisasiBulanIniHeader) }}</p>
-                        </div>
-                    </a>
-                    <a href="{{ route('adminPosyandu.jadwal') }}" class="hidden xl:flex items-center gap-2 px-3 py-2 bg-amber-50 rounded-lg border border-amber-100 flex-shrink-0 hover:bg-amber-100/80 transition-colors">
-                        <i class="ph ph-calendar-check text-amber-600 text-lg"></i>
-                        <div>
-                            <p class="text-xs text-amber-600/80">Jadwal Hari Ini</p>
-                            <p class="text-sm font-semibold text-amber-800">{{ $jadwalHariIniHeader }}</p>
-                        </div>
-                    </a>
-                    @endif
-                    {{-- Quick links --}}
-                    <a href="{{ route('adminPosyandu.imunisasi') }}" class="hidden lg:flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:bg-primary/5 hover:text-primary rounded-lg transition-colors flex-shrink-0">
-                        <i class="ph ph-syringe text-lg"></i>
-                        <span>Imunisasi</span>
-                    </a>
-                    <a href="{{ route('adminPosyandu.jadwal') }}" class="hidden lg:flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:bg-primary/5 hover:text-primary rounded-lg transition-colors flex-shrink-0">
-                        <i class="ph ph-calendar text-lg"></i>
-                        <span>Jadwal</span>
-                    </a>
-                    <a href="{{ route('adminPosyandu.sasaran') }}" class="hidden lg:flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:bg-primary/5 hover:text-primary rounded-lg transition-colors flex-shrink-0">
-                        <i class="ph ph-users-three text-lg"></i>
-                        <span>Sasaran</span>
-                    </a>
-                    <a href="{{ route('adminPosyandu.laporan') }}" class="hidden lg:flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:bg-primary/5 hover:text-primary rounded-lg transition-colors flex-shrink-0">
-                        <i class="ph ph-file-pdf text-lg"></i>
-                        <span>Laporan</span>
-                    </a>
-                    <a href="{{ route('adminPosyandu.galeri') }}" class="hidden lg:flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:bg-primary/5 hover:text-primary rounded-lg transition-colors flex-shrink-0">
-                        <i class="ph ph-images text-lg"></i>
-                        <span>Galeri</span>
-                    </a>
                 </div>
 
                 <div class="flex items-center space-x-4">

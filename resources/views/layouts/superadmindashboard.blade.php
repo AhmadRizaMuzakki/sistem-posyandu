@@ -308,62 +308,19 @@
                     <i class="ph ph-list text-2xl"></i>
                 </button>
 
-                {{-- Widget: Tanggal & Jam + Statistik + Quick links --}}
-                @php
-                    $totalPosyanduHeader = \App\Models\Posyandu::count();
-                    $totalImunisasiBulanHeader = \App\Models\Imunisasi::whereMonth('tanggal_imunisasi', now()->month)->whereYear('tanggal_imunisasi', now()->year)->count();
-                    $totalKaderHeader = \App\Models\Kader::count();
-                    $jam = (int) now()->format('H');
-                    $salam = ($jam >= 19 || $jam <= 2) ? 'Malam' : (($jam >= 3 && $jam <= 10) ? 'Pagi' : (($jam >= 11 && $jam <= 14) ? 'Siang' : (($jam >= 15 && $jam <= 17) ? 'Sore' : 'Magrib')));
-                @endphp
-                <div class="hidden md:flex items-center gap-3 flex-1 ml-4 overflow-x-auto">
-                    {{-- Tanggal & Jam --}}
-                    <div class="flex items-center gap-2 px-3 py-2 bg-gray-50 rounded-lg border border-gray-100 flex-shrink-0">
-                        <i class="ph ph-calendar-blank text-primary text-lg"></i>
+                {{-- Salam + Jam --}}
+                <div class="hidden md:flex items-center flex-1 ml-4">
+                    <div class="flex items-center gap-2 px-3 py-2 bg-gray-50 rounded-lg border border-gray-100">
+                        <i class="ph ph-clock text-primary text-lg"></i>
                         <div>
+                            @php
+                                $jam = (int) now('Asia/Jakarta')->format('H');
+                                $salam = ($jam >= 19 || $jam <= 2) ? 'Malam' : (($jam >= 3 && $jam <= 10) ? 'Pagi' : (($jam >= 11 && $jam <= 14) ? 'Siang' : (($jam >= 15 && $jam <= 17) ? 'Sore' : 'Magrib')));
+                            @endphp
                             <p class="text-xs text-gray-500 leading-tight">Selamat {{ $salam }}</p>
-                            <p class="text-sm font-medium text-gray-800" x-data="{ now: new Date() }" x-init="setInterval(() => { now = new Date() }, 1000)" x-text="now.toLocaleDateString('id-ID', { weekday: 'short', day: 'numeric', month: 'short' }) + ' · ' + now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })"></p>
+                            <p class="text-sm font-medium text-gray-800" x-data="{ now: new Date() }" x-init="setInterval(() => { now = new Date() }, 1000)" x-text="now.toLocaleDateString('id-ID', { weekday: 'short', day: 'numeric', month: 'short' }) + ' · ' + now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' })"></p>
                         </div>
                     </div>
-                    {{-- Widget Statistik --}}
-                    <a href="{{ route('posyandu.list') }}" class="hidden xl:flex items-center gap-2 px-3 py-2 bg-primary/5 rounded-lg border border-primary/20 flex-shrink-0 hover:bg-primary/10 transition-colors">
-                        <i class="ph ph-buildings text-primary text-lg"></i>
-                        <div>
-                            <p class="text-xs text-primary/80">Posyandu</p>
-                            <p class="text-sm font-semibold text-primary">{{ number_format($totalPosyanduHeader) }}</p>
-                        </div>
-                    </a>
-                    <a href="{{ route('posyandu.list') }}" class="hidden xl:flex items-center gap-2 px-3 py-2 bg-blue-50 rounded-lg border border-blue-100 flex-shrink-0 hover:bg-blue-100/80 transition-colors">
-                        <i class="ph ph-syringe text-blue-600 text-lg"></i>
-                        <div>
-                            <p class="text-xs text-blue-600/80">Imunisasi {{ now()->translatedFormat('M') }}</p>
-                            <p class="text-sm font-semibold text-blue-800">{{ number_format($totalImunisasiBulanHeader) }}</p>
-                        </div>
-                    </a>
-                    <div class="hidden xl:flex items-center gap-2 px-3 py-2 bg-amber-50 rounded-lg border border-amber-100 flex-shrink-0">
-                        <i class="ph ph-users text-amber-600 text-lg"></i>
-                        <div>
-                            <p class="text-xs text-amber-600/80">Total Kader</p>
-                            <p class="text-sm font-semibold text-amber-800">{{ number_format($totalKaderHeader) }}</p>
-                        </div>
-                    </div>
-                    {{-- Quick links --}}
-                    <a href="{{ route('admin.dashboard') }}" class="hidden lg:flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:bg-primary/5 hover:text-primary rounded-lg transition-colors flex-shrink-0">
-                        <i class="ph ph-chart-pie-slice text-lg"></i>
-                        <span>Dashboard</span>
-                    </a>
-                    <a href="{{ route('posyandu.list') }}" class="hidden lg:flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:bg-primary/5 hover:text-primary rounded-lg transition-colors flex-shrink-0">
-                        <i class="ph ph-buildings text-lg"></i>
-                        <span>Posyandu</span>
-                    </a>
-                    <a href="{{ route('superadmin.galeri') }}" class="hidden lg:flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:bg-primary/5 hover:text-primary rounded-lg transition-colors flex-shrink-0">
-                        <i class="ph ph-images text-lg"></i>
-                        <span>Galeri</span>
-                    </a>
-                    <a href="{{ route('pengaturan') }}" class="hidden lg:flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:bg-primary/5 hover:text-primary rounded-lg transition-colors flex-shrink-0">
-                        <i class="ph ph-gear text-lg"></i>
-                        <span>Pengaturan</span>
-                    </a>
                 </div>
 
                 <div class="flex items-center space-x-4">

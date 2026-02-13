@@ -284,6 +284,41 @@ trait SasaranImportTrait
         }, $headers);
     }
 
+    /**
+     * Ubah pesan error teknis (SQL/database) menjadi pesan yang mudah dipahami pengguna.
+     */
+    private function formatImportErrorMessage(\Throwable $e): string
+    {
+        $msg = $e->getMessage();
+
+        // Data truncated for column 'X' at row 1
+        if (preg_match('/Data truncated for column [\'"]([^\'"]+)[\'"]/i', $msg, $m)) {
+            $col = $m[1];
+            $label = [
+                'kepersertaan_bpjs' => 'Kepersertaan BPJS',
+                'nomor_bpjs' => 'Nomor BPJS',
+                'pendidikan' => 'Pendidikan',
+                'pekerjaan' => 'Pekerjaan',
+                'nama_sasaran' => 'Nama',
+                'nik_sasaran' => 'NIK',
+                'alamat_sasaran' => 'Alamat',
+            ][$col] ?? ucfirst(str_replace('_', ' ', $col));
+            return "Kolom \"{$label}\" terlalu panjang atau format tidak sesuai. Periksa nilai yang diisi (gunakan PBI/NON PBI untuk BPJS, format benar untuk pendidikan/pekerjaan).";
+        }
+
+        // Incorrect integer/string value
+        if (preg_match('/Incorrect (integer|string|double) value/i', $msg) || preg_match('/Column [\'"]([^\'"]+)[\'"] cannot be null/i', $msg, $m)) {
+            return 'Data tidak valid. Periksa kolom wajib diisi dan format data (tanggal, jenis kelamin, pendidikan, pekerjaan).';
+        }
+
+        // SQLSTATE umum
+        if (str_contains($msg, 'SQLSTATE[') || str_contains($msg, 'Connection: mysql')) {
+            return 'Data tidak valid. Periksa format kolom wajib: tanggal lahir (YYYY-MM-DD), jenis kelamin (Laki-laki/Perempuan), pendidikan, pekerjaan. Pastikan tidak ada data yang salah kolom.';
+        }
+
+        return $msg;
+    }
+
     private function processImportRows(array $rows, int $posyanduId): array
     {
         $added = 0;
@@ -302,7 +337,7 @@ trait SasaranImportTrait
                 $added++;
             } catch (\Throwable $e) {
                 $errors++;
-                $errorDetails[] = 'Baris ' . ($idx + 2) . ': ' . $e->getMessage();
+                $errorDetails[] = 'Baris ' . ($idx + 2) . ': ' . $this->formatImportErrorMessage($e);
             }
         }
 
@@ -354,7 +389,7 @@ trait SasaranImportTrait
                 }
             } catch (\Throwable $e) {
                 $errors++;
-                $errorDetails[] = 'Baris ' . ($idx + 2) . ' (' . ($row['kategori'] ?? '') . '): ' . $e->getMessage();
+                $errorDetails[] = 'Baris ' . ($idx + 2) . ' (' . ($row['kategori'] ?? '') . '): ' . $this->formatImportErrorMessage($e);
             }
         }
 
