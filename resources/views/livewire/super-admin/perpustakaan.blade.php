@@ -22,7 +22,7 @@
             <div class="text-center py-16 text-gray-500">
                 <i class="ph ph-books text-6xl mb-4 block"></i>
                 <p class="text-lg">Belum ada buku di perpustakaan.</p>
-                <p class="text-sm mt-2">Pilih posyandu untuk menambah buku.</p>
+                <p class="text-sm mt-2">Klik tombol Tambah Buku untuk menambahkan buku baru.</p>
             </div>
         @else
             <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-6">
@@ -88,19 +88,8 @@
                         <i class="ph ph-book-open text-2xl mr-2 text-primary"></i>
                         Tambah Buku Baru
                     </h3>
-                    <form wire:submit.prevent="saveBook">
+                        <form wire:submit.prevent="saveBook">
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div class="md:col-span-2">
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Posyandu <span class="text-red-500">*</span></label>
-                                <select wire:model="posyanduId" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-primary focus:border-primary">
-                                    <option value="">-- Pilih Posyandu --</option>
-                                    @foreach($daftarPosyandu ?? [] as $p)
-                                        <option value="{{ $p->id_posyandu }}">{{ $p->nama_posyandu }}</option>
-                                    @endforeach
-                                </select>
-                                @error('posyanduId') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
-                            </div>
-
                             <div class="md:col-span-2">
                                 <label class="block text-sm font-medium text-gray-700 mb-1">Judul Buku <span class="text-red-500">*</span></label>
                                 <input type="text" wire:model="judul" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-primary focus:border-primary" placeholder="Masukkan judul buku">

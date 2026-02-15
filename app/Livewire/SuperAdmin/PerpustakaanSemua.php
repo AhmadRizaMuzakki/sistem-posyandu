@@ -3,7 +3,6 @@
 namespace App\Livewire\SuperAdmin;
 
 use App\Models\Perpustakaan as PerpustakaanModel;
-use App\Models\Posyandu;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
 use Livewire\Component;
@@ -21,7 +20,6 @@ class PerpustakaanSemua extends Component
     public $showFlipbookModal = false;
     public $showAddModal = false;
 
-    public $posyanduId = '';
     public $judul = '';
     public $deskripsi = '';
     public $penulis = '';
@@ -44,7 +42,6 @@ class PerpustakaanSemua extends Component
     protected function rules()
     {
         $rules = [
-            'posyanduId' => 'required|exists:posyandu,id_posyandu',
             'judul' => 'required|string|max:255',
             'deskripsi' => 'nullable|string|max:1000',
             'penulis' => 'nullable|string|max:255',
@@ -64,7 +61,6 @@ class PerpustakaanSemua extends Component
     protected function messages()
     {
         return [
-            'posyanduId.required' => 'Pilih posyandu untuk menambahkan buku.',
             'judul.required' => 'Judul buku wajib diisi.',
             'halamanFiles.required' => 'Upload minimal satu halaman.',
             'pdfFile.required' => 'Upload file PDF.',
@@ -85,7 +81,7 @@ class PerpustakaanSemua extends Component
 
     private function resetForm()
     {
-        $this->reset(['posyanduId', 'judul', 'deskripsi', 'penulis', 'kategori', 'coverImage', 'halamanFiles', 'pdfFile', 'uploadType']);
+        $this->reset(['judul', 'deskripsi', 'penulis', 'kategori', 'coverImage', 'halamanFiles', 'pdfFile', 'uploadType']);
         $this->uploadType = 'images';
         $this->resetErrorBag();
     }
@@ -93,9 +89,9 @@ class PerpustakaanSemua extends Component
     public function saveBook()
     {
         $this->validate();
-        $posyanduId = $this->posyanduId;
 
-        $dir = uploads_base_path('uploads/perpustakaan/' . $posyanduId);
+        $subdir = 'umum';
+        $dir = uploads_base_path('uploads/perpustakaan/' . $subdir);
         if (!File::isDirectory($dir)) {
             File::makeDirectory($dir, 0755, true);
         }
@@ -108,7 +104,7 @@ class PerpustakaanSemua extends Component
             $coverName = 'cover_' . Str::random(8) . '.' . $ext;
             $destFile = $dir . DIRECTORY_SEPARATOR . $coverName;
             if (File::copy($this->coverImage->getRealPath(), $destFile)) {
-                $coverPath = 'perpustakaan/' . $posyanduId . '/' . $coverName;
+                $coverPath = 'perpustakaan/' . $subdir . '/' . $coverName;
             }
         }
 
@@ -120,7 +116,7 @@ class PerpustakaanSemua extends Component
             $pdfName = 'book_' . Str::random(8) . '.pdf';
             $destFile = $dir . DIRECTORY_SEPARATOR . $pdfName;
             if (File::copy($this->pdfFile->getRealPath(), $destFile)) {
-                $pdfPath = 'perpustakaan/' . $posyanduId . '/' . $pdfName;
+                $pdfPath = 'perpustakaan/' . $subdir . '/' . $pdfName;
             }
         } else {
             $pageNumber = 1;
@@ -129,7 +125,7 @@ class PerpustakaanSemua extends Component
                 $pageName = 'page_' . str_pad($pageNumber, 3, '0', STR_PAD_LEFT) . '_' . Str::random(6) . '.' . $ext;
                 $destFile = $dir . DIRECTORY_SEPARATOR . $pageName;
                 if (File::copy($file->getRealPath(), $destFile)) {
-                    $halamanPaths[] = 'perpustakaan/' . $posyanduId . '/' . $pageName;
+                    $halamanPaths[] = 'perpustakaan/' . $subdir . '/' . $pageName;
                 }
                 $pageNumber++;
             }
@@ -140,7 +136,7 @@ class PerpustakaanSemua extends Component
         }
 
         PerpustakaanModel::create([
-            'id_posyandu' => $posyanduId,
+            'id_posyandu' => null,
             'judul' => $this->judul,
             'deskripsi' => $this->deskripsi,
             'penulis' => $this->penulis,
@@ -174,11 +170,8 @@ class PerpustakaanSemua extends Component
             ->latest()
             ->paginate(24);
 
-        $daftarPosyandu = Posyandu::orderBy('nama_posyandu')->get(['id_posyandu', 'nama_posyandu']);
-
         return view('livewire.super-admin.perpustakaan', [
             'items' => $items,
-            'daftarPosyandu' => $daftarPosyandu,
             'title' => 'Perpustakaan',
         ]);
     }
