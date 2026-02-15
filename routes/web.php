@@ -37,6 +37,7 @@ Route::prefix('supervisor')->middleware(['auth', 'verified', 'role:superadmin'])
     Route::get('/', SuperAdminDashboard::class)->name('admin.dashboard');
     Route::get('/pengaturan', \App\Livewire\SuperAdmin\Pengaturan::class)->name('pengaturan');
     Route::get('/galeri', \App\Livewire\SuperAdmin\Galeri::class)->name('superadmin.galeri');
+    Route::get('/perpustakaan', \App\Livewire\SuperAdmin\PerpustakaanSemua::class)->name('superadmin.perpustakaan');
 
     // Route list posyandu
     Route::get('/posyandu', PosyanduList::class)->name('posyandu.list');

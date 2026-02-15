@@ -149,6 +149,15 @@
                     <span class="font-medium">Galeri</span>
                 </a>
 
+                {{-- Perpustakaan (menu navigasi) --}}
+                <a
+                    href="{{ route('superadmin.perpustakaan') }}"
+                    class="sidebar-menu-item flex items-center px-4 py-2 text-sm rounded-lg mt-2 {{ request()->routeIs('superadmin.perpustakaan') ? 'active' : 'text-gray-600' }}"
+                >
+                    <i class="ph ph-books text-lg mr-3"></i>
+                    <span class="font-medium">Perpustakaan</span>
+                </a>
+
                 <h3 class="mt-6 mb-1 pt-4 text-xs font-semibold text-gray-400 uppercase border-t border-gray-100">
                     Pilih Posyandu
                 </h3>
