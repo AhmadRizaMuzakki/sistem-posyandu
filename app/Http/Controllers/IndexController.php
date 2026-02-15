@@ -188,4 +188,17 @@ class IndexController extends Controller
 
         return view('posyandu-detail', ['posyandu' => $posyandu]);
     }
+
+    /**
+     * Halaman perpustakaan publik - daftar lengkap buku dari berbagai posyandu.
+     */
+    public function perpustakaan()
+    {
+        $perpustakaanKoleksi = Perpustakaan::with('posyandu:id_posyandu,nama_posyandu')
+            ->where('is_active', true)
+            ->latest()
+            ->paginate(24);
+
+        return view('perpustakaan', ['perpustakaanKoleksi' => $perpustakaanKoleksi]);
+    }
 }

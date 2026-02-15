@@ -25,6 +25,7 @@ use App\Livewire\SuperAdmin\PosyanduLaporan as SuperadminPosyanduLaporan;
 use App\Livewire\SuperAdmin\SuperAdminDashboard;
 
 Route::get('/', [IndexController::class, 'index'])->name('index');
+Route::get('/perpustakaan', [IndexController::class, 'perpustakaan'])->name('perpustakaan.public');
 Route::get('/posyandu/{id}/info', [IndexController::class, 'posyanduDetail'])->name('posyandu.public.detail');
 
 // Serve file dari storage/app/public via PHP (tanpa symlink).
