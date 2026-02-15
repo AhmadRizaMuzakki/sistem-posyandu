@@ -61,22 +61,6 @@
                 <p class="text-slate-600 max-w-2xl mx-auto text-lg">Dokumentasi kegiatan dan momen berharga dari berbagai Posyandu Karanggan.</p>
             </div>
 
-            {{-- Filter: Semua / Per Posyandu --}}
-            <div class="mb-8 flex flex-wrap justify-center gap-3">
-                <a href="{{ route('galeri.public') }}" 
-                   class="inline-flex items-center gap-2 px-5 py-2.5 rounded-full font-medium transition {{ !$posyanduFilter ? 'bg-primary text-white shadow-md' : 'bg-white border-2 border-slate-200 text-slate-700 hover:border-primary hover:text-primary' }}">
-                    <i class="fa-solid fa-images"></i>
-                    Semua Galeri
-                </a>
-                @foreach($daftarPosyandu as $p)
-                    <a href="{{ route('galeri.public', ['posyandu' => $p->id_posyandu]) }}" 
-                       class="inline-flex items-center gap-2 px-4 py-2 rounded-full font-medium transition {{ $posyanduFilter == $p->id_posyandu ? 'bg-primary text-white shadow-md' : 'bg-white border-2 border-slate-200 text-slate-700 hover:border-primary hover:text-primary' }}">
-                        <i class="fa-solid fa-hospital"></i>
-                        {{ $p->nama_posyandu }}
-                    </a>
-                @endforeach
-            </div>
-
             @if($galeriKoleksi->isNotEmpty())
                 <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
                     @foreach($galeriKoleksi as $item)
@@ -103,7 +87,7 @@
                 <div class="text-center py-20 bg-white rounded-2xl border-2 border-dashed border-slate-300">
                     <i class="fa-solid fa-images text-5xl text-slate-400 mb-4"></i>
                     <p class="text-slate-600 font-medium mb-2">Belum ada foto galeri</p>
-                    <p class="text-slate-400 text-sm mb-6">Pilih filter lain atau kembali nanti setelah ada foto diunggah.</p>
+                    <p class="text-slate-400 text-sm mb-6">Foto akan tampil di sini setelah diunggah oleh admin Posyandu.</p>
                     <a href="{{ route('index') }}" class="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-primary text-white font-medium hover:bg-primaryDark transition">
                         <i class="fa-solid fa-arrow-left"></i> Kembali ke Beranda
                     </a>

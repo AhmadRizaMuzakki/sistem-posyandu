@@ -203,24 +203,14 @@ class IndexController extends Controller
     }
 
     /**
-     * Halaman galeri publik - foto dari berbagai posyandu dengan filter.
+     * Halaman galeri publik - foto dari berbagai posyandu.
      */
-    public function galeri(Request $request)
+    public function galeri()
     {
-        $posyanduId = $request->query('posyandu');
-        $query = Galeri::with('posyandu:id_posyandu,nama_posyandu')->latest();
-        if ($posyanduId) {
-            $query->where('id_posyandu', $posyanduId);
-        }
-        $galeriKoleksi = $query->paginate(24);
-        $daftarPosyandu = Posyandu::select('id_posyandu', 'nama_posyandu')
-            ->orderBy('nama_posyandu')
-            ->get();
+        $galeriKoleksi = Galeri::with('posyandu:id_posyandu,nama_posyandu')
+            ->latest()
+            ->paginate(24);
 
-        return view('galeri', [
-            'galeriKoleksi' => $galeriKoleksi,
-            'daftarPosyandu' => $daftarPosyandu,
-            'posyanduFilter' => $posyanduId,
-        ]);
+        return view('galeri', ['galeriKoleksi' => $galeriKoleksi]);
     }
 }

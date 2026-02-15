@@ -702,20 +702,11 @@
                         </a>
                     @endforeach
                 </div>
-                {{-- Tombol ke halaman galeri --}}
-                <div class="mt-8 flex flex-wrap justify-center gap-3">
+                <div class="text-center mt-8">
                     <a href="{{ route('galeri.public') }}" class="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-primary text-white font-medium hover:bg-primaryDark transition shadow-lg shadow-primary/20">
                         <i class="fa-solid fa-images"></i>
-                        Semua Galeri
+                        Lihat Semua Galeri
                     </a>
-                    @if(isset($daftarPosyandu) && $daftarPosyandu->isNotEmpty())
-                        @foreach($daftarPosyandu as $p)
-                            <a href="{{ route('galeri.public', ['posyandu' => $p->id_posyandu]) }}" class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white border-2 border-slate-200 text-slate-700 font-medium hover:border-primary hover:text-primary transition">
-                                <i class="fa-solid fa-hospital"></i>
-                                {{ $p->nama_posyandu }}
-                            </a>
-                        @endforeach
-                    @endif
                 </div>
             @else
                 <div class="grid grid-cols-3 gap-1 sm:gap-2 max-w-4xl mx-auto">
