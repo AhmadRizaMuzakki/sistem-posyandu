@@ -47,6 +47,12 @@
                                     {{ $kategoriOptions[$item->kategori] ?? ucfirst($item->kategori) }}
                                 </span>
                             @endif
+                            <div class="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity z-10" @click.stop>
+                                <button wire:click.stop="deleteBook({{ $item->id }})" wire:confirm="Hapus buku ini?"
+                                    class="p-1.5 rounded-full bg-white/90 text-red-600 hover:bg-red-100 shadow-sm">
+                                    <i class="ph ph-trash text-sm"></i>
+                                </button>
+                            </div>
                             @if($item->posyandu)
                                 <span class="absolute bottom-2 left-2 right-2 px-2 py-1 bg-black/60 text-white text-xs rounded truncate">{{ $item->posyandu->nama_posyandu }}</span>
                             @endif

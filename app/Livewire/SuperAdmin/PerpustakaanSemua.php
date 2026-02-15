@@ -164,6 +164,42 @@ class PerpustakaanSemua extends Component
         $this->viewingBook = null;
     }
 
+    public function deleteBook($id)
+    {
+        $id = filter_var($id, FILTER_VALIDATE_INT);
+        if ($id === false) {
+            abort(404);
+        }
+
+        $book = PerpustakaanModel::findOrFail($id);
+
+        if ($book->cover_image) {
+            $fullPath = uploads_safe_full_path($book->cover_image);
+            if ($fullPath && File::exists($fullPath)) {
+                File::delete($fullPath);
+            }
+        }
+
+        if ($book->file_path) {
+            $fullPath = uploads_safe_full_path($book->file_path);
+            if ($fullPath && File::exists($fullPath)) {
+                File::delete($fullPath);
+            }
+        }
+
+        if ($book->halaman_images && is_array($book->halaman_images)) {
+            foreach ($book->halaman_images as $path) {
+                $fullPath = uploads_safe_full_path($path);
+                if ($fullPath && File::exists($fullPath)) {
+                    File::delete($fullPath);
+                }
+            }
+        }
+
+        $book->delete();
+        session()->flash('message', 'Buku berhasil dihapus.');
+    }
+
     public function render()
     {
         $items = PerpustakaanModel::with('posyandu:id_posyandu,nama_posyandu')
