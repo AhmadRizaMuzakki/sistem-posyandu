@@ -1,11 +1,17 @@
 <div>
     <div class="bg-white rounded-lg shadow-sm p-6">
-        <div class="mb-6">
-            <h1 class="text-2xl font-bold text-gray-800 flex items-center">
-                <i class="ph ph-books text-3xl mr-3 text-primary"></i>
-                Perpustakaan
-            </h1>
-            <p class="text-sm text-gray-500 mt-1">Buku dari seluruh posyandu. Kelola buku di halaman masing-masing posyandu.</p>
+        <div class="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div>
+                <h1 class="text-2xl font-bold text-gray-800 flex items-center">
+                    <i class="ph ph-books text-3xl mr-3 text-primary"></i>
+                    Perpustakaan
+                </h1>
+                <p class="text-sm text-gray-500 mt-1">Buku dari seluruh posyandu. Kelola buku di halaman masing-masing posyandu.</p>
+            </div>
+            <button wire:click="openAddModal" class="inline-flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primaryDark transition">
+                <i class="ph ph-plus text-lg"></i>
+                Tambah Buku
+            </button>
         </div>
 
         @if(session('message'))
@@ -71,6 +77,149 @@
             </div>
         @endif
     </div>
+
+    {{-- Modal Tambah Buku --}}
+    @if($showAddModal)
+        <div class="fixed inset-0 z-50 overflow-y-auto" aria-modal="true">
+            <div class="flex items-center justify-center min-h-screen px-4 py-8">
+                <div class="fixed inset-0 bg-gray-500/75" wire:click="closeAddModal"></div>
+                <div class="relative bg-white rounded-lg shadow-xl w-full max-w-2xl p-6">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                        <i class="ph ph-book-open text-2xl mr-2 text-primary"></i>
+                        Tambah Buku Baru
+                    </h3>
+                    <form wire:submit.prevent="saveBook">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="md:col-span-2">
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Posyandu <span class="text-red-500">*</span></label>
+                                <select wire:model="posyanduId" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-primary focus:border-primary">
+                                    <option value="">-- Pilih Posyandu --</option>
+                                    @foreach($daftarPosyandu ?? [] as $p)
+                                        <option value="{{ $p->id_posyandu }}">{{ $p->nama_posyandu }}</option>
+                                    @endforeach
+                                </select>
+                                @error('posyanduId') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
+                            </div>
+
+                            <div class="md:col-span-2">
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Judul Buku <span class="text-red-500">*</span></label>
+                                <input type="text" wire:model="judul" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-primary focus:border-primary" placeholder="Masukkan judul buku">
+                                @error('judul') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Penulis</label>
+                                <input type="text" wire:model="penulis" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-primary focus:border-primary" placeholder="Nama penulis">
+                                @error('penulis') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Kategori</label>
+                                <select wire:model="kategori" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-primary focus:border-primary">
+                                    <option value="">-- Pilih Kategori --</option>
+                                    @foreach($kategoriOptions as $value => $label)
+                                        <option value="{{ $value }}">{{ $label }}</option>
+                                    @endforeach
+                                </select>
+                                @error('kategori') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
+                            </div>
+
+                            <div class="md:col-span-2">
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Deskripsi</label>
+                                <textarea wire:model="deskripsi" rows="3" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-primary focus:border-primary" placeholder="Deskripsi singkat tentang buku"></textarea>
+                                @error('deskripsi') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
+                            </div>
+
+                            <div class="md:col-span-2">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Tipe Upload <span class="text-red-500">*</span></label>
+                                <div class="flex gap-4">
+                                    <label class="flex items-center cursor-pointer">
+                                        <input type="radio" wire:model.live="uploadType" value="images" class="w-4 h-4 text-primary border-gray-300 focus:ring-primary">
+                                        <span class="ml-2 text-sm text-gray-700">Gambar Halaman</span>
+                                    </label>
+                                    <label class="flex items-center cursor-pointer">
+                                        <input type="radio" wire:model.live="uploadType" value="pdf" class="w-4 h-4 text-primary border-gray-300 focus:ring-primary">
+                                        <span class="ml-2 text-sm text-gray-700">File PDF</span>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Cover Buku (opsional)</label>
+                                <div x-data="{ dragging: false }"
+                                     @dragover.prevent="dragging = true"
+                                     @dragleave.prevent="dragging = false"
+                                     @drop.prevent="dragging = false; $refs.coverInput.files = $event.dataTransfer.files; $refs.coverInput.dispatchEvent(new Event('change', { bubbles: true }))"
+                                     class="relative border-2 border-dashed rounded-xl p-4 text-center transition-colors cursor-pointer aspect-[3/4]"
+                                     :class="dragging ? 'border-primary bg-primary/10' : 'border-gray-300 hover:border-primary/50 hover:bg-gray-50'">
+                                    <input type="file" x-ref="coverInput" wire:model="coverImage" accept="image/*" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
+                                    <div class="pointer-events-none h-full flex flex-col items-center justify-center">
+                                        <i class="ph ph-image text-3xl text-gray-400 mb-2"></i>
+                                        <p class="text-xs text-gray-500">Cover buku</p>
+                                    </div>
+                                </div>
+                                @if($coverImage)
+                                    <p class="mt-1 text-xs text-primary"><i class="ph ph-check-circle mr-1"></i> Cover dipilih</p>
+                                @endif
+                                @error('coverImage') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
+                            </div>
+
+                            <div>
+                                @if($uploadType === 'pdf')
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">File PDF <span class="text-red-500">*</span></label>
+                                    <div x-data="{ dragging: false }"
+                                         @dragover.prevent="dragging = true"
+                                         @dragleave.prevent="dragging = false"
+                                         @drop.prevent="dragging = false; $refs.pdfInput.files = $event.dataTransfer.files; $refs.pdfInput.dispatchEvent(new Event('change', { bubbles: true }))"
+                                         class="relative border-2 border-dashed rounded-xl p-4 text-center transition-colors cursor-pointer aspect-[3/4]"
+                                         :class="dragging ? 'border-primary bg-primary/10' : 'border-gray-300 hover:border-primary/50 hover:bg-gray-50'">
+                                        <input type="file" x-ref="pdfInput" wire:model="pdfFile" accept=".pdf,application/pdf" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
+                                        <div class="pointer-events-none h-full flex flex-col items-center justify-center">
+                                            <i class="ph ph-file-pdf text-3xl text-red-500 mb-2"></i>
+                                            <p class="text-xs text-gray-500">Upload PDF</p>
+                                            <p class="text-xs text-gray-400 mt-1">(maks. 20 MB)</p>
+                                        </div>
+                                    </div>
+                                    @if($pdfFile)
+                                        <p class="mt-1 text-xs text-primary"><i class="ph ph-check-circle mr-1"></i> PDF dipilih</p>
+                                    @endif
+                                    @error('pdfFile') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
+                                @else
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Halaman Buku <span class="text-red-500">*</span></label>
+                                    <div x-data="{ dragging: false }"
+                                         @dragover.prevent="dragging = true"
+                                         @dragleave.prevent="dragging = false"
+                                         @drop.prevent="dragging = false; $refs.pagesInput.files = $event.dataTransfer.files; $refs.pagesInput.dispatchEvent(new Event('change', { bubbles: true }))"
+                                         class="relative border-2 border-dashed rounded-xl p-4 text-center transition-colors cursor-pointer aspect-[3/4]"
+                                         :class="dragging ? 'border-primary bg-primary/10' : 'border-gray-300 hover:border-primary/50 hover:bg-gray-50'">
+                                        <input type="file" x-ref="pagesInput" wire:model="halamanFiles" accept="image/*" multiple class="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
+                                        <div class="pointer-events-none h-full flex flex-col items-center justify-center">
+                                            <i class="ph ph-files text-3xl text-gray-400 mb-2"></i>
+                                            <p class="text-xs text-gray-500">Upload halaman</p>
+                                            <p class="text-xs text-gray-400 mt-1">(bisa banyak sekaligus)</p>
+                                        </div>
+                                    </div>
+                                    @if($halamanFiles && count($halamanFiles) > 0)
+                                        <p class="mt-1 text-xs text-primary"><i class="ph ph-check-circle mr-1"></i> {{ count($halamanFiles) }} halaman dipilih</p>
+                                    @endif
+                                    @error('halamanFiles') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
+                                    @error('halamanFiles.*') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
+                                @endif
+                            </div>
+                        </div>
+
+                        <div class="mt-6 flex justify-end gap-2">
+                            <button type="button" wire:click="closeAddModal" class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50">Batal</button>
+                            <button type="submit" class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primaryDark flex items-center">
+                                <i class="ph ph-floppy-disk text-lg mr-2"></i>
+                                Simpan
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    @endif
 
     {{-- Modal Flipbook --}}
     @if($showFlipbookModal && $viewingBook)
