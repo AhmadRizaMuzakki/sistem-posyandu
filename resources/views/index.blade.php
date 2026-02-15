@@ -79,6 +79,7 @@
                     <a href="#posyandu" class="text-slate-600 hover:text-primary font-medium transition">Posyandu</a>
                     <a href="#jadwal" class="text-slate-600 hover:text-primary font-medium transition">Jadwal</a>
                     <a href="#galeri" class="text-slate-600 hover:text-primary font-medium transition">Galeri</a>
+                    <a href="#perpustakaan" class="text-slate-600 hover:text-primary font-medium transition">Perpustakaan</a>
                 </div>
                 <div class="hidden md:flex items-center gap-4">
                     @if (Route::has('login'))
@@ -119,6 +120,7 @@
                 <a href="#posyandu" class="block text-slate-600 hover:text-primary font-medium py-2 transition">Posyandu</a>
                 <a href="#jadwal" class="block text-slate-600 hover:text-primary font-medium py-2 transition">Jadwal</a>
                 <a href="#galeri" class="block text-slate-600 hover:text-primary font-medium py-2 transition">Galeri</a>
+                <a href="#perpustakaan" class="block text-slate-600 hover:text-primary font-medium py-2 transition">Perpustakaan</a>
                 <div class="pt-4 border-t border-slate-100 space-y-3">
                     @if (Route::has('login'))
                         @auth
@@ -707,6 +709,73 @@
                     @endforeach
                 </div>
                 <p class="text-center text-slate-500 mt-6 text-sm">Belum ada foto galeri. Foto yang diunggah dari dashboard akan tampil di sini.</p>
+            @endif
+        </div>
+    </section>
+
+    <section id="perpustakaan" class="py-20 bg-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-12">
+                <span class="inline-block py-1 px-3 rounded-full bg-teal-100 text-primary text-sm font-semibold mb-4">Perpustakaan Digital</span>
+                <h2 class="text-4xl font-bold text-slate-900 mb-4">Perpustakaan Posyandu</h2>
+                <p class="text-slate-600 max-w-2xl mx-auto text-lg">Koleksi buku digital seputar kesehatan, gizi, parenting, dan topik lain untuk mendukung keluarga sehat.</p>
+            </div>
+            
+            @if(isset($perpustakaanKoleksi) && $perpustakaanKoleksi->isNotEmpty())
+                <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6">
+                    @foreach($perpustakaanKoleksi as $book)
+                        <a href="{{ route('posyandu.public.detail', $book->posyandu->id_posyandu) }}" class="group block">
+                            <div class="relative aspect-[3/4] rounded-xl overflow-hidden bg-slate-100 border border-slate-200 shadow-md group-hover:shadow-xl transition-all duration-300">
+                                @if($book->cover_image)
+                                    <img src="{{ uploads_asset($book->cover_image) }}" alt="{{ $book->judul }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" loading="lazy">
+                                @else
+                                    <div class="w-full h-full bg-gradient-to-br from-primary/20 to-primary/40 flex items-center justify-center">
+                                        <i class="fa-solid fa-book text-4xl text-primary/60"></i>
+                                    </div>
+                                @endif
+                                @if($book->kategori)
+                                    @php
+                                        $kategoriLabels = [
+                                            'kesehatan' => 'Kesehatan',
+                                            'gizi' => 'Gizi',
+                                            'parenting' => 'Parenting',
+                                            'ibu_hamil' => 'Ibu Hamil',
+                                            'bayi_balita' => 'Bayi/Balita',
+                                            'lansia' => 'Lansia',
+                                            'umum' => 'Umum',
+                                        ];
+                                    @endphp
+                                    <span class="absolute top-2 left-2 px-2 py-0.5 text-xs font-medium rounded-full bg-primary text-white">
+                                        {{ $kategoriLabels[$book->kategori] ?? ucfirst($book->kategori) }}
+                                    </span>
+                                @endif
+                                <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                    <span class="px-4 py-2 bg-white rounded-full text-primary text-sm font-medium">
+                                        <i class="fa-solid fa-book-open mr-1"></i> Baca di {{ $book->posyandu->nama_posyandu ?? 'Posyandu' }}
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="mt-2 px-1">
+                                <h3 class="font-medium text-slate-800 text-sm line-clamp-2 group-hover:text-primary transition">{{ $book->judul }}</h3>
+                                @if($book->penulis)
+                                    <p class="text-xs text-slate-500 mt-0.5 line-clamp-1">{{ $book->penulis }}</p>
+                                @endif
+                            </div>
+                        </a>
+                    @endforeach
+                </div>
+                <div class="text-center mt-8">
+                    <a href="#posyandu" class="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-primary text-white font-medium hover:bg-primaryDark transition shadow-lg shadow-primary/20">
+                        <i class="fa-solid fa-hospital"></i>
+                        Lihat semua Posyandu untuk akses perpustakaan lengkap
+                    </a>
+                </div>
+            @else
+                <div class="text-center py-16 bg-slate-50 rounded-2xl border-2 border-dashed border-slate-300">
+                    <i class="fa-solid fa-book-open text-4xl text-slate-400 mb-4"></i>
+                    <p class="text-slate-500 font-medium mb-2">Belum ada buku di perpustakaan</p>
+                    <p class="text-slate-400 text-sm">Buku digital akan tampil di sini setelah ditambahkan oleh admin Posyandu.</p>
+                </div>
             @endif
         </div>
     </section>

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Posyandu;
 use App\Models\Galeri;
+use App\Models\Perpustakaan;
 use App\Models\JadwalKegiatan;
 use App\Models\SasaranBayibalita;
 use App\Models\SasaranIbuhamil;
@@ -130,6 +131,15 @@ class IndexController extends Controller
             return Galeri::latest()->take(12)->get();
         });
 
+        // Cache perpustakaan (buku dari semua posyandu)
+        $perpustakaanKoleksi = Cache::remember('index_perpustakaan_12', self::CACHE_TTL, function () {
+            return Perpustakaan::with('posyandu:id_posyandu,nama_posyandu')
+                ->where('is_active', true)
+                ->latest()
+                ->take(12)
+                ->get();
+        });
+
         return view('index', [
             'posyandu' => $posyandu,
             'acaraList' => $acaraList,
@@ -148,6 +158,7 @@ class IndexController extends Controller
             'currentMonth' => $currentMonth,
             'currentYear' => $currentYear,
             'galeriKegiatan' => $galeriKegiatan,
+            'perpustakaanKoleksi' => $perpustakaanKoleksi,
         ]);
     }
 
