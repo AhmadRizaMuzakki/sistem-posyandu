@@ -80,7 +80,7 @@
                     <a href="#layanan" class="text-slate-600 hover:text-primary font-medium transition">Layanan</a>
                     <a href="#posyandu" class="text-slate-600 hover:text-primary font-medium transition">Posyandu</a>
                     <a href="#jadwal" class="text-slate-600 hover:text-primary font-medium transition">Jadwal</a>
-                    <a href="#galeri" class="text-slate-600 hover:text-primary font-medium transition">Galeri</a>
+                    <a href="{{ route('galeri.public') }}" class="text-slate-600 hover:text-primary font-medium transition">Galeri</a>
                     <a href="{{ route('perpustakaan.public') }}" class="text-slate-600 hover:text-primary font-medium transition">Perpustakaan</a>
                 </div>
                 <div class="hidden md:flex items-center gap-4">
@@ -121,7 +121,7 @@
                 <a href="#layanan" class="block text-slate-600 hover:text-primary font-medium py-2 transition">Layanan</a>
                 <a href="#posyandu" class="block text-slate-600 hover:text-primary font-medium py-2 transition">Posyandu</a>
                 <a href="#jadwal" class="block text-slate-600 hover:text-primary font-medium py-2 transition">Jadwal</a>
-                <a href="#galeri" class="block text-slate-600 hover:text-primary font-medium py-2 transition">Galeri</a>
+                <a href="{{ route('galeri.public') }}" class="block text-slate-600 hover:text-primary font-medium py-2 transition">Galeri</a>
                 <a href="{{ route('perpustakaan.public') }}" class="block text-slate-600 hover:text-primary font-medium py-2 transition">Perpustakaan</a>
                 <div class="pt-4 border-t border-slate-100 space-y-3">
                     @if (Route::has('login'))
@@ -687,9 +687,9 @@
             </div>
             
             @if(isset($galeriKegiatan) && $galeriKegiatan->isNotEmpty())
-                {{-- Grid 3x3 gaya Instagram: 3 kolom, foto persegi --}}
+                {{-- Grid 3x3 --}}
                 <div class="grid grid-cols-3 gap-1 sm:gap-2 max-w-4xl mx-auto">
-                    @foreach($galeriKegiatan as $item)
+                    @foreach($galeriKegiatan->take(9) as $item)
                         @php $imgUrl = uploads_asset($item->path); @endphp
                         <a href="{{ $imgUrl }}" target="_blank" rel="noopener" class="block group relative aspect-square rounded-lg overflow-hidden bg-slate-100 shadow-md hover:shadow-xl transition-all duration-300">
                             <img src="{{ $imgUrl }}" alt="{{ $item->caption ?? 'Galeri kegiatan' }}" class="w-full h-full object-cover group-hover:scale-105 transition duration-500" loading="lazy" onerror="this.style.display='none'; this.nextElementSibling && (this.nextElementSibling.style.display='flex');">
@@ -702,6 +702,21 @@
                         </a>
                     @endforeach
                 </div>
+                {{-- Tombol ke halaman galeri --}}
+                <div class="mt-8 flex flex-wrap justify-center gap-3">
+                    <a href="{{ route('galeri.public') }}" class="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-primary text-white font-medium hover:bg-primaryDark transition shadow-lg shadow-primary/20">
+                        <i class="fa-solid fa-images"></i>
+                        Semua Galeri
+                    </a>
+                    @if(isset($daftarPosyandu) && $daftarPosyandu->isNotEmpty())
+                        @foreach($daftarPosyandu as $p)
+                            <a href="{{ route('galeri.public', ['posyandu' => $p->id_posyandu]) }}" class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white border-2 border-slate-200 text-slate-700 font-medium hover:border-primary hover:text-primary transition">
+                                <i class="fa-solid fa-hospital"></i>
+                                {{ $p->nama_posyandu }}
+                            </a>
+                        @endforeach
+                    @endif
+                </div>
             @else
                 <div class="grid grid-cols-3 gap-1 sm:gap-2 max-w-4xl mx-auto">
                     @foreach(range(1, 9) as $i)
@@ -711,6 +726,12 @@
                     @endforeach
                 </div>
                 <p class="text-center text-slate-500 mt-6 text-sm">Belum ada foto galeri. Foto yang diunggah dari dashboard akan tampil di sini.</p>
+                <div class="mt-6 text-center">
+                    <a href="{{ route('galeri.public') }}" class="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-primary text-white font-medium hover:bg-primaryDark transition">
+                        <i class="fa-solid fa-images"></i>
+                        Lihat Galeri
+                    </a>
+                </div>
             @endif
         </div>
     </section>

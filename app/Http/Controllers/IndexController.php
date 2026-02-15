@@ -126,9 +126,9 @@ class IndexController extends Controller
             $posyandu = null;
         }
 
-        // Cache galeri (5 menit)
-        $galeriKegiatan = Cache::remember('index_galeri_12', self::CACHE_TTL, function () {
-            return Galeri::latest()->take(12)->get();
+        // Cache galeri (3x3 = 9 foto untuk preview)
+        $galeriKegiatan = Cache::remember('index_galeri_9', self::CACHE_TTL, function () {
+            return Galeri::with('posyandu:id_posyandu,nama_posyandu')->latest()->take(9)->get();
         });
 
         // Cache perpustakaan (buku dari semua posyandu)
@@ -200,5 +200,27 @@ class IndexController extends Controller
             ->paginate(24);
 
         return view('perpustakaan', ['perpustakaanKoleksi' => $perpustakaanKoleksi]);
+    }
+
+    /**
+     * Halaman galeri publik - foto dari berbagai posyandu dengan filter.
+     */
+    public function galeri(Request $request)
+    {
+        $posyanduId = $request->query('posyandu');
+        $query = Galeri::with('posyandu:id_posyandu,nama_posyandu')->latest();
+        if ($posyanduId) {
+            $query->where('id_posyandu', $posyanduId);
+        }
+        $galeriKoleksi = $query->paginate(24);
+        $daftarPosyandu = Posyandu::select('id_posyandu', 'nama_posyandu')
+            ->orderBy('nama_posyandu')
+            ->get();
+
+        return view('galeri', [
+            'galeriKoleksi' => $galeriKoleksi,
+            'daftarPosyandu' => $daftarPosyandu,
+            'posyanduFilter' => $posyanduId,
+        ]);
     }
 }
