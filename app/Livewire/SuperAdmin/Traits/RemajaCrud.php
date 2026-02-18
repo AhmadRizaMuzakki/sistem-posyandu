@@ -2,6 +2,7 @@
 
 namespace App\Livewire\SuperAdmin\Traits;
 
+use App\Models\Pendidikan;
 use App\Models\SasaranRemaja;
 use App\Models\Orangtua;
 use App\Models\User;
@@ -485,6 +486,7 @@ trait RemajaCrud
     public function deleteRemaja($id)
     {
         $remaja = SasaranRemaja::findOrFail($id);
+        Pendidikan::where('kategori_sasaran', 'remaja')->where('id_sasaran', $id)->delete();
         $remaja->delete();
         $this->refreshPosyandu();
         session()->flash('message', 'Data Remaja berhasil dihapus.');

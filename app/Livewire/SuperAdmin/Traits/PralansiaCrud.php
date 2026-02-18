@@ -2,6 +2,7 @@
 
 namespace App\Livewire\SuperAdmin\Traits;
 
+use App\Models\Pendidikan;
 use App\Models\SasaranPralansia;
 use App\Models\SasaranBayibalita;
 use App\Models\SasaranRemaja;
@@ -337,6 +338,7 @@ trait PralansiaCrud
     public function deletePralansia($id)
     {
         $pralansia = SasaranPralansia::findOrFail($id);
+        Pendidikan::where('kategori_sasaran', 'pralansia')->where('id_sasaran', $id)->delete();
         $pralansia->delete();
         $this->refreshPosyandu();
         session()->flash('message', 'Data Pralansia berhasil dihapus.');

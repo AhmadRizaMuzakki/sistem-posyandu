@@ -2,6 +2,7 @@
 
 namespace App\Livewire\SuperAdmin\Traits;
 
+use App\Models\Pendidikan;
 use App\Models\SasaranDewasa;
 use App\Models\SasaranBayibalita;
 use App\Models\SasaranRemaja;
@@ -335,6 +336,7 @@ trait DewasaCrud
     public function deleteDewasa($id)
     {
         $dewasa = SasaranDewasa::findOrFail($id);
+        Pendidikan::where('kategori_sasaran', 'dewasa')->where('id_sasaran', $id)->delete();
         $dewasa->delete();
         $this->refreshPosyandu();
         session()->flash('message', 'Data Dewasa berhasil dihapus.');

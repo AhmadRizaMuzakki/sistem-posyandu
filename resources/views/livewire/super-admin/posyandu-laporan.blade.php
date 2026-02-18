@@ -332,15 +332,9 @@
         else if (namaSasaran) {
             url = namaSasaran;
         }
-        // Tidak ada filter yang dipilih
+        // Semua filter = Semua → export semua data
         else {
-            window.dispatchEvent(new CustomEvent('show-alert', {
-                detail: {
-                    message: 'Pilih minimal satu filter terlebih dahulu',
-                    type: 'warning'
-                }
-            }));
-            return;
+            url = '{{ route("superadmin.posyandu.pendidikan.pdf", ["id" => encrypt($posyandu->id_posyandu)]) }}';
         }
         
         if (url) {

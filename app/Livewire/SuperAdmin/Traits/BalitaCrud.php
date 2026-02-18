@@ -2,6 +2,7 @@
 
 namespace App\Livewire\SuperAdmin\Traits;
 
+use App\Models\Pendidikan;
 use App\Models\SasaranBayibalita;
 use App\Models\Orangtua;
 use App\Models\User;
@@ -442,6 +443,7 @@ trait BalitaCrud
     public function deleteBalita($id)
     {
         $balita = SasaranBayibalita::findOrFail($id);
+        Pendidikan::where('kategori_sasaran', 'bayibalita')->where('id_sasaran', $id)->delete();
         $balita->delete();
         $this->refreshPosyandu();
         session()->flash('message', 'Data Balita berhasil dihapus.');

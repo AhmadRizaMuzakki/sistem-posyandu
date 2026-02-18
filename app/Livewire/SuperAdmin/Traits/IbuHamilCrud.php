@@ -2,6 +2,7 @@
 
 namespace App\Livewire\SuperAdmin\Traits;
 
+use App\Models\Pendidikan;
 use App\Models\SasaranIbuhamil;
 use App\Models\SasaranDewasa;
 use App\Models\SasaranPralansia;
@@ -283,6 +284,7 @@ trait IbuHamilCrud
     public function deleteIbuHamil($id)
     {
         $ibuhamil = SasaranIbuhamil::findOrFail($id);
+        Pendidikan::where('kategori_sasaran', 'ibuhamil')->where('id_sasaran', $id)->delete();
         $ibuhamil->delete();
         $this->refreshPosyandu();
         session()->flash('message', 'Data Ibu Hamil berhasil dihapus.');
