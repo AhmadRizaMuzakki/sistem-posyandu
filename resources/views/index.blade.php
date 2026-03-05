@@ -180,7 +180,48 @@
         </div>
     </section>
 
-    <section class="py-10 bg-primary mx-4 md:mx-10 rounded-3xl shadow-2xl relative -mt-10 z-20">
+    <section class="py-10 bg-primary mx-4 md:mx-10 rounded-3xl shadow-2xl relative -mt-10 z-20"
+             x-data="{
+                 current: { balita: 0, remaja: 0, orangtua: 0, ibuHamil: 0, pralansia: 0, lansia: 0, kader: 0, cakupan: 0 },
+                 target: {
+                     balita: {{ (int)($totalBalita ?? 0) }},
+                     remaja: {{ (int)($totalRemaja ?? 0) }},
+                     orangtua: {{ (int)($totalOrangtua ?? 0) }},
+                     ibuHamil: {{ (int)($totalIbuHamil ?? 0) }},
+                     pralansia: {{ (int)($totalPralansia ?? 0) }},
+                     lansia: {{ (int)($totalLansia ?? 0) }},
+                     kader: {{ (int)($totalKader ?? 0) }},
+                     cakupan: {{ (float)($cakupanImunisasi ?? 0) }}
+                 },
+                 started: false,
+                 init() {
+                     const observer = new IntersectionObserver(([e]) => {
+                         if (e.isIntersecting && !this.started) { this.started = true; this.animate(); }
+                     }, { threshold: 0.2 });
+                     observer.observe(this.$el);
+                 },
+                 easeOutQuart(t) { return 1 - Math.pow(1 - t, 4); },
+                 animate() {
+                     const duration = 1400;
+                     const start = performance.now();
+                     const step = (now) => {
+                         const elapsed = now - start;
+                         const t = Math.min(1, elapsed / duration);
+                         const eased = this.easeOutQuart(t);
+                         this.current.balita = Math.round(eased * this.target.balita);
+                         this.current.remaja = Math.round(eased * this.target.remaja);
+                         this.current.orangtua = Math.round(eased * this.target.orangtua);
+                         this.current.ibuHamil = Math.round(eased * this.target.ibuHamil);
+                         this.current.pralansia = Math.round(eased * this.target.pralansia);
+                         this.current.lansia = Math.round(eased * this.target.lansia);
+                         this.current.kader = Math.round(eased * this.target.kader);
+                         this.current.cakupan = (eased * this.target.cakupan).toFixed(1);
+                         if (t < 1) requestAnimationFrame(step);
+                     };
+                     requestAnimationFrame(step);
+                 }
+             }"
+             x-init="init()">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="text-center mb-6">
                 <p class="text-teal-100 text-sm md:text-base font-medium">
@@ -190,35 +231,35 @@
             </div>
             <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4 md:gap-6 text-center text-white">
                 <div>
-                    <div class="text-3xl md:text-4xl font-bold mb-1">{{ number_format($totalBalita ?? 0) }}{{ ($totalBalita ?? 0) > 0 ? '+' : '' }}</div>
+                    <div class="text-3xl md:text-4xl font-bold mb-1" x-text="(current.balita).toLocaleString('id-ID') + (target.balita > 0 ? '+' : '')"></div>
                     <div class="text-teal-100 text-xs md:text-sm font-medium">Balita</div>
                 </div>
                 <div>
-                    <div class="text-3xl md:text-4xl font-bold mb-1">{{ number_format($totalRemaja ?? 0) }}{{ ($totalRemaja ?? 0) > 0 ? '+' : '' }}</div>
+                    <div class="text-3xl md:text-4xl font-bold mb-1" x-text="(current.remaja).toLocaleString('id-ID') + (target.remaja > 0 ? '+' : '')"></div>
                     <div class="text-teal-100 text-xs md:text-sm font-medium">Remaja</div>
                 </div>
                 <div>
-                    <div class="text-3xl md:text-4xl font-bold mb-1">{{ number_format($totalOrangtua ?? 0) }}{{ ($totalOrangtua ?? 0) > 0 ? '+' : '' }}</div>
+                    <div class="text-3xl md:text-4xl font-bold mb-1" x-text="(current.orangtua).toLocaleString('id-ID') + (target.orangtua > 0 ? '+' : '')"></div>
                     <div class="text-teal-100 text-xs md:text-sm font-medium">Dewasa</div>
                 </div>
                 <div>
-                    <div class="text-3xl md:text-4xl font-bold mb-1">{{ number_format($totalIbuHamil ?? 0) }}{{ ($totalIbuHamil ?? 0) > 0 ? '+' : '' }}</div>
+                    <div class="text-3xl md:text-4xl font-bold mb-1" x-text="(current.ibuHamil).toLocaleString('id-ID') + (target.ibuHamil > 0 ? '+' : '')"></div>
                     <div class="text-teal-100 text-xs md:text-sm font-medium">Ibu Hamil</div>
                 </div>
                 <div>
-                    <div class="text-3xl md:text-4xl font-bold mb-1">{{ number_format($totalPralansia ?? 0) }}{{ ($totalPralansia ?? 0) > 0 ? '+' : '' }}</div>
+                    <div class="text-3xl md:text-4xl font-bold mb-1" x-text="(current.pralansia).toLocaleString('id-ID') + (target.pralansia > 0 ? '+' : '')"></div>
                     <div class="text-teal-100 text-xs md:text-sm font-medium">Pralansia</div>
                 </div>
                 <div>
-                    <div class="text-3xl md:text-4xl font-bold mb-1">{{ number_format($totalLansia ?? 0) }}{{ ($totalLansia ?? 0) > 0 ? '+' : '' }}</div>
+                    <div class="text-3xl md:text-4xl font-bold mb-1" x-text="(current.lansia).toLocaleString('id-ID') + (target.lansia > 0 ? '+' : '')"></div>
                     <div class="text-teal-100 text-xs md:text-sm font-medium">Lansia</div>
                 </div>
                 <div>
-                    <div class="text-3xl md:text-4xl font-bold mb-1">{{ number_format($totalKader ?? 0) }}</div>
+                    <div class="text-3xl md:text-4xl font-bold mb-1" x-text="(current.kader).toLocaleString('id-ID')"></div>
                     <div class="text-teal-100 text-xs md:text-sm font-medium">Kader</div>
                 </div>
                 <div>
-                    <div class="text-3xl md:text-4xl font-bold mb-1">{{ $cakupanImunisasi ?? 0 }}%</div>
+                    <div class="text-3xl md:text-4xl font-bold mb-1" x-text="parseFloat(current.cakupan).toFixed(0) + '%'"></div>
                     <div class="text-teal-100 text-xs md:text-sm font-medium">Cakupan Imunisasi</div>
                 </div>
             </div>
@@ -639,10 +680,8 @@
 
                 {{-- Pagination --}}
                 @if($acaraList->hasPages())
-                    <div class="mt-8 flex justify-center">
-                        <div class="bg-white rounded-xl p-4 shadow-lg border border-slate-200">
-                            {{ $acaraList->links() }}
-                        </div>
+                    <div class="mt-8 bg-white rounded-xl p-6 shadow-lg border border-slate-200">
+                        {{ $acaraList->links('pagination.jadwal') }}
                     </div>
                 @endif
             @else
