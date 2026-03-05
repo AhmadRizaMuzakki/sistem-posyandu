@@ -185,7 +185,7 @@
             <div class="text-center mb-6">
                 <p class="text-teal-100 text-sm md:text-base font-medium">
                     <i class="fa-solid fa-calendar-check mr-2"></i>
-                    Data Semua Posyandu - Bulan {{ \Carbon\Carbon::create($currentYear ?? now()->year, $currentMonth ?? now()->month, 1)->locale('id')->translatedFormat('F Y') }}
+                    Data Semua Posyandu
                 </p>
             </div>
             <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4 md:gap-6 text-center text-white">

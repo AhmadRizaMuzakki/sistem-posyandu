@@ -90,27 +90,19 @@ class IndexController extends Controller
             return $list;
         });
 
-        $currentMonth = Carbon::now()->month;
-        $periodStart = Carbon::create($currentYear, $currentMonth, 1)->startOfDay();
-        $periodEnd = Carbon::create($currentYear, $currentMonth, 1)->endOfMonth()->endOfDay();
-
-        // Cache statistik (reduce 8+ queries ke 1 cache hit)
-        $stats = Cache::remember("index_stats_{$currentYear}_{$currentMonth}", self::CACHE_TTL, function () use ($periodStart, $periodEnd) {
-            $start = $periodStart->format('Y-m-d H:i:s');
-            $end = $periodEnd->format('Y-m-d H:i:s');
-
+        // Cache statistik semua posyandu (tanpa filter bulan)
+        $stats = Cache::remember('index_stats_all_posyandu', self::CACHE_TTL, function () {
             return [
-                'totalBalita' => SasaranBayibalita::whereBetween('created_at', [$start, $end])->count(),
-                'totalRemaja' => SasaranRemaja::whereBetween('created_at', [$start, $end])->count(),
-                'totalOrangtua' => SasaranDewasa::whereBetween('created_at', [$start, $end])->count(),
-                'totalIbuHamil' => SasaranIbuhamil::whereBetween('created_at', [$start, $end])->count(),
-                'totalPralansia' => SasaranPralansia::whereBetween('created_at', [$start, $end])->count(),
-                'totalLansia' => SasaranLansia::whereBetween('created_at', [$start, $end])->count(),
+                'totalBalita' => SasaranBayibalita::count(),
+                'totalRemaja' => SasaranRemaja::count(),
+                'totalOrangtua' => SasaranDewasa::count(),
+                'totalIbuHamil' => SasaranIbuhamil::count(),
+                'totalPralansia' => SasaranPralansia::count(),
+                'totalLansia' => SasaranLansia::count(),
                 'totalKader' => Kader::count(),
                 'totalBayiBalitaTerimunisasi' => (int) DB::table('imunisasi')
                     ->where('kategori_sasaran', 'bayibalita')
                     ->whereNotNull('id_sasaran')
-                    ->whereBetween('created_at', [$start, $end])
                     ->selectRaw('COUNT(DISTINCT id_sasaran) as cnt')
                     ->value('cnt'),
             ];
@@ -155,8 +147,6 @@ class IndexController extends Controller
             'totalLansia' => $stats['totalLansia'],
             'totalKader' => $stats['totalKader'],
             'cakupanImunisasi' => $cakupanImunisasi,
-            'currentMonth' => $currentMonth,
-            'currentYear' => $currentYear,
             'galeriKegiatan' => $galeriKegiatan,
             'perpustakaanKoleksi' => $perpustakaanKoleksi,
         ]);

@@ -26,12 +26,18 @@ class KaderImunisasi extends Component
     use PosyanduHelper, PosyanduCrudTrait, NotificationModal;
 
     public $search = '';
+    public $filterKeteranganBulan = '';
+    public $filterKeteranganTahun = '';
 
     #[Layout('layouts.posyandudashboard')]
 
     public function mount()
     {
         $this->initializePosyandu();
+        if ($this->filterKeteranganBulan === '' && $this->filterKeteranganTahun === '') {
+            $this->filterKeteranganBulan = (string) date('n');
+            $this->filterKeteranganTahun = (string) date('Y');
+        }
     }
 
     /**
@@ -206,11 +212,16 @@ class KaderImunisasi extends Component
             'lansia'     => ['label' => 'Lansia', 'model' => SasaranLansia::class, 'primaryKey' => 'id_sasaran_lansia'],
         ];
         $imunisasiKeteranganPerKategori = collect();
+        $applyBulanTahun = $this->filterKeteranganBulan && $this->filterKeteranganTahun;
         foreach ($kategoriConfig as $kategori => $config) {
             $totalSasaran = $config['model']::where('id_posyandu', $this->posyanduId)->count();
-            $sudahImunisasi = Imunisasi::where('id_posyandu', $this->posyanduId)
-                ->where('kategori_sasaran', $kategori)
-                ->select('id_sasaran')
+            $qSudah = Imunisasi::where('id_posyandu', $this->posyanduId)
+                ->where('kategori_sasaran', $kategori);
+            if ($applyBulanTahun) {
+                $qSudah->whereMonth('tanggal_imunisasi', $this->filterKeteranganBulan)
+                    ->whereYear('tanggal_imunisasi', $this->filterKeteranganTahun);
+            }
+            $sudahImunisasi = $qSudah->select('id_sasaran')
                 ->groupBy('id_sasaran')
                 ->get()
                 ->count();
@@ -222,8 +233,12 @@ class KaderImunisasi extends Component
             ]);
         }
         $totalSemuaSasaran = $imunisasiKeteranganPerKategori->sum('total_sasaran');
-        $totalSudahImunisasi = Imunisasi::where('id_posyandu', $this->posyanduId)
-            ->select('id_sasaran', 'kategori_sasaran')
+        $qTotal = Imunisasi::where('id_posyandu', $this->posyanduId);
+        if ($applyBulanTahun) {
+            $qTotal->whereMonth('tanggal_imunisasi', $this->filterKeteranganBulan)
+                ->whereYear('tanggal_imunisasi', $this->filterKeteranganTahun);
+        }
+        $totalSudahImunisasi = $qTotal->select('id_sasaran', 'kategori_sasaran')
             ->groupBy('id_sasaran', 'kategori_sasaran')
             ->get()
             ->count();
@@ -239,6 +254,8 @@ class KaderImunisasi extends Component
             'posyandu' => $this->posyandu,
             'sasaranList' => $this->sasaranList,
             'petugasKesehatanList' => $this->getPetugasKesehatanList(),
+            'filterKeteranganBulan' => $this->filterKeteranganBulan,
+            'filterKeteranganTahun' => $this->filterKeteranganTahun,
         ]);
     }
 }

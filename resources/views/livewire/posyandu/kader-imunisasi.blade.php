@@ -124,14 +124,37 @@
             {{-- Card Keterangan: per kategori X dari Y sasaran (di bawah tabel) --}}
             @if(isset($imunisasiKeteranganPerKategori))
             <div class="mt-5 pt-5 border-t border-gray-100">
-                {{-- Header --}}
-                <div class="flex items-center gap-2 mb-3">
-                    <div class="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
-                        <i class="ph ph-chart-pie-slice text-primary text-sm"></i>
+                {{-- Header dengan filter Bulan & Tahun --}}
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-3">
+                    <div class="flex items-center gap-2">
+                        <div class="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                            <i class="ph ph-chart-pie-slice text-primary text-sm"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-sm font-bold text-gray-800">Keterangan Imunisasi</h3>
+                            <p class="text-xs text-gray-500">
+                                Per kategori
+                                @if(!empty($filterKeteranganBulan) && !empty($filterKeteranganTahun))
+                                    · {{ \Carbon\Carbon::create()->month((int) $filterKeteranganBulan)->translatedFormat('F') }} {{ $filterKeteranganTahun }}
+                                @else
+                                    · Semua waktu
+                                @endif
+                            </p>
+                        </div>
                     </div>
-                    <div>
-                        <h3 class="text-sm font-bold text-gray-800">Keterangan Imunisasi</h3>
-                        <p class="text-xs text-gray-500">Per kategori · Tahun {{ date('Y') }}</p>
+                    <div class="flex flex-wrap items-center gap-2">
+                        <select wire:model.live="filterKeteranganBulan" class="px-3 py-1.5 text-sm border border-gray-300 rounded-lg focus:ring-primary focus:border-primary">
+                            <option value="">Semua Bulan</option>
+                            @foreach(['1'=>'Januari','2'=>'Februari','3'=>'Maret','4'=>'April','5'=>'Mei','6'=>'Juni','7'=>'Juli','8'=>'Agustus','9'=>'September','10'=>'Oktober','11'=>'November','12'=>'Desember'] as $v => $l)
+                                <option value="{{ $v }}">{{ $l }}</option>
+                            @endforeach
+                        </select>
+                        <select wire:model.live="filterKeteranganTahun" class="px-3 py-1.5 text-sm border border-gray-300 rounded-lg focus:ring-primary focus:border-primary">
+                            <option value="">Semua Tahun</option>
+                            @for($y = date('Y'); $y >= date('Y') - 5; $y--)
+                                <option value="{{ $y }}">{{ $y }}</option>
+                            @endfor
+                        </select>
                     </div>
                 </div>
 
@@ -188,7 +211,13 @@
                             <div class="h-full bg-primary rounded-full transition-all duration-500" style="width: {{ $totalPersen }}%"></div>
                         </div>
                     </div>
-                    <span class="text-xs text-gray-400">Tahun {{ date('Y') }}</span>
+                    <span class="text-xs text-gray-400">
+                        @if(!empty($filterKeteranganBulan) && !empty($filterKeteranganTahun))
+                            {{ \Carbon\Carbon::create()->month((int) $filterKeteranganBulan)->translatedFormat('F') }} {{ $filterKeteranganTahun }}
+                        @else
+                            Semua waktu
+                        @endif
+                    </span>
                 </div>
             </div>
             @endif
