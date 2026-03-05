@@ -23,14 +23,51 @@ class ActivityLogger
         }
     }
 
-    public static function login(int $userId, string $email): ?ActivityLog
+    /**
+     * Catat login (untuk semua user: superadmin dan kader).
+     * Untuk kader, isi id_posyandu agar log aktivitas per posyandu bisa difilter.
+     */
+    public static function login(int $userId, string $email, ?int $idPosyandu = null): ?ActivityLog
     {
-        return self::log('login', "Login berhasil: {$email}", ['subject_type' => 'User', 'subject_id' => $userId]);
+        try {
+            return ActivityLog::create([
+                'user_id' => $userId,
+                'id_posyandu' => $idPosyandu,
+                'action' => 'login',
+                'description' => "Login berhasil: {$email}",
+                'subject_type' => 'User',
+                'subject_id' => $userId,
+                'ip_address' => request()?->ip(),
+                'user_agent' => request()?->userAgent(),
+                'properties' => null,
+            ]);
+        } catch (\Throwable $e) {
+            report($e);
+            return null;
+        }
     }
 
-    public static function logout(int $userId): ?ActivityLog
+    /**
+     * Catat logout (untuk semua user: superadmin dan kader).
+     */
+    public static function logout(int $userId, ?int $idPosyandu = null): ?ActivityLog
     {
-        return self::log('logout', 'Logout', ['subject_type' => 'User', 'subject_id' => $userId]);
+        try {
+            return ActivityLog::create([
+                'user_id' => $userId,
+                'id_posyandu' => $idPosyandu,
+                'action' => 'logout',
+                'description' => 'Logout',
+                'subject_type' => 'User',
+                'subject_id' => $userId,
+                'ip_address' => request()?->ip(),
+                'user_agent' => request()?->userAgent(),
+                'properties' => null,
+            ]);
+        } catch (\Throwable $e) {
+            report($e);
+            return null;
+        }
     }
 
     public static function create(string $model, string $label, $id = null): ?ActivityLog

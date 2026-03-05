@@ -33,8 +33,11 @@ class AuthenticatedSessionController extends Controller
         /** @var \App\Models\User|null $user */
         $user = Auth::user();
 
-        if ($user && $user->hasRole('superadmin')) {
-            ActivityLogger::login($user->id, $user->email);
+        if ($user) {
+            $idPosyandu = $user->hasRole('adminPosyandu')
+                ? $user->kader()->value('id_posyandu')
+                : null;
+            ActivityLogger::login($user->id, $user->email, $idPosyandu);
         }
 
         // 2. Gunakan redirect()->route() agar user DIPAKSA ke dashboard role-nya
@@ -63,8 +66,11 @@ class AuthenticatedSessionController extends Controller
     public function destroy(Request $request): RedirectResponse
     {
         $user = Auth::user();
-        if ($user && $user->hasRole('superadmin')) {
-            ActivityLogger::logout($user->id);
+        if ($user) {
+            $idPosyandu = $user->hasRole('adminPosyandu')
+                ? $user->kader()->value('id_posyandu')
+                : null;
+            ActivityLogger::logout($user->id, $idPosyandu);
         }
 
         Auth::guard('web')->logout();

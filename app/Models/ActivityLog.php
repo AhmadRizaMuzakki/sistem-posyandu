@@ -11,6 +11,7 @@ class ActivityLog extends Model
 
     protected $fillable = [
         'user_id',
+        'id_posyandu',
         'action',
         'description',
         'subject_type',
@@ -27,6 +28,11 @@ class ActivityLog extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function posyandu(): BelongsTo
+    {
+        return $this->belongsTo(Posyandu::class, 'id_posyandu');
     }
 
     /**

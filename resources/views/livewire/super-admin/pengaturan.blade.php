@@ -29,6 +29,14 @@
                             <option value="{{ $opt }}">{{ ucfirst($opt) }}</option>
                         @endforeach
                     </select>
+                    <select wire:model.live="filterPosyandu"
+                            class="py-2 pl-3 pr-8 text-sm border border-gray-300 rounded-lg focus:ring-primary focus:border-primary min-w-[180px]">
+                        <option value="">Semua posyandu</option>
+                        <option value="null">Superadmin / Non posyandu</option>
+                        @foreach($posyanduOptions ?? [] as $p)
+                            <option value="{{ $p->id_posyandu }}">{{ $p->nama_posyandu }}</option>
+                        @endforeach
+                    </select>
                 </div>
             </div>
             <div class="overflow-x-auto">
@@ -38,6 +46,7 @@
                             <tr>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Waktu</th>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">User</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Posyandu</th>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Aksi</th>
                             </tr>
                         </thead>
@@ -51,6 +60,13 @@
                                         {{ $log->user?->name ?? '-' }}
                                         @if($log->user)
                                             <span class="text-gray-400 block text-xs">{{ $log->user->email }}</span>
+                                        @endif
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                                        @if($log->posyandu)
+                                            <span class="font-medium">{{ $log->posyandu->nama_posyandu }}</span>
+                                        @else
+                                            <span class="text-gray-400">—</span>
                                         @endif
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap">
