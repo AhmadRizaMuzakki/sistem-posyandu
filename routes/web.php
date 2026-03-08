@@ -56,6 +56,7 @@ Route::prefix('supervisor')->middleware(['auth', 'verified', 'role:superadmin'])
     Route::get('/posyandu/{id}/laporan', SuperadminPosyanduLaporan::class)->name('posyandu.laporan');
     Route::get('/posyandu/{id}/galeri', \App\Livewire\SuperAdmin\PosyanduGaleri::class)->name('posyandu.galeri');
     Route::get('/posyandu/{id}/perpustakaan', \App\Livewire\SuperAdmin\PosyanduPerpustakaan::class)->name('posyandu.perpustakaan');
+    Route::get('/posyandu/{id}/laporan/pdf/imunisasi-kehadiran', [LaporanController::class, 'superadminPosyanduImunisasiKehadiranPdf'])->name('superadmin.posyandu.laporan.pdf.imunisasi-kehadiran');
     Route::get('/posyandu/{id}/laporan/pdf/jenis-vaksin/{jenisVaksin}', [LaporanController::class, 'superadminPosyanduImunisasiPdfByJenisVaksin'])->name('superadmin.posyandu.laporan.pdf.jenis-vaksin');
     Route::get('/posyandu/{id}/laporan/pdf/nama/{nama}', [LaporanController::class, 'superadminPosyanduImunisasiPdfByNama'])->name('superadmin.posyandu.laporan.pdf.nama');
     Route::get('/posyandu/{id}/laporan/pdf/{kategori}', [LaporanController::class, 'superadminPosyanduImunisasiPdf'])->name('superadmin.posyandu.laporan.pdf.kategori');
@@ -88,6 +89,7 @@ Route::prefix('posyandu')->middleware(['auth', 'verified', 'role:adminPosyandu|s
     Route::get('/pendidikan', \App\Livewire\Posyandu\Pendidikan::class)->name('adminPosyandu.pendidikan');
     Route::get('/jadwal', \App\Livewire\Posyandu\PosyanduJadwal::class)->name('adminPosyandu.jadwal');
     Route::get('/laporan', PosyanduLaporan::class)->name('adminPosyandu.laporan');
+    Route::get('/laporan/pdf/imunisasi-kehadiran', [LaporanController::class, 'posyanduImunisasiKehadiranPdf'])->name('adminPosyandu.laporan.pdf.imunisasi-kehadiran');
     Route::get('/laporan/pdf/jenis-vaksin/{jenisVaksin}', [LaporanController::class, 'posyanduImunisasiPdfByJenisVaksin'])->name('adminPosyandu.laporan.pdf.jenis-vaksin');
     Route::get('/laporan/pdf/nama/{nama}', [LaporanController::class, 'posyanduImunisasiPdfByNama'])->name('adminPosyandu.laporan.pdf.nama');
     Route::get('/laporan/pdf/{kategori}', [LaporanController::class, 'posyanduImunisasiPdf'])->name('adminPosyandu.laporan.pdf.kategori');

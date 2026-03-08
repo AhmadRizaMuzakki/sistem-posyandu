@@ -74,6 +74,130 @@ class LaporanController extends Controller
     }
 
     /**
+     * Laporan kehadiran imunisasi: semua sasaran per kategori dicocokkan dengan data imunisasi di periode terpilih.
+     * Query params: tahun (wajib), bulan (wajib), kategori (opsional), jenis_vaksin (opsional), kehadiran (opsional: hadir|tidak_hadir), nama_sasaran (opsional).
+     */
+    public function posyanduImunisasiKehadiranPdf(Request $request): Response
+    {
+        $user = Auth::user();
+        $kader = Kader::with('posyandu')->where('id_users', $user->id)->first();
+        if (! $kader || ! $kader->posyandu) {
+            abort(403, 'Posyandu untuk akun ini tidak ditemukan.');
+        }
+        $posyandu = $kader->posyandu;
+        $data = $this->buildImunisasiKehadiranData($posyandu, $request);
+        $fileName = 'Laporan-Kehadiran-Imunisasi-'.$posyandu->nama_posyandu.'-'.now('Asia/Jakarta')->format('Ymd_His').'.pdf';
+        return $this->renderPdf('pdf.laporan-posyandu-imunisasi-kehadiran', array_merge($data, [
+            'posyandu' => $posyandu,
+            'user' => $user,
+            'generatedAt' => now('Asia/Jakarta'),
+        ]), $fileName);
+    }
+
+    /**
+     * Laporan kehadiran imunisasi untuk Super Admin (berdasarkan ID Posyandu).
+     */
+    public function superadminPosyanduImunisasiKehadiranPdf(Request $request, string $id): Response
+    {
+        try {
+            $decryptedId = decrypt($id);
+        } catch (\Illuminate\Contracts\Encryption\DecryptException $e) {
+            abort(404, 'ID tidak valid');
+        }
+        $posyandu = Posyandu::findOrFail($decryptedId);
+        $data = $this->buildImunisasiKehadiranData($posyandu, $request);
+        $fileName = 'Laporan-Kehadiran-Imunisasi-'.$posyandu->nama_posyandu.'-'.now('Asia/Jakarta')->format('Ymd_His').'.pdf';
+        return $this->renderPdf('pdf.laporan-posyandu-imunisasi-kehadiran', array_merge($data, [
+            'posyandu' => $posyandu,
+            'user' => Auth::user(),
+            'generatedAt' => now('Asia/Jakarta'),
+        ]), $fileName);
+    }
+
+    /**
+     * Build data untuk laporan kehadiran imunisasi: semua sasaran + status hadir/tidak hadir.
+     */
+    protected function buildImunisasiKehadiranData(Posyandu $posyandu, Request $request): array
+    {
+        $tahun = $request->query('tahun');
+        $bulan = $request->query('bulan');
+        if (! $tahun || ! $bulan || ! is_numeric($tahun) || ! is_numeric($bulan) || (int) $bulan < 1 || (int) $bulan > 12) {
+            abort(422, 'Tahun dan bulan wajib dipilih untuk laporan kehadiran imunisasi.');
+        }
+        $tahun = (int) $tahun;
+        $bulan = (int) $bulan;
+
+        $kategorisImunisasi = ['bayibalita', 'remaja', 'dewasa', 'pralansia', 'lansia'];
+        $kategoriFilter = $request->query('kategori');
+        $kategoris = $kategoriFilter ? (in_array($kategoriFilter, $kategorisImunisasi, true) ? [$kategoriFilter] : $kategorisImunisasi) : $kategorisImunisasi;
+
+        $jenisVaksin = $request->query('jenis_vaksin') ? (string) $request->query('jenis_vaksin') : null;
+        $kehadiranFilter = $request->query('kehadiran');
+        if ($kehadiranFilter !== null && $kehadiranFilter !== '' && $kehadiranFilter !== 'hadir' && $kehadiranFilter !== 'tidak_hadir') {
+            $kehadiranFilter = null;
+        }
+        $namaSasaran = $request->query('nama_sasaran') ? trim((string) $request->query('nama_sasaran')) : null;
+
+        $queryImunisasi = Imunisasi::with(['user'])
+            ->where('id_posyandu', $posyandu->id_posyandu)
+            ->whereMonth('tanggal_imunisasi', $bulan)
+            ->whereYear('tanggal_imunisasi', $tahun);
+        if ($jenisVaksin !== null && $jenisVaksin !== '') {
+            $queryImunisasi->where('jenis_imunisasi', $jenisVaksin);
+        }
+        $imunisasiInPeriod = $queryImunisasi->orderBy('tanggal_imunisasi', 'desc')->get();
+        $hadirMap = [];
+        foreach ($imunisasiInPeriod as $i) {
+            // Normalisasi: kategori di DB bisa "Remaja"/"remaja", pakai lowercase agar cocok dengan $kategoris
+            $key = strtolower(trim((string) ($i->kategori_sasaran ?? ''))).'_'.(string) $i->id_sasaran;
+            if (! isset($hadirMap[$key])) {
+                $hadirMap[$key] = $i;
+            }
+        }
+
+        $rows = [];
+        foreach ($kategoris as $kategori) {
+            $config = $this->getSasaranKategoriConfig($kategori);
+            $sasarans = $posyandu->{$config['relation']}()->orderBy('nama_sasaran')->get();
+            foreach ($sasarans as $sasaran) {
+                $idSasaran = $sasaran->getKey();
+                $key = $kategori.'_'.(string) $idSasaran;
+                $imunisasi = $hadirMap[$key] ?? null;
+                $status = $imunisasi ? 'hadir' : 'tidak_hadir';
+                if ($namaSasaran !== null && $namaSasaran !== '' && ($sasaran->nama_sasaran ?? '') !== $namaSasaran) {
+                    continue;
+                }
+                if ($kehadiranFilter !== null && $kehadiranFilter !== '' && $status !== $kehadiranFilter) {
+                    continue;
+                }
+                $rows[] = [
+                    'sasaran' => $sasaran,
+                    'kategori_sasaran' => $kategori,
+                    'kategori_label' => $config['label'],
+                    'status' => $status,
+                    'imunisasi' => $imunisasi,
+                ];
+            }
+        }
+
+        $bulanNama = \Carbon\Carbon::create($tahun, $bulan, 1)->locale('id')->translatedFormat('F');
+        $periodeLabel = $bulanNama.' '.$tahun;
+        $kategoriLabel = $kategoriFilter ? $this->getKategoriLabel($kategoriFilter) : 'Semua Kategori';
+        $jenisVaksinLabel = $jenisVaksin ?: 'Semua Jenis Vaksin';
+        $kehadiranLabel = $kehadiranFilter === 'hadir' ? 'Hadir' : ($kehadiranFilter === 'tidak_hadir' ? 'Tidak Hadir' : 'Semua');
+
+        return [
+            'rows' => $rows,
+            'periodeLabel' => $periodeLabel,
+            'tahun' => $tahun,
+            'bulan' => $bulan,
+            'kategoriLabel' => $kategoriLabel,
+            'jenisVaksinLabel' => $jenisVaksinLabel,
+            'kehadiranLabel' => $kehadiranLabel,
+        ];
+    }
+
+    /**
      * Generate laporan imunisasi Posyandu berdasarkan jenis vaksin (admin Posyandu).
      */
     public function posyanduImunisasiPdfByJenisVaksin(Request $request, string $jenisVaksin): Response

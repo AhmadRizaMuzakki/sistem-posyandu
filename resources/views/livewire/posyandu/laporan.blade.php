@@ -79,7 +79,7 @@
                     <select id="filterKategori" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-primary focus:border-primary">
                         <option value="">Semua Kategori</option>
                         @foreach($kategoriSasaranList as $kategori)
-                            <option value="{{ route('adminPosyandu.laporan.pdf.kategori', $kategori) }}">{{ $kategoriLabels[$kategori] ?? ucfirst($kategori) }}</option>
+                            <option value="{{ $kategori }}">{{ $kategoriLabels[$kategori] ?? ucfirst($kategori) }}</option>
                         @endforeach
                     </select>
                 </div>
@@ -89,7 +89,7 @@
                     <select id="filterJenisVaksin" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-primary focus:border-primary">
                         <option value="">Semua Jenis Vaksin</option>
                         @foreach($jenisVaksinList as $jenisVaksin)
-                            <option value="{{ route('adminPosyandu.laporan.pdf.jenis-vaksin', urlencode($jenisVaksin)) }}">{{ $jenisVaksin }}</option>
+                            <option value="{{ $jenisVaksin }}">{{ $jenisVaksin }}</option>
                         @endforeach
                     </select>
                 </div>
@@ -99,8 +99,17 @@
                     <select id="filterNamaSasaran" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-primary focus:border-primary">
                         <option value="">Semua Nama Sasaran</option>
                         @foreach($namaSasaranList as $nama)
-                            <option value="{{ route('adminPosyandu.laporan.pdf.nama', urlencode($nama)) }}">{{ $nama }}</option>
+                            <option value="{{ $nama }}">{{ $nama }}</option>
                         @endforeach
+                    </select>
+                </div>
+                {{-- Filter Kehadiran --}}
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Filter berdasarkan Kehadiran Imunisasi</label>
+                    <select id="filterKehadiranImunisasi" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-primary focus:border-primary">
+                        <option value="">Semua (Hadir &amp; Tidak Hadir)</option>
+                        <option value="hadir">Hadir</option>
+                        <option value="tidak_hadir">Tidak Hadir</option>
                     </select>
                 </div>
                 <div>
@@ -220,32 +229,30 @@
 
     <script>
         function exportFilteredImunisasi() {
-            const kategori = document.getElementById('filterKategori').value;
-            const jenisVaksin = document.getElementById('filterJenisVaksin').value;
-            const namaSasaran = document.getElementById('filterNamaSasaran').value;
             const tahun = document.getElementById('filterTahunImunisasi').value;
             const bulan = document.getElementById('filterBulanImunisasi').value;
-
-            let url = kategori || jenisVaksin || namaSasaran;
-            if (!url) {
-                url = '{{ route("adminPosyandu.laporan.pdf") }}';
-            }
-            const params = new URLSearchParams();
-            if (tahun) params.append('tahun', tahun);
-            if (bulan) params.append('bulan', bulan);
-            const qs = params.toString();
-            if (qs) url += (url.includes('?') ? '&' : '?') + qs;
-
-            if (kategori || jenisVaksin || namaSasaran || tahun || bulan) {
-                window.open(url, '_blank');
-            } else {
+            if (!tahun || !bulan) {
                 window.dispatchEvent(new CustomEvent('show-alert', {
                     detail: {
-                        message: 'Pilih minimal satu filter terlebih dahulu',
+                        message: 'Tahun dan bulan wajib dipilih untuk laporan kehadiran imunisasi.',
                         type: 'warning'
                     }
                 }));
+                return;
             }
+            const url = '{{ route("adminPosyandu.laporan.pdf.imunisasi-kehadiran") }}';
+            const params = new URLSearchParams();
+            params.append('tahun', tahun);
+            params.append('bulan', bulan);
+            const kategori = document.getElementById('filterKategori').value;
+            const jenisVaksin = document.getElementById('filterJenisVaksin').value;
+            const namaSasaran = document.getElementById('filterNamaSasaran').value;
+            const kehadiran = document.getElementById('filterKehadiranImunisasi').value;
+            if (kategori) params.append('kategori', kategori);
+            if (jenisVaksin) params.append('jenis_vaksin', jenisVaksin);
+            if (namaSasaran) params.append('nama_sasaran', namaSasaran);
+            if (kehadiran) params.append('kehadiran', kehadiran);
+            window.open(url + '?' + params.toString(), '_blank');
         }
 
         function exportAbsensiPdf() {
