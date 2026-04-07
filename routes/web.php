@@ -73,6 +73,7 @@ Route::prefix('supervisor')->middleware(['auth', 'verified', 'role:superadmin'])
     Route::get('/posyandu/{id}/pendidikan/pdf/{kategori}', [LaporanController::class, 'superadminPosyanduPendidikanPdf'])->name('superadmin.posyandu.pendidikan.pdf.kategori');
     Route::get('/posyandu/{id}/pendidikan/pdf', [LaporanController::class, 'superadminPosyanduPendidikanPdf'])->name('superadmin.posyandu.pendidikan.pdf');
     Route::get('/posyandu/{id}/sasaran/{kategori}/pdf', [LaporanController::class, 'superadminPosyanduSasaranPdf'])->name('superadmin.posyandu.sasaran.pdf');
+    Route::get('/posyandu/{id}/sasaran/{kategori}/excel', [LaporanController::class, 'superadminPosyanduSasaranExcel'])->name('superadmin.posyandu.sasaran.excel');
     Route::get('/posyandu/{id}/sk/pdf', [LaporanController::class, 'superadminPosyanduSkPdf'])->name('superadmin.posyandu.sk.pdf');
     Route::get('/sasaran/template-import/{kategori}', \App\Http\Controllers\TemplateImportController::class)->name('superadmin.sasaran.template-import');
 });
@@ -105,6 +106,7 @@ Route::prefix('posyandu')->middleware(['auth', 'verified', 'role:adminPosyandu|s
     Route::get('/pendidikan/pdf/nama/{nama}', [LaporanController::class, 'posyanduPendidikanPdfByNama'])->name('adminPosyandu.pendidikan.pdf.nama');
     Route::get('/pendidikan/pdf/{kategori}', [LaporanController::class, 'posyanduPendidikanPdf'])->name('adminPosyandu.pendidikan.pdf.kategori');
     Route::get('/pendidikan/pdf', [LaporanController::class, 'posyanduPendidikanPdf'])->name('adminPosyandu.pendidikan.pdf');
+    Route::get('/sasaran/{kategori}/excel', [LaporanController::class, 'posyanduSasaranExcel'])->name('adminPosyandu.sasaran.excel');
     Route::get('/sk/pdf', [LaporanController::class, 'posyanduSkPdf'])->name('adminPosyandu.sk.pdf');
     Route::get('/perpustakaan', \App\Livewire\Posyandu\Perpustakaan::class)->name('adminPosyandu.perpustakaan');
 });

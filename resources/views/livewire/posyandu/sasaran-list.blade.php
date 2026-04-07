@@ -30,6 +30,7 @@
     'emptyMessage' => 'Belum ada sasaran terdaftar',
     'importKategori' => 'bayibalita',
     'exportUrl' => route('adminPosyandu.sasaran.pdf', ['kategori' => 'bayibalita']),
+    'exportExcelUrl' => route('adminPosyandu.sasaran.excel', ['kategori' => 'bayibalita']),
 ])
 
 @php
@@ -51,6 +52,7 @@
     'emptyMessage' => 'Belum ada sasaran remaja terdaftar',
     'importKategori' => 'remaja',
     'exportUrl' => route('adminPosyandu.sasaran.pdf', ['kategori' => 'remaja']),
+    'exportExcelUrl' => route('adminPosyandu.sasaran.excel', ['kategori' => 'remaja']),
 ])
 
 @php
@@ -72,6 +74,7 @@
     'emptyMessage' => 'Belum ada sasaran dewasa terdaftar',
     'importKategori' => 'dewasa',
     'exportUrl' => route('adminPosyandu.sasaran.pdf', ['kategori' => 'dewasa']),
+    'exportExcelUrl' => route('adminPosyandu.sasaran.excel', ['kategori' => 'dewasa']),
 ])
 
 @php
@@ -93,6 +96,7 @@
     'emptyMessage' => 'Belum ada sasaran ibu hamil terdaftar',
     'importKategori' => 'ibuhamil',
     'exportUrl' => route('adminPosyandu.sasaran.pdf', ['kategori' => 'ibuhamil']),
+    'exportExcelUrl' => route('adminPosyandu.sasaran.excel', ['kategori' => 'ibuhamil']),
 ])
 
 @php
@@ -114,6 +118,7 @@
     'emptyMessage' => 'Belum ada sasaran pralansia terdaftar',
     'importKategori' => 'pralansia',
     'exportUrl' => route('adminPosyandu.sasaran.pdf', ['kategori' => 'pralansia']),
+    'exportExcelUrl' => route('adminPosyandu.sasaran.excel', ['kategori' => 'pralansia']),
 ])
 
 @php
@@ -135,5 +140,6 @@
     'emptyMessage' => 'Belum ada sasaran lansia terdaftar',
     'importKategori' => 'lansia',
     'exportUrl' => route('adminPosyandu.sasaran.pdf', ['kategori' => 'lansia']),
+    'exportExcelUrl' => route('adminPosyandu.sasaran.excel', ['kategori' => 'lansia']),
 ])
 

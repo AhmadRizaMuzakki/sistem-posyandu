@@ -37,6 +37,14 @@
                 </a>
             @endisset
 
+            @isset($exportExcelUrl)
+                <a href="{{ $exportExcelUrl }}"
+                   class="flex items-center px-3 py-2 text-xs font-medium text-emerald-700 border border-emerald-600 rounded-lg hover:bg-emerald-50 transition-colors">
+                    <i class="ph ph-file-xls text-sm mr-2"></i>
+                    Export Excel
+                </a>
+            @endisset
+
             <button wire:click="{{ $openModal }}"
                     class="flex items-center px-4 py-2 text-sm font-medium text-white bg-primary rounded-lg hover:bg-indigo-700 transition-colors">
                 <i class="ph ph-plus-circle text-lg mr-2"></i>

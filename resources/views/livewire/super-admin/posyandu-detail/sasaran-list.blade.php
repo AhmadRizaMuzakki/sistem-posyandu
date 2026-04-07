@@ -13,6 +13,7 @@
 
 @php
     $bayibalitaData = $this->getFilteredSasaran($posyandu->sasaran_bayibalita, $search_bayibalita, $page_bayibalita);
+    $encryptedPosyanduId = encrypt($posyandu->id_posyandu);
 @endphp
 {{-- Daftar Sasaran Bayi/Balita --}}
 @include('livewire.super-admin.posyandu-detail.sasaran-list-item', [
@@ -30,7 +31,11 @@
     'emptyMessage' => 'Belum ada sasaran terdaftar',
     'importKategori' => 'bayibalita',
     'exportUrl' => route('superadmin.posyandu.sasaran.pdf', [
-        'id' => $posyandu->id_posyandu,
+        'id' => $encryptedPosyanduId,
+        'kategori' => 'bayibalita',
+    ]),
+    'exportExcelUrl' => route('superadmin.posyandu.sasaran.excel', [
+        'id' => $encryptedPosyanduId,
         'kategori' => 'bayibalita',
     ]),
 ])
@@ -54,7 +59,11 @@
     'emptyMessage' => 'Belum ada sasaran remaja terdaftar',
     'importKategori' => 'remaja',
     'exportUrl' => route('superadmin.posyandu.sasaran.pdf', [
-        'id' => $posyandu->id_posyandu,
+        'id' => $encryptedPosyanduId,
+        'kategori' => 'remaja',
+    ]),
+    'exportExcelUrl' => route('superadmin.posyandu.sasaran.excel', [
+        'id' => $encryptedPosyanduId,
         'kategori' => 'remaja',
     ]),
 ])
@@ -78,7 +87,11 @@
     'emptyMessage' => 'Belum ada sasaran dewasa terdaftar',
     'importKategori' => 'dewasa',
     'exportUrl' => route('superadmin.posyandu.sasaran.pdf', [
-        'id' => $posyandu->id_posyandu,
+        'id' => $encryptedPosyanduId,
+        'kategori' => 'dewasa',
+    ]),
+    'exportExcelUrl' => route('superadmin.posyandu.sasaran.excel', [
+        'id' => $encryptedPosyanduId,
         'kategori' => 'dewasa',
     ]),
 ])
@@ -102,7 +115,11 @@
     'emptyMessage' => 'Belum ada sasaran ibu hamil terdaftar',
     'importKategori' => 'ibuhamil',
     'exportUrl' => route('superadmin.posyandu.sasaran.pdf', [
-        'id' => $posyandu->id_posyandu,
+        'id' => $encryptedPosyanduId,
+        'kategori' => 'ibuhamil',
+    ]),
+    'exportExcelUrl' => route('superadmin.posyandu.sasaran.excel', [
+        'id' => $encryptedPosyanduId,
         'kategori' => 'ibuhamil',
     ]),
 ])
@@ -126,7 +143,11 @@
     'emptyMessage' => 'Belum ada sasaran pralansia terdaftar',
     'importKategori' => 'pralansia',
     'exportUrl' => route('superadmin.posyandu.sasaran.pdf', [
-        'id' => $posyandu->id_posyandu,
+        'id' => $encryptedPosyanduId,
+        'kategori' => 'pralansia',
+    ]),
+    'exportExcelUrl' => route('superadmin.posyandu.sasaran.excel', [
+        'id' => $encryptedPosyanduId,
         'kategori' => 'pralansia',
     ]),
 ])
@@ -150,7 +171,11 @@
     'emptyMessage' => 'Belum ada sasaran lansia terdaftar',
     'importKategori' => 'lansia',
     'exportUrl' => route('superadmin.posyandu.sasaran.pdf', [
-        'id' => $posyandu->id_posyandu,
+        'id' => $encryptedPosyanduId,
+        'kategori' => 'lansia',
+    ]),
+    'exportExcelUrl' => route('superadmin.posyandu.sasaran.excel', [
+        'id' => $encryptedPosyanduId,
         'kategori' => 'lansia',
     ]),
 ])

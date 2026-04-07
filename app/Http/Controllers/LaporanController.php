@@ -13,6 +13,9 @@ use Illuminate\Http\Request;
 use Dompdf\Options;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class LaporanController extends Controller
 {
@@ -478,6 +481,231 @@ class LaporanController extends Controller
             'generatedAt' => now(),
             'user' => $user,
         ], $fileName, 'landscape');
+    }
+
+    /**
+     * Generate laporan sasaran per kategori untuk Super Admin dalam format Excel.
+     */
+    public function superadminPosyanduSasaranExcel(string $id, string $kategori): StreamedResponse
+    {
+        try {
+            $decryptedId = decrypt($id);
+        } catch (\Illuminate\Contracts\Encryption\DecryptException $e) {
+            abort(404, 'ID tidak valid');
+        }
+
+        $posyandu = Posyandu::findOrFail($decryptedId);
+        $config = $this->getSasaranKategoriConfig($kategori);
+
+        $query = $posyandu->{$config['relation']}();
+        if (! empty($config['with'])) {
+            $query->with($config['with']);
+        }
+        $sasaranList = $query->orderBy('nama_sasaran')->get();
+
+        return $this->downloadSasaranExcel($posyandu, $kategori, $config['label'], $sasaranList);
+    }
+
+    /**
+     * Generate laporan sasaran per kategori untuk Admin Posyandu dalam format Excel.
+     */
+    public function posyanduSasaranExcel(string $kategori): StreamedResponse
+    {
+        $user = Auth::user();
+
+        $kader = Kader::with('posyandu')
+            ->where('id_users', $user->id)
+            ->first();
+
+        if (! $kader || ! $kader->posyandu) {
+            abort(403, 'Posyandu untuk akun ini tidak ditemukan.');
+        }
+
+        $posyandu = $kader->posyandu;
+        $config = $this->getSasaranKategoriConfig($kategori);
+
+        $query = $posyandu->{$config['relation']}();
+        if (! empty($config['with'])) {
+            $query->with($config['with']);
+        }
+        $sasaranList = $query->orderBy('nama_sasaran')->get();
+
+        return $this->downloadSasaranExcel($posyandu, $kategori, $config['label'], $sasaranList);
+    }
+
+    /**
+     * Build dan kirim file Excel sasaran.
+     */
+    private function downloadSasaranExcel(Posyandu $posyandu, string $kategori, string $kategoriLabel, $sasaranList): StreamedResponse
+    {
+        $headers = $this->getSasaranExcelHeaders($kategori);
+        $rows = $sasaranList
+            ->map(fn ($item) => $this->mapSasaranExcelRowByKategori($item, $kategori))
+            ->values()
+            ->all();
+
+        $fileName = 'Laporan-Sasaran-'.$kategoriLabel.'-'.$posyandu->nama_posyandu.'-'.now()->format('Ymd_His').'.xlsx';
+
+        return response()->streamDownload(function () use ($headers, $rows) {
+            $spreadsheet = new Spreadsheet();
+            $sheet = $spreadsheet->getActiveSheet();
+            $sheet->setTitle('Laporan Sasaran');
+            $sheet->fromArray([$headers], null, 'A1');
+            if (! empty($rows)) {
+                $sheet->fromArray($rows, null, 'A2');
+            }
+
+            $maxColumn = $sheet->getHighestColumn();
+            foreach (range('A', $maxColumn) as $col) {
+                $sheet->getColumnDimension($col)->setAutoSize(true);
+            }
+
+            $writer = new Xlsx($spreadsheet);
+            $writer->save('php://output');
+        }, $fileName, [
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        ]);
+    }
+
+    private function getSasaranExcelHeaders(string $kategori): array
+    {
+        $base = [
+            'nik_sasaran',
+            'no_kk_sasaran',
+            'nama_sasaran',
+            'tempat_lahir',
+            'tanggal_lahir',
+            'jenis_kelamin',
+            'status_keluarga',
+            'umur',
+        ];
+
+        return match ($kategori) {
+            'bayibalita' => array_merge($base, [
+                'alamat_sasaran',
+                'kepersertaan_bpjs',
+                'nomor_bpjs',
+                'nik_orangtua',
+                'nama_orangtua',
+                'tempat_lahir_orangtua',
+                'pekerjaan_orangtua',
+                'pendidikan_orangtua',
+            ]),
+            'remaja' => array_merge($base, [
+                'pendidikan',
+                'alamat_sasaran',
+                'kepersertaan_bpjs',
+                'nomor_bpjs',
+                'nomor_telepon',
+                'nik_orangtua',
+                'nama_orangtua',
+                'tempat_lahir_orangtua',
+                'pekerjaan_orangtua',
+                'pendidikan_orangtua',
+            ]),
+            'ibuhamil' => array_merge($base, [
+                'pekerjaan',
+                'pendidikan',
+                'alamat_sasaran',
+                'rt',
+                'rw',
+                'kepersertaan_bpjs',
+                'nomor_bpjs',
+                'nomor_telepon',
+                'minggu_kandungan',
+                'nama_suami',
+                'nik_suami',
+                'pekerjaan_suami',
+                'status_keluarga_suami',
+            ]),
+            default => array_merge($base, [
+                'pendidikan',
+                'pekerjaan',
+                'alamat_sasaran',
+                'rt',
+                'rw',
+                'kepersertaan_bpjs',
+                'nomor_bpjs',
+                'nomor_telepon',
+            ]),
+        };
+    }
+
+    private function mapSasaranExcelRowByKategori($item, string $kategori): array
+    {
+        $umur = null;
+        if (! empty($item->tanggal_lahir)) {
+            $dob = Carbon::parse($item->tanggal_lahir);
+            $now = Carbon::now();
+            $umur = $kategori === 'bayibalita'
+                ? $dob->diffInMonths($now) . ' bln'
+                : $dob->diffInYears($now) . ' th';
+        } elseif (! is_null($item->umur_sasaran)) {
+            $umur = (int) $item->umur_sasaran . ' th';
+        }
+
+        $base = [
+            $item->nik_sasaran ?? null,
+            $item->no_kk_sasaran ?? null,
+            $item->nama_sasaran ?? null,
+            $item->tempat_lahir ?? null,
+            $item->tanggal_lahir ? Carbon::parse($item->tanggal_lahir)->format('Y-m-d') : null,
+            $item->jenis_kelamin ?? null,
+            $item->status_keluarga ?? null,
+            $umur,
+        ];
+
+        $orangtua = $item->orangtua ?? null;
+
+        return match ($kategori) {
+            'bayibalita' => array_merge($base, [
+                $item->alamat_sasaran ?? null,
+                $item->kepersertaan_bpjs ?? null,
+                $item->nomor_bpjs ?? null,
+                $item->nik_orangtua ?? null,
+                $orangtua->nama ?? null,
+                $orangtua->tempat_lahir ?? null,
+                $orangtua->pekerjaan ?? null,
+                $orangtua->pendidikan ?? null,
+            ]),
+            'remaja' => array_merge($base, [
+                $item->pendidikan ?? null,
+                $item->alamat_sasaran ?? null,
+                $item->kepersertaan_bpjs ?? null,
+                $item->nomor_bpjs ?? null,
+                $item->nomor_telepon ?? null,
+                $item->nik_orangtua ?? null,
+                $orangtua->nama ?? null,
+                $orangtua->tempat_lahir ?? null,
+                $orangtua->pekerjaan ?? null,
+                $orangtua->pendidikan ?? null,
+            ]),
+            'ibuhamil' => array_merge($base, [
+                $item->pekerjaan ?? null,
+                $item->pendidikan ?? null,
+                $item->alamat_sasaran ?? null,
+                $item->rt ?? null,
+                $item->rw ?? null,
+                $item->kepersertaan_bpjs ?? null,
+                $item->nomor_bpjs ?? null,
+                $item->nomor_telepon ?? null,
+                $item->minggu_kandungan ?? null,
+                $item->nama_suami ?? null,
+                $item->nik_suami ?? null,
+                $item->pekerjaan_suami ?? null,
+                $item->status_keluarga_suami ?? null,
+            ]),
+            default => array_merge($base, [
+                $item->pendidikan ?? null,
+                $item->pekerjaan ?? null,
+                $item->alamat_sasaran ?? null,
+                $item->rt ?? null,
+                $item->rw ?? null,
+                $item->kepersertaan_bpjs ?? null,
+                $item->nomor_bpjs ?? null,
+                $item->nomor_telepon ?? null,
+            ]),
+        };
     }
 
     /**
