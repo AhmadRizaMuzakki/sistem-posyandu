@@ -76,9 +76,9 @@
                                 <option value="Mengurus Rumah Tangga">Mengurus Rumah Tangga</option>
                                 <option value="Pelajar/Mahasiswa">Pelajar/Mahasiswa</option>
                                 <option value="Pensiunan">Pensiunan</option>
-                                <option value="Pegawai Negeri Sipil">Pegawai Negeri Sipil</option>
+                                <option value="Aparatur Sipil Negara (ASN)">Aparatur Sipil Negara (ASN)</option>
                                 <option value="Tentara Nasional Indonesia">Tentara Nasional Indonesia</option>
-                                <option value="Kepolisian RI">Kepolisian RI</option>
+                                <option value="Kepolisian RI (POLRI)">Kepolisian RI (POLRI)</option>
                                 <option value="Perdagangan">Perdagangan</option>
                                 <option value="Petani/Pekebun">Petani/Pekebun</option>
                                 <option value="Peternak">Peternak</option>
@@ -111,7 +111,7 @@
                                 <option value="Tabib">Tabib</option>
                                 <option value="Paraji">Paraji</option>
                                 <option value="Perancang Busana">Perancang Busana</option>
-                                <option value="Penterjemah">Penterjemah</option>
+                                <option value="Penerjemah">Penerjemah</option>
                                 <option value="Imam Masjid">Imam Masjid</option>
                                 <option value="Pendeta">Pendeta</option>
                                 <option value="Pastor">Pastor</option>
@@ -126,7 +126,7 @@
                                 <option value="Wakil Presiden">Wakil Presiden</option>
                                 <option value="Anggota Mahkamah Konstitusi">Anggota Mahkamah Konstitusi</option>
                                 <option value="Anggota Kabinet/Kementerian">Anggota Kabinet/Kementerian</option>
-                                <option value="Duta Besar">Duta Besar</option>
+                                <option value="Duta Besar/Kepala Perwakilan">Duta Besar/Kepala Perwakilan</option>
                                 <option value="Gubernur">Gubernur</option>
                                 <option value="Wakil Gubernur">Wakil Gubernur</option>
                                 <option value="Bupati">Bupati</option>
@@ -134,7 +134,7 @@
                                 <option value="Walikota">Walikota</option>
                                 <option value="Wakil Walikota">Wakil Walikota</option>
                                 <option value="Anggota DPRD Provinsi">Anggota DPRD Provinsi</option>
-                                <option value="Anggota DPRD Kabupaten/Kota">Anggota DPRD Kabupaten/Kota</option>
+                                <option value="Anggota DPRD Kab/Kota">Anggota DPRD Kab/Kota</option>
                                 <option value="Dosen">Dosen</option>
                                 <option value="Guru">Guru</option>
                                 <option value="Pilot">Pilot</option>
@@ -160,6 +160,24 @@
                                 <option value="Kepala Desa">Kepala Desa</option>
                                 <option value="Biarawati">Biarawati</option>
                                 <option value="Wiraswasta">Wiraswasta</option>
+                                <option value="Artis">Artis</option>
+                                <option value="Atlet">Atlet</option>
+                                <option value="Chef">Chef</option>
+                                <option value="Manajer">Manajer</option>
+                                <option value="Tenaga Tata Usaha">Tenaga Tata Usaha</option>
+                                <option value="Operator">Operator</option>
+                                <option value="Pekerja Pengolahan, Kerajinan">Pekerja Pengolahan, Kerajinan</option>
+                                <option value="Teknisi">Teknisi</option>
+                                <option value="Asisten Ahli">Asisten Ahli</option>
+                                <option value="Gembala">Gembala</option>
+                                <option value="Uskup">Uskup</option>
+                                <option value="Biarawan">Biarawan</option>
+                                <option value="Pandita">Pandita</option>
+                                <option value="Pinandita">Pinandita</option>
+                                <option value="Bhikkhu">Bhikkhu</option>
+                                <option value="Xueshi">Xueshi</option>
+                                <option value="Wenshi">Wenshi</option>
+                                <option value="Jiaosheng">Jiaosheng</option>
                                 <option value="Lainnya">Lainnya</option>
                             </select>
                             @error('pekerjaan_orangtua') <span class="text-red-500 text-xs">{{ $message }}</span>@enderror
