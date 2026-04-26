@@ -1,0 +1,25 @@
+Options -Indexes
+
+<IfModule mod_authz_core.c>
+    <FilesMatch "\.(php|php\d*|phtml|phar|cgi|pl|py|sh|bash|exe|bat|cmd|com|msi|jar)$">
+        Require all denied
+    </FilesMatch>
+    <FilesMatch "^(\.env|\.git|\.htaccess|composer\.(json|lock)|artisan|phpunit\.xml)$">
+        Require all denied
+    </FilesMatch>
+</IfModule>
+
+<IfModule !mod_authz_core.c>
+    <FilesMatch "\.(php|php\d*|phtml|phar|cgi|pl|py|sh|bash|exe|bat|cmd|com|msi|jar)$">
+        Order allow,deny
+        Deny from all
+    </FilesMatch>
+    <FilesMatch "^(\.env|\.git|\.htaccess|composer\.(json|lock)|artisan|phpunit\.xml)$">
+        Order allow,deny
+        Deny from all
+    </FilesMatch>
+</IfModule>
+
+<IfModule mod_headers.c>
+    Header always set X-Content-Type-Options "nosniff"
+</IfModule>
