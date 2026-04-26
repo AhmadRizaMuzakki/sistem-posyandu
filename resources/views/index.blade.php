@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Posyandu Karanggan - Sehat Bersama, Tumbuh Bahagia</title>
-    <link rel="icon" type="image/jpeg" href="{{ asset('images/home.jpeg') }}">
+    <link rel="icon" type="image/png" href="{{ asset('images/home.png') }}">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -71,7 +71,7 @@
             <div class="flex justify-between items-center h-20">
                 <div class="flex items-center gap-2">
                     <a href="#beranda" class="flex-shrink-0 block w-11 h-11 sm:w-12 sm:h-12 rounded-full overflow-hidden ring-2 ring-primary/20 shadow-md hover:ring-primary/40 hover:shadow-lg hover:scale-105 transition-all duration-300">
-                        <img src="{{ asset('images/home.jpeg') }}" alt="Logo Posyandu" class="w-full h-full object-cover">
+                        <img src="{{ asset('images/home.png') }}" alt="Logo Posyandu" class="w-full h-full object-cover">
                     </a>
                     <a href="#beranda" class="font-bold text-xl tracking-tight text-slate-800 hover:text-primary transition">Posyandu Karanggan</a>
                 </div>

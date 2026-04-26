@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Perpustakaan Digital - Posyandu Karanggan</title>
-    <link rel="icon" type="image/jpeg" href="{{ asset('images/home.jpeg') }}">
+    <link rel="icon" type="image/png" href="{{ asset('images/home.png') }}">
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -44,7 +44,7 @@
                 </a>
                 <a href="{{ route('index') }}" class="flex items-center gap-2">
                     <div class="w-9 h-9 bg-primary rounded-full flex items-center justify-center text-white">
-                        <img src="{{ asset('images/home.jpeg') }}" alt="Logo" class="w-full h-full object-cover rounded-full">
+                        <img src="{{ asset('images/home.png') }}" alt="Logo" class="w-full h-full object-cover rounded-full">
                     </div>
                     <span class="font-bold text-slate-800">Posyandu Karanggan</span>
                 </a>

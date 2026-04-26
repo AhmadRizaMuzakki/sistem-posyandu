@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>@yield('title', 'Error') - Posyandu Karanggan</title>
-    <link rel="icon" type="image/jpeg" href="{{ asset('images/home.jpeg') }}">
+    <link rel="icon" type="image/png" href="{{ asset('images/home.png') }}">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -35,7 +35,7 @@
 </head>
 <body class="error-page min-h-screen bg-gradient-to-br from-[#F0FDFA] via-white to-teal-50/30 text-slate-800 antialiased flex flex-col items-center justify-center px-4 py-12">
     <a href="{{ url('/') }}" class="error-logo absolute top-6 left-1/2 -translate-x-1/2 flex items-center gap-2 text-slate-600 hover:text-[#0D9488] transition">
-        <img src="{{ asset('images/home.jpeg') }}" alt="Logo" class="w-10 h-10 rounded-full object-cover ring-2 ring-[#0D9488]/20">
+        <img src="{{ asset('images/home.png') }}" alt="Logo" class="w-10 h-10 rounded-full object-cover ring-2 ring-[#0D9488]/20">
         <span class="font-bold text-lg">Posyandu Karanggan</span>
     </a>
 
