@@ -7,8 +7,8 @@
 	<meta name="csrf-token" content="{{ csrf_token() }}">
 	<meta name="description" content="Login ke Sistem Posyandu - Manajemen data posyandu">
 	<link rel="icon" type="image/png" href="{{ asset('images/home.png') }}">
-	<link rel="stylesheet" type="text/css" href="{{ asset('Login_v1/vendor/bootstrap/css/bootstrap.min.css') }}">
-	<link rel="stylesheet" type="text/css" href="{{ asset('Login_v1/fonts/font-awesome-4.7.0/css/font-awesome.min.css') }}">
+	<link rel="stylesheet" type="text/css" href="{{ asset('Login_v1/vendor/bootstrap/css/bootstrap.css') }}">
+	<link rel="stylesheet" type="text/css" href="{{ asset('Login_v1/fonts/font-awesome-4.7.0/css/font-awesome.css') }}">
 	<link rel="stylesheet" type="text/css" href="{{ asset('Login_v1/vendor/animate/animate.css') }}">
 	<link rel="stylesheet" type="text/css" href="{{ asset('Login_v1/css/util.css') }}">
 	<link rel="stylesheet" type="text/css" href="{{ asset('Login_v1/css/main.css') }}">
@@ -71,7 +71,7 @@
 
 	<script src="{{ asset('Login_v1/vendor/jquery/jquery-3.2.1.min.js') }}"></script>
 	<script src="{{ asset('Login_v1/vendor/bootstrap/js/popper.js') }}"></script>
-	<script src="{{ asset('Login_v1/vendor/bootstrap/js/bootstrap.min.js') }}"></script>
+	<script src="{{ asset('Login_v1/vendor/bootstrap/js/bootstrap.js') }}"></script>
 	<script src="{{ asset('Login_v1/vendor/tilt/tilt.jquery.min.js') }}"></script>
 	<script>
 		if (typeof $ !== 'undefined' && $.fn.tilt) {
