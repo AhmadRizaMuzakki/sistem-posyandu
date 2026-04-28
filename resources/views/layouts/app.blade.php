@@ -6,7 +6,22 @@
         <meta name="csrf-token" content="{{ csrf_token() }}">
 
         <title>{{ config('app.name', 'Laravel') }}</title>
-        <link rel="icon" type="image/png" href="{{ asset('images/home.png') }}">
+        @php
+            $faviconUrl = file_exists(public_path('assets/images/home.png'))
+                ? asset('assets/images/home.png')
+                : asset('images/home.png');
+        @endphp
+        <link rel="icon" type="image/png" sizes="48x48" href="{{ $faviconUrl }}">
+        <link rel="apple-touch-icon" href="{{ $faviconUrl }}">
+        <script type="application/ld+json">
+            {
+                "@context": "https://schema.org",
+                "@type": "Organization",
+                "name": "Posyandu Karanggan",
+                "url": "https://posyandukaranggan.com",
+                "logo": "https://posyandukaranggan.com/assets/images/home.png"
+            }
+        </script>
 
         <!-- Fonts -->
         <link rel="preconnect" href="https://fonts.bunny.net">
