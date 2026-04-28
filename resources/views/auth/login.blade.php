@@ -15,6 +15,23 @@
 	<style>
 		/* Fallback minimal jika CSS eksternal gagal (Hostinger) */
 		body { margin: 0; min-height: 100vh; background: linear-gradient(-135deg, #c850c0, #4158d0); }
+		.auth-alert {
+			border: 1px solid #fecaca;
+			background: #fef2f2;
+			color: #b91c1c;
+			border-radius: 12px;
+			padding: 10px 12px;
+			font-size: 14px;
+			line-height: 1.5;
+		}
+		.auth-field-error {
+			margin-top: -10px;
+			margin-bottom: 14px;
+			padding-left: 6px;
+			color: #b91c1c;
+			font-size: 12px;
+			font-weight: 500;
+		}
 	</style>
 </head>
 <body>
@@ -37,22 +54,28 @@
 					@endif
 
 					@if ($errors->any())
-						<div class="alert alert-danger mb-3" role="alert">
+						<div class="auth-alert mb-3" role="alert">
 							@foreach ($errors->all() as $err) {{ $err }}@if (!$loop->last)<br>@endif @endforeach
 						</div>
 					@endif
 
-					<div class="wrap-input100 validate-input @error('email') alert-validate @enderror" data-validate="@error('email'){{ $message }}@else Email wajib diisi @enderror">
+					<div class="wrap-input100 validate-input">
 						<input class="input100" type="text" name="email" placeholder="Email" value="{{ old('email') }}" required autofocus autocomplete="username">
 						<span class="focus-input100"></span>
 						<span class="symbol-input100"><i class="fa fa-user" aria-hidden="true"></i></span>
 					</div>
+					@error('email')
+						<div class="auth-field-error">{{ $message }}</div>
+					@enderror
 
-					<div class="wrap-input100 validate-input @error('password') alert-validate @enderror" data-validate="@error('password'){{ $message }}@else Password wajib diisi @enderror">
+					<div class="wrap-input100 validate-input">
 						<input class="input100" type="password" name="password" placeholder="Password" required autocomplete="current-password">
 						<span class="focus-input100"></span>
 						<span class="symbol-input100"><i class="fa fa-lock" aria-hidden="true"></i></span>
 					</div>
+					@error('password')
+						<div class="auth-field-error">{{ $message }}</div>
+					@enderror
 
 					<div class="text-left p-b-10">
 						<label class="txt1" for="remember_me" style="cursor: pointer;">
