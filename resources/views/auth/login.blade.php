@@ -21,6 +21,8 @@
 			color: #b91c1c;
 			border-radius: 12px;
 			padding: 10px 12px;
+			margin-top: 6px;
+			margin-bottom: 18px;
 			font-size: 14px;
 			line-height: 1.5;
 		}
@@ -64,10 +66,6 @@
 						<span class="focus-input100"></span>
 						<span class="symbol-input100"><i class="fa fa-user" aria-hidden="true"></i></span>
 					</div>
-					@error('email')
-						<div class="auth-field-error">{{ $message }}</div>
-					@enderror
-
 					<div class="wrap-input100 validate-input">
 						<input class="input100" type="password" name="password" placeholder="Password" required autocomplete="current-password">
 						<span class="focus-input100"></span>
