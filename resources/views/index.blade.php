@@ -17,29 +17,30 @@
     <meta property="og:url" content="{{ url('/') }}">
     <meta property="og:image" content="{{ asset('images/home.png') }}">
 
-    <script type="application/ld+json">
-        {
-            "@context": "https://schema.org",
-            "@graph": [
-                {
-                    "@type": "Organization",
-                    "name": "Posyandu Karanggan",
-                    "url": "{{ url('/') }}",
-                    "logo": "{{ asset('images/home.png') }}"
-                },
-                {
-                    "@type": "WebSite",
-                    "name": "Posyandu Karanggan",
-                    "url": "{{ url('/') }}",
-                    "potentialAction": {
-                        "@type": "SearchAction",
-                        "target": "{{ url('/') }}?search={search_term_string}",
-                        "query-input": "required name=search_term_string"
-                    }
-                }
-            ]
-        }
-    </script>
+    @php
+        $structuredData = [
+            '@context' => 'https://schema.org',
+            '@graph' => [
+                [
+                    '@type' => 'Organization',
+                    'name' => 'Posyandu Karanggan',
+                    'url' => url('/'),
+                    'logo' => asset('images/home.png'),
+                ],
+                [
+                    '@type' => 'WebSite',
+                    'name' => 'Posyandu Karanggan',
+                    'url' => url('/'),
+                    'potentialAction' => [
+                        '@type' => 'SearchAction',
+                        'target' => url('/') . '?search={search_term_string}',
+                        'query-input' => 'required name=search_term_string',
+                    ],
+                ],
+            ],
+        ];
+    @endphp
+    <script type="application/ld+json">{!! json_encode($structuredData, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) !!}</script>
     <link rel="icon" type="image/png" href="{{ asset('images/home.png') }}">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">

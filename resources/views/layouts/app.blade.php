@@ -13,15 +13,16 @@
         @endphp
         <link rel="icon" type="image/png" sizes="48x48" href="{{ $faviconUrl }}">
         <link rel="apple-touch-icon" href="{{ $faviconUrl }}">
-        <script type="application/ld+json">
-            {
-                "@context": "https://schema.org",
-                "@type": "Organization",
-                "name": "Posyandu Karanggan",
-                "url": "https://posyandukaranggan.com",
-                "logo": "https://posyandukaranggan.com/assets/images/home.png"
-            }
-        </script>
+        @php
+            $organizationSchema = [
+                '@context' => 'https://schema.org',
+                '@type' => 'Organization',
+                'name' => 'Posyandu Karanggan',
+                'url' => 'https://posyandukaranggan.com',
+                'logo' => 'https://posyandukaranggan.com/assets/images/home.png',
+            ];
+        @endphp
+        <script type="application/ld+json">{!! json_encode($organizationSchema, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) !!}</script>
 
         <!-- Fonts -->
         <link rel="preconnect" href="https://fonts.bunny.net">
