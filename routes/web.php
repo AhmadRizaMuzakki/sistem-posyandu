@@ -23,9 +23,22 @@ use App\Livewire\Posyandu\PosyanduDashboard;
 use App\Livewire\Posyandu\KaderImunisasi;
 use App\Livewire\SuperAdmin\PosyanduLaporan as SuperadminPosyanduLaporan;
 use App\Livewire\SuperAdmin\SuperAdminDashboard;
+use Illuminate\Support\Carbon;
 
 // Fallback favicon untuk crawler (termasuk Google), karena biasanya meminta /favicon.ico
 Route::redirect('/favicon.ico', '/images/home.png', 301);
+
+Route::get('/sitemap.xml', function () {
+    $now = Carbon::now()->toAtomString();
+    $urls = [
+        ['loc' => url('/'), 'changefreq' => 'daily', 'priority' => '1.0'],
+        ['loc' => route('galeri.public'), 'changefreq' => 'weekly', 'priority' => '0.8'],
+        ['loc' => route('perpustakaan.public'), 'changefreq' => 'weekly', 'priority' => '0.8'],
+    ];
+
+    $xml = view('sitemap', compact('urls', 'now'))->render();
+    return response($xml, 200)->header('Content-Type', 'application/xml');
+})->name('sitemap');
 
 Route::get('/', [IndexController::class, 'index'])->name('index');
 Route::get('/galeri', [IndexController::class, 'galeri'])->name('galeri.public');

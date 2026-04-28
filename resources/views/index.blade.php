@@ -4,6 +4,42 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Posyandu Karanggan - Sehat Bersama, Tumbuh Bahagia</title>
+    <meta name="description" content="Posyandu Karanggan melayani kesehatan ibu, anak, remaja, dewasa, dan lansia di Desa Karanggan. Cek jadwal kegiatan, layanan imunisasi, galeri, dan informasi posyandu terdekat.">
+    <meta name="keywords" content="Posyandu Karanggan, Posyandu Desa Karanggan, Jadwal Posyandu Karanggan, Imunisasi Karanggan, Kesehatan Ibu Anak Karanggan">
+    <meta name="robots" content="index, follow, max-image-preview:large">
+    <link rel="canonical" href="{{ url('/') }}">
+
+    <meta property="og:locale" content="id_ID">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="Posyandu Karanggan">
+    <meta property="og:title" content="Posyandu Karanggan - Sehat Bersama, Tumbuh Bahagia">
+    <meta property="og:description" content="Layanan kesehatan terpadu untuk ibu, anak, dan lansia di Desa Karanggan. Lihat jadwal, layanan, dan informasi posyandu.">
+    <meta property="og:url" content="{{ url('/') }}">
+    <meta property="og:image" content="{{ asset('images/home.png') }}">
+
+    <script type="application/ld+json">
+        {
+            "@context": "https://schema.org",
+            "@graph": [
+                {
+                    "@type": "Organization",
+                    "name": "Posyandu Karanggan",
+                    "url": "{{ url('/') }}",
+                    "logo": "{{ asset('images/home.png') }}"
+                },
+                {
+                    "@type": "WebSite",
+                    "name": "Posyandu Karanggan",
+                    "url": "{{ url('/') }}",
+                    "potentialAction": {
+                        "@type": "SearchAction",
+                        "target": "{{ url('/') }}?search={search_term_string}",
+                        "query-input": "required name=search_term_string"
+                    }
+                }
+            ]
+        }
+    </script>
     <link rel="icon" type="image/png" href="{{ asset('images/home.png') }}">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
