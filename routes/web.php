@@ -24,6 +24,9 @@ use App\Livewire\Posyandu\KaderImunisasi;
 use App\Livewire\SuperAdmin\PosyanduLaporan as SuperadminPosyanduLaporan;
 use App\Livewire\SuperAdmin\SuperAdminDashboard;
 
+// Fallback favicon untuk crawler (termasuk Google), karena biasanya meminta /favicon.ico
+Route::redirect('/favicon.ico', '/images/home.png', 301);
+
 Route::get('/', [IndexController::class, 'index'])->name('index');
 Route::get('/galeri', [IndexController::class, 'galeri'])->name('galeri.public');
 Route::get('/perpustakaan', [IndexController::class, 'perpustakaan'])->name('perpustakaan.public');

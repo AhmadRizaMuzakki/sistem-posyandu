@@ -456,7 +456,10 @@ iframe {
 
 @media (max-width: 992px) {
   .alert-validate::before {
-    visibility: visible;
-    opacity: 1;
+    display: none;
+  }
+
+  .alert-validate::after {
+    display: none;
   }
 }
