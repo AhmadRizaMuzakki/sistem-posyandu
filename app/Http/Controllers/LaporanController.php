@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Galeri;
 use App\Models\Imunisasi;
 use App\Models\Jadwal;
 use App\Models\Kader;
@@ -197,7 +198,44 @@ class LaporanController extends Controller
             'kategoriLabel' => $kategoriLabel,
             'jenisVaksinLabel' => $jenisVaksinLabel,
             'kehadiranLabel' => $kehadiranLabel,
+            'galeriFotos' => $this->getGaleriFotosForPdf($posyandu, $bulan, $tahun),
         ];
+    }
+
+    /**
+     * Foto galeri posyandu untuk lampiran PDF (filter bulan & tahun tanggal_foto).
+     *
+     * @return array<int, array{caption: ?string, tanggal_formatted: string, data_uri: string}>
+     */
+    protected function getGaleriFotosForPdf(Posyandu $posyandu, int $bulan, int $tahun): array
+    {
+        $items = Galeri::query()
+            ->where('id_posyandu', $posyandu->id_posyandu)
+            ->whereNotNull('tanggal_foto')
+            ->whereMonth('tanggal_foto', $bulan)
+            ->whereYear('tanggal_foto', $tahun)
+            ->orderBy('tanggal_foto')
+            ->orderBy('id')
+            ->get();
+
+        $fotos = [];
+        foreach ($items as $item) {
+            $fullPath = $item->path ? uploads_safe_full_path($item->path) : null;
+            if (! $fullPath || ! is_readable($fullPath)) {
+                continue;
+            }
+            $mime = mime_content_type($fullPath) ?: 'image/jpeg';
+            if (! str_starts_with($mime, 'image/')) {
+                continue;
+            }
+            $fotos[] = [
+                'caption' => $item->caption,
+                'tanggal_formatted' => $item->tanggal_foto->format('d/m/Y'),
+                'data_uri' => 'data:'.$mime.';base64,'.base64_encode((string) file_get_contents($fullPath)),
+            ];
+        }
+
+        return $fotos;
     }
 
     /**

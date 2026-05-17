@@ -1,4 +1,4 @@
-@php
+﻿@php
     use Carbon\Carbon;
 @endphp
 
@@ -92,6 +92,31 @@
         .ttd-nama .ttd-kurung { margin: 0 auto; }
         .ttd-kurung { display: inline-block; border-bottom: 1px solid #111827; width: 160px; max-width: 160px; padding: 0 4px; box-sizing: border-box; }
         .ttd-ketua { font-size: 10px; margin-top: 4px; }
+        .galeri-section { margin-top: 28px; page-break-inside: avoid; }
+        .galeri-title { font-size: 12px; font-weight: bold; margin-bottom: 10px; text-align: center; }
+        table.galeri-grid { width: 100%; border-collapse: collapse; margin-bottom: 8px; table-layout: fixed; }
+        table.galeri-grid td { padding: 6px 6px; vertical-align: top; text-align: center; border: none; }
+        .galeri-img-wrap {
+            border: 1px solid #d1d5db;
+            padding: 6px;
+            background: #fafafa;
+            width: 100%;
+            height: 200px;
+            overflow: hidden;
+            box-sizing: border-box;
+            text-align: center;
+        }
+        .galeri-img {
+            display: block;
+            margin: 0 auto;
+            max-width: 100%;
+            max-height: 188px;
+            width: auto;
+            height: auto;
+            object-fit: contain;
+        }
+        .galeri-caption { font-size: 9px; margin-top: 4px; color: #374151; line-height: 1.3; }
+        .galeri-date { font-size: 9px; font-weight: bold; margin-top: 4px; color: #111827; }
     </style>
 </head>
 <body>
@@ -220,6 +245,40 @@
                 </tr>
             </table>
         </div>
+
+        @if (!empty($galeriFotos))
+            <div class="galeri-section">
+                <div class="galeri-title">Dokumentasi Foto Kegiatan — {{ $periodeLabel ?? '' }}</div>
+                @php
+                    $galeriMaxKolom = 2;
+                    $galeriRows = array_chunk($galeriFotos, 2);
+                @endphp
+                <table class="galeri-grid">
+                    <colgroup>
+                        <col style="width: 50%;">
+                        <col style="width: 50%;">
+                    </colgroup>
+                    @foreach ($galeriRows as $fotoRow)
+                    <tr>
+                        @foreach ($fotoRow as $foto)
+                            <td>
+                                <div class="galeri-img-wrap">
+                                    <img src="{{ $foto['data_uri'] }}" alt="Foto kegiatan" class="galeri-img">
+                                </div>
+                                <div class="galeri-date">{{ $foto['tanggal_formatted'] }}</div>
+                                @if (!empty($foto['caption']))
+                                    <div class="galeri-caption">{{ $foto['caption'] }}</div>
+                                @endif
+                            </td>
+                        @endforeach
+                        @for ($pad = count($fotoRow); $pad < $galeriMaxKolom; $pad++)
+                            <td><div class="galeri-img-wrap"></div></td>
+                        @endfor
+                    </tr>
+                    @endforeach
+                </table>
+            </div>
+        @endif
     </div>
 </body>
 </html>
