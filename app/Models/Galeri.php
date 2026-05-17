@@ -14,7 +14,12 @@ class Galeri extends Model
     protected $fillable = [
         'path',
         'caption',
+        'tanggal_foto',
         'id_posyandu',
+    ];
+
+    protected $casts = [
+        'tanggal_foto' => 'date',
     ];
 
     public function posyandu()

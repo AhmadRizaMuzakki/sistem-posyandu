@@ -2,6 +2,7 @@
 
 namespace App\Livewire\SuperAdmin;
 
+use App\Livewire\Traits\GaleriTanggalFotoTrait;
 use App\Models\Galeri as GaleriModel;
 use App\Models\Posyandu;
 use Illuminate\Support\Facades\File;
@@ -13,6 +14,7 @@ use Livewire\WithFileUploads;
 class PosyanduGaleri extends Component
 {
     use WithFileUploads;
+    use GaleriTanggalFotoTrait;
 
     public $posyandu;
     public $posyanduId;
@@ -25,11 +27,11 @@ class PosyanduGaleri extends Component
 
     protected function rules()
     {
-        return [
+        return array_merge([
             'fotoFiles' => 'required',
             'fotoFiles.*' => 'image|max:2048',
             'caption' => 'nullable|string|max:255',
-        ];
+        ], $this->galeriTanggalRules());
     }
 
     protected function messages()
@@ -65,6 +67,7 @@ class PosyanduGaleri extends Component
     public function openUploadModal()
     {
         $this->reset(['fotoFiles', 'caption']);
+        $this->resetGaleriTanggalFields();
         $this->showUploadModal = true;
     }
 
@@ -72,11 +75,13 @@ class PosyanduGaleri extends Component
     {
         $this->showUploadModal = false;
         $this->reset(['fotoFiles', 'caption']);
+        $this->resetGaleriTanggalFields();
     }
 
     public function saveFoto()
     {
         $this->validate();
+        $tanggalFoto = $this->resolveTanggalFoto();
         $caption = $this->caption ?: null;
         $dir = uploads_base_path('uploads/galeri');
         if (!File::isDirectory($dir)) {
@@ -97,6 +102,7 @@ class PosyanduGaleri extends Component
             GaleriModel::create([
                 'path' => $path,
                 'caption' => $caption,
+                'tanggal_foto' => $tanggalFoto,
                 'id_posyandu' => $this->posyanduId,
             ]);
             $saved++;
