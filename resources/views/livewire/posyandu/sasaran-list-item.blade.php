@@ -11,18 +11,18 @@
     $showPendidikanColumn = !$isIbuHamil && !$isBalitaList;
 @endphp
 
-<div class="bg-white rounded-lg shadow-sm p-6">
-    <div class="flex items-center justify-between mb-4">
-        <h2 class="text-xl font-semibold text-gray-800 flex items-center">
-            <i class="ph {{ $icon }} text-2xl mr-3 text-primary"></i>
+<div class="bg-white rounded-lg shadow-sm p-4 md:p-6 overflow-hidden">
+    <div class="hidden md:flex items-center justify-between mb-4">
+        <h2 class="text-xl font-semibold text-gray-800 flex items-center min-w-0">
+            <i class="ph {{ $icon }} text-2xl mr-3 text-primary shrink-0"></i>
             {{ $title }}
         </h2>
-        <div class="flex items-center gap-3">
-            <span class="text-sm text-gray-500">{{ $count }} sasaran</span>
+        <div class="flex items-center gap-3 flex-shrink-0">
+            <span class="text-sm text-gray-500 whitespace-nowrap">{{ $count }} sasaran</span>
 
             @isset($importKategori)
                 <button wire:click="openImportModal('{{ $importKategori }}')"
-                        class="flex items-center px-3 py-2 text-xs font-medium text-green-700 border border-green-600 rounded-lg hover:bg-green-50 transition-colors">
+                        class="flex items-center px-3 py-2 text-xs font-medium text-green-700 border border-green-600 rounded-lg hover:bg-green-50 transition-colors whitespace-nowrap">
                     <i class="ph ph-upload-simple text-sm mr-2"></i>
                     Import
                 </button>
@@ -31,7 +31,7 @@
             @isset($exportUrl)
                 <a href="{{ $exportUrl }}"
                    target="_blank"
-                   class="flex items-center px-3 py-2 text-xs font-medium text-primary border border-primary rounded-lg hover:bg-primary hover:text-white transition-colors">
+                   class="flex items-center px-3 py-2 text-xs font-medium text-primary border border-primary rounded-lg hover:bg-primary hover:text-white transition-colors whitespace-nowrap">
                     <i class="ph ph-file-pdf text-sm mr-2"></i>
                     Export PDF
                 </a>
@@ -39,17 +39,60 @@
 
             @isset($exportExcelUrl)
                 <a href="{{ $exportExcelUrl }}"
-                   class="flex items-center px-3 py-2 text-xs font-medium text-emerald-700 border border-emerald-600 rounded-lg hover:bg-emerald-50 transition-colors">
+                   class="flex items-center px-3 py-2 text-xs font-medium text-emerald-700 border border-emerald-600 rounded-lg hover:bg-emerald-50 transition-colors whitespace-nowrap">
                     <i class="ph ph-file-xls text-sm mr-2"></i>
                     Export Excel
                 </a>
             @endisset
 
             <button wire:click="{{ $openModal }}"
-                    class="flex items-center px-4 py-2 text-sm font-medium text-white bg-primary rounded-lg hover:bg-indigo-700 transition-colors">
+                    class="flex items-center px-4 py-2 text-sm font-medium text-white bg-primary rounded-lg hover:bg-indigo-700 transition-colors whitespace-nowrap">
                 <i class="ph ph-plus-circle text-lg mr-2"></i>
                 Tambah Sasaran
             </button>
+        </div>
+    </div>
+
+    <div class="flex flex-col gap-4 mb-4 md:hidden">
+        <h2 class="text-lg font-semibold text-gray-900 flex items-start gap-2 min-w-0">
+            <i class="ph {{ $icon }} text-2xl shrink-0 text-primary"></i>
+            <span class="leading-snug">{{ $title }}</span>
+        </h2>
+        <div class="sasaran-action-bar w-full">
+            <p class="text-sm text-gray-600 mb-2 font-medium">{{ $count }} sasaran</p>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+
+            @isset($importKategori)
+                <button wire:click="openImportModal('{{ $importKategori }}')"
+                        class="sasaran-action-btn flex items-center justify-center px-4 py-3 text-sm font-semibold text-green-800 border-2 border-green-600 rounded-lg hover:bg-green-50 transition-colors whitespace-nowrap">
+                    <i class="ph ph-upload-simple text-lg mr-2 shrink-0"></i>
+                    Import
+                </button>
+            @endisset
+
+            @isset($exportUrl)
+                <a href="{{ $exportUrl }}"
+                   target="_blank"
+                   class="sasaran-action-btn flex items-center justify-center px-4 py-3 text-sm font-semibold text-primary border-2 border-primary rounded-lg hover:bg-primary hover:text-white transition-colors whitespace-nowrap">
+                    <i class="ph ph-file-pdf text-lg mr-2 shrink-0"></i>
+                    Export PDF
+                </a>
+            @endisset
+
+            @isset($exportExcelUrl)
+                <a href="{{ $exportExcelUrl }}"
+                   class="sasaran-action-btn flex items-center justify-center px-4 py-3 text-sm font-semibold text-emerald-800 border-2 border-emerald-600 rounded-lg hover:bg-emerald-50 transition-colors whitespace-nowrap">
+                    <i class="ph ph-file-xls text-lg mr-2 shrink-0"></i>
+                    Export Excel
+                </a>
+            @endisset
+
+            <button wire:click="{{ $openModal }}"
+                    class="sasaran-action-btn flex items-center justify-center px-4 py-3 text-sm font-semibold text-white bg-primary rounded-lg hover:bg-indigo-700 transition-colors whitespace-nowrap sm:col-span-2">
+                <i class="ph ph-plus-circle text-lg mr-2 shrink-0"></i>
+                Tambah Sasaran
+            </button>
+            </div>
         </div>
     </div>
 

@@ -48,9 +48,16 @@
                             @error('id_posyandu_imunisasi') <span class="text-red-500 text-xs">{{ $message }}</span>@enderror
                         </div>
 
-                        {{-- Pilih Sasaran (Searchable) --}}
+                        {{-- Sasaran: read-only saat edit, searchable saat tambah --}}
                         <div>
                             <label class="block text-gray-700 text-sm font-bold mb-2">Sasaran <span class="text-red-500">*</span></label>
+                            @if($id_imunisasi)
+                                <input type="text"
+                                       value="{{ $sasaran_nama_display }}"
+                                       readonly
+                                       class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-800 bg-gray-100 leading-tight focus:outline-none cursor-not-allowed font-medium">
+                                <p class="text-xs text-gray-500 mt-1">Nama sasaran tidak dapat diubah saat edit data imunisasi.</p>
+                            @else
                             <div class="relative" x-data="{
                                 open: false,
                                 searchText: '',
@@ -156,10 +163,11 @@
                                     </ul>
                                 </div>
                             </div>
-                            @error('id_sasaran_imunisasi') <span class="text-red-500 text-xs">{{ $message }}</span>@enderror
                             @if(empty($sasaranList) && $id_posyandu_imunisasi)
                                 <p class="text-xs text-gray-500 mt-1">Belum ada sasaran terdaftar di posyandu ini</p>
                             @endif
+                            @endif
+                            @error('id_sasaran_imunisasi') <span class="text-red-500 text-xs">{{ $message }}</span>@enderror
                         </div>
 
                         {{-- Kategori Sasaran (Auto-filled) --}}

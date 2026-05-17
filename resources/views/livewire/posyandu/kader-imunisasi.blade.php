@@ -1,34 +1,58 @@
-<div>
+<div class="kader-dashboard-content">
     <div class="space-y-6">
         {{-- Header --}}
-        <div class="bg-white rounded-lg shadow-sm p-6">
-            <div class="flex items-center justify-between">
-                <div>
-                    <h1 class="text-3xl font-bold text-gray-800">{{ $posyandu->nama_posyandu }}</h1>
-                    <p class="text-gray-500 mt-1">Manajemen Data Imunisasi</p>
-                </div>
+        <div class="bg-white rounded-lg shadow-sm p-4 md:p-6">
+            <div class="hidden md:block">
+                <h1 class="text-3xl font-bold text-gray-800">{{ $posyandu->nama_posyandu }}</h1>
+                <p class="text-gray-500 mt-1">Manajemen Data Imunisasi</p>
+            </div>
+            <div class="md:hidden">
+                <h1 class="text-2xl font-bold text-gray-900 leading-snug">{{ $posyandu->nama_posyandu }}</h1>
+                <p class="text-gray-700 mt-1 text-base">Manajemen Data Imunisasi</p>
             </div>
         </div>
 
         {{-- Daftar Imunisasi --}}
-        <div class="bg-white rounded-lg shadow-sm p-6">
-            <div class="flex items-center justify-between mb-4">
-                <h2 class="text-xl font-semibold text-gray-800 flex items-center">
-                    <i class="ph ph-syringe text-2xl mr-3 text-primary"></i>
+        <div class="bg-white rounded-lg shadow-sm p-4 md:p-6 overflow-hidden">
+            <div class="hidden md:flex items-center justify-between mb-4">
+                <h2 class="text-xl font-semibold text-gray-800 flex items-center min-w-0">
+                    <i class="ph ph-syringe text-2xl mr-3 text-primary shrink-0"></i>
                     Daftar Imunisasi
                 </h2>
-                <div class="flex items-center gap-3">
+                <div class="flex items-center gap-3 flex-shrink-0">
                     <a href="{{ route('adminPosyandu.laporan.pdf') }}"
                        target="_blank"
-                       class="flex items-center px-4 py-2 text-sm font-medium text-primary border border-primary rounded-lg hover:bg-primary hover:text-white transition-colors">
-                        <i class="ph ph-file-pdf text-lg mr-2"></i>
+                       class="flex items-center px-3 py-2 text-xs font-medium text-primary border border-primary rounded-lg hover:bg-primary hover:text-white transition-colors whitespace-nowrap">
+                        <i class="ph ph-file-pdf text-sm mr-2"></i>
                         Export PDF
                     </a>
                     <button wire:click="openImunisasiModal"
-                            class="flex items-center px-4 py-2 bg-primary text-white rounded-lg hover:bg-indigo-700 transition-colors">
-                        <i class="ph ph-plus text-lg mr-2"></i>
+                            class="flex items-center px-4 py-2 text-sm font-medium text-white bg-primary rounded-lg hover:bg-indigo-700 transition-colors whitespace-nowrap">
+                        <i class="ph ph-plus-circle text-lg mr-2"></i>
                         Tambah Imunisasi
                     </button>
+                </div>
+            </div>
+
+            <div class="flex flex-col gap-4 mb-4 md:hidden">
+                <h2 class="text-lg font-semibold text-gray-900 flex items-start gap-2 min-w-0">
+                    <i class="ph ph-syringe text-2xl shrink-0 text-primary"></i>
+                    <span class="leading-snug">Daftar Imunisasi</span>
+                </h2>
+                <div class="imunisasi-action-bar w-full">
+                    <div class="grid grid-cols-1 gap-2">
+                        <a href="{{ route('adminPosyandu.laporan.pdf') }}"
+                           target="_blank"
+                           class="imunisasi-action-btn flex items-center justify-center px-4 py-3 text-sm font-semibold text-primary border-2 border-primary rounded-lg hover:bg-primary hover:text-white transition-colors whitespace-nowrap">
+                            <i class="ph ph-file-pdf text-lg mr-2 shrink-0"></i>
+                            Export PDF
+                        </a>
+                        <button wire:click="openImunisasiModal"
+                                class="imunisasi-action-btn flex items-center justify-center px-4 py-3 text-sm font-semibold text-white bg-primary rounded-lg hover:bg-indigo-700 transition-colors whitespace-nowrap">
+                            <i class="ph ph-plus-circle text-lg mr-2 shrink-0"></i>
+                            Tambah Imunisasi
+                        </button>
+                    </div>
                 </div>
             </div>
 
@@ -244,9 +268,16 @@
                             </h3>
 
                             <div class="grid grid-cols-1 gap-4">
-                                {{-- Pilih Sasaran (Searchable) --}}
+                                {{-- Sasaran: read-only saat edit, searchable saat tambah --}}
                                 <div>
                                     <label class="block text-gray-700 text-sm font-bold mb-2">Sasaran <span class="text-red-500">*</span></label>
+                                    @if($id_imunisasi)
+                                        <input type="text"
+                                               value="{{ $sasaran_nama_display }}"
+                                               readonly
+                                               class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-800 bg-gray-100 leading-tight focus:outline-none cursor-not-allowed font-medium">
+                                        <p class="text-xs text-gray-500 mt-1">Nama sasaran tidak dapat diubah saat edit data imunisasi.</p>
+                                    @else
                                     <div class="relative" x-data="{
                                         open: false,
                                         searchText: '',
@@ -352,10 +383,11 @@
                                             </ul>
                                         </div>
                                     </div>
-                                    @error('id_sasaran_imunisasi') <span class="text-red-500 text-xs">{{ $message }}</span>@enderror
                                     @if(empty($sasaranList) && $id_posyandu_imunisasi)
                                         <p class="text-xs text-gray-500 mt-1">Belum ada sasaran terdaftar di posyandu ini</p>
                                     @endif
+                                    @endif
+                                    @error('id_sasaran_imunisasi') <span class="text-red-500 text-xs">{{ $message }}</span>@enderror
                                 </div>
 
                                 {{-- Kategori Sasaran (Auto-filled) --}}

@@ -1,7 +1,7 @@
-<div>
-    <div class="p-6">
-        <h1 class="text-3xl font-bold text-gray-800 mb-2">Dashboard Posyandu - {{ $posyandu->nama_posyandu }}</h1>
-        <p class="text-gray-500 mb-6">Selamat datang di halaman utama Dashboard Posyandu</p>
+<div class="kader-dashboard-content">
+    <div class="p-4 md:p-6">
+        <h1 class="text-2xl md:text-3xl font-bold text-gray-900 mb-2 leading-snug">Dashboard Posyandu - {{ $posyandu->nama_posyandu }}</h1>
+        <p class="text-gray-700 mb-6 text-base md:text-sm">Selamat datang di halaman utama Dashboard Posyandu</p>
 
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-10">
             <!-- Card Nama Posyandu -->
@@ -9,24 +9,24 @@
                 <div class="bg-blue-100 p-4 rounded-full mb-4">
                     <i class="ph ph-buildings text-4xl text-blue-600"></i>
                 </div>
-                <span class="text-lg font-bold text-gray-700 text-center">{{ $posyandu->nama_posyandu ?? '-' }}</span>
-                <span class="text-sm text-gray-500 mt-1">Nama Posyandu</span>
+                <span class="text-xl md:text-lg font-bold text-gray-900 text-center leading-snug">{{ $posyandu->nama_posyandu ?? '-' }}</span>
+                <span class="kader-stat-label text-gray-700 mt-2">Nama Posyandu</span>
             </div>
             <!-- Card Total Kader -->
             <div class="bg-white rounded-lg shadow-md p-6 flex flex-col items-center">
                 <div class="bg-green-100 p-4 rounded-full mb-4">
                     <i class="ph ph-user-switch text-4xl text-green-600"></i>
                 </div>
-                <span class="text-2xl font-bold text-gray-700">{{ $totalKader ?? '0' }}</span>
-                <span class="text-sm text-gray-500 mt-1">Total Kader</span>
+                <span class="kader-stat-value text-4xl md:text-2xl font-bold text-gray-900">{{ $totalKader ?? '0' }}</span>
+                <span class="kader-stat-label text-gray-700 mt-2">Total Kader</span>
             </div>
             <!-- Card Total Sasaran -->
             <div class="bg-white rounded-lg shadow-md p-6 flex flex-col items-center">
                 <div class="bg-yellow-100 p-4 rounded-full mb-4">
                     <i class="ph ph-users-three text-4xl text-yellow-600"></i>
                 </div>
-                <span class="text-2xl font-bold text-gray-700">{{ $totalSasaran ?? '0' }}</span>
-                <span class="text-sm text-gray-500 mt-1">Total Sasaran</span>
+                <span class="kader-stat-value text-4xl md:text-2xl font-bold text-gray-900">{{ $totalSasaran ?? '0' }}</span>
+                <span class="kader-stat-label text-gray-700 mt-2">Total Sasaran</span>
             </div>
         </div>
 
@@ -44,7 +44,7 @@
                         <i class="ph ph-user-list text-2xl text-teal-600"></i>
                         <h3 class="font-semibold text-gray-800">Absensi Petugas Kesehatan</h3>
                     </div>
-                    <div class="space-y-2 text-sm mb-4">
+                    <div class="space-y-2 text-base md:text-sm mb-4">
                         <div class="flex justify-between">
                             <span class="text-gray-600">Total jadwal</span>
                             <span class="font-semibold">{{ $absenPetugas['total'] ?? 0 }}</span>
@@ -62,12 +62,12 @@
                             <span class="font-semibold text-amber-600">{{ $absenPetugas['belum_hadir'] ?? 0 }}</span>
                         </div>
                     </div>
-                    <div class="flex flex-wrap gap-2">
-                        <a href="{{ route('adminPosyandu.laporan') }}" class="inline-flex items-center px-3 py-2 rounded-lg bg-gray-100 text-gray-700 text-sm font-medium hover:bg-gray-200 transition-colors">
-                            <i class="ph ph-list mr-1"></i> Halaman Laporan
+                    <div class="kader-mobile-stack flex flex-col sm:flex-row gap-3">
+                        <a href="{{ route('adminPosyandu.laporan') }}" class="inline-flex items-center justify-center px-4 py-3 rounded-lg bg-gray-100 text-gray-800 text-base md:text-sm font-semibold hover:bg-gray-200 transition-colors">
+                            <i class="ph ph-list mr-2 text-lg"></i> Halaman Laporan
                         </a>
-                        <a href="{{ route('adminPosyandu.laporan.absensi.pdf') }}?bulan={{ date('n') }}&tahun={{ date('Y') }}" target="_blank" class="inline-flex items-center px-3 py-2 rounded-lg bg-teal-600 text-white text-sm font-medium hover:bg-teal-700 transition-colors">
-                            <i class="ph ph-file-pdf mr-1"></i> Export PDF
+                        <a href="{{ route('adminPosyandu.laporan.absensi.pdf') }}?bulan={{ date('n') }}&tahun={{ date('Y') }}" target="_blank" class="inline-flex items-center justify-center px-4 py-3 rounded-lg bg-teal-600 text-white text-base md:text-sm font-semibold hover:bg-teal-700 transition-colors">
+                            <i class="ph ph-file-pdf mr-2 text-lg"></i> Export PDF
                         </a>
                     </div>
                 </div>
@@ -840,6 +840,10 @@
 </script>
 <script>
     document.addEventListener('DOMContentLoaded', function() {
+        const isMobile = window.innerWidth < 768;
+        const chartFontSize = isMobile ? 15 : 12;
+        const chartLegendSize = isMobile ? 14 : 11;
+
         // Pastikan data tersedia
         const sasaranByCategory = @json($sasaranByCategory ?? []);
         const pendidikanData = @json($pendidikanData ?? ['labels' => [], 'data' => []]);
@@ -891,8 +895,14 @@
                         legend: {
                             display: true,
                             position: 'top',
+                            labels: {
+                                font: { size: chartLegendSize },
+                                padding: isMobile ? 16 : 10,
+                            },
                         },
                         tooltip: {
+                            titleFont: { size: chartFontSize },
+                            bodyFont: { size: chartFontSize },
                             callbacks: {
                                 label: function(context) {
                                     return 'Jumlah: ' + context.parsed.y + ' orang';
@@ -905,19 +915,23 @@
                             beginAtZero: true,
                             ticks: {
                                 stepSize: 1,
+                                font: { size: chartFontSize },
                                 callback: function(value) {
                                     return value + ' orang';
                                 }
                             },
                             title: {
                                 display: true,
-                                text: 'Jumlah Sasaran'
+                                text: 'Jumlah Sasaran',
+                                font: { size: chartFontSize },
                             }
                         },
                         x: {
+                            ticks: { font: { size: chartFontSize } },
                             title: {
                                 display: true,
-                                text: 'Kategori Sasaran'
+                                text: 'Kategori Sasaran',
+                                font: { size: chartFontSize },
                             }
                         }
                     }
@@ -972,14 +986,16 @@
                             display: true,
                             position: 'bottom',
                             labels: {
-                                boxWidth: 12,
-                                padding: 10,
+                                boxWidth: isMobile ? 16 : 12,
+                                padding: isMobile ? 14 : 10,
                                 font: {
-                                    size: 11
+                                    size: chartLegendSize
                                 }
                             }
                         },
                         tooltip: {
+                            titleFont: { size: chartFontSize },
+                            bodyFont: { size: chartFontSize },
                             callbacks: {
                                 label: function(context) {
                                     const label = context.label || '';

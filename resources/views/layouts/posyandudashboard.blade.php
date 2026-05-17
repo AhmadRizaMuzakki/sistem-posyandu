@@ -14,28 +14,136 @@
         body {
             font-family: 'Inter', sans-serif;
         }
-        
+
         /* Sidebar Menu Active State */
         .sidebar-menu-item {
             transition: all 0.3s ease;
         }
-        
+
         .sidebar-menu-item:hover {
             background-color: #f3f4f6;
         }
-        
+
         .sidebar-menu-item.active {
-            background-color: #e9d5ff !important; /* Light purple/lavender background */
-            color: #7c3aed !important; /* Dark purple text */
+            background-color: #e9d5ff !important;
+            color: #7c3aed !important;
         }
-        
+
         .sidebar-menu-item.active i {
-            color: #7c3aed !important; /* Dark purple icon */
+            color: #7c3aed !important;
         }
-        
+
         .sidebar-menu-item.active span {
-            color: #7c3aed !important; /* Dark purple text */
+            color: #7c3aed !important;
             font-weight: 600;
+        }
+
+        /* Mobile: ramah mata (kader yang rabun) */
+        @media (max-width: 767px) {
+            body.kader-mobile-friendly {
+                font-size: 18px;
+                line-height: 1.65;
+                -webkit-text-size-adjust: 100%;
+            }
+
+            body.kader-mobile-friendly main {
+                padding: 1rem !important;
+            }
+
+            body.kader-mobile-friendly #sidebar {
+                width: min(92vw, 20rem);
+            }
+
+            body.kader-mobile-friendly .sidebar-menu-item {
+                min-height: 3.25rem;
+                padding-top: 0.875rem;
+                padding-bottom: 0.875rem;
+                font-size: 1.0625rem;
+            }
+
+            body.kader-mobile-friendly .sidebar-menu-item i {
+                font-size: 1.5rem !important;
+            }
+
+            body.kader-mobile-friendly #menuBtn {
+                min-width: 3rem;
+                min-height: 3rem;
+                padding: 0.5rem;
+            }
+
+            body.kader-mobile-friendly #menuBtn i {
+                font-size: 1.75rem;
+            }
+
+            body.kader-mobile-friendly .kader-dashboard-content h1 {
+                font-size: 1.625rem;
+                line-height: 1.35;
+            }
+
+            body.kader-mobile-friendly .kader-dashboard-content h2 {
+                font-size: 1.375rem;
+                line-height: 1.4;
+            }
+
+            body.kader-mobile-friendly .kader-dashboard-content h3 {
+                font-size: 1.2rem;
+            }
+
+            body.kader-mobile-friendly .kader-dashboard-content .text-sm,
+            body.kader-mobile-friendly .kader-dashboard-content label.text-sm {
+                font-size: 1rem !important;
+            }
+
+            body.kader-mobile-friendly .kader-dashboard-content .text-xs {
+                font-size: 0.9375rem !important;
+            }
+
+            body.kader-mobile-friendly .kader-dashboard-content .text-gray-500,
+            body.kader-mobile-friendly .kader-dashboard-content .text-gray-600 {
+                color: #374151 !important;
+            }
+
+            body.kader-mobile-friendly .kader-dashboard-content a.inline-flex,
+            body.kader-mobile-friendly .kader-dashboard-content button:not(.w-9):not(.h-9),
+            body.kader-mobile-friendly .kader-dashboard-content select,
+            body.kader-mobile-friendly .kader-dashboard-content input[type="text"] {
+                min-height: 3rem;
+                font-size: 1.0625rem !important;
+            }
+
+            body.kader-mobile-friendly .kader-dashboard-content .kader-stat-value {
+                font-size: 2.5rem !important;
+            }
+
+            body.kader-mobile-friendly .kader-dashboard-content .kader-stat-label {
+                font-size: 1.0625rem !important;
+            }
+
+            body.kader-mobile-friendly .kader-dashboard-content .kader-row-stat {
+                font-size: 1.0625rem;
+                padding: 0.5rem 0;
+            }
+
+            body.kader-mobile-friendly .kader-dashboard-content .kader-mobile-stack {
+                flex-direction: column;
+                align-items: stretch !important;
+            }
+
+            body.kader-mobile-friendly .kader-dashboard-content .kader-mobile-stack > * {
+                width: 100%;
+                justify-content: center;
+            }
+
+            body.kader-mobile-friendly .kader-dashboard-content .h-96 {
+                height: 22rem;
+            }
+
+            body.kader-mobile-friendly .sasaran-action-bar .sasaran-action-btn,
+            body.kader-mobile-friendly .imunisasi-action-bar .imunisasi-action-btn {
+                width: 100%;
+                min-height: 3rem;
+                font-size: 1rem !important;
+            }
         }
     </style>
 
@@ -43,7 +151,7 @@
     @livewireStyles
 </head>
 
-<body class="bg-gray-50 text-gray-800">
+<body class="bg-gray-50 text-gray-800 kader-mobile-friendly">
 
     <div class="flex h-screen overflow-hidden">
 
@@ -144,23 +252,23 @@
         <div class="flex flex-col flex-1 w-0 overflow-hidden">
 
             <header
-                class="relative z-10 flex items-center justify-between h-16 px-6 bg-white border-b border-gray-200 shadow-sm">
-                <button id="menuBtn"
-                    class="p-1 text-gray-400 rounded-md md:hidden hover:text-gray-500 focus:outline-none">
+                class="relative z-10 flex items-center justify-between min-h-[4rem] px-4 md:px-6 py-2 bg-white border-b border-gray-200 shadow-sm gap-3">
+                <button id="menuBtn" type="button" aria-label="Buka menu navigasi"
+                    class="p-2 text-gray-700 rounded-lg md:hidden hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-primary shrink-0">
                     <i class="ph ph-list text-2xl"></i>
                 </button>
 
                 {{-- Salam + Jam --}}
-                <div class="hidden md:flex items-center flex-1 ml-4">
-                    <div class="flex items-center gap-2 px-3 py-2 bg-gray-50 rounded-lg border border-gray-100">
-                        <i class="ph ph-clock text-primary text-lg"></i>
-                        <div>
+                <div class="flex items-center flex-1 min-w-0 md:ml-4">
+                    <div class="flex items-center gap-2 px-3 py-2 bg-gray-50 rounded-lg border border-gray-100 w-full md:w-auto">
+                        <i class="ph ph-clock text-primary text-xl shrink-0"></i>
+                        <div class="min-w-0">
                             @php
                                 $jam = (int) now('Asia/Jakarta')->format('H');
                                 $salam = ($jam >= 19 || $jam <= 2) ? 'Malam' : (($jam >= 3 && $jam <= 10) ? 'Pagi' : (($jam >= 11 && $jam <= 14) ? 'Siang' : (($jam >= 15 && $jam <= 17) ? 'Sore' : 'Magrib')));
                             @endphp
-                            <p class="text-xs text-gray-500 leading-tight">Selamat {{ $salam }}</p>
-                            <p class="text-sm font-medium text-gray-800" x-data="{ now: new Date() }" x-init="setInterval(() => { now = new Date() }, 1000)" x-text="now.toLocaleDateString('id-ID', { weekday: 'short', day: 'numeric', month: 'short' }) + ' · ' + now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' })"></p>
+                            <p class="text-sm md:text-xs text-gray-700 leading-tight font-medium">Selamat {{ $salam }}</p>
+                            <p class="text-base md:text-sm font-semibold text-gray-900 truncate" x-data="{ now: new Date() }" x-init="setInterval(() => { now = new Date() }, 1000)" x-text="now.toLocaleDateString('id-ID', { weekday: 'short', day: 'numeric', month: 'short' }) + ' · ' + now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })"></p>
                         </div>
                     </div>
                 </div>
@@ -180,8 +288,8 @@
                                 <form method="POST" action="{{ route('logout') }}">
                                     @csrf
                                     <button type="submit"
-                                        class="w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100 hover:text-primary text-sm">
-                                        <i class="ph ph-sign-out mr-2"></i> Logout
+                                        class="w-full text-left px-4 py-3 text-gray-800 hover:bg-gray-100 hover:text-primary text-base md:text-sm font-medium">
+                                        <i class="ph ph-sign-out mr-2 text-lg"></i> Logout
                                     </button>
                                 </form>
                             </div>

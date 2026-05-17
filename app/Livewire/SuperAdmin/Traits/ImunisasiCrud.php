@@ -38,6 +38,9 @@ trait ImunisasiCrud
     // Untuk dropdown sasaran
     public $sasaranList = [];
 
+    /** Label nama sasaran saat mode edit (read-only) */
+    public $sasaran_nama_display = '';
+
     /**
      * Buka modal tambah/edit Imunisasi
      */
@@ -86,6 +89,39 @@ trait ImunisasiCrud
         $this->keterangan = '';
         $this->id_petugas_kesehatan_imunisasi = null;
         $this->sasaranList = [];
+        $this->sasaran_nama_display = '';
+    }
+
+    /**
+     * Format label nama sasaran untuk tampilan read-only (mode edit).
+     */
+    protected function resolveSasaranDisplayName($id, string $kategori): string
+    {
+        if ($id && $kategori && !empty($this->sasaranList)) {
+            $fromList = collect($this->sasaranList)->first(function ($s) use ($id, $kategori) {
+                return (string) $s['id'] === (string) $id && $s['kategori'] === $kategori;
+            });
+            if ($fromList) {
+                return $fromList['nama'] . ' (' . $fromList['nik'] . ') - ' . ucfirst($fromList['kategori']);
+            }
+        }
+
+        $modelMap = [
+            'bayibalita' => SasaranBayibalita::class,
+            'remaja' => SasaranRemaja::class,
+            'dewasa' => SasaranDewasa::class,
+            'pralansia' => SasaranPralansia::class,
+            'lansia' => SasaranLansia::class,
+        ];
+
+        if ($id && isset($modelMap[$kategori])) {
+            $model = $modelMap[$kategori]::find($id);
+            if ($model) {
+                return $model->nama_sasaran . ' (' . $model->nik_sasaran . ') - ' . ucfirst($kategori);
+            }
+        }
+
+        return 'Sasaran tidak ditemukan';
     }
 
     /**
@@ -306,7 +342,11 @@ trait ImunisasiCrud
         
         // Set ID setelah kategori untuk memastikan updatedIdSasaranImunisasi menggunakan kategori yang benar
         $this->id_sasaran_imunisasi = $imunisasi->id_sasaran;
-        
+        $this->sasaran_nama_display = $this->resolveSasaranDisplayName(
+            $imunisasi->id_sasaran,
+            $imunisasi->kategori_sasaran
+        );
+
         $this->jenis_imunisasi = $imunisasi->jenis_imunisasi;
         $this->tanggal_imunisasi = $imunisasi->tanggal_imunisasi ? $imunisasi->tanggal_imunisasi->format('Y-m-d') : '';
         if ($imunisasi->tanggal_imunisasi) {
