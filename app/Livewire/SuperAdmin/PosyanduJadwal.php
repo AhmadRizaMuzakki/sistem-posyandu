@@ -2,6 +2,8 @@
 
 namespace App\Livewire\SuperAdmin;
 
+use App\Livewire\Traits\JadwalAcaraDuplicateTrait;
+use App\Livewire\Traits\NotificationModal;
 use App\Models\Jadwal;
 use App\Models\JadwalKegiatan;
 use App\Models\Posyandu;
@@ -13,6 +15,9 @@ use Illuminate\Support\Facades\DB;
 
 class PosyanduJadwal extends Component
 {
+    use JadwalAcaraDuplicateTrait;
+    use NotificationModal;
+
     public $posyanduId;
     public $posyandu;
     public $currentMonth;
@@ -190,6 +195,12 @@ class PosyanduJadwal extends Component
         $jamSelesai = $this->normalizeTime($this->jam_selesai);
 
         if ($this->id_jadwal_kegiatan_edit) {
+            if ($this->acaraSudahTerdaftar($this->id_jadwal_kegiatan_edit)) {
+                $this->tampilkanNotifikasiAcaraDuplikat();
+
+                return;
+            }
+
             $k = JadwalKegiatan::findOrFail($this->id_jadwal_kegiatan_edit);
             if ($k->id_posyandu != $this->posyanduId) {
                 abort(403, 'Unauthorized access');
@@ -203,7 +214,14 @@ class PosyanduJadwal extends Component
                 'jam_selesai' => $jamSelesai,
             ]);
             session()->flash('message', 'Acara berhasil diperbarui.');
+            $this->showSuccessNotification('Acara berhasil diperbarui.');
         } else {
+            if ($this->acaraSudahTerdaftar()) {
+                $this->tampilkanNotifikasiAcaraDuplikat();
+
+                return;
+            }
+
             JadwalKegiatan::create([
                 'id_posyandu' => $this->posyanduId,
                 'tanggal' => $this->tanggal_acara,
@@ -214,6 +232,7 @@ class PosyanduJadwal extends Component
                 'jam_selesai' => $jamSelesai,
             ]);
             session()->flash('message', 'Acara berhasil disimpan.');
+            $this->showSuccessNotification('Acara berhasil disimpan.');
         }
 
         $this->id_jadwal_kegiatan_edit = null;

@@ -1,70 +1,107 @@
-{{-- Modal Notifikasi --}}
-@if(isset($showNotificationModal) && $showNotificationModal)
-<div x-data="{ 
-    show: @entangle('showNotificationModal')
-}" 
-x-show="show"
-x-cloak
-class="fixed inset-0 z-50 overflow-y-auto"
-style="display: none;"
-x-on:close-modal.window="show = false">
-    <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
-        {{-- Overlay --}}
-        <div x-show="show" 
-             x-transition:enter="ease-out duration-300"
-             x-transition:enter-start="opacity-0"
-             x-transition:enter-end="opacity-100"
-             x-transition:leave="ease-in duration-200"
-             x-transition:leave-start="opacity-100"
-             x-transition:leave-end="opacity-0"
-             class="fixed inset-0 transition-opacity bg-gray-500 bg-opacity-75"
-             x-on:click="show = false"></div>
+{{-- Modal notifikasi Livewire — selaras warna dashboard (primary / amber / red) --}}
+@if(isset($showNotificationModal))
+@php
+    $type = $notificationType ?? 'success';
+    $headerClass = match ($type) {
+        'warning' => 'bg-amber-500',
+        'error' => 'bg-red-600',
+        default => 'bg-primary',
+    };
+    $iconClass = match ($type) {
+        'warning' => 'ph-warning',
+        'error' => 'ph-x-circle',
+        default => 'ph-check-circle',
+    };
+    $ringClass = match ($type) {
+        'warning' => 'bg-amber-50 text-amber-600 ring-amber-100',
+        'error' => 'bg-red-50 text-red-600 ring-red-100',
+        default => 'bg-teal-50 text-primary ring-teal-100',
+    };
+    $btnClass = match ($type) {
+        'warning' => 'bg-amber-500 hover:bg-amber-600 focus:ring-amber-300',
+        'error' => 'bg-red-600 hover:bg-red-700 focus:ring-red-300',
+        default => 'bg-primary hover:bg-primaryDark focus:ring-teal-300',
+    };
+    $title = $notificationTitle ?? match ($type) {
+        'warning' => 'Peringatan',
+        'error' => 'Terjadi Kesalahan',
+        default => 'Berhasil',
+    };
+@endphp
+@teleport('body')
+<div
+    x-data="{ show: @entangle('showNotificationModal').live }"
+    x-show="show"
+    x-cloak
+    class="fixed inset-0 z-[9999] flex items-center justify-center p-4 sm:p-6"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="notification-modal-title"
+>
+    <div
+        x-show="show"
+        x-transition:enter="ease-out duration-200"
+        x-transition:enter-start="opacity-0"
+        x-transition:enter-end="opacity-100"
+        x-transition:leave="ease-in duration-150"
+        x-transition:leave-start="opacity-100"
+        x-transition:leave-end="opacity-0"
+        class="fixed inset-0 bg-gray-900/60 backdrop-blur-[2px]"
+        wire:click="closeNotificationModal"
+        aria-hidden="true"
+    ></div>
 
-        {{-- Modal Panel --}}
-        <div x-show="show"
-             x-transition:enter="ease-out duration-300"
-             x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
-             x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100"
-             x-transition:leave="ease-in duration-200"
-             x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100"
-             x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
-             class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-md sm:w-full"
-             x-on:click.away="show = false">
-            
-            {{-- Header --}}
-            <div class="px-6 py-4 flex items-center justify-between {{ $notificationType === 'success' ? 'bg-green-500' : 'bg-red-500' }}">
-                <div class="flex items-center">
-                    @if($notificationType === 'success')
-                        <i class="ph ph-check-circle text-2xl text-white mr-3"></i>
-                    @else
-                        <i class="ph ph-x-circle text-2xl text-white mr-3"></i>
-                    @endif
-                    <h3 class="text-lg font-semibold text-white">
-                        {{ $notificationTitle ?? ($notificationType === 'success' ? 'Berhasil' : 'Terjadi Kesalahan') }}
-                    </h3>
-                </div>
-                <button wire:click="closeNotificationModal" class="text-white hover:text-gray-200">
-                    <i class="ph ph-x text-xl"></i>
-                </button>
+    <div
+        x-show="show"
+        x-transition:enter="ease-out duration-250"
+        x-transition:enter-start="opacity-0 scale-95 translate-y-2"
+        x-transition:enter-end="opacity-100 scale-100 translate-y-0"
+        x-transition:leave="ease-in duration-150"
+        x-transition:leave-start="opacity-100 scale-100"
+        x-transition:leave-end="opacity-0 scale-95"
+        class="relative w-full max-w-sm sm:max-w-md bg-white rounded-2xl shadow-2xl ring-1 ring-black/5 overflow-hidden"
+        wire:click.stop
+    >
+        <div class="{{ $headerClass }} px-5 py-3 flex items-center justify-between">
+            <p class="text-sm font-semibold text-white tracking-wide uppercase opacity-95">
+                {{ $title }}
+            </p>
+            <button
+                type="button"
+                wire:click="closeNotificationModal"
+                class="p-1.5 rounded-lg text-white/90 hover:text-white hover:bg-white/15 transition-colors"
+                aria-label="Tutup"
+            >
+                <i class="ph ph-x text-lg"></i>
+            </button>
+        </div>
+
+        <div class="px-6 pt-8 pb-6 text-center">
+            <div
+                class="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-full ring-8 {{ $ringClass }}"
+            >
+                <i class="ph {{ $iconClass }} text-3xl"></i>
             </div>
 
-            {{-- Body --}}
-            <div class="bg-white px-6 py-4">
-                <p class="text-gray-700 text-sm">
-                    {{ $notificationMessage }}
-                </p>
-            </div>
+            <h2 id="notification-modal-title" class="text-xl font-bold text-gray-900 mb-2">
+                {{ $title }}
+            </h2>
 
-            {{-- Footer --}}
-            <div class="bg-gray-50 px-6 py-4 flex justify-end">
-                <button 
-                    wire:click="closeNotificationModal"
-                    class="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors">
-                    Tutup
-                </button>
-            </div>
+            <p class="text-gray-600 text-sm sm:text-base leading-relaxed max-w-xs mx-auto">
+                {{ $notificationMessage }}
+            </p>
+        </div>
+
+        <div class="px-6 pb-6">
+            <button
+                type="button"
+                wire:click="closeNotificationModal"
+                class="w-full py-3 px-4 rounded-xl text-white text-sm font-semibold shadow-md transition-all focus:outline-none focus:ring-2 focus:ring-offset-2 {{ $btnClass }}"
+            >
+                Oke, mengerti
+            </button>
         </div>
     </div>
 </div>
+@endteleport
 @endif
-

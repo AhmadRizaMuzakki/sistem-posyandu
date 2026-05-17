@@ -21,8 +21,13 @@
 
         {{-- Message Alert --}}
         @if (session()->has('message'))
-            <div class="bg-{{ session('messageType') === 'success' ? 'green' : 'red' }}-50 border-l-4 border-{{ session('messageType') === 'success' ? 'green' : 'red' }}-500 text-{{ session('messageType') === 'success' ? 'green' : 'red' }}-700 px-4 py-3 rounded-lg shadow-sm flex items-center">
-                <i class="ph ph-{{ session('messageType') === 'success' ? 'check-circle' : 'x-circle' }} text-xl mr-3"></i>
+            @php
+                $msgType = session('messageType', 'success');
+                $alertColor = $msgType === 'success' ? 'green' : ($msgType === 'error' ? 'amber' : 'red');
+                $alertIcon = $msgType === 'success' ? 'check-circle' : ($msgType === 'error' ? 'warning' : 'x-circle');
+            @endphp
+            <div class="bg-{{ $alertColor }}-50 border-l-4 border-{{ $alertColor }}-500 text-{{ $alertColor }}-800 px-4 py-3 rounded-lg shadow-sm flex items-center">
+                <i class="ph ph-{{ $alertIcon }} text-xl mr-3"></i>
                 <span class="font-medium">{{ session('message') }}</span>
             </div>
         @endif
@@ -267,4 +272,6 @@
             </div>
         </div>
     @endif
+
+    @include('components.notification-modal')
 </div>

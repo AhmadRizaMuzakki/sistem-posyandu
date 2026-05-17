@@ -11,6 +11,10 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
 
     <style>
+        [x-cloak] {
+            display: none !important;
+        }
+
         body {
             font-family: 'Inter', sans-serif;
         }
@@ -345,6 +349,7 @@
 
     @stack('scripts')
     @livewireScripts
+    @include('components.livewire-alert-bridge')
     @include('components.alert-modal')
 </body>
 

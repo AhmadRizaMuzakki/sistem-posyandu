@@ -5,7 +5,7 @@ namespace App\Livewire\Traits;
 trait NotificationModal
 {
     public $showNotificationModal = false;
-    public $notificationType = 'success'; // 'success' or 'error'
+    public $notificationType = 'success'; // 'success', 'error', or 'warning'
     public $notificationMessage = '';
     public $notificationTitle = null;
 
@@ -16,7 +16,11 @@ trait NotificationModal
     {
         $this->notificationMessage = $message;
         $this->notificationType = $type;
-        $this->notificationTitle = $title ?? ($type === 'success' ? 'Berhasil' : 'Terjadi Kesalahan');
+        $this->notificationTitle = $title ?? match ($type) {
+            'success' => 'Berhasil',
+            'warning' => 'Peringatan',
+            default => 'Terjadi Kesalahan',
+        };
         $this->showNotificationModal = true;
     }
 
@@ -34,6 +38,11 @@ trait NotificationModal
     public function showErrorNotification($message, $title = 'Terjadi Kesalahan')
     {
         $this->showNotification($message, 'error', $title);
+    }
+
+    public function showWarningNotification($message, $title = 'Peringatan')
+    {
+        $this->showNotification($message, 'warning', $title);
     }
 
     /**

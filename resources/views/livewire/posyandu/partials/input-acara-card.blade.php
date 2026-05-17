@@ -26,6 +26,15 @@
                     @error('nama_kegiatan') <span class="text-red-500 text-xs mt-1 block">{{ $message }}</span> @enderror
                 </div>
             </div>
+            @if($this->acaraDuplicatePesan)
+                <div class="flex items-start gap-3 rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-900" role="alert">
+                    <i class="ph ph-warning text-xl text-amber-600 shrink-0 mt-0.5"></i>
+                    <div>
+                        <p class="font-semibold">Acara sudah ditambahkan</p>
+                        <p class="mt-0.5 text-amber-800">{{ $this->acaraDuplicatePesan }}</p>
+                    </div>
+                </div>
+            @endif
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Tempat</label>
                 <input type="text" wire:model.live="tempat"
