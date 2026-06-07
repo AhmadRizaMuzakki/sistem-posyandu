@@ -635,6 +635,10 @@ trait SasaranImportTrait
     {
         $msg = $e->getMessage();
 
+        if (str_contains($msg, 'Could not parse') || str_contains($msg, 'Failed to parse time string')) {
+            return 'Tanggal lahir tidak valid. Gunakan format DD/MM/YYYY (contoh: 15/06/2001).';
+        }
+
         // Data truncated for column 'X' at row 1
         if (preg_match('/Data truncated for column [\'"]([^\'"]+)[\'"]/i', $msg, $m)) {
             $col = $m[1];
@@ -816,26 +820,60 @@ trait SasaranImportTrait
 
     private function parseDate($value): ?string
     {
-        if ($value === null || $value === '') return null;
+        if ($value === null || $value === '') {
+            return null;
+        }
         $value = trim((string) $value);
-        if ($value === '') return null;
+        if ($value === '') {
+            return null;
+        }
         try {
-            // Excel serial date (numeric)
             if (is_numeric($value)) {
                 $d = ExcelDate::excelToDateTimeObject((float) $value);
+
                 return $d->format('Y-m-d');
             }
-            if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $value)) {
-                return $value;
-            }
+
             if (preg_match('/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/', $value, $m)) {
-                return sprintf('%04d-%02d-%02d', $m[3], $m[2], $m[1]);
+                return $this->buildValidDate((int) $m[3], (int) $m[2], (int) $m[1]);
             }
+
+            if (preg_match('/^(\d{1,2})-(\d{1,2})-(\d{4})$/', $value, $m)) {
+                return $this->buildValidDate((int) $m[3], (int) $m[2], (int) $m[1]);
+            }
+
+            if (preg_match('/^(\d{4})-(\d{1,2})-(\d{1,2})$/', $value, $m)) {
+                $year = (int) $m[1];
+                $second = (int) $m[2];
+                $third = (int) $m[3];
+
+                $asYearMonthDay = $this->buildValidDate($year, $second, $third);
+                if ($asYearMonthDay !== null) {
+                    return $asYearMonthDay;
+                }
+
+                // Excel sering menghasilkan YYYY-DD-MM dari tampilan DD/MM/YYYY
+                return $this->buildValidDate($year, $third, $second);
+            }
+
             $d = Carbon::parse($value);
+
             return $d->format('Y-m-d');
         } catch (\Throwable $e) {
             return null;
         }
+    }
+
+    private function buildValidDate(int $year, int $month, int $day): ?string
+    {
+        if ($year < 1900 || $year > 2100) {
+            return null;
+        }
+        if (!checkdate($month, $day, $year)) {
+            return null;
+        }
+
+        return sprintf('%04d-%02d-%02d', $year, $month, $day);
     }
 
     private function normalizeJenisKelamin($value): ?string
@@ -886,13 +924,18 @@ trait SasaranImportTrait
     private function normalizePekerjaan(?string $value): ?string
     {
         $v = trim((string) $value);
-        if (empty($v)) return null;
+        if ($v === '') {
+            return null;
+        }
         $map = [
             'ibu rumah tangga' => 'Mengurus Rumah Tangga',
             'irt' => 'Mengurus Rumah Tangga',
-            'pns' => 'Pegawai Negeri Sipil',
+            'pns' => 'Aparatur Sipil Negara (ASN)',
+            'asn' => 'Aparatur Sipil Negara (ASN)',
+            'pegawai negeri sipil' => 'Aparatur Sipil Negara (ASN)',
             'tni' => 'Tentara Nasional Indonesia',
-            'polri' => 'Kepolisian RI',
+            'polri' => 'Kepolisian RI (POLRI)',
+            'kepolisian ri' => 'Kepolisian RI (POLRI)',
             'wiraswasta' => 'Wiraswasta',
             'swasta' => 'Karyawan Swasta',
             'petani' => 'Petani/Pekebun',
@@ -909,56 +952,74 @@ trait SasaranImportTrait
             'mahasiswa' => 'Pelajar/Mahasiswa',
         ];
         $lower = strtolower($v);
+
         return $map[$lower] ?? $v;
+    }
+
+    /** @return list<string> */
+    private function getOrangtuaPekerjaanAllowedValues(): array
+    {
+        return [
+            'Belum/Tidak Bekerja', 'Mengurus Rumah Tangga', 'Pelajar/Mahasiswa', 'Pensiunan',
+            'Aparatur Sipil Negara (ASN)', 'Tentara Nasional Indonesia', 'Kepolisian RI (POLRI)',
+            'Perdagangan', 'Petani/Pekebun', 'Peternak', 'Nelayan/Perikanan', 'Industri',
+            'Konstruksi', 'Transportasi', 'Karyawan Swasta', 'Karyawan BUMN', 'Karyawan BUMD',
+            'Karyawan Honorer', 'Buruh Harian Lepas', 'Buruh Tani/Perkebunan', 'Buruh Nelayan/Perikanan',
+            'Buruh Peternakan', 'Pembantu Rumah Tangga', 'Tukang Cukur', 'Tukang Listrik', 'Tukang Batu',
+            'Tukang Kayu', 'Tukang Sol Sepatu', 'Tukang Las/Pandai Besi', 'Tukang Jahit', 'Tukang Gigi',
+            'Penata Rias', 'Penata Busana', 'Penata Rambut', 'Mekanik', 'Seniman', 'Tabib', 'Paraji',
+            'Perancang Busana', 'Penerjemah', 'Imam Masjid', 'Pendeta', 'Pastor', 'Wartawan',
+            'Ustadz/Mubaligh', 'Juru Masak', 'Promotor Acara', 'Anggota DPR-RI', 'Anggota DPD', 'Anggota BPK',
+            'Presiden', 'Wakil Presiden', 'Anggota Mahkamah Konstitusi', 'Anggota Kabinet/Kementerian',
+            'Duta Besar/Kepala Perwakilan', 'Gubernur', 'Wakil Gubernur', 'Bupati', 'Wakil Bupati',
+            'Walikota', 'Wakil Walikota', 'Anggota DPRD Provinsi', 'Anggota DPRD Kab/Kota', 'Dosen', 'Guru',
+            'Pilot', 'Pengacara', 'Notaris', 'Arsitek', 'Akuntan', 'Konsultan', 'Dokter', 'Bidan', 'Perawat',
+            'Apoteker', 'Psikiater/Psikolog', 'Penyiar Televisi', 'Penyiar Radio', 'Pelaut', 'Peneliti', 'Sopir',
+            'Pialang', 'Paranormal', 'Pedagang', 'Perangkat Desa', 'Kepala Desa', 'Biarawati', 'Wiraswasta',
+            'Artis', 'Atlet', 'Chef', 'Manajer', 'Tenaga Tata Usaha', 'Operator',
+            'Pekerja Pengolahan, Kerajinan', 'Teknisi', 'Asisten Ahli', 'Gembala', 'Uskup', 'Biarawan',
+            'Pandita', 'Pinandita', 'Bhikkhu', 'Xueshi', 'Wenshi', 'Jiaosheng', 'Lainnya',
+        ];
+    }
+
+    private function mapLegacyOrangtuaPekerjaan(?string $value): ?string
+    {
+        if ($value === null || $value === '') {
+            return null;
+        }
+        $legacyMap = [
+            'Pegawai Negeri Sipil' => 'Aparatur Sipil Negara (ASN)',
+            'Kepolisian RI' => 'Kepolisian RI (POLRI)',
+            'Penterjemah' => 'Penerjemah',
+            'Anggota DPRD Kabupaten/Kota' => 'Anggota DPRD Kab/Kota',
+            'Duta Besar' => 'Duta Besar/Kepala Perwakilan',
+            'Bhikhu' => 'Bhikkhu',
+        ];
+
+        return $legacyMap[$value] ?? $value;
     }
 
     /** Pekerjaan untuk tabel orangtua: hanya nilai enum, selain itu 'Lainnya'. */
     private function normalizePekerjaanOrangtua(?string $value): string
     {
-        $allowed = [
-            'Belum/Tidak Bekerja', 'Mengurus Rumah Tangga', 'Pelajar/Mahasiswa', 'Pensiunan',
-            'Pegawai Negeri Sipil', 'Tentara Nasional Indonesia', 'Kepolisian RI', 'Perdagangan',
-            'Petani/Pekebun', 'Peternak', 'Nelayan/Perikanan', 'Industri', 'Konstruksi', 'Transportasi',
-            'Karyawan Swasta', 'Karyawan BUMN', 'Karyawan BUMD', 'Karyawan Honorer', 'Buruh Harian Lepas',
-            'Buruh Tani/Perkebunan', 'Buruh Nelayan/Perikanan', 'Buruh Peternakan', 'Pembantu Rumah Tangga',
-            'Tukang Cukur', 'Tukang Listrik', 'Tukang Batu', 'Tukang Kayu', 'Tukang Sol Sepatu', 'Tukang Las/Pandai Besi',
-            'Tukang Jahit', 'Tukang Gigi', 'Penata Rias', 'Penata Busana', 'Penata Rambut', 'Mekanik', 'Seniman',
-            'Tabib', 'Paraji', 'Perancang Busana', 'Penterjemah', 'Imam Masjid', 'Pendeta', 'Pastor', 'Wartawan',
-            'Ustadz/Mubaligh', 'Juru Masak', 'Promotor Acara', 'Anggota DPR-RI', 'Anggota DPD', 'Anggota BPK',
-            'Presiden', 'Wakil Presiden', 'Anggota Mahkamah Konstitusi', 'Anggota Kabinet/Kementerian', 'Duta Besar',
-            'Gubernur', 'Wakil Gubernur', 'Bupati', 'Wakil Bupati', 'Walikota', 'Wakil Walikota',
-            'Anggota DPRD Provinsi', 'Anggota DPRD Kabupaten/Kota', 'Dosen', 'Guru', 'Pilot', 'Pengacara', 'Notaris',
-            'Arsitek', 'Akuntan', 'Konsultan', 'Dokter', 'Bidan', 'Perawat', 'Apoteker', 'Psikiater/Psikolog',
-            'Penyiar Televisi', 'Penyiar Radio', 'Pelaut', 'Peneliti', 'Sopir', 'Pialang', 'Paranormal', 'Pedagang',
-            'Perangkat Desa', 'Kepala Desa', 'Biarawati', 'Wiraswasta', 'Lainnya',
-        ];
-        $v = $this->normalizePekerjaan($value);
-        if ($v === null || $v === '') return 'Belum/Tidak Bekerja';
+        $allowed = $this->getOrangtuaPekerjaanAllowedValues();
+        $v = $this->mapLegacyOrangtuaPekerjaan($this->normalizePekerjaan($value));
+        if ($v === null || $v === '') {
+            return 'Belum/Tidak Bekerja';
+        }
+
         return in_array($v, $allowed, true) ? $v : 'Lainnya';
     }
 
     /** Pekerjaan suami (sasaran_ibuhamils): hanya nilai enum, selain itu null. */
     private function normalizePekerjaanSuami(?string $value): ?string
     {
-        $allowed = [
-            'Belum/Tidak Bekerja', 'Mengurus Rumah Tangga', 'Pelajar/Mahasiswa', 'Pensiunan',
-            'Pegawai Negeri Sipil', 'Tentara Nasional Indonesia', 'Kepolisian RI', 'Perdagangan',
-            'Petani/Pekebun', 'Peternak', 'Nelayan/Perikanan', 'Industri', 'Konstruksi', 'Transportasi',
-            'Karyawan Swasta', 'Karyawan BUMN', 'Karyawan BUMD', 'Karyawan Honorer', 'Buruh Harian Lepas',
-            'Buruh Tani/Perkebunan', 'Buruh Nelayan/Perikanan', 'Buruh Peternakan', 'Pembantu Rumah Tangga',
-            'Tukang Cukur', 'Tukang Listrik', 'Tukang Batu', 'Tukang Kayu', 'Tukang Sol Sepatu', 'Tukang Las/Pandai Besi',
-            'Tukang Jahit', 'Tukang Gigi', 'Penata Rias', 'Penata Busana', 'Penata Rambut', 'Mekanik', 'Seniman',
-            'Tabib', 'Paraji', 'Perancang Busana', 'Penterjemah', 'Imam Masjid', 'Pendeta', 'Pastor', 'Wartawan',
-            'Ustadz/Mubaligh', 'Juru Masak', 'Promotor Acara', 'Anggota DPR-RI', 'Anggota DPD', 'Anggota BPK',
-            'Presiden', 'Wakil Presiden', 'Anggota Mahkamah Konstitusi', 'Anggota Kabinet/Kementerian', 'Duta Besar',
-            'Gubernur', 'Wakil Gubernur', 'Bupati', 'Wakil Bupati', 'Walikota', 'Wakil Walikota',
-            'Anggota DPRD Provinsi', 'Anggota DPRD Kabupaten/Kota', 'Dosen', 'Guru', 'Pilot', 'Pengacara', 'Notaris',
-            'Arsitek', 'Akuntan', 'Konsultan', 'Dokter', 'Bidan', 'Perawat', 'Apoteker', 'Psikiater/Psikolog',
-            'Penyiar Televisi', 'Penyiar Radio', 'Pelaut', 'Peneliti', 'Sopir', 'Pialang', 'Paranormal', 'Pedagang',
-            'Perangkat Desa', 'Kepala Desa', 'Biarawati', 'Wiraswasta', 'Lainnya',
-        ];
-        $v = $this->normalizePekerjaan($value);
-        if ($v === null || $v === '') return null;
+        $allowed = $this->getOrangtuaPekerjaanAllowedValues();
+        $v = $this->mapLegacyOrangtuaPekerjaan($this->normalizePekerjaan($value));
+        if ($v === null || $v === '') {
+            return null;
+        }
+
         return in_array($v, $allowed, true) ? $v : null;
     }
 
