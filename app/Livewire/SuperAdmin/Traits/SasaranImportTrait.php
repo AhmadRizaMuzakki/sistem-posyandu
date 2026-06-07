@@ -369,7 +369,7 @@ trait SasaranImportTrait
                     if ($parsed === null && $cellValue !== '' && $cellValue !== null) {
                         $parsed = $this->parseDateFromSheetCell($sheet, (string) $col, (int) $rowKey);
                     }
-                    $row[$h] = $parsed ?? '';
+                    $row[$h] = $parsed;
                 } elseif ($h === 'kepersertaan_bpjs') {
                     $row[$h] = $this->normalizeKepersertaanBpjsFromImport($cellValue) ?? '';
                 } else {
@@ -596,7 +596,7 @@ trait SasaranImportTrait
                 if (in_array($h, ['nik_sasaran', 'no_kk_sasaran', 'nik_orangtua', 'nik_suami', 'nomor_bpjs'], true)) {
                     $row[$h] = $this->normalizeNikCellValue($value);
                 } elseif (in_array($h, ['tanggal_lahir', 'tanggal_lahir_orangtua'], true)) {
-                    $row[$h] = $this->parseDate($value) ?? '';
+                    $row[$h] = $this->parseDate($value);
                 } elseif ($h === 'kepersertaan_bpjs') {
                     $row[$h] = $this->normalizeKepersertaanBpjsFromImport($value) ?? '';
                 } else {
@@ -793,18 +793,8 @@ trait SasaranImportTrait
 
     private function createSasaranFromRow(array $row, int $posyanduId): void
     {
-        $tanggalLahirRaw = trim((string) ($row['tanggal_lahir'] ?? ''));
-        $tanggalLahir = preg_match('/^\d{4}-\d{2}-\d{2}$/', $tanggalLahirRaw)
-            ? $tanggalLahirRaw
-            : $this->parseDate($tanggalLahirRaw);
-        if (!$tanggalLahir) {
-            throw new \Exception('Tanggal lahir tidak valid. Isi kolom Tanggal Lahir (format DD/MM/YYYY, contoh: 15/06/2001).');
-        }
-
+        $tanggalLahir = $this->resolveImportDate($row['tanggal_lahir'] ?? null);
         $jenisKelamin = $this->normalizeJenisKelamin($row['jenis_kelamin'] ?? '');
-        if (!$jenisKelamin) {
-            throw new \Exception('Jenis kelamin harus Laki-laki atau Perempuan.');
-        }
 
         switch ($this->importKategori) {
             case 'bayibalita':
@@ -929,6 +919,33 @@ trait SasaranImportTrait
         }
 
         return sprintf('%04d-%02d-%02d', $year, $month, $day);
+    }
+
+    /**
+     * Kosong/null → null (diizinkan). Ada isi tapi tidak valid → error.
+     */
+    private function resolveImportDate(mixed $value): ?string
+    {
+        if ($value === null || trim((string) $value) === '') {
+            return null;
+        }
+
+        $raw = trim((string) $value);
+        $parsed = preg_match('/^\d{4}-\d{2}-\d{2}$/', $raw) ? $raw : $this->parseDate($value);
+        if ($parsed === null) {
+            throw new \Exception('Tanggal lahir tidak valid ("' . $raw . '"). Gunakan format DD/MM/YYYY (contoh: 15/06/2001) atau kosongkan sel jika tidak ada data.');
+        }
+
+        return $parsed;
+    }
+
+    private function calculateImportUmur(?string $tanggalLahir): ?int
+    {
+        if ($tanggalLahir === null || $tanggalLahir === '') {
+            return null;
+        }
+
+        return Carbon::parse($tanggalLahir)->age;
     }
 
     /**
@@ -1099,7 +1116,7 @@ trait SasaranImportTrait
         return in_array($v, $allowed, true) ? $v : null;
     }
 
-    private function createSasaranBayibalita(array $row, int $posyanduId, string $tanggalLahir, string $jenisKelamin): void
+    private function createSasaranBayibalita(array $row, int $posyanduId, ?string $tanggalLahir, ?string $jenisKelamin): void
     {
         $nikOrtu = trim($row['nik_orangtua'] ?? '');
         $namaOrtu = trim($row['nama_orangtua'] ?? '');
@@ -1114,7 +1131,7 @@ trait SasaranImportTrait
                     'nama' => $namaOrtu,
                     'no_kk' => trim($row['no_kk_sasaran'] ?? $row['no_kk_sasaran'] ?? $nikOrtu) ?: $nikOrtu,
                     'tempat_lahir' => trim($row['tempat_lahir_orangtua'] ?? '') ?: null,
-                    'tanggal_lahir' => $this->parseDate($row['tanggal_lahir_orangtua'] ?? '') ?: now(),
+                    'tanggal_lahir' => $this->resolveImportDate($row['tanggal_lahir_orangtua'] ?? null),
                     'pekerjaan' => $this->normalizePekerjaanOrangtua($row['pekerjaan_orangtua'] ?? ''),
                     'pendidikan' => $this->normalizePendidikan($row['pendidikan_orangtua'] ?? ''),
                     'kelamin' => $this->normalizeJenisKelamin($row['kelamin_orangtua'] ?? '') ?? 'Perempuan',
@@ -1136,7 +1153,7 @@ trait SasaranImportTrait
                 $user->assignRole('orangtua');
             }
 
-            $umur = Carbon::parse($tanggalLahir)->age;
+            $umur = $this->calculateImportUmur($tanggalLahir);
             SasaranBayibalita::create([
                 'id_posyandu' => $posyanduId,
                 'id_users' => null,
@@ -1209,7 +1226,7 @@ trait SasaranImportTrait
         }
     }
 
-    private function createSasaranRemaja(array $row, int $posyanduId, string $tanggalLahir, string $jenisKelamin): void
+    private function createSasaranRemaja(array $row, int $posyanduId, ?string $tanggalLahir, ?string $jenisKelamin): void
     {
         $nikOrtu = trim($row['nik_orangtua'] ?? '');
         $namaOrtu = trim($row['nama_orangtua'] ?? '');
@@ -1223,7 +1240,7 @@ trait SasaranImportTrait
                 'nama' => $namaOrtu,
                 'no_kk' => $row['no_kk_sasaran'] ?? $nikOrtu,
                 'tempat_lahir' => trim($row['tempat_lahir_orangtua'] ?? '') ?: null,
-                'tanggal_lahir' => $this->parseDate($row['tanggal_lahir_orangtua'] ?? '') ?: now(),
+                'tanggal_lahir' => $this->resolveImportDate($row['tanggal_lahir_orangtua'] ?? null),
                 'pekerjaan' => $this->normalizePekerjaanOrangtua($row['pekerjaan_orangtua'] ?? ''),
                 'pendidikan' => $this->normalizePendidikan($row['pendidikan_orangtua'] ?? ''),
                 'kelamin' => $this->normalizeJenisKelamin($row['kelamin_orangtua'] ?? '') ?? 'Perempuan',
@@ -1231,7 +1248,7 @@ trait SasaranImportTrait
             ]
         );
 
-        $umur = Carbon::parse($tanggalLahir)->age;
+        $umur = $this->calculateImportUmur($tanggalLahir);
         SasaranRemaja::create([
             'id_posyandu' => $posyanduId,
             'id_users' => null,
@@ -1254,9 +1271,9 @@ trait SasaranImportTrait
         ]);
     }
 
-    private function createSasaranDewasa(array $row, int $posyanduId, string $tanggalLahir, string $jenisKelamin): void
+    private function createSasaranDewasa(array $row, int $posyanduId, ?string $tanggalLahir, ?string $jenisKelamin): void
     {
-        $umur = Carbon::parse($tanggalLahir)->age;
+        $umur = $this->calculateImportUmur($tanggalLahir);
         SasaranDewasa::create([
             'id_posyandu' => $posyanduId,
             'id_users' => null,
@@ -1280,9 +1297,9 @@ trait SasaranImportTrait
         ]);
     }
 
-    private function createSasaranPralansia(array $row, int $posyanduId, string $tanggalLahir, string $jenisKelamin): void
+    private function createSasaranPralansia(array $row, int $posyanduId, ?string $tanggalLahir, ?string $jenisKelamin): void
     {
-        $umur = Carbon::parse($tanggalLahir)->age;
+        $umur = $this->calculateImportUmur($tanggalLahir);
         SasaranPralansia::create([
             'id_posyandu' => $posyanduId,
             'id_users' => null,
@@ -1306,9 +1323,9 @@ trait SasaranImportTrait
         ]);
     }
 
-    private function createSasaranLansia(array $row, int $posyanduId, string $tanggalLahir, string $jenisKelamin): void
+    private function createSasaranLansia(array $row, int $posyanduId, ?string $tanggalLahir, ?string $jenisKelamin): void
     {
-        $umur = Carbon::parse($tanggalLahir)->age;
+        $umur = $this->calculateImportUmur($tanggalLahir);
         SasaranLansia::create([
             'id_posyandu' => $posyanduId,
             'id_users' => null,
@@ -1332,9 +1349,9 @@ trait SasaranImportTrait
         ]);
     }
 
-    private function createSasaranIbuhamil(array $row, int $posyanduId, string $tanggalLahir, string $jenisKelamin): void
+    private function createSasaranIbuhamil(array $row, int $posyanduId, ?string $tanggalLahir, ?string $jenisKelamin): void
     {
-        $umur = Carbon::parse($tanggalLahir)->age;
+        $umur = $this->calculateImportUmur($tanggalLahir);
         SasaranIbuhamil::create([
             'id_posyandu' => $posyanduId,
             'nama_sasaran' => trim($row['nama_sasaran'] ?? ''),
