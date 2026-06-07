@@ -139,7 +139,11 @@
             }
 
             body.kader-mobile-friendly .kader-dashboard-content .h-96 {
-                height: 22rem;
+                height: 18rem;
+            }
+
+            body.kader-mobile-friendly .kader-dashboard-content canvas {
+                max-width: 100% !important;
             }
 
             body.kader-mobile-friendly .sasaran-action-bar .sasaran-action-btn,
@@ -147,6 +151,26 @@
                 width: 100%;
                 min-height: 3rem;
                 font-size: 1rem !important;
+            }
+
+            /* Prevent any horizontal overflow on mobile */
+            body.kader-mobile-friendly main {
+                overflow-x: hidden;
+            }
+
+            body.kader-mobile-friendly .kader-dashboard-content,
+            body.kader-mobile-friendly .kader-dashboard-content > div {
+                max-width: 100%;
+            }
+
+            /* Wrap long content within cards */
+            body.kader-mobile-friendly .kader-dashboard-content h1,
+            body.kader-mobile-friendly .kader-dashboard-content h2,
+            body.kader-mobile-friendly .kader-dashboard-content h3,
+            body.kader-mobile-friendly .kader-dashboard-content p,
+            body.kader-mobile-friendly .kader-dashboard-content span {
+                overflow-wrap: break-word;
+                word-break: break-word;
             }
         }
     </style>

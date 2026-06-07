@@ -30,7 +30,7 @@ class PosyanduJadwal extends Component
     public $keterangan = '';
     public $tanggal = '';
     public $presensi = 'belum_hadir';
-    public $activeTab = 'jadwal';
+    public $activeTab = 'acara';
     public $absenDate = null;
 
     // Kegiatan/acara (card terpisah)

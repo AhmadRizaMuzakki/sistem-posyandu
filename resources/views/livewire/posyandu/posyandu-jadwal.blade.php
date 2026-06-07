@@ -11,7 +11,7 @@
                 <div>
                     <h1 class="text-3xl font-bold">{{ $posyandu->nama_posyandu }}</h1>
                     <p class="text-white/90 mt-1 flex items-center">
-                        <i class="ph ph-calendar-check mr-2"></i>Jadwal Petugas & Kegiatan
+                        <i class="ph ph-calendar-dots mr-2"></i>Acara & Kegiatan Posyandu
                     </p>
                 </div>
             </div>
@@ -30,37 +30,12 @@
         @endif
 
         <div class="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
-            <div class="flex border-b border-gray-200">
-                <button wire:click="$set('activeTab', 'jadwal')"
-                        class="flex-1 px-6 py-4 font-semibold text-sm transition-all {{ $activeTab === 'jadwal' ? 'bg-primary text-white border-b-2 border-primary' : 'text-gray-600 hover:bg-gray-50' }}">
-                    <i class="ph ph-calendar-blank mr-2"></i>Jadwal
-                </button>
-                <button wire:click="$set('activeTab', 'absen')"
-                        class="flex-1 px-6 py-4 font-semibold text-sm transition-all {{ $activeTab === 'absen' ? 'bg-primary text-white border-b-2 border-primary' : 'text-gray-600 hover:bg-gray-50' }}">
-                    <i class="ph ph-clipboard-text mr-2"></i>Absen
-                </button>
-                <button wire:click="$set('activeTab', 'acara')"
-                        class="flex-1 px-6 py-4 font-semibold text-sm transition-all {{ $activeTab === 'acara' ? 'bg-primary text-white border-b-2 border-primary' : 'text-gray-600 hover:bg-gray-50' }}">
-                    <i class="ph ph-calendar-dots mr-2"></i>Acara
-                </button>
-            </div>
-            @if($activeTab === 'jadwal')
-                @include('livewire.posyandu.partials.jadwal-calendar')
-            @endif
-            @if($activeTab === 'absen')
-                @include('livewire.posyandu.partials.absen-section')
-            @endif
-            @if($activeTab === 'acara')
-                @include('livewire.posyandu.partials.acara-section')
-            @endif
+            @include('livewire.posyandu.partials.acara-section')
         </div>
 
-        @if($activeTab === 'jadwal')
-            <div class="mt-6 space-y-6">
-                @include('livewire.posyandu.partials.input-petugas-card')
-                @include('livewire.posyandu.partials.input-acara-card')
-            </div>
-        @endif
+        <div class="mt-6 space-y-6">
+            @include('livewire.posyandu.partials.input-acara-card')
+        </div>
     </div>
 
     {{-- Modal: Tanggal (Petugas saja) --}}

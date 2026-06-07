@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Posyandu;
 
+use App\Models\Kader;
 use App\Models\Perpustakaan as PerpustakaanModel;
 use App\Models\Posyandu;
 use Illuminate\Support\Facades\Auth;
@@ -89,8 +90,8 @@ class Perpustakaan extends Component
     public function mount()
     {
         $user = Auth::user();
-        $kader = $user->kader;
-        
+        $kader = Kader::where('id_users', $user->id)->first();
+
         if (!$kader) {
             abort(403, 'Akses ditolak. Anda bukan kader.');
         }

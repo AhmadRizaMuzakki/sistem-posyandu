@@ -1,19 +1,19 @@
 <div class="kader-dashboard-content">
-    <div class="p-4 md:p-6">
-        <h1 class="text-2xl md:text-3xl font-bold text-gray-900 mb-2 leading-snug">Dashboard Posyandu - {{ $posyandu->nama_posyandu }}</h1>
+    <div class="p-4 md:p-6 max-w-full overflow-x-hidden">
+        <h1 class="text-2xl md:text-3xl font-bold text-gray-900 mb-2 leading-snug break-words">Dashboard Posyandu - {{ $posyandu->nama_posyandu }}</h1>
         <p class="text-gray-700 mb-6 text-base md:text-sm">Selamat datang di halaman utama Dashboard Posyandu</p>
 
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-10">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 mb-8 sm:mb-10">
             <!-- Card Nama Posyandu -->
-            <div class="bg-white rounded-lg shadow-md p-6 flex flex-col items-center">
+            <div class="bg-white rounded-lg shadow-md p-4 sm:p-6 flex flex-col items-center">
                 <div class="bg-blue-100 p-4 rounded-full mb-4">
                     <i class="ph ph-buildings text-4xl text-blue-600"></i>
                 </div>
-                <span class="text-xl md:text-lg font-bold text-gray-900 text-center leading-snug">{{ $posyandu->nama_posyandu ?? '-' }}</span>
+                <span class="text-xl md:text-lg font-bold text-gray-900 text-center leading-snug break-words">{{ $posyandu->nama_posyandu ?? '-' }}</span>
                 <span class="kader-stat-label text-gray-700 mt-2">Nama Posyandu</span>
             </div>
             <!-- Card Total Kader -->
-            <div class="bg-white rounded-lg shadow-md p-6 flex flex-col items-center">
+            <div class="bg-white rounded-lg shadow-md p-4 sm:p-6 flex flex-col items-center">
                 <div class="bg-green-100 p-4 rounded-full mb-4">
                     <i class="ph ph-user-switch text-4xl text-green-600"></i>
                 </div>
@@ -21,7 +21,7 @@
                 <span class="kader-stat-label text-gray-700 mt-2">Total Kader</span>
             </div>
             <!-- Card Total Sasaran -->
-            <div class="bg-white rounded-lg shadow-md p-6 flex flex-col items-center">
+            <div class="bg-white rounded-lg shadow-md p-4 sm:p-6 flex flex-col items-center">
                 <div class="bg-yellow-100 p-4 rounded-full mb-4">
                     <i class="ph ph-users-three text-4xl text-yellow-600"></i>
                 </div>
@@ -30,70 +30,173 @@
             </div>
         </div>
 
-        {{-- Laporan Absensi (Petugas & Bayi) --}}
-        <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+        {{-- Card Status Keluarga Orangtua --}}
+        <div class="bg-white rounded-lg shadow-md p-4 sm:p-6 mb-6">
             <h2 class="text-xl font-semibold text-gray-800 mb-4 flex items-center">
-                <i class="ph ph-clipboard-text text-2xl mr-3 text-primary"></i>
-                Laporan Absensi Bulan Ini
+                <i class="ph ph-users-four text-2xl mr-3 text-primary shrink-0"></i>
+                <span class="break-words">Status Keluarga Orangtua</span>
             </h2>
-            <p class="text-sm text-gray-500 mb-4">Ringkasan absen petugas kesehatan untuk {{ \Carbon\Carbon::now()->locale('id')->translatedFormat('F Y') }}</p>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {{-- Card Absen Petugas --}}
-                <div class="border border-gray-200 rounded-xl p-5 hover:border-teal-200 transition-colors">
-                    <div class="flex items-center gap-2 mb-3">
-                        <i class="ph ph-user-list text-2xl text-teal-600"></i>
-                        <h3 class="font-semibold text-gray-800">Absensi Petugas Kesehatan</h3>
-                    </div>
-                    <div class="space-y-2 text-base md:text-sm mb-4">
-                        <div class="flex justify-between">
-                            <span class="text-gray-600">Total jadwal</span>
-                            <span class="font-semibold">{{ $absenPetugas['total'] ?? 0 }}</span>
-                        </div>
-                        <div class="flex justify-between">
-                            <span class="text-gray-600">Hadir</span>
-                            <span class="font-semibold text-green-600">{{ $absenPetugas['hadir'] ?? 0 }}</span>
-                        </div>
-                        <div class="flex justify-between">
-                            <span class="text-gray-600">Tidak hadir</span>
-                            <span class="font-semibold text-red-600">{{ $absenPetugas['tidak_hadir'] ?? 0 }}</span>
-                        </div>
-                        <div class="flex justify-between">
-                            <span class="text-gray-600">Belum hadir</span>
-                            <span class="font-semibold text-amber-600">{{ $absenPetugas['belum_hadir'] ?? 0 }}</span>
-                        </div>
-                    </div>
-                    <div class="kader-mobile-stack flex flex-col sm:flex-row gap-3">
-                        <a href="{{ route('adminPosyandu.laporan') }}" class="inline-flex items-center justify-center px-4 py-3 rounded-lg bg-gray-100 text-gray-800 text-base md:text-sm font-semibold hover:bg-gray-200 transition-colors">
-                            <i class="ph ph-list mr-2 text-lg"></i> Halaman Laporan
-                        </a>
-                        <a href="{{ route('adminPosyandu.laporan.absensi.pdf') }}?bulan={{ date('n') }}&tahun={{ date('Y') }}" target="_blank" class="inline-flex items-center justify-center px-4 py-3 rounded-lg bg-teal-600 text-white text-base md:text-sm font-semibold hover:bg-teal-700 transition-colors">
-                            <i class="ph ph-file-pdf mr-2 text-lg"></i> Export PDF
-                        </a>
-                    </div>
+            <p class="text-sm text-gray-500 mb-4">Ringkasan status keluarga sasaran Dewasa, Pralansia, dan Lansia</p>
+            <div class="flex flex-wrap gap-4">
+                <div class="flex items-center gap-2 px-4 py-2 bg-blue-50 text-blue-800 rounded-lg">
+                    <i class="ph ph-user text-xl"></i>
+                    <span><strong>Kepala Keluarga:</strong> {{ $statusKeluargaCount['kepala_keluarga'] ?? 0 }} orang</span>
                 </div>
-            </div>
-
-            {{-- Card Status Keluarga Orangtua --}}
-            <div class="mt-6 pt-6 border-t border-gray-200">
-                <h3 class="text-sm font-semibold text-gray-700 mb-3">Status Keluarga Orangtua (Dewasa/Pralansia/Lansia)</h3>
-                <div class="flex flex-wrap gap-4">
-                    <div class="flex items-center gap-2 px-4 py-2 bg-blue-50 text-blue-800 rounded-lg">
-                        <i class="ph ph-user text-xl"></i>
-                        <span><strong>Kepala Keluarga:</strong> {{ $statusKeluargaCount['kepala_keluarga'] ?? 0 }} orang</span>
-                    </div>
-                    <div class="flex items-center gap-2 px-4 py-2 bg-purple-50 text-purple-800 rounded-lg">
-                        <i class="ph ph-heart text-xl"></i>
-                        <span><strong>Istri:</strong> {{ $statusKeluargaCount['istri'] ?? 0 }} orang</span>
-                    </div>
+                <div class="flex items-center gap-2 px-4 py-2 bg-purple-50 text-purple-800 rounded-lg">
+                    <i class="ph ph-heart text-xl"></i>
+                    <span><strong>Istri:</strong> {{ $statusKeluargaCount['istri'] ?? 0 }} orang</span>
                 </div>
             </div>
         </div>
 
+        <!-- Informasi Posyandu -->
+        <div class="bg-white rounded-lg shadow-md p-4 sm:p-6 mb-6">
+            <h2 class="text-xl font-semibold text-gray-800 mb-4 flex items-center">
+                <i class="ph ph-info text-2xl mr-3 text-primary shrink-0"></i>
+                Informasi Posyandu
+            </h2>
+            <div class="space-y-4">
+                <div>
+                    <label class="text-sm font-medium text-gray-500">Nama Posyandu</label>
+                    <p class="text-gray-800 mt-1">{{ $posyandu->nama_posyandu }}</p>
+                </div>
+                @if($posyandu->alamat_posyandu)
+                <div>
+                    <label class="text-sm font-medium text-gray-500">Alamat</label>
+                    <p class="text-gray-800 mt-1">{{ $posyandu->alamat_posyandu }}</p>
+                </div>
+                @endif
+                @if($posyandu->domisili_posyandu)
+                <div>
+                    <label class="text-sm font-medium text-gray-500">Domisili</label>
+                    <p class="text-gray-800 mt-1">{{ $posyandu->domisili_posyandu }}</p>
+                </div>
+                @endif
+                <div>
+                    <label class="text-sm font-medium text-gray-500">Jumlah Sasaran</label>
+                    <p class="text-gray-800 mt-1">{{ number_format($totalSasaran ?? 0, 0, ',', '.') }} orang</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Card SK Posyandu -->
+        <div class="bg-white rounded-lg shadow-md p-4 sm:p-6 mb-6">
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+                <h2 class="text-xl font-semibold text-gray-800 flex items-center">
+                    <i class="ph ph-file-text text-2xl mr-3 text-primary shrink-0"></i>
+                    SK Posyandu
+                </h2>
+                <div class="flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center gap-2">
+                    <a 
+                        href="{{ route('adminPosyandu.sk.pdf') }}"
+                        target="_blank"
+                        class="px-4 py-2 text-sm bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center justify-center space-x-2 w-full sm:w-auto">
+                        <i class="ph ph-download text-sm"></i>
+                        <span>Download SK</span>
+                    </a>
+                    <button 
+                        wire:click="$set('showUploadModal', true)"
+                        class="px-4 py-2 text-sm bg-primary text-white rounded-lg hover:bg-primary-dark transition-colors flex items-center justify-center space-x-2 w-full sm:w-auto">
+                        <i class="ph ph-upload text-sm"></i>
+                        <span>Upload SK</span>
+                    </button>
+                    @if($posyandu->sk_posyandu)
+                    <button 
+                        wire:click="openConfirmModal('deleteSk', 'Apakah Anda yakin ingin menghapus file SK ini?')"
+                        class="px-4 py-2 text-sm bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors flex items-center justify-center space-x-2 w-full sm:w-auto">
+                        <i class="ph ph-trash text-sm"></i>
+                        <span>Hapus SK</span>
+                    </button>
+                    @endif
+                </div>
+            </div>
+            <div class="flex flex-col items-center justify-center py-6">
+                @if($posyandu->sk_posyandu)
+                    <div class="relative group w-full max-w-md">
+                        <div class="p-6 bg-gray-50 rounded-lg border-2 border-gray-200 hover:border-primary transition-colors">
+                            <div class="flex flex-col items-center space-y-3">
+                                <i class="ph ph-file-pdf text-6xl text-red-500"></i>
+                                <div class="text-center">
+                                    <a href="{{ uploads_asset($posyandu->sk_posyandu) }}" target="_blank" 
+                                       class="text-primary hover:underline font-medium text-sm flex items-center justify-center space-x-2">
+                                        <i class="ph ph-eye text-lg"></i>
+                                        <span>Lihat File SK</span>
+                                    </a>
+                                    <p class="text-xs text-gray-500 mt-2">{{ basename($posyandu->sk_posyandu) }}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                @else
+                    <div class="w-full max-w-md p-6 bg-gray-100 rounded-lg border-2 border-dashed border-gray-300 flex flex-col items-center justify-center">
+                        <i class="ph ph-file-x text-6xl text-gray-400 mb-3"></i>
+                        <p class="text-sm text-gray-500 text-center px-4">Belum ada file SK posyandu</p>
+                    </div>
+                @endif
+            </div>
+        </div>
+
+        <!-- Galeri Gambar Posyandu (tampil di halaman detail publik) -->
+        <div class="bg-white rounded-lg shadow-md p-4 sm:p-6 mb-6">
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+                <h2 class="text-xl font-semibold text-gray-800 flex items-center">
+                    <i class="ph ph-images text-2xl mr-3 text-primary shrink-0"></i>
+                    Gambar Posyandu
+                </h2>
+                <button 
+                    wire:click="$set('showGambarModal', true)"
+                    class="px-4 py-2 text-sm bg-primary text-white rounded-lg hover:bg-primary-dark transition-colors flex items-center justify-center space-x-2 w-full sm:w-auto">
+                    <i class="ph ph-plus text-sm"></i>
+                    <span>Tambah Gambar</span>
+                </button>
+            </div>
+            <p class="text-sm text-gray-500 mb-4">Gambar-gambar ini ditampilkan di halaman detail posyandu (publik) sebagai galeri foto.</p>
+            
+            @php
+                $gambarList = $posyandu->gambarPosyandu ?? collect();
+            @endphp
+
+            @if($gambarList->count() > 0)
+                <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+                    @foreach($gambarList as $gambar)
+                    <div class="relative group aspect-square rounded-lg overflow-hidden border border-gray-200 shadow-sm">
+                        <img src="{{ uploads_asset($gambar->path) }}" 
+                             alt="{{ $gambar->caption ?? 'Gambar Posyandu' }}" 
+                             class="w-full h-full object-cover">
+                        {{-- Overlay actions --}}
+                        <div class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                            <a href="{{ uploads_asset($gambar->path) }}" target="_blank" 
+                               class="w-9 h-9 rounded-full bg-white text-gray-700 flex items-center justify-center hover:bg-primary hover:text-white transition-colors">
+                                <i class="ph ph-eye text-lg"></i>
+                            </a>
+                            <button wire:click="deleteGambarPosyandu({{ $gambar->id }})"
+                                    wire:confirm="Hapus gambar ini?"
+                                    class="w-9 h-9 rounded-full bg-white text-red-600 flex items-center justify-center hover:bg-red-600 hover:text-white transition-colors">
+                                <i class="ph ph-trash text-lg"></i>
+                            </button>
+                        </div>
+                        @if($gambar->caption)
+                        <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-2">
+                            <p class="text-white text-xs truncate">{{ $gambar->caption }}</p>
+                        </div>
+                        @endif
+                    </div>
+                    @endforeach
+                </div>
+            @else
+                <div class="w-full p-8 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300 flex flex-col items-center justify-center">
+                    <i class="ph ph-images text-6xl text-gray-400 mb-3"></i>
+                    <p class="text-sm text-gray-500 text-center">Belum ada gambar posyandu.</p>
+                    <p class="text-xs text-gray-400 mt-1">Klik "Tambah Gambar" untuk mengunggah foto.</p>
+                </div>
+            @endif
+        </div>
+
         {{-- Laporan Imunisasi (Kehadiran) --}}
-        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-6">
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4 sm:p-6 mb-6">
             <div class="flex items-center gap-2 mb-4 pb-3 border-b border-gray-200">
-                <i class="ph ph-syringe text-2xl text-blue-600"></i>
-                <h2 class="text-xl font-semibold text-gray-800">Laporan Imunisasi</h2>
+                <i class="ph ph-syringe text-2xl text-blue-600 shrink-0"></i>
+                <h2 class="text-xl font-semibold text-gray-800 break-words">Laporan Imunisasi</h2>
             </div>
             <div class="mb-4">
                 <div class="flex items-center gap-2 mb-3">
@@ -157,12 +260,12 @@
                             <option value="tidak_hadir">Tidak Hadir</option>
                         </select>
                     </div>
-                    <div class="flex flex-wrap gap-2">
-                        <button type="button" onclick="dashboardExportImunisasiKehadiran()" class="inline-flex items-center justify-center px-4 py-2 rounded-lg bg-primary text-white text-sm font-medium shadow-sm hover:bg-indigo-700 transition-colors">
+                    <div class="kader-mobile-stack flex flex-col sm:flex-row sm:flex-wrap gap-2">
+                        <button type="button" onclick="dashboardExportImunisasiKehadiran()" class="inline-flex items-center justify-center px-4 py-2 rounded-lg bg-primary text-white text-sm font-medium shadow-sm hover:bg-indigo-700 transition-colors w-full sm:w-auto">
                             <i class="ph ph-file-pdf text-lg mr-2"></i>
                             Export PDF Laporan Kehadiran
                         </button>
-                        <a href="{{ route('adminPosyandu.laporan') }}" class="inline-flex items-center justify-center px-4 py-2 rounded-lg bg-gray-100 text-gray-700 text-sm font-medium hover:bg-gray-200 transition-colors">
+                        <a href="{{ route('adminPosyandu.laporan') }}" class="inline-flex items-center justify-center px-4 py-2 rounded-lg bg-gray-100 text-gray-700 text-sm font-medium hover:bg-gray-200 transition-colors w-full sm:w-auto">
                             <i class="ph ph-list mr-2"></i>
                             Halaman Laporan Lengkap
                         </a>
@@ -171,202 +274,32 @@
             </div>
         </div>
 
-        <!-- Informasi Posyandu -->
-        <div class="bg-white rounded-lg shadow-md p-6 mb-6">
-            <h2 class="text-xl font-semibold text-gray-800 mb-4 flex items-center">
-                <i class="ph ph-info text-2xl mr-3 text-primary"></i>
-                Informasi Posyandu
-            </h2>
-            <div class="space-y-4">
-                <div>
-                    <label class="text-sm font-medium text-gray-500">Nama Posyandu</label>
-                    <p class="text-gray-800 mt-1">{{ $posyandu->nama_posyandu }}</p>
-                </div>
-                @if($posyandu->alamat_posyandu)
-                <div>
-                    <label class="text-sm font-medium text-gray-500">Alamat</label>
-                    <p class="text-gray-800 mt-1">{{ $posyandu->alamat_posyandu }}</p>
-                </div>
-                @endif
-                @if($posyandu->domisili_posyandu)
-                <div>
-                    <label class="text-sm font-medium text-gray-500">Domisili</label>
-                    <p class="text-gray-800 mt-1">{{ $posyandu->domisili_posyandu }}</p>
-                </div>
-                @endif
-                <div>
-                    <label class="text-sm font-medium text-gray-500">Jumlah Sasaran</label>
-                    <p class="text-gray-800 mt-1">{{ number_format($totalSasaran ?? 0, 0, ',', '.') }} orang</p>
-                </div>
-            </div>
-        </div>
-
-        <!-- Import Sasaran (per kategori & master) -->
-        <div class="bg-white rounded-lg shadow-md p-6 mb-6">
-            <h2 class="text-xl font-semibold text-gray-800 mb-4 flex items-center">
-                <i class="ph ph-upload-simple text-2xl mr-3 text-primary"></i>
-                Import Sasaran
-            </h2>
-            <p class="text-sm text-gray-500 mb-4">Impor data sasaran dari file Excel/CSV. Satu file master (banyak sheet) atau satu file per kategori.</p>
-            <div class="flex flex-wrap items-center gap-3">
-                <button wire:click="openImportModal('master')"
-                        class="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-primary rounded-lg hover:bg-primary/90 transition-colors">
-                    <i class="ph ph-file-xls text-lg mr-2"></i>
-                    Import Master Excel
-                </button>
-                <span class="text-gray-400">|</span>
-                <span class="text-sm text-gray-600">Import per kategori:</span>
-                @foreach(['bayibalita' => 'Bayi Balita', 'remaja' => 'Remaja', 'dewasa' => 'Dewasa', 'ibuhamil' => 'Ibu Hamil', 'pralansia' => 'Pralansia', 'lansia' => 'Lansia'] as $kode => $label)
-                    <button wire:click="openImportModal('{{ $kode }}')"
-                            class="inline-flex items-center px-3 py-1.5 text-sm font-medium text-green-700 border border-green-600 rounded-lg hover:bg-green-50 transition-colors">
-                        {{ $label }}
-                    </button>
-                @endforeach
-            </div>
-            <p class="text-xs text-gray-400 mt-3">
-                <a href="{{ route('adminPosyandu.sasaran') }}" class="text-primary hover:underline">Kelola daftar sasaran</a> untuk tambah manual, edit, atau export.
-            </p>
-        </div>
-
-        <!-- Card SK Posyandu -->
-        <div class="bg-white rounded-lg shadow-md p-6 mb-6">
-            <h2 class="text-xl font-semibold text-gray-800 mb-4 flex items-center justify-between">
-                <div class="flex items-center">
-                    <i class="ph ph-file-text text-2xl mr-3 text-primary"></i>
-                    SK Posyandu
-                </div>
-                <div class="flex items-center space-x-2">
-                    <a 
-                        href="{{ route('adminPosyandu.sk.pdf') }}"
-                        target="_blank"
-                        class="px-4 py-2 text-sm bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center space-x-2">
-                        <i class="ph ph-download text-sm"></i>
-                        <span>Download SK</span>
-                    </a>
-                    <button 
-                        wire:click="$set('showUploadModal', true)"
-                        class="px-4 py-2 text-sm bg-primary text-white rounded-lg hover:bg-primary-dark transition-colors flex items-center space-x-2">
-                        <i class="ph ph-upload text-sm"></i>
-                        <span>Upload SK</span>
-                    </button>
-                    @if($posyandu->sk_posyandu)
-                    <button 
-                        wire:click="openConfirmModal('deleteSk', 'Apakah Anda yakin ingin menghapus file SK ini?')"
-                        class="px-4 py-2 text-sm bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors flex items-center space-x-2">
-                        <i class="ph ph-trash text-sm"></i>
-                        <span>Hapus SK</span>
-                    </button>
-                    @endif
-                </div>
-            </h2>
-            <div class="flex flex-col items-center justify-center py-6">
-                @if($posyandu->sk_posyandu)
-                    <div class="relative group w-full max-w-md">
-                        <div class="p-6 bg-gray-50 rounded-lg border-2 border-gray-200 hover:border-primary transition-colors">
-                            <div class="flex flex-col items-center space-y-3">
-                                <i class="ph ph-file-pdf text-6xl text-red-500"></i>
-                                <div class="text-center">
-                                    <a href="{{ uploads_asset($posyandu->sk_posyandu) }}" target="_blank" 
-                                       class="text-primary hover:underline font-medium text-sm flex items-center justify-center space-x-2">
-                                        <i class="ph ph-eye text-lg"></i>
-                                        <span>Lihat File SK</span>
-                                    </a>
-                                    <p class="text-xs text-gray-500 mt-2">{{ basename($posyandu->sk_posyandu) }}</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                @else
-                    <div class="w-full max-w-md p-6 bg-gray-100 rounded-lg border-2 border-dashed border-gray-300 flex flex-col items-center justify-center">
-                        <i class="ph ph-file-x text-6xl text-gray-400 mb-3"></i>
-                        <p class="text-sm text-gray-500 text-center px-4">Belum ada file SK posyandu</p>
-                    </div>
-                @endif
-            </div>
-        </div>
-
-        <!-- Galeri Gambar Posyandu (tampil di halaman detail publik) -->
-        <div class="bg-white rounded-lg shadow-md p-6 mb-6">
-            <h2 class="text-xl font-semibold text-gray-800 mb-4 flex items-center justify-between">
-                <div class="flex items-center">
-                    <i class="ph ph-images text-2xl mr-3 text-primary"></i>
-                    Gambar Posyandu
-                </div>
-                <button 
-                    wire:click="$set('showGambarModal', true)"
-                    class="px-4 py-2 text-sm bg-primary text-white rounded-lg hover:bg-primary-dark transition-colors flex items-center space-x-2">
-                    <i class="ph ph-plus text-sm"></i>
-                    <span>Tambah Gambar</span>
-                </button>
-            </h2>
-            <p class="text-sm text-gray-500 mb-4">Gambar-gambar ini ditampilkan di halaman detail posyandu (publik) sebagai galeri foto.</p>
-            
-            @php
-                $gambarList = $posyandu->gambarPosyandu ?? collect();
-            @endphp
-
-            @if($gambarList->count() > 0)
-                <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-                    @foreach($gambarList as $gambar)
-                    <div class="relative group aspect-square rounded-lg overflow-hidden border border-gray-200 shadow-sm">
-                        <img src="{{ uploads_asset($gambar->path) }}" 
-                             alt="{{ $gambar->caption ?? 'Gambar Posyandu' }}" 
-                             class="w-full h-full object-cover">
-                        {{-- Overlay actions --}}
-                        <div class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-                            <a href="{{ uploads_asset($gambar->path) }}" target="_blank" 
-                               class="w-9 h-9 rounded-full bg-white text-gray-700 flex items-center justify-center hover:bg-primary hover:text-white transition-colors">
-                                <i class="ph ph-eye text-lg"></i>
-                            </a>
-                            <button wire:click="deleteGambarPosyandu({{ $gambar->id }})"
-                                    wire:confirm="Hapus gambar ini?"
-                                    class="w-9 h-9 rounded-full bg-white text-red-600 flex items-center justify-center hover:bg-red-600 hover:text-white transition-colors">
-                                <i class="ph ph-trash text-lg"></i>
-                            </button>
-                        </div>
-                        @if($gambar->caption)
-                        <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-2">
-                            <p class="text-white text-xs truncate">{{ $gambar->caption }}</p>
-                        </div>
-                        @endif
-                    </div>
-                    @endforeach
-                </div>
-            @else
-                <div class="w-full p-8 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300 flex flex-col items-center justify-center">
-                    <i class="ph ph-images text-6xl text-gray-400 mb-3"></i>
-                    <p class="text-sm text-gray-500 text-center">Belum ada gambar posyandu.</p>
-                    <p class="text-xs text-gray-400 mt-1">Klik "Tambah Gambar" untuk mengunggah foto.</p>
-                </div>
-            @endif
-        </div>
-
         <!-- Grafik Jumlah Sasaran per Kategori -->
-        <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+        <div class="bg-white rounded-lg shadow-md p-4 sm:p-6 mb-6">
             <h2 class="text-xl font-semibold text-gray-800 mb-4 flex items-center">
-                <i class="ph ph-chart-bar text-2xl mr-3 text-primary"></i>
-                Grafik Jumlah Sasaran per Kategori
+                <i class="ph ph-chart-bar text-2xl mr-3 text-primary shrink-0"></i>
+                <span class="break-words">Grafik Jumlah Sasaran per Kategori</span>
             </h2>
-            <div class="h-96">
+            <div class="h-96 w-full">
                 <canvas id="sasaranCategoryChart"></canvas>
             </div>
         </div>
 
         <!-- Grafik Pendidikan Sasaran -->
-        <div class="bg-white rounded-lg shadow-md p-6">
-            <h2 class="text-xl font-semibold text-gray-800 mb-4 flex items-center justify-between">
-                <div class="flex items-center">
-                    <i class="ph ph-graduation-cap text-2xl mr-3 text-primary"></i>
-                    Grafik Pendidikan Sasaran (Remaja, Dewasa, Ibu Hamil, Pralansia, Lansia)
-                </div>
+        <div class="bg-white rounded-lg shadow-md p-4 sm:p-6">
+            <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 mb-4">
+                <h2 class="text-xl font-semibold text-gray-800 flex items-start">
+                    <i class="ph ph-graduation-cap text-2xl mr-3 text-primary shrink-0"></i>
+                    <span class="break-words">Grafik Pendidikan Sasaran (Remaja, Dewasa, Ibu Hamil, Pralansia, Lansia)</span>
+                </h2>
                 <button 
                     wire:click="openPendidikanModal"
-                    class="px-4 py-2 text-sm bg-primary text-white rounded-lg hover:bg-primary-dark transition-colors flex items-center space-x-2">
+                    class="px-4 py-2 text-sm bg-primary text-white rounded-lg hover:bg-primary-dark transition-colors flex items-center justify-center space-x-2 w-full sm:w-auto shrink-0">
                     <i class="ph ph-plus text-sm"></i>
                     <span>Update Pendidikan Semua Sasaran</span>
                 </button>
-            </h2>
-            <div class="h-96">
+            </div>
+            <div class="h-96 w-full">
                 <canvas id="pendidikanChart"></canvas>
             </div>
         </div>

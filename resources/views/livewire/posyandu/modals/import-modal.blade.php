@@ -25,6 +25,9 @@
                         <p class="text-sm text-gray-800 mt-2">
                             <strong>CSV:</strong> Satu file dengan kolom <strong>kategori</strong> di baris pertama. Setiap baris isi kategori (bayibalita, remaja, dewasa, ibuhamil, pralansia, lansia) plus kolom data sasaran.
                         </p>
+                        <p class="text-sm text-gray-800 mt-2">
+                            <strong>Header fleksibel:</strong> Kolom seperti <strong>NIK Anak</strong>, <strong>Nama Lengkap Anak</strong>, <strong>NIK Ibu (Istri)</strong>, <strong>Terdaftar BPJS</strong> juga dikenali. Sheet bernama <strong>anak 1</strong>, <strong>anak 2</strong>, dll. dianggap kategori bayi/balita.
+                        </p>
                         <p class="text-xs text-gray-600 mt-2">File Excel (.xlsx, .xls) atau CSV (.csv, .txt). Maksimal 5 MB.</p>
                     </div>
                     <div>
