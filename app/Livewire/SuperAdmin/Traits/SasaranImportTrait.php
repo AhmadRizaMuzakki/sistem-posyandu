@@ -303,7 +303,7 @@ trait SasaranImportTrait
      */
     private function extractNormalizedHeadersFromSheet($sheet): array
     {
-        $data = $sheet->toArray(null, true, true, true);
+        $data = $sheet->toArray(null, true, false, true);
         if (empty($data)) {
             return [];
         }
@@ -323,7 +323,7 @@ trait SasaranImportTrait
      */
     private function parseExcelSheet($sheet, ?string $defaultKategori, bool $requireKategoriColumn = false): array
     {
-        $data = $sheet->toArray(null, true, true, true);
+        $data = $sheet->toArray(null, true, false, true);
         if (empty($data)) {
             return [];
         }
@@ -364,6 +364,12 @@ trait SasaranImportTrait
                 $cellValue = $data[$rowKey][$col] ?? '';
                 if (in_array($h, ['nik_sasaran', 'no_kk_sasaran', 'nik_orangtua', 'nik_suami', 'nomor_bpjs'], true)) {
                     $row[$h] = $this->normalizeNikCellValue($cellValue);
+                } elseif (in_array($h, ['tanggal_lahir', 'tanggal_lahir_orangtua'], true)) {
+                    $parsed = $this->parseDate($cellValue);
+                    if ($parsed === null && $cellValue !== '' && $cellValue !== null) {
+                        $parsed = $this->parseDateFromSheetCell($sheet, (string) $col, (int) $rowKey);
+                    }
+                    $row[$h] = $parsed ?? '';
                 } elseif ($h === 'kepersertaan_bpjs') {
                     $row[$h] = $this->normalizeKepersertaanBpjsFromImport($cellValue) ?? '';
                 } else {
@@ -429,6 +435,7 @@ trait SasaranImportTrait
     private function normalizeImportHeader(string $header): string
     {
         $raw = trim(mb_strtolower($header));
+        $raw = preg_replace('/\s+/u', ' ', $raw);
         if ($raw === '') {
             return '';
         }
@@ -588,6 +595,8 @@ trait SasaranImportTrait
                 $value = trim($cols[$i] ?? '');
                 if (in_array($h, ['nik_sasaran', 'no_kk_sasaran', 'nik_orangtua', 'nik_suami', 'nomor_bpjs'], true)) {
                     $row[$h] = $this->normalizeNikCellValue($value);
+                } elseif (in_array($h, ['tanggal_lahir', 'tanggal_lahir_orangtua'], true)) {
+                    $row[$h] = $this->parseDate($value) ?? '';
                 } elseif ($h === 'kepersertaan_bpjs') {
                     $row[$h] = $this->normalizeKepersertaanBpjsFromImport($value) ?? '';
                 } else {
@@ -784,9 +793,12 @@ trait SasaranImportTrait
 
     private function createSasaranFromRow(array $row, int $posyanduId): void
     {
-        $tanggalLahir = $this->parseDate($row['tanggal_lahir'] ?? '');
+        $tanggalLahirRaw = trim((string) ($row['tanggal_lahir'] ?? ''));
+        $tanggalLahir = preg_match('/^\d{4}-\d{2}-\d{2}$/', $tanggalLahirRaw)
+            ? $tanggalLahirRaw
+            : $this->parseDate($tanggalLahirRaw);
         if (!$tanggalLahir) {
-            throw new \Exception('Tanggal lahir tidak valid.');
+            throw new \Exception('Tanggal lahir tidak valid. Isi kolom Tanggal Lahir (format DD/MM/YYYY, contoh: 15/06/2001).');
         }
 
         $jenisKelamin = $this->normalizeJenisKelamin($row['jenis_kelamin'] ?? '');
@@ -823,22 +835,66 @@ trait SasaranImportTrait
         if ($value === null || $value === '') {
             return null;
         }
+
+        if ($value instanceof \DateTimeInterface) {
+            return $value->format('Y-m-d');
+        }
+
+        if (is_int($value) || is_float($value)) {
+            $serial = (float) $value;
+            if ($serial >= 1 && $serial <= 600000) {
+                try {
+                    return ExcelDate::excelToDateTimeObject($serial)->format('Y-m-d');
+                } catch (\Throwable $e) {
+                    // bukan serial date Excel
+                }
+            }
+        }
+
         $value = trim((string) $value);
         if ($value === '') {
             return null;
         }
+
         try {
             if (is_numeric($value)) {
-                $d = ExcelDate::excelToDateTimeObject((float) $value);
+                $serial = (float) $value;
+                if ($serial >= 1 && $serial <= 600000) {
+                    return ExcelDate::excelToDateTimeObject($serial)->format('Y-m-d');
+                }
+            }
 
-                return $d->format('Y-m-d');
+            if (preg_match('/^(\d{4}-\d{2}-\d{2})(?:[ T]\d{2}:\d{2}:\d{2})?$/', $value, $m)) {
+                $parts = explode('-', $m[1]);
+                $parsed = $this->buildValidDate((int) $parts[0], (int) $parts[1], (int) $parts[2]);
+                if ($parsed !== null) {
+                    return $parsed;
+                }
             }
 
             if (preg_match('/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/', $value, $m)) {
                 return $this->buildValidDate((int) $m[3], (int) $m[2], (int) $m[1]);
             }
 
+            if (preg_match('/^(\d{1,2})\/(\d{1,2})\/(\d{2})$/', $value, $m)) {
+                $year = (int) $m[3];
+                $year += $year >= 50 ? 1900 : 2000;
+
+                return $this->buildValidDate($year, (int) $m[2], (int) $m[1]);
+            }
+
             if (preg_match('/^(\d{1,2})-(\d{1,2})-(\d{4})$/', $value, $m)) {
+                return $this->buildValidDate((int) $m[3], (int) $m[2], (int) $m[1]);
+            }
+
+            if (preg_match('/^(\d{1,2})-(\d{1,2})-(\d{2})$/', $value, $m)) {
+                $year = (int) $m[3];
+                $year += $year >= 50 ? 1900 : 2000;
+
+                return $this->buildValidDate($year, (int) $m[2], (int) $m[1]);
+            }
+
+            if (preg_match('/^(\d{1,2})\.(\d{1,2})\.(\d{4})$/', $value, $m)) {
                 return $this->buildValidDate((int) $m[3], (int) $m[2], (int) $m[1]);
             }
 
@@ -852,7 +908,6 @@ trait SasaranImportTrait
                     return $asYearMonthDay;
                 }
 
-                // Excel sering menghasilkan YYYY-DD-MM dari tampilan DD/MM/YYYY
                 return $this->buildValidDate($year, $third, $second);
             }
 
@@ -874,6 +929,27 @@ trait SasaranImportTrait
         }
 
         return sprintf('%04d-%02d-%02d', $year, $month, $day);
+    }
+
+    /**
+     * @param  \PhpOffice\PhpSpreadsheet\Worksheet\Worksheet  $sheet
+     */
+    private function parseDateFromSheetCell($sheet, string $col, int $row): ?string
+    {
+        try {
+            $cell = $sheet->getCell($col . $row);
+            $formatted = trim((string) $cell->getFormattedValue());
+            if ($formatted !== '') {
+                $parsed = $this->parseDate($formatted);
+                if ($parsed !== null) {
+                    return $parsed;
+                }
+            }
+
+            return $this->parseDate($cell->getCalculatedValue());
+        } catch (\Throwable $e) {
+            return null;
+        }
     }
 
     private function normalizeJenisKelamin($value): ?string
