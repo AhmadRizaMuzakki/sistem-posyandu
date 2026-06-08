@@ -12,7 +12,6 @@ use App\Models\SasaranLansia;
 use App\Services\AntropometriService;
 use Livewire\Component;
 use Livewire\Attributes\Layout;
-use Livewire\Attributes\Url;
 use Illuminate\Support\Facades\Auth;
 use Dompdf\Dompdf;
 use Dompdf\Options;
@@ -22,9 +21,19 @@ class OrangtuaImunisasi extends Component
 {
     use ImunisasiAnalyticsTrait;
 
-    /** Filter: nama sasaran */
-    #[Url(as: 'sasaran', keep: true)]
+    /** Filter: nama sasaran (dari query ?sasaran=) */
     public string $filterNama = '';
+
+    public function mount(): void
+    {
+        $this->syncFilterFromRequest();
+    }
+
+    protected function syncFilterFromRequest(): void
+    {
+        $sasaran = request()->query('sasaran', '');
+        $this->filterNama = is_string($sasaran) ? trim($sasaran) : '';
+    }
 
     /**
      * Bangun allSasaran dan imunisasiList (dengan filter).
@@ -127,7 +136,7 @@ class OrangtuaImunisasi extends Component
             'allSasaran' => $data['allSasaran'],
             'namaSasaranList' => $data['namaSasaranList'],
             'filterAktif' => $filterAktif,
-            'filterNama' => $filterAktif ? trim($this->filterNama) : '',
+            'filterNama' => trim($this->filterNama),
             'grafikPertumbuhan' => $analytics['grafikPertumbuhan'],
             'grafikImunisasiJenis' => $analytics['grafikImunisasiJenis'],
             'penilaianPerKategori' => $analytics['penilaianPerKategori'],

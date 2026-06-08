@@ -18,16 +18,20 @@
 
             {{-- Filter --}}
             @if(count($namaSasaranList ?? []) > 0)
-                <div class="pt-4 border-t border-gray-200 max-w-md">
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Filter Nama Sasaran</label>
-                    <select wire:model.live="filterNama"
-                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-primary focus:border-primary text-sm">
+                <form method="GET"
+                      action="{{ route('orangtua.imunisasi') }}"
+                      class="pt-4 border-t border-gray-200 max-w-md">
+                    <label for="filter-sasaran" class="block text-sm font-medium text-gray-700 mb-1">Filter Nama Sasaran</label>
+                    <select id="filter-sasaran"
+                            name="sasaran"
+                            onchange="this.form.submit()"
+                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-primary focus:border-primary text-sm bg-white">
                         <option value="">— Pilih sasaran —</option>
                         @foreach($namaSasaranList as $nama)
-                            <option value="{{ $nama }}">{{ $nama }}</option>
+                            <option value="{{ $nama }}" @selected(trim($filterNama ?? '') === trim($nama))>{{ $nama }}</option>
                         @endforeach
                     </select>
-                </div>
+                </form>
             @endif
         </div>
 
