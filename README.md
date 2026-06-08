@@ -48,24 +48,6 @@ php artisan serve
 
 Akses aplikasi di `http://localhost:8000`
 
-
-## Akun Default
-
-**Superadmin**
-- Email: `admin@gmail.com`
-- Password: `root`
-- URL: `/supervisor`
-
-**Admin Posyandu**
-- Email: `puskesmas@gmail.com`
-- Password: `root`
-- URL: `/posyandu`
-
-**Orangtua**
-- Email: `orangtua@gmail.com`
-- Password: `root`
-- URL: `/orangtua`
-
 ## Teknologi
 
 - Laravel 12
