@@ -49,136 +49,120 @@
 
 @script
 <script>
-    let orangtuaImunisasiCharts = [];
-
-    function destroyOrangtuaImunisasiCharts() {
-        orangtuaImunisasiCharts.forEach((chart) => chart.destroy());
-        orangtuaImunisasiCharts = [];
-    }
-
-    function waitForChartJs(callback, attempts = 20) {
-        if (typeof Chart !== 'undefined') {
-            callback();
+    function registerOrangtuaGrafikPertumbuhan() {
+        if (window.__orangtuaGrafikRegistered) {
             return;
         }
-        if (attempts <= 0) {
-            return;
-        }
-        setTimeout(() => waitForChartJs(callback, attempts - 1), 100);
-    }
+        window.__orangtuaGrafikRegistered = true;
 
-    function initOrangtuaImunisasiCharts() {
-        destroyOrangtuaImunisasiCharts();
+        Alpine.data('orangtuaGrafikPertumbuhan', (config) => ({
+                chart: null,
+                config,
 
-        const canvases = document.querySelectorAll('canvas.orangtua-grafik-canvas');
-        if (!canvases.length) {
-            return;
-        }
-
-        const isMobile = window.innerWidth < 768;
-        const chartFontSize = isMobile ? 11 : 12;
-
-        canvases.forEach((canvas) => {
-            let labels, berat, tinggi;
-            try {
-                labels = JSON.parse(canvas.dataset.labels || '[]');
-                berat = JSON.parse(canvas.dataset.berat || '[]');
-                tinggi = JSON.parse(canvas.dataset.tinggi || '[]');
-            } catch (e) {
-                return;
-            }
-
-            if (!labels.length) {
-                return;
-            }
-
-            orangtuaImunisasiCharts.push(new Chart(canvas.getContext('2d'), {
-                type: 'bar',
-                data: {
-                    labels,
-                    datasets: [
-                        {
-                            label: 'Berat (kg)',
-                            data: berat,
-                            backgroundColor: 'rgba(59, 130, 246, 0.75)',
-                            borderColor: 'rgb(59, 130, 246)',
-                            borderWidth: 1,
-                            borderRadius: 4,
-                            yAxisID: 'y',
-                            minBarLength: 8,
-                        },
-                        {
-                            label: 'Tinggi (cm)',
-                            data: tinggi,
-                            backgroundColor: 'rgba(16, 185, 129, 0.75)',
-                            borderColor: 'rgb(16, 185, 129)',
-                            borderWidth: 1,
-                            borderRadius: 4,
-                            yAxisID: 'y1',
-                            minBarLength: 8,
-                        },
-                    ],
+                init() {
+                    this.$nextTick(() => this.render());
                 },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    interaction: { mode: 'index', intersect: false },
-                    plugins: {
-                        legend: {
-                            display: true,
-                            position: 'top',
-                            labels: { font: { size: chartFontSize }, boxWidth: 12 },
+
+                render(attempt = 0) {
+                    if (!this.config.labels?.length) {
+                        return;
+                    }
+
+                    if (typeof Chart === 'undefined') {
+                        if (attempt < 30) {
+                            setTimeout(() => this.render(attempt + 1), 100);
+                        }
+                        return;
+                    }
+
+                    if (this.chart) {
+                        this.chart.destroy();
+                        this.chart = null;
+                    }
+
+                    const canvas = this.$refs.canvas;
+                    if (!canvas) {
+                        return;
+                    }
+
+                    const isMobile = window.innerWidth < 768;
+                    const fontSize = isMobile ? 11 : 12;
+
+                    this.chart = new Chart(canvas.getContext('2d'), {
+                        type: 'bar',
+                        data: {
+                            labels: this.config.labels,
+                            datasets: [
+                                {
+                                    label: 'Berat (kg)',
+                                    data: this.config.berat,
+                                    backgroundColor: 'rgba(59, 130, 246, 0.75)',
+                                    borderColor: 'rgb(59, 130, 246)',
+                                    borderWidth: 1,
+                                    borderRadius: 4,
+                                    yAxisID: 'y',
+                                    minBarLength: 8,
+                                },
+                                {
+                                    label: 'Tinggi (cm)',
+                                    data: this.config.tinggi,
+                                    backgroundColor: 'rgba(16, 185, 129, 0.75)',
+                                    borderColor: 'rgb(16, 185, 129)',
+                                    borderWidth: 1,
+                                    borderRadius: 4,
+                                    yAxisID: 'y1',
+                                    minBarLength: 8,
+                                },
+                            ],
                         },
-                    },
-                    scales: {
-                        y: {
-                            type: 'linear',
-                            position: 'left',
-                            beginAtZero: true,
-                            title: { display: true, text: 'Berat (kg)', font: { size: chartFontSize } },
-                            ticks: { font: { size: chartFontSize } },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            interaction: { mode: 'index', intersect: false },
+                            plugins: {
+                                legend: {
+                                    display: true,
+                                    position: 'top',
+                                    labels: { font: { size: fontSize }, boxWidth: 12 },
+                                },
+                            },
+                            scales: {
+                                y: {
+                                    type: 'linear',
+                                    position: 'left',
+                                    beginAtZero: true,
+                                    title: { display: true, text: 'Berat (kg)', font: { size: fontSize } },
+                                    ticks: { font: { size: fontSize } },
+                                },
+                                y1: {
+                                    type: 'linear',
+                                    position: 'right',
+                                    beginAtZero: true,
+                                    grid: { drawOnChartArea: false },
+                                    title: { display: true, text: 'Tinggi (cm)', font: { size: fontSize } },
+                                    ticks: { font: { size: fontSize } },
+                                },
+                                x: {
+                                    ticks: { font: { size: fontSize }, maxRotation: 45 },
+                                },
+                            },
                         },
-                        y1: {
-                            type: 'linear',
-                            position: 'right',
-                            beginAtZero: true,
-                            grid: { drawOnChartArea: false },
-                            title: { display: true, text: 'Tinggi (cm)', font: { size: chartFontSize } },
-                            ticks: { font: { size: chartFontSize } },
-                        },
-                        x: {
-                            ticks: { font: { size: chartFontSize }, maxRotation: 45 },
-                        },
-                    },
+                    });
+                },
+
+                destroy() {
+                    if (this.chart) {
+                        this.chart.destroy();
+                        this.chart = null;
+                    }
                 },
             }));
-        });
     }
 
-    function scheduleChartInit() {
-        waitForChartJs(() => {
-            requestAnimationFrame(() => {
-                requestAnimationFrame(() => initOrangtuaImunisasiCharts());
-            });
-        });
+    if (window.Alpine) {
+        registerOrangtuaGrafikPertumbuhan();
+    } else {
+        document.addEventListener('alpine:init', registerOrangtuaGrafikPertumbuhan);
     }
-
-    scheduleChartInit();
-
-    $wire.$watch('filterNama', () => {
-        scheduleChartInit();
-    });
-
-    document.addEventListener('livewire:navigated', scheduleChartInit);
-
-    document.addEventListener('livewire:init', () => {
-        Livewire.hook('commit', ({ succeed }) => {
-            succeed(() => {
-                if (document.querySelector('canvas.orangtua-grafik-canvas')) {
-                    scheduleChartInit();
-                }
-            });
-        });
-    });
 </script>
 @endscript
