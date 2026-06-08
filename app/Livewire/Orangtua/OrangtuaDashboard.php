@@ -8,45 +8,40 @@ use App\Models\SasaranRemaja;
 use App\Models\SasaranDewasa;
 use App\Models\SasaranPralansia;
 use App\Models\SasaranLansia;
+use Carbon\Carbon;
 use Livewire\Component;
 use Livewire\Attributes\Layout;
 use Illuminate\Support\Facades\Auth;
 use Dompdf\Dompdf;
 use Dompdf\Options;
-use Illuminate\Http\Response;
 
 class OrangtuaDashboard extends Component
 {
     #[Layout('layouts.orangtuadashboard')]
-    public function render()
+
+    protected function resolveNoKk(): ?string
     {
         $user = Auth::user();
-
-        // Ekstrak No KK dari email user (email format: no_kk + '@gmail.com')
-        $noKk = null;
         if ($user->email && str_ends_with($user->email, '@gmail.com')) {
-            $noKk = str_replace('@gmail.com', '', $user->email);
+            return str_replace('@gmail.com', '', $user->email);
         }
 
-        // Cari orangtua berdasarkan No KK (bukan berdasarkan nama, karena nama bisa berubah)
-        $orangtua = null;
-        if ($noKk) {
-            $orangtua = Orangtua::where('no_kk', $noKk)->first();
-        }
+        return null;
+    }
 
+    public function render()
+    {
+        $noKk = $this->resolveNoKk();
+        $orangtua = $noKk ? Orangtua::where('no_kk', $noKk)->first() : null;
         $allKeluarga = collect();
 
-        // Ambil semua sasaran berdasarkan No KK yang diekstrak dari email user
-        // Tidak perlu menunggu ada orangtua, karena sasaran bisa langsung menggunakan No KK
         if ($noKk) {
-            // Ambil semua sasaran Bayi/Balita, Remaja, Dewasa, Pralansia, dan Lansia berdasarkan no_kk_sasaran yang sama dengan No KK user
             $sasaranBayi = SasaranBayibalita::where('no_kk_sasaran', $noKk)->get();
             $sasaranRemaja = SasaranRemaja::where('no_kk_sasaran', $noKk)->get();
             $sasaranDewasa = SasaranDewasa::where('no_kk_sasaran', $noKk)->get();
             $sasaranPralansia = SasaranPralansia::where('no_kk_sasaran', $noKk)->get();
             $sasaranLansia = SasaranLansia::where('no_kk_sasaran', $noKk)->get();
 
-            // Kumpulkan semua sasaran dengan informasi lengkap
             foreach ($sasaranBayi as $sasaran) {
                 $allKeluarga->push([
                     'id' => $sasaran->id_sasaran_bayibalita,
@@ -125,13 +120,7 @@ class OrangtuaDashboard extends Component
     public function exportKeluarga()
     {
         $user = Auth::user();
-
-        // Ekstrak No KK dari email user
-        $noKk = null;
-        if ($user->email && str_ends_with($user->email, '@gmail.com')) {
-            $noKk = str_replace('@gmail.com', '', $user->email);
-        }
-
+        $noKk = $this->resolveNoKk();
         $allKeluarga = collect();
 
         if ($noKk) {
@@ -148,7 +137,7 @@ class OrangtuaDashboard extends Component
                     'nama' => mb_convert_encoding($sasaran->nama_sasaran ?? '', 'UTF-8', 'UTF-8'),
                     'nik' => $sasaran->nik_sasaran ?? '',
                     'kategori' => 'Bayi/Balita',
-                    'tanggal_lahir' => $sasaran->tanggal_lahir ? \Carbon\Carbon::parse($sasaran->tanggal_lahir)->format('d/m/Y') : '-',
+                    'tanggal_lahir' => $sasaran->tanggal_lahir ? Carbon::parse($sasaran->tanggal_lahir)->format('d/m/Y') : '-',
                     'umur' => $sasaran->umur_sasaran ? $sasaran->umur_sasaran . ' tahun' : '-',
                     'jenis_kelamin' => mb_convert_encoding($sasaran->jenis_kelamin ?? '-', 'UTF-8', 'UTF-8'),
                     'alamat' => mb_convert_encoding($sasaran->alamat_sasaran ?? '-', 'UTF-8', 'UTF-8'),
@@ -161,7 +150,7 @@ class OrangtuaDashboard extends Component
                     'nama' => mb_convert_encoding($sasaran->nama_sasaran ?? '', 'UTF-8', 'UTF-8'),
                     'nik' => $sasaran->nik_sasaran ?? '',
                     'kategori' => 'Remaja',
-                    'tanggal_lahir' => $sasaran->tanggal_lahir ? \Carbon\Carbon::parse($sasaran->tanggal_lahir)->format('d/m/Y') : '-',
+                    'tanggal_lahir' => $sasaran->tanggal_lahir ? Carbon::parse($sasaran->tanggal_lahir)->format('d/m/Y') : '-',
                     'umur' => $sasaran->umur_sasaran ? $sasaran->umur_sasaran . ' tahun' : '-',
                     'jenis_kelamin' => mb_convert_encoding($sasaran->jenis_kelamin ?? '-', 'UTF-8', 'UTF-8'),
                     'alamat' => mb_convert_encoding($sasaran->alamat_sasaran ?? '-', 'UTF-8', 'UTF-8'),
@@ -174,7 +163,7 @@ class OrangtuaDashboard extends Component
                     'nama' => mb_convert_encoding($sasaran->nama_sasaran ?? '', 'UTF-8', 'UTF-8'),
                     'nik' => $sasaran->nik_sasaran ?? '',
                     'kategori' => 'Dewasa',
-                    'tanggal_lahir' => $sasaran->tanggal_lahir ? \Carbon\Carbon::parse($sasaran->tanggal_lahir)->format('d/m/Y') : '-',
+                    'tanggal_lahir' => $sasaran->tanggal_lahir ? Carbon::parse($sasaran->tanggal_lahir)->format('d/m/Y') : '-',
                     'umur' => $sasaran->umur_sasaran ? $sasaran->umur_sasaran . ' tahun' : '-',
                     'jenis_kelamin' => mb_convert_encoding($sasaran->jenis_kelamin ?? '-', 'UTF-8', 'UTF-8'),
                     'alamat' => mb_convert_encoding($sasaran->alamat_sasaran ?? '-', 'UTF-8', 'UTF-8'),
@@ -187,7 +176,7 @@ class OrangtuaDashboard extends Component
                     'nama' => mb_convert_encoding($sasaran->nama_sasaran ?? '', 'UTF-8', 'UTF-8'),
                     'nik' => $sasaran->nik_sasaran ?? '',
                     'kategori' => 'Pralansia',
-                    'tanggal_lahir' => $sasaran->tanggal_lahir ? \Carbon\Carbon::parse($sasaran->tanggal_lahir)->format('d/m/Y') : '-',
+                    'tanggal_lahir' => $sasaran->tanggal_lahir ? Carbon::parse($sasaran->tanggal_lahir)->format('d/m/Y') : '-',
                     'umur' => $sasaran->umur_sasaran ? $sasaran->umur_sasaran . ' tahun' : '-',
                     'jenis_kelamin' => mb_convert_encoding($sasaran->jenis_kelamin ?? '-', 'UTF-8', 'UTF-8'),
                     'alamat' => mb_convert_encoding($sasaran->alamat_sasaran ?? '-', 'UTF-8', 'UTF-8'),
@@ -200,7 +189,7 @@ class OrangtuaDashboard extends Component
                     'nama' => mb_convert_encoding($sasaran->nama_sasaran ?? '', 'UTF-8', 'UTF-8'),
                     'nik' => $sasaran->nik_sasaran ?? '',
                     'kategori' => 'Lansia',
-                    'tanggal_lahir' => $sasaran->tanggal_lahir ? \Carbon\Carbon::parse($sasaran->tanggal_lahir)->format('d/m/Y') : '-',
+                    'tanggal_lahir' => $sasaran->tanggal_lahir ? Carbon::parse($sasaran->tanggal_lahir)->format('d/m/Y') : '-',
                     'umur' => $sasaran->umur_sasaran ? $sasaran->umur_sasaran . ' tahun' : '-',
                     'jenis_kelamin' => mb_convert_encoding($sasaran->jenis_kelamin ?? '-', 'UTF-8', 'UTF-8'),
                     'alamat' => mb_convert_encoding($sasaran->alamat_sasaran ?? '-', 'UTF-8', 'UTF-8'),
@@ -216,24 +205,21 @@ class OrangtuaDashboard extends Component
 
         $dompdf = new Dompdf($options);
 
-        // Sanitize user name untuk menghindari karakter tidak valid
         $userName = mb_convert_encoding($user->name ?? '', 'UTF-8', 'UTF-8');
 
         $html = view('pdf.data-keluarga', [
             'allKeluarga' => $allKeluarga,
-            'user' => (object)['name' => $userName],
+            'user' => (object) ['name' => $userName],
             'noKk' => $noKk,
             'generatedAt' => now('Asia/Jakarta'),
         ])->render();
 
-        // Pastikan HTML adalah UTF-8 yang valid
         $html = mb_convert_encoding($html, 'UTF-8', 'UTF-8');
 
         $dompdf->loadHtml($html, 'UTF-8');
         $dompdf->setPaper('A4', 'landscape');
         $dompdf->render();
 
-        // Return sebagai stream response untuk Livewire
         return response()->streamDownload(function () use ($dompdf) {
             echo $dompdf->output();
         }, $filename, [

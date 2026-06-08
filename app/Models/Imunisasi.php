@@ -20,8 +20,8 @@ class Imunisasi extends Model
         'tanggal_imunisasi',
         'tinggi_badan',
         'berat_badan',
-        'sistol',
-        'diastol',
+        'tekanan_darah',
+        'gula_darah',
         'keterangan',
     ];
 
@@ -29,8 +29,7 @@ class Imunisasi extends Model
         'tanggal_imunisasi' => 'date',
         'tinggi_badan' => 'decimal:2',
         'berat_badan' => 'decimal:2',
-        'sistol' => 'integer',
-        'diastol' => 'integer',
+        'gula_darah' => 'decimal:2',
     ];
 
     // Cache untuk menyimpan sasaran yang sudah di-load

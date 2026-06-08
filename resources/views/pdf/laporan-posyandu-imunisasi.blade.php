@@ -158,7 +158,8 @@
                     <th>Jenis Imunisasi</th>
                     <th>Tinggi (cm)</th>
                     <th>Berat (kg)</th>
-                    <th>Tensi</th>
+                    <th>Tekanan Darah</th>
+                    <th>Gula Darah</th>
                     <th>Petugas</th>
                     <th>Keterangan</th>
                 </tr>
@@ -189,11 +190,10 @@
                             {{ $imunisasi->berat_badan !== null ? number_format($imunisasi->berat_badan, 2) : '-' }}
                         </td>
                         <td class="text-center">
-                            @if($imunisasi->sistol !== null && $imunisasi->diastol !== null)
-                                {{ $imunisasi->sistol }}/{{ $imunisasi->diastol }}
-                            @else
-                                -
-                            @endif
+                            {{ $imunisasi->tekanan_darah ? $imunisasi->tekanan_darah . ' mmHg' : '-' }}
+                        </td>
+                        <td class="text-center">
+                            {{ !is_null($imunisasi->gula_darah) ? number_format($imunisasi->gula_darah, 0, ',', '.') . ' mg/dL' : '-' }}
                         </td>
                         <td>
                             {{ $imunisasi->user->name ?? '-' }}

@@ -310,27 +310,27 @@
                             </div>
                         </div>
 
-                        {{-- Tensi (Tekanan Darah) --}}
+                        {{-- Tekanan Darah & Gula Darah --}}
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div>
-                                <label class="block text-gray-700 text-sm font-bold mb-2">Sistol (mmHg)</label>
+                                <label class="block text-gray-700 text-sm font-bold mb-2">Tekanan Darah</label>
                                 <div class="flex">
-                                    <input type="number" min="50" max="300" wire:model="sistol"
+                                    <input type="text" wire:model="tekanan_darah"
                                         class="shadow appearance-none border border-r-0 rounded-l w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-primary focus:border-primary"
-                                        placeholder="Contoh: 120">
+                                        placeholder="Contoh: 120/80">
                                     <span class="inline-flex items-center px-3 border border-l-0 rounded-r bg-gray-50 text-gray-500 text-sm">mmHg</span>
                                 </div>
-                                @error('sistol') <span class="text-red-500 text-xs">{{ $message }}</span>@enderror
+                                @error('tekanan_darah') <span class="text-red-500 text-xs">{{ $message }}</span>@enderror
                             </div>
                             <div>
-                                <label class="block text-gray-700 text-sm font-bold mb-2">Diastol (mmHg)</label>
+                                <label class="block text-gray-700 text-sm font-bold mb-2">Gula Darah</label>
                                 <div class="flex">
-                                    <input type="number" min="30" max="200" wire:model="diastol"
+                                    <input type="number" min="0" max="1000" step="0.01" wire:model="gula_darah"
                                         class="shadow appearance-none border border-r-0 rounded-l w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-primary focus:border-primary"
-                                        placeholder="Contoh: 80">
-                                    <span class="inline-flex items-center px-3 border border-l-0 rounded-r bg-gray-50 text-gray-500 text-sm">mmHg</span>
+                                        placeholder="Contoh: 100">
+                                    <span class="inline-flex items-center px-3 border border-l-0 rounded-r bg-gray-50 text-gray-500 text-sm">mg/dL</span>
                                 </div>
-                                @error('diastol') <span class="text-red-500 text-xs">{{ $message }}</span>@enderror
+                                @error('gula_darah') <span class="text-red-500 text-xs">{{ $message }}</span>@enderror
                             </div>
                         </div>
 

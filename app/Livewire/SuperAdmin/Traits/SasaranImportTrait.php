@@ -62,7 +62,7 @@ trait SasaranImportTrait
 
         $posyanduId = $this->posyanduId ?? null;
         if (!$posyanduId) {
-            $this->importResult = ['added' => 0, 'skipped' => 0, 'errors' => 1, 'errorDetails' => ['Posyandu tidak ditemukan.']];
+            $this->importResult = $this->finalizeImportResult(0, 0, $this->buildImportFailedRowsFromMessages(['Posyandu tidak ditemukan.']));
             return;
         }
 
@@ -72,23 +72,22 @@ trait SasaranImportTrait
                 ? $this->parseImportFileMaster($this->importFile)
                 : $this->parseImportFile($this->importFile);
         } catch (\Throwable $e) {
-            $this->importResult = [
-                'added' => 0,
-                'skipped' => 0,
-                'errors' => 1,
-                'errorDetails' => ['Gagal membaca file: ' . $e->getMessage()],
-            ];
+            $this->importResult = $this->finalizeImportResult(
+                0,
+                0,
+                $this->buildImportFailedRowsFromMessages(['Gagal membaca file. Pastikan format Excel/CSV benar dan file tidak rusak.'])
+            );
             return;
         }
         if (empty($rows)) {
-            $details = ['Tidak ada baris data ditemukan. Pastikan baris pertama adalah header dan kolom NIK terisi.'];
+            $details = ['Tidak ada baris data ditemukan. Pastikan baris pertama berisi header dan data sasaran terisi.'];
             if ($this->importKategori === 'master') {
                 $details = array_merge($details, $this->buildMasterImportEmptyHints());
             }
             if (!empty($this->importParseError)) {
-                $details[] = 'Error: ' . $this->importParseError;
+                $details[] = 'File tidak dapat diproses. Periksa format dan isi file sesuai template.';
             }
-            $this->importResult = ['added' => 0, 'skipped' => 0, 'errors' => 1, 'errorDetails' => $details];
+            $this->importResult = $this->finalizeImportResult(0, 0, $this->buildImportFailedRowsFromMessages($details));
             return;
         }
 
@@ -215,11 +214,11 @@ trait SasaranImportTrait
                 $kategoriLabel = $sheet['kategori']
                     ? 'dikenali sebagai ' . $sheet['kategori']
                     : 'nama sheet tidak dikenali';
-                $hints[] = 'Sheet "' . $sheet['name'] . '": ' . $kategoriLabel . ', ' . $sheet['data_rows'] . ' baris dengan NIK.';
+                $sheetName = $this->sanitizeImportDisplayText($sheet['name'], 40);
+                $hints[] = 'Sheet "' . $sheetName . '": ' . $kategoriLabel . ', ' . (int) $sheet['data_rows'] . ' baris data.';
             }
         }
-        $hints[] = 'Sheet bayi/balita: nama sheet boleh "Bayi Balita", "anak 1", "anak 2", dll. Header boleh "NIK Anak", "Nama Lengkap Anak", "NIK Ibu (Istri)", dll.';
-        $hints[] = 'Pastikan baris 1 = header dan baris 2 dst berisi NIK. Format NIK sebagai Teks di Excel.';
+        $hints[] = 'Pastikan baris pertama berisi header dan baris berikutnya berisi data sasaran sesuai template.';
 
         return $hints;
     }
@@ -293,7 +292,7 @@ trait SasaranImportTrait
 
             return $allRows;
         } catch (\Throwable $e) {
-            $this->importParseError = $e->getMessage();
+            $this->importParseError = 'parse_failed';
             return [];
         }
     }
@@ -386,6 +385,8 @@ trait SasaranImportTrait
             }
 
             if (!empty($row['nik_sasaran'] ?? '')) {
+                $row['_row'] = $i + 2;
+                $row['_sheet'] = $sheet->getTitle();
                 $rows[] = $row;
             }
         }
@@ -587,9 +588,13 @@ trait SasaranImportTrait
         $header = array_map(fn ($h) => $this->normalizeImportHeader($h), array_map('trim', $header));
 
         $rows = [];
+        $rowNum = 1;
         foreach ($lines as $line) {
+            $rowNum++;
             $cols = str_getcsv($line, $delimiter);
-            if (count($cols) < 2) continue;
+            if (count($cols) < 2) {
+                continue;
+            }
             $row = [];
             foreach ($header as $i => $h) {
                 $value = trim($cols[$i] ?? '');
@@ -604,6 +609,7 @@ trait SasaranImportTrait
                 }
             }
             if (!empty(trim($row['nik_sasaran'] ?? ''))) {
+                $row['_row'] = $rowNum;
                 $rows[] = $row;
             }
         }
@@ -621,7 +627,7 @@ trait SasaranImportTrait
                 $this->importKategori ?: null
             );
         } catch (\Throwable $e) {
-            $this->importParseError = $e->getMessage();
+            $this->importParseError = 'parse_failed';
             return [];
         }
     }
@@ -638,7 +644,7 @@ trait SasaranImportTrait
     }
 
     /**
-     * Ubah pesan error teknis (SQL/database) menjadi pesan yang mudah dipahami pengguna.
+     * Ubah pesan error teknis (SQL/database) menjadi pesan yang aman ditampilkan ke pengguna.
      */
     private function formatImportErrorMessage(\Throwable $e): string
     {
@@ -648,40 +654,145 @@ trait SasaranImportTrait
             return 'Tanggal lahir tidak valid. Gunakan format DD/MM/YYYY (contoh: 15/06/2001).';
         }
 
-        // Data truncated for column 'X' at row 1
-        if (preg_match('/Data truncated for column [\'"]([^\'"]+)[\'"]/i', $msg, $m)) {
-            $col = $m[1];
-            $label = [
-                'kepersertaan_bpjs' => 'Kepersertaan BPJS',
-                'nomor_bpjs' => 'Nomor BPJS',
-                'pendidikan' => 'Pendidikan',
-                'pekerjaan' => 'Pekerjaan',
-                'nama_sasaran' => 'Nama',
-                'nik_sasaran' => 'NIK',
-                'alamat_sasaran' => 'Alamat',
-            ][$col] ?? ucfirst(str_replace('_', ' ', $col));
-            return "Kolom \"{$label}\" terlalu panjang atau format tidak sesuai. Periksa nilai yang diisi (gunakan PBI/NON PBI untuk BPJS, format benar untuk pendidikan/pekerjaan).";
+        if (preg_match('/Data truncated for column/i', $msg)) {
+            return 'Salah satu kolom berisi nilai yang terlalu panjang atau format tidak sesuai. Periksa BPJS (PBI/NON PBI), pendidikan, dan pekerjaan.';
         }
 
-        // Incorrect integer/string value
-        if (preg_match('/Incorrect (integer|string|double) value/i', $msg) || preg_match('/Column [\'"]([^\'"]+)[\'"] cannot be null/i', $msg, $m)) {
+        if (preg_match('/Incorrect (integer|string|double) value/i', $msg) || preg_match('/cannot be null/i', $msg)) {
             return 'Data tidak valid. Periksa kolom wajib diisi dan format data (tanggal, jenis kelamin, pendidikan, pekerjaan).';
         }
 
-        // SQLSTATE umum
-        if (str_contains($msg, 'SQLSTATE[') || str_contains($msg, 'Connection: mysql')) {
-            return 'Data tidak valid. Periksa format kolom wajib: tanggal lahir (YYYY-MM-DD), jenis kelamin (Laki-laki/Perempuan), pendidikan, pekerjaan. Pastikan tidak ada data yang salah kolom.';
+        if ($this->containsTechnicalImportError($msg)) {
+            return 'Data tidak valid. Periksa format kolom wajib: tanggal lahir, jenis kelamin, pendidikan, dan pekerjaan.';
         }
 
-        return $msg;
+        return $this->sanitizeImportUserMessage($msg);
+    }
+
+    private function containsTechnicalImportError(string $message): bool
+    {
+        return (bool) preg_match(
+            '/SQLSTATE|Connection:\s*mysql|INSERT\s+INTO|UPDATE\s+|DELETE\s+FROM|PDOException|Illuminate\\\\Database|syntax error|QueryException|duplicate entry/i',
+            $message
+        );
+    }
+
+    private function sanitizeImportDisplayText(?string $value, int $maxLength = 100): string
+    {
+        if ($value === null || $value === '') {
+            return '';
+        }
+
+        $clean = strip_tags((string) $value);
+        $clean = preg_replace('/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/u', '', $clean) ?? '';
+        $clean = trim(preg_replace('/\s+/u', ' ', $clean) ?? '');
+
+        if ($clean === '') {
+            return '';
+        }
+
+        if (mb_strlen($clean) > $maxLength) {
+            return mb_substr($clean, 0, $maxLength) . '…';
+        }
+
+        return $clean;
+    }
+
+    private function sanitizeImportNik(?string $value): string
+    {
+        $nik = preg_replace('/\D+/', '', (string) $value) ?? '';
+
+        return mb_substr($nik, 0, 16);
+    }
+
+    private function sanitizeImportKategori(?string $value): string
+    {
+        $kategori = strtolower(trim((string) $value));
+        $kategori = preg_replace('/[^a-z]/', '', $kategori) ?? '';
+
+        return mb_substr($kategori, 0, 20);
+    }
+
+    private function sanitizeImportUserMessage(string $message): string
+    {
+        $clean = $this->sanitizeImportDisplayText($message, 200);
+
+        if ($clean === '' || $this->containsTechnicalImportError($clean)) {
+            return 'Data tidak valid. Periksa format kolom wajib dan coba lagi.';
+        }
+
+        return $clean;
+    }
+
+    private function buildImportFailedRow(array $row, int $fallbackRow, string $message): array
+    {
+        return [
+            'row' => isset($row['_row']) ? (int) $row['_row'] : $fallbackRow,
+            'sheet' => $this->sanitizeImportDisplayText($row['_sheet'] ?? null, 40) ?: null,
+            'kategori' => $this->sanitizeImportKategori($row['kategori'] ?? null) ?: null,
+            'nik' => $this->sanitizeImportNik($row['nik_sasaran'] ?? null),
+            'nama' => $this->sanitizeImportDisplayText($row['nama_sasaran'] ?? null, 80),
+            'message' => $this->sanitizeImportUserMessage($message),
+        ];
+    }
+
+    private function buildImportFailedRowsFromMessages(array $messages): array
+    {
+        return array_map(
+            fn (string $message) => [
+                'row' => null,
+                'sheet' => null,
+                'kategori' => null,
+                'nik' => '',
+                'nama' => '',
+                'message' => $this->sanitizeImportUserMessage($message),
+            ],
+            $messages
+        );
+    }
+
+    private function finalizeImportResult(int $added, int $skipped, array $failedRows): array
+    {
+        return [
+            'added' => $added,
+            'skipped' => $skipped,
+            'errors' => count($failedRows),
+            'failedRows' => $failedRows,
+            'errorDetails' => array_map(
+                fn (array $failed) => $this->formatFailedRowSummary($failed),
+                $failedRows
+            ),
+        ];
+    }
+
+    private function formatFailedRowSummary(array $failed): string
+    {
+        $parts = [];
+        if (!empty($failed['sheet'])) {
+            $parts[] = 'Sheet "' . $failed['sheet'] . '"';
+        }
+        if (!empty($failed['row'])) {
+            $parts[] = 'baris ' . $failed['row'];
+        }
+        if (!empty($failed['kategori'])) {
+            $parts[] = '(' . $failed['kategori'] . ')';
+        }
+        if (!empty($failed['nik'])) {
+            $parts[] = 'NIK ' . $failed['nik'];
+        } elseif (!empty($failed['nama'])) {
+            $parts[] = $failed['nama'];
+        }
+
+        $prefix = $parts !== [] ? implode(', ', $parts) . ': ' : '';
+
+        return $prefix . ($failed['message'] ?? '');
     }
 
     private function processImportRows(array $rows, int $posyanduId): array
     {
         $added = 0;
         $skipped = 0;
-        $errors = 0;
-        $errorDetails = [];
+        $failedRows = [];
 
         foreach ($rows as $idx => $row) {
             try {
@@ -693,17 +804,15 @@ trait SasaranImportTrait
                 $this->createSasaranFromRow($row, $posyanduId);
                 $added++;
             } catch (\Throwable $e) {
-                $errors++;
-                $errorDetails[] = 'Baris ' . ($idx + 2) . ': ' . $this->formatImportErrorMessage($e);
+                $failedRows[] = $this->buildImportFailedRow(
+                    $row,
+                    $idx + 2,
+                    $this->formatImportErrorMessage($e)
+                );
             }
         }
 
-        return [
-            'added' => $added,
-            'skipped' => $skipped,
-            'errors' => $errors,
-            'errorDetails' => $errorDetails,
-        ];
+        return $this->finalizeImportResult($added, $skipped, $failedRows);
     }
 
     /**
@@ -713,22 +822,27 @@ trait SasaranImportTrait
     {
         $added = 0;
         $skipped = 0;
-        $errors = 0;
-        $errorDetails = [];
+        $failedRows = [];
         $validKategori = ['bayibalita', 'remaja', 'dewasa', 'pralansia', 'lansia', 'ibuhamil'];
 
         foreach ($rows as $idx => $row) {
             try {
                 $kategoriRaw = trim((string) ($row['kategori'] ?? ''));
                 if ($kategoriRaw === '') {
-                    $errors++;
-                    $errorDetails[] = 'Baris ' . ($idx + 2) . ': Kolom kategori wajib diisi (bayibalita, remaja, dewasa, ibuhamil, pralansia, lansia).';
+                    $failedRows[] = $this->buildImportFailedRow(
+                        $row,
+                        $idx + 2,
+                        'Kolom kategori wajib diisi (bayibalita, remaja, dewasa, ibuhamil, pralansia, lansia).'
+                    );
                     continue;
                 }
                 $kategori = $this->normalizeKategori($kategoriRaw);
                 if (!in_array($kategori, $validKategori, true)) {
-                    $errors++;
-                    $errorDetails[] = 'Baris ' . ($idx + 2) . ': Kategori tidak valid "' . $kategoriRaw . '". Gunakan: bayibalita, remaja, dewasa, ibuhamil, pralansia, lansia.';
+                    $failedRows[] = $this->buildImportFailedRow(
+                        $row,
+                        $idx + 2,
+                        'Kategori tidak valid. Gunakan: bayibalita, remaja, dewasa, ibuhamil, pralansia, lansia.'
+                    );
                     continue;
                 }
                 $prevKategori = $this->importKategori;
@@ -745,17 +859,15 @@ trait SasaranImportTrait
                     $this->importKategori = $prevKategori;
                 }
             } catch (\Throwable $e) {
-                $errors++;
-                $errorDetails[] = 'Baris ' . ($idx + 2) . ' (' . ($row['kategori'] ?? '') . '): ' . $this->formatImportErrorMessage($e);
+                $failedRows[] = $this->buildImportFailedRow(
+                    $row,
+                    $idx + 2,
+                    $this->formatImportErrorMessage($e)
+                );
             }
         }
 
-        return [
-            'added' => $added,
-            'skipped' => $skipped,
-            'errors' => $errors,
-            'errorDetails' => $errorDetails,
-        ];
+        return $this->finalizeImportResult($added, $skipped, $failedRows);
     }
 
     private function normalizeKategori(string $value): string

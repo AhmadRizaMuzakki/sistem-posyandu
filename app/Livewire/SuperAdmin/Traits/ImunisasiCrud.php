@@ -30,8 +30,8 @@ trait ImunisasiCrud
     public $tahun_imunisasi;
     public $tinggi_badan;
     public $berat_badan;
-    public $sistol;
-    public $diastol;
+    public $tekanan_darah;
+    public $gula_darah;
     public $keterangan = '';
     public $id_petugas_kesehatan_imunisasi;
 
@@ -84,8 +84,8 @@ trait ImunisasiCrud
         $this->tahun_imunisasi = '';
         $this->tinggi_badan = '';
         $this->berat_badan = '';
-        $this->sistol = '';
-        $this->diastol = '';
+        $this->tekanan_darah = '';
+        $this->gula_darah = '';
         $this->keterangan = '';
         $this->id_petugas_kesehatan_imunisasi = null;
         $this->sasaranList = [];
@@ -251,8 +251,8 @@ trait ImunisasiCrud
             'tanggal_imunisasi' => 'required|date',
             'tinggi_badan' => 'nullable|numeric|min:0|max:300',
             'berat_badan' => 'nullable|numeric|min:0|max:300',
-            'sistol' => 'nullable|numeric|min:50|max:300',
-            'diastol' => 'nullable|numeric|min:30|max:200',
+            'tekanan_darah' => ['nullable', 'string', 'max:20', 'regex:/^\d{2,3}\/\d{2,3}$/'],
+            'gula_darah' => 'nullable|numeric|min:0|max:1000',
             'keterangan' => 'nullable|string',
             'id_petugas_kesehatan_imunisasi' => 'nullable|exists:petugas_kesehatan,id_petugas_kesehatan',
         ], [
@@ -282,10 +282,10 @@ trait ImunisasiCrud
             'berat_badan.numeric' => 'Berat badan harus berupa angka.',
             'berat_badan.min' => 'Berat badan minimal 0 kg.',
             'berat_badan.max' => 'Berat badan maksimal 300 kg.',
-            'sistol.min' => 'Sistol minimal 50 mmHg.',
-            'sistol.max' => 'Sistol maksimal 300 mmHg.',
-            'diastol.min' => 'Diastol minimal 30 mmHg.',
-            'diastol.max' => 'Diastol maksimal 200 mmHg.',
+            'tekanan_darah.regex' => 'Tekanan darah harus dalam format sistol/diastol, contoh: 120/80.',
+            'gula_darah.numeric' => 'Gula darah harus berupa angka.',
+            'gula_darah.min' => 'Gula darah minimal 0 mg/dL.',
+            'gula_darah.max' => 'Gula darah maksimal 1000 mg/dL.',
         ]);
 
         $data = [
@@ -298,8 +298,8 @@ trait ImunisasiCrud
             'tanggal_imunisasi' => $this->tanggal_imunisasi,
             'tinggi_badan' => $this->tinggi_badan !== '' ? $this->tinggi_badan : null,
             'berat_badan' => $this->berat_badan !== '' ? $this->berat_badan : null,
-            'sistol' => $this->sistol !== '' ? (int) $this->sistol : null,
-            'diastol' => $this->diastol !== '' ? (int) $this->diastol : null,
+            'tekanan_darah' => $this->tekanan_darah !== '' ? $this->tekanan_darah : null,
+            'gula_darah' => $this->gula_darah !== '' ? $this->gula_darah : null,
             'keterangan' => $this->keterangan,
         ];
 
@@ -360,8 +360,8 @@ trait ImunisasiCrud
         }
         $this->tinggi_badan = $imunisasi->tinggi_badan ?? '';
         $this->berat_badan = $imunisasi->berat_badan ?? '';
-        $this->sistol = $imunisasi->sistol ?? '';
-        $this->diastol = $imunisasi->diastol ?? '';
+        $this->tekanan_darah = $imunisasi->tekanan_darah ?? '';
+        $this->gula_darah = $imunisasi->gula_darah ?? '';
         $this->keterangan = $imunisasi->keterangan ?? '';
         $this->id_petugas_kesehatan_imunisasi = $imunisasi->id_petugas_kesehatan;
 

@@ -2,12 +2,14 @@
 
 namespace App\Livewire\Orangtua;
 
+use App\Livewire\Orangtua\Traits\ImunisasiAnalyticsTrait;
 use App\Models\Imunisasi;
 use App\Models\SasaranBayibalita;
 use App\Models\SasaranRemaja;
 use App\Models\SasaranDewasa;
 use App\Models\SasaranPralansia;
 use App\Models\SasaranLansia;
+use App\Services\AntropometriService;
 use Livewire\Component;
 use Livewire\Attributes\Layout;
 use Illuminate\Support\Facades\Auth;
@@ -17,86 +19,64 @@ use Dompdf\Options;
 #[Layout('layouts.orangtuadashboard')]
 class OrangtuaImunisasi extends Component
 {
-    public $userId;
+    use ImunisasiAnalyticsTrait;
 
     /** Filter: nama sasaran (anak) */
     public $filterNama = '';
-
-    /** Filter: jenis imunisasi */
-    public $filterJenisImunisasi = '';
-
-    public function mount()
-    {
-        $this->userId = Auth::id();
-    }
 
     /**
      * Bangun allSasaran dan imunisasiList (dengan filter).
      */
     protected function getImunisasiData()
     {
-        $sasaranBayi = SasaranBayibalita::where('id_users', $this->userId)->get();
-        $sasaranRemaja = SasaranRemaja::where('id_users', $this->userId)->get();
-        $sasaranDewasa = SasaranDewasa::where('id_users', $this->userId)->get();
-        $sasaranPralansia = SasaranPralansia::where('id_users', $this->userId)->get();
-        $sasaranLansia = SasaranLansia::where('id_users', $this->userId)->get();
-
+        $noKk = $this->resolveNoKk();
         $allSasaran = collect();
-        foreach ($sasaranBayi as $s) {
-            $allSasaran->push(['id' => $s->id_sasaran_bayibalita, 'kategori' => 'bayibalita', 'nama' => $s->nama_sasaran, 'nik' => $s->nik_sasaran, 'tanggal_lahir' => $s->tanggal_lahir]);
-        }
-        foreach ($sasaranRemaja as $s) {
-            $allSasaran->push(['id' => $s->id_sasaran_remaja, 'kategori' => 'remaja', 'nama' => $s->nama_sasaran, 'nik' => $s->nik_sasaran, 'tanggal_lahir' => $s->tanggal_lahir]);
-        }
-        foreach ($sasaranDewasa as $s) {
-            $allSasaran->push(['id' => $s->id_sasaran_dewasa, 'kategori' => 'dewasa', 'nama' => $s->nama_sasaran, 'nik' => $s->nik_sasaran, 'tanggal_lahir' => $s->tanggal_lahir]);
-        }
-        foreach ($sasaranPralansia as $s) {
-            $allSasaran->push(['id' => $s->id_sasaran_pralansia, 'kategori' => 'pralansia', 'nama' => $s->nama_sasaran, 'nik' => $s->nik_sasaran, 'tanggal_lahir' => $s->tanggal_lahir]);
-        }
-        foreach ($sasaranLansia as $s) {
-            $allSasaran->push(['id' => $s->id_sasaran_lansia, 'kategori' => 'lansia', 'nama' => $s->nama_sasaran, 'nik' => $s->nik_sasaran, 'tanggal_lahir' => $s->tanggal_lahir]);
+
+        if ($noKk) {
+            $kategoriMap = [
+                ['model' => SasaranBayibalita::class, 'id' => 'id_sasaran_bayibalita', 'slug' => 'bayibalita'],
+                ['model' => SasaranRemaja::class, 'id' => 'id_sasaran_remaja', 'slug' => 'remaja'],
+                ['model' => SasaranDewasa::class, 'id' => 'id_sasaran_dewasa', 'slug' => 'dewasa'],
+                ['model' => SasaranPralansia::class, 'id' => 'id_sasaran_pralansia', 'slug' => 'pralansia'],
+                ['model' => SasaranLansia::class, 'id' => 'id_sasaran_lansia', 'slug' => 'lansia'],
+            ];
+
+            foreach ($kategoriMap as $cfg) {
+                $sasaranList = $cfg['model']::where('no_kk_sasaran', $noKk)->get();
+                foreach ($sasaranList as $s) {
+                    $allSasaran->push([
+                        'id' => $s->{$cfg['id']},
+                        'kategori' => $cfg['slug'],
+                        'nama' => $s->nama_sasaran,
+                        'nik' => $s->nik_sasaran,
+                        'tanggal_lahir' => $s->tanggal_lahir,
+                        'jenis_kelamin' => $s->jenis_kelamin,
+                    ]);
+                }
+            }
         }
 
-        // Optimasi: Batch query semua imunisasi sekaligus (menghindari N+1)
-        $sasaranConditions = $allSasaran->map(fn($s) => [
+        $sasaranConditions = $allSasaran->map(fn ($s) => [
             'id' => $s['id'],
-            'kategori' => $s['kategori']
+            'kategori' => $s['kategori'],
         ])->toArray();
 
-        // Build batch query
         $allImunisasi = collect();
         if (!empty($sasaranConditions)) {
-            $query = Imunisasi::where(function($q) use ($sasaranConditions) {
+            $query = Imunisasi::where(function ($q) use ($sasaranConditions) {
                 foreach ($sasaranConditions as $cond) {
-                    $q->orWhere(function($subQ) use ($cond) {
+                    $q->orWhere(function ($subQ) use ($cond) {
                         $subQ->where('id_sasaran', $cond['id'])
-                             ->where('kategori_sasaran', $cond['kategori']);
+                            ->where('kategori_sasaran', $cond['kategori']);
                     });
                 }
             });
 
-            if ($this->filterJenisImunisasi !== '') {
-                $query->where('jenis_imunisasi', $this->filterJenisImunisasi);
-            }
-
             $allImunisasi = $query->orderBy('tanggal_imunisasi', 'desc')->get();
         }
 
-        // Group imunisasi by sasaran
-        $groupedImunisasi = $allImunisasi->groupBy(function($im) {
-            return $im->kategori_sasaran . '_' . $im->id_sasaran;
-        });
+        $groupedImunisasi = $allImunisasi->groupBy(fn ($im) => $im->kategori_sasaran . '_' . $im->id_sasaran);
 
-        // Ambil semua jenis imunisasi dari hasil query
-        $jenisImunisasiList = $allImunisasi->pluck('jenis_imunisasi')
-            ->unique()
-            ->filter()
-            ->sort()
-            ->values()
-            ->toArray();
-
-        // Build imunisasiList berdasarkan grouped data
         $imunisasiList = collect();
         foreach ($allSasaran as $sasaran) {
             if ($this->filterNama !== '' && $sasaran['nama'] !== $this->filterNama) {
@@ -115,18 +95,36 @@ class OrangtuaImunisasi extends Component
             'allSasaran' => $allSasaran,
             'imunisasiList' => $imunisasiList,
             'namaSasaranList' => $allSasaran->pluck('nama')->unique()->sort()->values()->toArray(),
-            'jenisImunisasiList' => $jenisImunisasiList,
         ];
     }
 
     public function render()
     {
         $data = $this->getImunisasiData();
+        $antropometri = app(AntropometriService::class);
+        $sasaranAnalytics = $this->getSasaranUntukAnalytics();
+        if ($this->filterNama !== '') {
+            $sasaranAnalytics = $sasaranAnalytics->filter(
+                fn ($s) => $s['nama'] === $this->filterNama
+            )->values();
+        }
+        $analytics = $this->filterNama !== ''
+            ? $this->getImunisasiAnalytics($sasaranAnalytics, $antropometri)
+            : [
+                'grafikPertumbuhan' => [],
+                'grafikImunisasiJenis' => ['labels' => [], 'data' => []],
+                'penilaianPerKategori' => [],
+                'totalImunisasi' => 0,
+            ];
+
         return view('livewire.orangtua.orangtua-imunisasi', [
             'imunisasiList' => $data['imunisasiList'],
             'allSasaran' => $data['allSasaran'],
             'namaSasaranList' => $data['namaSasaranList'],
-            'jenisImunisasiList' => $data['jenisImunisasiList'],
+            'grafikPertumbuhan' => $analytics['grafikPertumbuhan'],
+            'grafikImunisasiJenis' => $analytics['grafikImunisasiJenis'],
+            'penilaianPerKategori' => $analytics['penilaianPerKategori'],
+            'totalImunisasi' => $analytics['totalImunisasi'],
         ]);
     }
 
@@ -140,10 +138,6 @@ class OrangtuaImunisasi extends Component
         $no = 1;
         foreach ($data['imunisasiList'] as $item) {
             foreach ($item['imunisasi'] as $im) {
-                $tensi = '-';
-                if ($im->sistol !== null && $im->diastol !== null) {
-                    $tensi = $im->sistol . '/' . $im->diastol;
-                }
                 $rows->push((object) [
                     'no' => $no++,
                     'nama_sasaran' => $item['sasaran']['nama'] ?? '-',
@@ -152,9 +146,8 @@ class OrangtuaImunisasi extends Component
                     'tanggal_imunisasi' => $im->tanggal_imunisasi ? $im->tanggal_imunisasi->format('d/m/Y') : '-',
                     'tinggi_badan' => $im->tinggi_badan !== null ? number_format($im->tinggi_badan, 1, ',', '.') : '-',
                     'berat_badan' => $im->berat_badan !== null ? number_format($im->berat_badan, 1, ',', '.') : '-',
-                    'sistol' => $im->sistol,
-                    'diastol' => $im->diastol,
-                    'tensi' => $tensi,
+                    'tekanan_darah' => $im->tekanan_darah ? $im->tekanan_darah . ' mmHg' : '-',
+                    'gula_darah' => $im->gula_darah !== null ? number_format($im->gula_darah, 0, ',', '.') . ' mg/dL' : '-',
                     'keterangan' => $im->keterangan ?? '-',
                 ]);
             }
@@ -173,7 +166,6 @@ class OrangtuaImunisasi extends Component
             'user' => $user,
             'generatedAt' => now('Asia/Jakarta'),
             'filterNama' => $this->filterNama,
-            'filterJenisImunisasi' => $this->filterJenisImunisasi,
         ])->render();
 
         $dompdf->loadHtml(mb_convert_encoding($html, 'HTML-ENTITIES', 'UTF-8'));

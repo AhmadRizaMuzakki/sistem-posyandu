@@ -8,7 +8,7 @@
     <link rel="icon" type="image/png" href="{{ asset('images/home.png') }}">
 
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
     <style>
         body {
@@ -64,6 +64,7 @@
     </div>
 
     @livewireScripts
+    @stack('scripts')
 </body>
 </html>
 
