@@ -1116,6 +1116,33 @@ trait SasaranImportTrait
         return in_array($v, $allowed, true) ? $v : null;
     }
 
+    /**
+     * Buat atau ambil akun login orangtua/sasaran (sama seperti form manual).
+     * Email: {No KK atau NIK}@gmail.com, password default import: password.
+     */
+    private function createOrGetImportUser(string $name, ?string $noKk, ?string $nikFallback = null): ?User
+    {
+        $loginKey = trim($noKk ?? '') ?: trim($nikFallback ?? '');
+        if ($loginKey === '' || trim($name) === '') {
+            return null;
+        }
+
+        $user = User::firstOrCreate(
+            ['email' => $loginKey . '@gmail.com'],
+            [
+                'name' => trim($name),
+                'password' => Hash::make('password'),
+                'email_verified_at' => now(),
+            ]
+        );
+
+        if (!$user->hasRole('orangtua')) {
+            $user->assignRole('orangtua');
+        }
+
+        return $user;
+    }
+
     private function createSasaranBayibalita(array $row, int $posyanduId, ?string $tanggalLahir, ?string $jenisKelamin): void
     {
         $nikOrtu = trim($row['nik_orangtua'] ?? '');
@@ -1142,21 +1169,16 @@ trait SasaranImportTrait
                 ]
             );
 
-            $user = User::firstOrCreate(
-                ['email' => ($orangtua->no_kk ?? $nikOrtu) . '@gmail.com'],
-                [
-                    'name' => $orangtua->nama,
-                    'password' => Hash::make('password'),
-                ]
+            $user = $this->createOrGetImportUser(
+                $orangtua->nama,
+                trim($row['no_kk_sasaran'] ?? '') ?: $orangtua->no_kk,
+                $nikOrtu
             );
-            if (!$user->hasRole('orangtua')) {
-                $user->assignRole('orangtua');
-            }
 
             $umur = $this->calculateImportUmur($tanggalLahir);
             SasaranBayibalita::create([
                 'id_posyandu' => $posyanduId,
-                'id_users' => null,
+                'id_users' => $user?->id,
                 'nama_sasaran' => trim($row['nama_sasaran'] ?? ''),
                 'nik_sasaran' => trim($row['nik_sasaran'] ?? ''),
                 'no_kk_sasaran' => trim($row['no_kk_sasaran'] ?? '') ?: null,
@@ -1204,8 +1226,11 @@ trait SasaranImportTrait
             'status_keluarga' => $statusKeluarga,
         ];
         $umur = $orangtua->umur;
-        $email = ($orangtua->no_kk ?? $orangtua->nik) . '@gmail.com';
-        $user = User::where('email', $email)->first();
+        $user = $this->createOrGetImportUser(
+            $orangtua->nama,
+            $orangtua->no_kk,
+            $orangtua->nik
+        );
         if ($user) {
             $sasaranData['id_users'] = $user->id;
         }
@@ -1234,7 +1259,7 @@ trait SasaranImportTrait
             throw new \Exception('NIK dan nama orangtua wajib diisi.');
         }
 
-        Orangtua::firstOrCreate(
+        $orangtua = Orangtua::firstOrCreate(
             ['nik' => $nikOrtu],
             [
                 'nama' => $namaOrtu,
@@ -1248,10 +1273,16 @@ trait SasaranImportTrait
             ]
         );
 
+        $user = $this->createOrGetImportUser(
+            $namaOrtu,
+            trim($row['no_kk_sasaran'] ?? '') ?: $orangtua->no_kk,
+            $nikOrtu
+        );
+
         $umur = $this->calculateImportUmur($tanggalLahir);
         SasaranRemaja::create([
             'id_posyandu' => $posyanduId,
-            'id_users' => null,
+            'id_users' => $user?->id,
             'nama_sasaran' => trim($row['nama_sasaran'] ?? ''),
             'nik_sasaran' => trim($row['nik_sasaran'] ?? ''),
             'no_kk_sasaran' => trim($row['no_kk_sasaran'] ?? '') ?: null,
@@ -1273,10 +1304,16 @@ trait SasaranImportTrait
 
     private function createSasaranDewasa(array $row, int $posyanduId, ?string $tanggalLahir, ?string $jenisKelamin): void
     {
+        $user = $this->createOrGetImportUser(
+            trim($row['nama_sasaran'] ?? ''),
+            trim($row['no_kk_sasaran'] ?? ''),
+            trim($row['nik_sasaran'] ?? '')
+        );
+
         $umur = $this->calculateImportUmur($tanggalLahir);
         SasaranDewasa::create([
             'id_posyandu' => $posyanduId,
-            'id_users' => null,
+            'id_users' => $user?->id,
             'nama_sasaran' => trim($row['nama_sasaran'] ?? ''),
             'nik_sasaran' => trim($row['nik_sasaran'] ?? ''),
             'no_kk_sasaran' => trim($row['no_kk_sasaran'] ?? '') ?: null,
@@ -1299,10 +1336,16 @@ trait SasaranImportTrait
 
     private function createSasaranPralansia(array $row, int $posyanduId, ?string $tanggalLahir, ?string $jenisKelamin): void
     {
+        $user = $this->createOrGetImportUser(
+            trim($row['nama_sasaran'] ?? ''),
+            trim($row['no_kk_sasaran'] ?? ''),
+            trim($row['nik_sasaran'] ?? '')
+        );
+
         $umur = $this->calculateImportUmur($tanggalLahir);
         SasaranPralansia::create([
             'id_posyandu' => $posyanduId,
-            'id_users' => null,
+            'id_users' => $user?->id,
             'nama_sasaran' => trim($row['nama_sasaran'] ?? ''),
             'nik_sasaran' => trim($row['nik_sasaran'] ?? ''),
             'no_kk_sasaran' => trim($row['no_kk_sasaran'] ?? '') ?: null,
@@ -1325,10 +1368,16 @@ trait SasaranImportTrait
 
     private function createSasaranLansia(array $row, int $posyanduId, ?string $tanggalLahir, ?string $jenisKelamin): void
     {
+        $user = $this->createOrGetImportUser(
+            trim($row['nama_sasaran'] ?? ''),
+            trim($row['no_kk_sasaran'] ?? ''),
+            trim($row['nik_sasaran'] ?? '')
+        );
+
         $umur = $this->calculateImportUmur($tanggalLahir);
         SasaranLansia::create([
             'id_posyandu' => $posyanduId,
-            'id_users' => null,
+            'id_users' => $user?->id,
             'nama_sasaran' => trim($row['nama_sasaran'] ?? ''),
             'nik_sasaran' => trim($row['nik_sasaran'] ?? ''),
             'no_kk_sasaran' => trim($row['no_kk_sasaran'] ?? '') ?: null,
