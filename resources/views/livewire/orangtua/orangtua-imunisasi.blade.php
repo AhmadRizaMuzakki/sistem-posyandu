@@ -34,9 +34,9 @@
         {{-- 1. Tabel riwayat imunisasi --}}
         @include('livewire.orangtua.partials.imunisasi-daftar')
 
-        {{-- 2. Grafik batang & penilaian (hanya saat nama sasaran dipilih) --}}
+        {{-- 2. Grafik & penilaian (hanya saat nama sasaran dipilih) --}}
         @if($filterNama !== '')
-            <div wire:key="grafik-{{ md5($filterNama) }}">
+            <div wire:key="grafik-penilaian-{{ md5($filterNama) }}">
                 @include('livewire.orangtua.partials.imunisasi-grafik-penilaian')
             </div>
         @endif
@@ -52,58 +52,70 @@
     let orangtuaImunisasiCharts = [];
 
     function destroyOrangtuaImunisasiCharts() {
-        orangtuaImunisasiCharts.forEach((c) => c.destroy());
+        orangtuaImunisasiCharts.forEach((chart) => chart.destroy());
         orangtuaImunisasiCharts = [];
+    }
+
+    function waitForChartJs(callback, attempts = 20) {
+        if (typeof Chart !== 'undefined') {
+            callback();
+            return;
+        }
+        if (attempts <= 0) {
+            return;
+        }
+        setTimeout(() => waitForChartJs(callback, attempts - 1), 100);
     }
 
     function initOrangtuaImunisasiCharts() {
         destroyOrangtuaImunisasiCharts();
 
-        if (typeof Chart === 'undefined') {
-            return;
-        }
-
-        const pertumbuhanData = @js($grafikPertumbuhan ?? []);
-        if (!pertumbuhanData.length) {
+        const canvases = document.querySelectorAll('canvas.orangtua-grafik-canvas');
+        if (!canvases.length) {
             return;
         }
 
         const isMobile = window.innerWidth < 768;
         const chartFontSize = isMobile ? 11 : 12;
-        const chartLegendSize = isMobile ? 11 : 12;
-        const barColors = {
-            bb: { bg: 'rgba(59, 130, 246, 0.8)', border: 'rgba(59, 130, 246, 1)' },
-            tb: { bg: 'rgba(16, 185, 129, 0.8)', border: 'rgba(16, 185, 129, 1)' },
-        };
 
-        pertumbuhanData.forEach((item, index) => {
-            const canvas = document.getElementById('grafikPertumbuhan' + index);
-            if (!canvas) {
+        canvases.forEach((canvas) => {
+            let labels, berat, tinggi;
+            try {
+                labels = JSON.parse(canvas.dataset.labels || '[]');
+                berat = JSON.parse(canvas.dataset.berat || '[]');
+                tinggi = JSON.parse(canvas.dataset.tinggi || '[]');
+            } catch (e) {
+                return;
+            }
+
+            if (!labels.length) {
                 return;
             }
 
             orangtuaImunisasiCharts.push(new Chart(canvas.getContext('2d'), {
                 type: 'bar',
                 data: {
-                    labels: item.labels,
+                    labels,
                     datasets: [
                         {
-                            label: 'Berat Badan (kg)',
-                            data: item.berat,
-                            backgroundColor: barColors.bb.bg,
-                            borderColor: barColors.bb.border,
-                            borderWidth: 2,
-                            borderRadius: 8,
+                            label: 'Berat (kg)',
+                            data: berat,
+                            backgroundColor: 'rgba(59, 130, 246, 0.75)',
+                            borderColor: 'rgb(59, 130, 246)',
+                            borderWidth: 1,
+                            borderRadius: 4,
                             yAxisID: 'y',
+                            minBarLength: 8,
                         },
                         {
-                            label: 'Tinggi Badan (cm)',
-                            data: item.tinggi,
-                            backgroundColor: barColors.tb.bg,
-                            borderColor: barColors.tb.border,
-                            borderWidth: 2,
-                            borderRadius: 8,
+                            label: 'Tinggi (cm)',
+                            data: tinggi,
+                            backgroundColor: 'rgba(16, 185, 129, 0.75)',
+                            borderColor: 'rgb(16, 185, 129)',
+                            borderWidth: 1,
+                            borderRadius: 4,
                             yAxisID: 'y1',
+                            minBarLength: 8,
                         },
                     ],
                 },
@@ -115,11 +127,7 @@
                         legend: {
                             display: true,
                             position: 'top',
-                            labels: { font: { size: chartLegendSize }, padding: isMobile ? 12 : 8 },
-                        },
-                        tooltip: {
-                            titleFont: { size: chartFontSize },
-                            bodyFont: { size: chartFontSize },
+                            labels: { font: { size: chartFontSize }, boxWidth: 12 },
                         },
                     },
                     scales: {
@@ -127,7 +135,7 @@
                             type: 'linear',
                             position: 'left',
                             beginAtZero: true,
-                            title: { display: true, text: 'Berat Badan (kg)', font: { size: chartFontSize } },
+                            title: { display: true, text: 'Berat (kg)', font: { size: chartFontSize } },
                             ticks: { font: { size: chartFontSize } },
                         },
                         y1: {
@@ -135,16 +143,11 @@
                             position: 'right',
                             beginAtZero: true,
                             grid: { drawOnChartArea: false },
-                            title: { display: true, text: 'Tinggi Badan (cm)', font: { size: chartFontSize } },
+                            title: { display: true, text: 'Tinggi (cm)', font: { size: chartFontSize } },
                             ticks: { font: { size: chartFontSize } },
                         },
                         x: {
                             ticks: { font: { size: chartFontSize }, maxRotation: 45 },
-                            title: {
-                                display: true,
-                                text: 'Tanggal Kunjungan',
-                                font: { size: chartFontSize },
-                            },
                         },
                     },
                 },
@@ -152,8 +155,30 @@
         });
     }
 
-    requestAnimationFrame(() => {
-        requestAnimationFrame(() => initOrangtuaImunisasiCharts());
+    function scheduleChartInit() {
+        waitForChartJs(() => {
+            requestAnimationFrame(() => {
+                requestAnimationFrame(() => initOrangtuaImunisasiCharts());
+            });
+        });
+    }
+
+    scheduleChartInit();
+
+    $wire.$watch('filterNama', () => {
+        scheduleChartInit();
+    });
+
+    document.addEventListener('livewire:navigated', scheduleChartInit);
+
+    document.addEventListener('livewire:init', () => {
+        Livewire.hook('commit', ({ succeed }) => {
+            succeed(() => {
+                if (document.querySelector('canvas.orangtua-grafik-canvas')) {
+                    scheduleChartInit();
+                }
+            });
+        });
     });
 </script>
 @endscript
