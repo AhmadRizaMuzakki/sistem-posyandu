@@ -1,4 +1,4 @@
-<div>
+<div id="orangtua-imunisasi-root">
     <div class="space-y-6">
         {{-- Header --}}
         <div class="bg-white rounded-lg shadow-sm p-6">
@@ -43,59 +43,68 @@
     </div>
 </div>
 
-@assets
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-@endassets
-
 @script
 <script>
-    function registerOrangtuaGrafikPertumbuhan() {
-        if (window.__orangtuaGrafikRegistered) {
-            return;
+    (function () {
+        const componentRoot = $wire.$el;
+        const chartInstances = new WeakMap();
+        let initTimer = null;
+
+        function waitForChartJs(callback, attempts = 40) {
+            if (typeof Chart !== 'undefined') {
+                callback();
+                return;
+            }
+            if (attempts <= 0) {
+                return;
+            }
+            setTimeout(() => waitForChartJs(callback, attempts - 1), 100);
         }
-        window.__orangtuaGrafikRegistered = true;
 
-        Alpine.data('orangtuaGrafikPertumbuhan', (config) => ({
-                chart: null,
-                config,
+        function destroyOrangtuaCharts() {
+            componentRoot.querySelectorAll('canvas.orangtua-grafik-canvas').forEach((canvas) => {
+                const existing = chartInstances.get(canvas);
+                if (existing) {
+                    existing.destroy();
+                    chartInstances.delete(canvas);
+                }
+            });
+        }
 
-                init() {
-                    this.$nextTick(() => this.render());
-                },
+        function initOrangtuaCharts() {
+            destroyOrangtuaCharts();
 
-                render(attempt = 0) {
-                    if (!this.config.labels?.length) {
+            const canvases = componentRoot.querySelectorAll('canvas.orangtua-grafik-canvas');
+            if (!canvases.length) {
+                return;
+            }
+
+            waitForChartJs(() => {
+                const isMobile = window.innerWidth < 768;
+                const fontSize = isMobile ? 11 : 12;
+
+                canvases.forEach((canvas) => {
+                    let labels, berat, tinggi;
+                    try {
+                        labels = JSON.parse(canvas.dataset.labels || '[]');
+                        berat = JSON.parse(canvas.dataset.berat || '[]');
+                        tinggi = JSON.parse(canvas.dataset.tinggi || '[]');
+                    } catch (e) {
                         return;
                     }
 
-                    if (typeof Chart === 'undefined') {
-                        if (attempt < 30) {
-                            setTimeout(() => this.render(attempt + 1), 100);
-                        }
+                    if (!labels.length) {
                         return;
                     }
 
-                    if (this.chart) {
-                        this.chart.destroy();
-                        this.chart = null;
-                    }
-
-                    const canvas = this.$refs.canvas;
-                    if (!canvas) {
-                        return;
-                    }
-
-                    const isMobile = window.innerWidth < 768;
-                    const fontSize = isMobile ? 11 : 12;
-
-                    this.chart = new Chart(canvas.getContext('2d'), {
+                    const chart = new Chart(canvas.getContext('2d'), {
                         type: 'bar',
                         data: {
-                            labels: this.config.labels,
+                            labels,
                             datasets: [
                                 {
                                     label: 'Berat (kg)',
-                                    data: this.config.berat,
+                                    data: berat,
                                     backgroundColor: 'rgba(59, 130, 246, 0.75)',
                                     borderColor: 'rgb(59, 130, 246)',
                                     borderWidth: 1,
@@ -105,7 +114,7 @@
                                 },
                                 {
                                     label: 'Tinggi (cm)',
-                                    data: this.config.tinggi,
+                                    data: tinggi,
                                     backgroundColor: 'rgba(16, 185, 129, 0.75)',
                                     borderColor: 'rgb(16, 185, 129)',
                                     borderWidth: 1,
@@ -148,21 +157,39 @@
                             },
                         },
                     });
-                },
 
-                destroy() {
-                    if (this.chart) {
-                        this.chart.destroy();
-                        this.chart = null;
-                    }
-                },
-            }));
-    }
+                    chartInstances.set(canvas, chart);
+                });
+            });
+        }
 
-    if (window.Alpine) {
-        registerOrangtuaGrafikPertumbuhan();
-    } else {
-        document.addEventListener('alpine:init', registerOrangtuaGrafikPertumbuhan);
-    }
+        function scheduleChartInit() {
+            clearTimeout(initTimer);
+            initTimer = setTimeout(() => {
+                requestAnimationFrame(() => requestAnimationFrame(initOrangtuaCharts));
+            }, 50);
+        }
+
+        function registerCommitHook() {
+            Livewire.hook('commit', ({ component, succeed }) => {
+                if (component.el !== componentRoot) {
+                    return;
+                }
+                succeed(() => scheduleChartInit());
+            });
+        }
+
+        scheduleChartInit();
+
+        $wire.$watch('filterNama', () => {
+            scheduleChartInit();
+        });
+
+        if (window.Livewire) {
+            registerCommitHook();
+        } else {
+            document.addEventListener('livewire:init', registerCommitHook);
+        }
+    })();
 </script>
 @endscript

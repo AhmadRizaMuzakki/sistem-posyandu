@@ -24,31 +24,66 @@
         {{-- Navigation --}}
         <nav class="bg-white border-b border-gray-200 shadow-sm">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div class="flex justify-between h-16">
-                    <div class="flex items-center">
-                        <a href="{{ route('orangtua.dashboard') }}" class="flex items-center">
-                            <i class="ph ph-heart text-2xl text-primary mr-2"></i>
-                            <span class="text-xl font-bold text-gray-800">Dashboard Orangtua</span>
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 sm:gap-4 py-3 sm:py-0 sm:min-h-16">
+                    {{-- Brand + user (mobile) --}}
+                    <div class="flex items-center justify-between gap-3 min-w-0">
+                        <a href="{{ route('orangtua.dashboard') }}" class="flex items-center gap-2 min-w-0 shrink">
+                            <i class="ph ph-heart text-2xl text-primary shrink-0"></i>
+                            <span class="text-lg sm:text-xl font-bold text-gray-800 whitespace-nowrap truncate">
+                                Dashboard Orangtua
+                            </span>
                         </a>
+
+                        <div class="flex sm:hidden items-center gap-2 shrink-0 border-l border-gray-200 pl-3">
+                            <span class="text-sm text-gray-600 whitespace-nowrap truncate max-w-[7rem]"
+                                  title="{{ Auth::user()->name }}">
+                                {{ Auth::user()->name }}
+                            </span>
+                            <form method="POST" action="{{ route('logout') }}" class="inline shrink-0">
+                                @csrf
+                                <button type="submit"
+                                        class="p-1.5 text-gray-500 hover:text-red-600 rounded-lg hover:bg-red-50 transition-colors"
+                                        title="Keluar">
+                                    <i class="ph ph-sign-out text-lg"></i>
+                                </button>
+                            </form>
+                        </div>
                     </div>
 
-                    <div class="flex items-center space-x-4">
-                        <a href="{{ route('orangtua.dashboard') }}"
-                           class="px-4 py-2 text-sm font-medium text-gray-700 hover:text-primary {{ request()->routeIs('orangtua.dashboard') ? 'text-primary border-b-2 border-primary' : '' }}">
-                            Dashboard
-                        </a>
-                        <a href="{{ route('orangtua.imunisasi') }}"
-                           class="px-4 py-2 text-sm font-medium text-gray-700 hover:text-primary {{ request()->routeIs('orangtua.imunisasi') ? 'text-primary border-b-2 border-primary' : '' }}">
-                            <i class="ph ph-syringe mr-1"></i>
-                            Imunisasi
-                        </a>
+                    {{-- Nav + user (desktop) --}}
+                    <div class="flex items-center justify-between sm:justify-end gap-3 sm:gap-6 min-w-0">
+                        <div class="flex items-center gap-1 -mb-px">
+                            <a href="{{ route('orangtua.dashboard') }}"
+                               @class([
+                                   'inline-flex items-center gap-1.5 px-3 sm:px-4 py-2 text-sm font-medium whitespace-nowrap border-b-2 transition-colors',
+                                   'text-primary border-primary' => request()->routeIs('orangtua.dashboard'),
+                                   'text-gray-600 border-transparent hover:text-primary hover:border-gray-300' => !request()->routeIs('orangtua.dashboard'),
+                               ])>
+                                <i class="ph ph-house text-base"></i>
+                                Dashboard
+                            </a>
+                            <a href="{{ route('orangtua.imunisasi') }}"
+                               @class([
+                                   'inline-flex items-center gap-1.5 px-3 sm:px-4 py-2 text-sm font-medium whitespace-nowrap border-b-2 transition-colors',
+                                   'text-primary border-primary' => request()->routeIs('orangtua.imunisasi'),
+                                   'text-gray-600 border-transparent hover:text-primary hover:border-gray-300' => !request()->routeIs('orangtua.imunisasi'),
+                               ])>
+                                <i class="ph ph-syringe text-base"></i>
+                                Imunisasi
+                            </a>
+                        </div>
 
-                        <div class="flex items-center space-x-2 border-l border-gray-200 pl-4">
-                            <span class="text-sm text-gray-600">{{ Auth::user()->name }}</span>
-                            <form method="POST" action="{{ route('logout') }}" class="inline">
+                        <div class="hidden sm:flex items-center gap-2 shrink-0 border-l border-gray-200 pl-4">
+                            <span class="text-sm text-gray-600 whitespace-nowrap truncate max-w-[10rem] lg:max-w-xs"
+                                  title="{{ Auth::user()->name }}">
+                                {{ Auth::user()->name }}
+                            </span>
+                            <form method="POST" action="{{ route('logout') }}" class="inline shrink-0">
                                 @csrf
-                                <button type="submit" class="text-sm text-gray-600 hover:text-red-600">
-                                    <i class="ph ph-sign-out"></i>
+                                <button type="submit"
+                                        class="p-1.5 text-gray-500 hover:text-red-600 rounded-lg hover:bg-red-50 transition-colors"
+                                        title="Keluar">
+                                    <i class="ph ph-sign-out text-lg"></i>
                                 </button>
                             </form>
                         </div>
@@ -63,6 +98,8 @@
         </main>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    @livewireScriptConfig
     @livewireScripts
     @stack('scripts')
 </body>

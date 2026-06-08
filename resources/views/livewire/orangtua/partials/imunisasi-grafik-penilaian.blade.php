@@ -14,16 +14,13 @@
                             <span class="text-sm font-medium text-gray-800">{{ $grafik['nama'] }}</span>
                             <span class="px-2 py-0.5 text-xs rounded-full bg-gray-100 text-gray-600">{{ $grafik['kategori'] }}</span>
                         </div>
-                        <div
-                            wire:ignore
-                            class="relative h-72 sm:h-80 w-full"
-                            x-data="orangtuaGrafikPertumbuhan({
-                                labels: @js($grafik['labels']),
-                                berat: @js($grafik['berat']),
-                                tinggi: @js($grafik['tinggi']),
-                            })"
-                        >
-                            <canvas x-ref="canvas" class="w-full h-full"></canvas>
+                        <div wire:ignore class="relative h-72 sm:h-80 w-full">
+                            <canvas
+                                class="orangtua-grafik-canvas w-full h-full"
+                                data-labels='@json($grafik['labels'])'
+                                data-berat='@json($grafik['berat'])'
+                                data-tinggi='@json($grafik['tinggi'])'
+                            ></canvas>
                         </div>
                     </div>
                 @endforeach
