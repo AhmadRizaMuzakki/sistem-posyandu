@@ -12,6 +12,7 @@ use App\Models\SasaranLansia;
 use App\Services\AntropometriService;
 use Livewire\Component;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\Url;
 use Illuminate\Support\Facades\Auth;
 use Dompdf\Dompdf;
 use Dompdf\Options;
@@ -21,8 +22,9 @@ class OrangtuaImunisasi extends Component
 {
     use ImunisasiAnalyticsTrait;
 
-    /** Filter: nama sasaran (anak) */
-    public $filterNama = '';
+    /** Filter: nama sasaran */
+    #[Url(as: 'sasaran', keep: true)]
+    public string $filterNama = '';
 
     /**
      * Bangun allSasaran dan imunisasiList (dengan filter).
@@ -79,7 +81,7 @@ class OrangtuaImunisasi extends Component
 
         $imunisasiList = collect();
         foreach ($allSasaran as $sasaran) {
-            if ($this->filterNama !== '' && $sasaran['nama'] !== $this->filterNama) {
+            if ($this->filterNama !== '' && trim($sasaran['nama']) !== trim($this->filterNama)) {
                 continue;
             }
 
@@ -103,12 +105,15 @@ class OrangtuaImunisasi extends Component
         $data = $this->getImunisasiData();
         $antropometri = app(AntropometriService::class);
         $sasaranAnalytics = $this->getSasaranUntukAnalytics();
-        if ($this->filterNama !== '') {
+        $filterAktif = trim($this->filterNama) !== '';
+
+        if ($filterAktif) {
             $sasaranAnalytics = $sasaranAnalytics->filter(
-                fn ($s) => $s['nama'] === $this->filterNama
+                fn ($s) => trim($s['nama']) === trim($this->filterNama)
             )->values();
         }
-        $analytics = $this->filterNama !== ''
+
+        $analytics = $filterAktif
             ? $this->getImunisasiAnalytics($sasaranAnalytics, $antropometri)
             : [
                 'grafikPertumbuhan' => [],
@@ -121,6 +126,8 @@ class OrangtuaImunisasi extends Component
             'imunisasiList' => $data['imunisasiList'],
             'allSasaran' => $data['allSasaran'],
             'namaSasaranList' => $data['namaSasaranList'],
+            'filterAktif' => $filterAktif,
+            'filterNama' => $filterAktif ? trim($this->filterNama) : '',
             'grafikPertumbuhan' => $analytics['grafikPertumbuhan'],
             'grafikImunisasiJenis' => $analytics['grafikImunisasiJenis'],
             'penilaianPerKategori' => $analytics['penilaianPerKategori'],

@@ -76,10 +76,10 @@
         <div class="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
             @php
                 $stats = [
-                    ['icon' => 'ph-gender-intersex', 'label' => 'Jenis Kelamin', 'value' => $card['jenis_kelamin'] ?? '-'],
-                    ['icon' => 'ph-cake', 'label' => 'Umur', 'value' => isset($card['umur_bulan']) ? $card['umur_bulan'] . ' Bulan' : ($card['umur_label'] ?? '-')],
-                    ['icon' => 'ph-scales', 'label' => 'Berat Badan', 'value' => number_format($card['berat_badan'], 1, ',', '.') . ' kg'],
-                    ['icon' => 'ph-ruler', 'label' => 'Tinggi Badan', 'value' => number_format($card['tinggi_badan'], 1, ',', '.') . ' cm'],
+                    ['icon' => 'ph-gender-intersex', 'label' => 'Jenis Kelamin', 'value' => $card['jenis_kelamin'] ?? ($penilaian['jenis_kelamin'] ?? '-')],
+                    ['icon' => 'ph-cake', 'label' => 'Umur', 'value' => isset($card['umur_bulan']) ? $card['umur_bulan'] . ' Bulan' : ($card['umur_label'] ?? ($penilaian['umur_label'] ?? '-'))],
+                    ['icon' => 'ph-scales', 'label' => 'Berat Badan', 'value' => isset($card['berat_badan']) ? number_format($card['berat_badan'], 1, ',', '.') . ' kg' : (isset($penilaian['berat_badan']) ? number_format($penilaian['berat_badan'], 1, ',', '.') . ' kg' : '-')],
+                    ['icon' => 'ph-ruler', 'label' => 'Tinggi Badan', 'value' => isset($card['tinggi_badan']) ? number_format($card['tinggi_badan'], 1, ',', '.') . ' cm' : (isset($penilaian['tinggi_badan']) ? number_format($penilaian['tinggi_badan'], 1, ',', '.') . ' cm' : '-')],
                     ['icon' => 'ph-heartbeat', 'label' => 'Tekanan Darah', 'value' => !empty($card['tekanan_darah']) ? $card['tekanan_darah'] . ' mmHg' : '-'],
                     ['icon' => 'ph-drop', 'label' => 'Gula Darah', 'value' => isset($card['gula_darah']) && $card['gula_darah'] !== null ? number_format($card['gula_darah'], 0, ',', '.') . ' mg/dL' : '-'],
                 ];

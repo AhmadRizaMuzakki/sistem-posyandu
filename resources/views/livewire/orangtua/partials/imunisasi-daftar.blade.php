@@ -15,8 +15,19 @@
     <div class="bg-white rounded-lg shadow-sm p-6">
         <div class="flex flex-wrap items-center justify-between gap-3 mb-4 pb-4 border-b border-gray-200">
             <div>
-                <h3 class="text-lg font-semibold text-gray-800">Riwayat Imunisasi Keluarga</h3>
-                <p class="text-sm text-gray-500 mt-0.5">{{ $imunisasiList->count() }} sasaran · {{ $totalBaris }} catatan imunisasi</p>
+                <h3 class="text-lg font-semibold text-gray-800">
+                    @if(!empty($filterAktif) && !empty($filterNama))
+                        Riwayat Imunisasi — {{ $filterNama }}
+                    @else
+                        Riwayat Imunisasi Keluarga
+                    @endif
+                </h3>
+                <p class="text-sm text-gray-500 mt-0.5">
+                    {{ $imunisasiList->count() }} sasaran · {{ $totalBaris }} catatan imunisasi
+                    @if(!empty($filterAktif))
+                        <span class="text-primary">(filter aktif)</span>
+                    @endif
+                </p>
             </div>
         </div>
 

@@ -71,8 +71,16 @@ class AntropometriService
         $umurBulan = $this->hitungUmurBulan($tanggalLahir, $tanggalUkur);
         $imt = $this->hitungImt($beratBadan, $tinggiBadan);
 
-        if ($umurBulan === null || $imt === null) {
+        if ($imt === null) {
             return null;
+        }
+
+        if ($umurBulan === null) {
+            return $this->lampirkanTandaVital(
+                $this->evaluasiImtDewasa($beratBadan, $tinggiBadan, $imt, 'Tidak diketahui', $jk),
+                $tekananDarah,
+                $gulaDarah
+            );
         }
 
         $umurTahun = (int) floor($umurBulan / 12);
@@ -664,6 +672,49 @@ class AntropometriService
      * @param  array<string, mixed>  $hasil
      * @return array<string, mixed>
      */
+    /**
+     * Penilaian hanya dari tekanan darah dan/atau gula darah.
+     *
+     * @return array<string, mixed>|null
+     */
+    public function evaluasiTandaVital(?string $tekananDarah, ?float $gulaDarah): ?array
+    {
+        $indeks = [];
+
+        if ($tekananDarah) {
+            $td = $this->evaluasiTekananDarah($tekananDarah);
+            if ($td) {
+                $indeks[] = $td;
+            }
+        }
+
+        if ($gulaDarah !== null) {
+            $indeks[] = $this->evaluasiGulaDarah($gulaDarah);
+        }
+
+        if (empty($indeks)) {
+            return null;
+        }
+
+        $kesimpulan = $this->kesimpulanDariIndeks($indeks);
+
+        return [
+            'metode' => 'tanda_vital',
+            'metode_label' => 'Tekanan Darah & Gula Darah',
+            'indeks' => $indeks,
+            'kategori' => $kesimpulan['kategori'],
+            'kategori_color' => $kesimpulan['color'],
+            'penjelasan' => $kesimpulan['penjelasan'],
+            'card' => [
+                'indeks' => $indeks,
+                'kesimpulan' => $kesimpulan['kategori'],
+                'warna' => $kesimpulan['color'],
+                'tekanan_darah' => $tekananDarah,
+                'gula_darah' => $gulaDarah,
+            ],
+        ];
+    }
+
     protected function lampirkanTandaVital(array $hasil, ?string $tekananDarah, ?float $gulaDarah): array
     {
         $indeks = $hasil['indeks'] ?? [];

@@ -35,18 +35,33 @@
         @include('livewire.orangtua.partials.imunisasi-daftar')
 
         {{-- 2. Grafik & penilaian (hanya saat nama sasaran dipilih) --}}
-        @if($filterNama !== '')
+        @if($filterAktif ?? false)
             <div wire:key="grafik-penilaian-{{ md5($filterNama) }}">
-                @include('livewire.orangtua.partials.imunisasi-grafik-penilaian')
+                @include('livewire.orangtua.partials.imunisasi-grafik-penilaian', [
+                    'filterNama' => $filterNama,
+                    'grafikPertumbuhan' => $grafikPertumbuhan,
+                    'penilaianPerKategori' => $penilaianPerKategori,
+                    'totalImunisasi' => $totalImunisasi,
+                ])
+            </div>
+        @else
+            <div class="bg-white rounded-xl border border-dashed border-gray-200 p-8 text-center">
+                <i class="ph ph-funnel text-3xl text-gray-300 mb-2"></i>
+                <p class="text-sm text-gray-600">Pilih nama sasaran pada filter di atas untuk melihat grafik pertumbuhan dan hasil penilaian.</p>
             </div>
         @endif
     </div>
 </div>
 
-@script
+@once
+@push('scripts')
 <script>
     (function () {
-        const componentRoot = $wire.$el;
+        if (window.__orangtuaGrafikInit) {
+            return;
+        }
+        window.__orangtuaGrafikInit = true;
+
         const chartInstances = new WeakMap();
         let initTimer = null;
 
@@ -61,8 +76,8 @@
             setTimeout(() => waitForChartJs(callback, attempts - 1), 100);
         }
 
-        function destroyOrangtuaCharts() {
-            componentRoot.querySelectorAll('canvas.orangtua-grafik-canvas').forEach((canvas) => {
+        function destroyOrangtuaCharts(root) {
+            root.querySelectorAll('canvas.orangtua-grafik-canvas').forEach((canvas) => {
                 const existing = chartInstances.get(canvas);
                 if (existing) {
                     existing.destroy();
@@ -71,10 +86,10 @@
             });
         }
 
-        function initOrangtuaCharts() {
-            destroyOrangtuaCharts();
+        function initOrangtuaCharts(root) {
+            destroyOrangtuaCharts(root);
 
-            const canvases = componentRoot.querySelectorAll('canvas.orangtua-grafik-canvas');
+            const canvases = root.querySelectorAll('canvas.orangtua-grafik-canvas');
             if (!canvases.length) {
                 return;
             }
@@ -166,30 +181,28 @@
         function scheduleChartInit() {
             clearTimeout(initTimer);
             initTimer = setTimeout(() => {
-                requestAnimationFrame(() => requestAnimationFrame(initOrangtuaCharts));
-            }, 50);
-        }
-
-        function registerCommitHook() {
-            Livewire.hook('commit', ({ component, succeed }) => {
-                if (component.el !== componentRoot) {
+                const root = document.getElementById('orangtua-imunisasi-root');
+                if (!root) {
                     return;
                 }
+                requestAnimationFrame(() => requestAnimationFrame(() => initOrangtuaCharts(root)));
+            }, 80);
+        }
+
+        function registerHooks() {
+            Livewire.hook('commit', ({ succeed }) => {
                 succeed(() => scheduleChartInit());
             });
         }
 
-        scheduleChartInit();
-
-        $wire.$watch('filterNama', () => {
-            scheduleChartInit();
-        });
+        document.addEventListener('DOMContentLoaded', scheduleChartInit);
 
         if (window.Livewire) {
-            registerCommitHook();
+            registerHooks();
         } else {
-            document.addEventListener('livewire:init', registerCommitHook);
+            document.addEventListener('livewire:init', registerHooks);
         }
     })();
 </script>
-@endscript
+@endpush
+@endonce

@@ -164,16 +164,23 @@ trait ImunisasiAnalyticsTrait
             $terakhir = $records->sortByDesc('tanggal_imunisasi')->first();
             $penilaian = null;
 
-            if ($terakhir && $terakhir->berat_badan !== null && $terakhir->tinggi_badan !== null) {
-                $penilaian = $antropometri->evaluasi(
-                    (float) $terakhir->berat_badan,
-                    (float) $terakhir->tinggi_badan,
-                    $tanggalLahir,
-                    $terakhir->tanggal_imunisasi ? Carbon::parse($terakhir->tanggal_imunisasi) : null,
-                    $sasaran['jenis_kelamin'],
-                    $terakhir->tekanan_darah,
-                    $terakhir->gula_darah !== null ? (float) $terakhir->gula_darah : null
-                );
+            if ($terakhir) {
+                if ($terakhir->berat_badan !== null && $terakhir->tinggi_badan !== null) {
+                    $penilaian = $antropometri->evaluasi(
+                        (float) $terakhir->berat_badan,
+                        (float) $terakhir->tinggi_badan,
+                        $tanggalLahir,
+                        $terakhir->tanggal_imunisasi ? Carbon::parse($terakhir->tanggal_imunisasi) : null,
+                        $sasaran['jenis_kelamin'],
+                        $terakhir->tekanan_darah,
+                        $terakhir->gula_darah !== null ? (float) $terakhir->gula_darah : null
+                    );
+                } elseif ($terakhir->tekanan_darah || $terakhir->gula_darah !== null) {
+                    $penilaian = $antropometri->evaluasiTandaVital(
+                        $terakhir->tekanan_darah,
+                        $terakhir->gula_darah !== null ? (float) $terakhir->gula_darah : null
+                    );
+                }
             }
 
             $slug = $sasaran['kategori_slug'];
