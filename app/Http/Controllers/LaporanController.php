@@ -91,12 +91,14 @@ class LaporanController extends Controller
         }
         $posyandu = $kader->posyandu;
         $data = $this->buildImunisasiKehadiranData($posyandu, $request);
-        $fileName = 'Laporan-Kehadiran-Imunisasi-'.$posyandu->nama_posyandu.'-'.now('Asia/Jakarta')->format('Ymd_His').'.pdf';
+        $isGlobeReport = $request->query('laporan') === 'globe';
+        $fileName = ($isGlobeReport ? 'Laporan-Kategori-Sasaran-Posyandu-' : 'Laporan-Kehadiran-Imunisasi-').$posyandu->nama_posyandu.'-'.now('Asia/Jakarta')->format('Ymd_His').'.pdf';
 
         return $this->renderPdf('pdf.laporan-posyandu-imunisasi-kehadiran', array_merge($data, [
             'posyandu' => $posyandu,
             'user' => $user,
             'generatedAt' => now('Asia/Jakarta'),
+            'isGlobeReport' => $isGlobeReport,
         ]), $fileName);
     }
 
@@ -112,12 +114,14 @@ class LaporanController extends Controller
         }
         $posyandu = Posyandu::findOrFail($decryptedId);
         $data = $this->buildImunisasiKehadiranData($posyandu, $request);
-        $fileName = 'Laporan-Kehadiran-Imunisasi-'.$posyandu->nama_posyandu.'-'.now('Asia/Jakarta')->format('Ymd_His').'.pdf';
+        $isGlobeReport = $request->query('laporan') === 'globe';
+        $fileName = ($isGlobeReport ? 'Laporan-Kategori-Sasaran-Posyandu-' : 'Laporan-Kehadiran-Imunisasi-').$posyandu->nama_posyandu.'-'.now('Asia/Jakarta')->format('Ymd_His').'.pdf';
 
         return $this->renderPdf('pdf.laporan-posyandu-imunisasi-kehadiran', array_merge($data, [
             'posyandu' => $posyandu,
             'user' => Auth::user(),
             'generatedAt' => now('Asia/Jakarta'),
+            'isGlobeReport' => $isGlobeReport,
         ]), $fileName);
     }
 
@@ -185,6 +189,7 @@ class LaporanController extends Controller
                     'kategori_label' => $config['label'],
                     'status' => $status,
                     'imunisasi' => $imunisasi,
+                    'umur_label' => $this->formatSasaranUmur($sasaran),
                 ];
             }
         }
@@ -205,6 +210,29 @@ class LaporanController extends Controller
             'kehadiranLabel' => $kehadiranLabel,
             'galeriFotos' => $this->getGaleriFotosForPdf($posyandu, $bulan, $tahun),
         ];
+    }
+
+    private function formatSasaranUmur(object $sasaran): string
+    {
+        if (! empty($sasaran->tanggal_lahir)) {
+            $dob = Carbon::parse($sasaran->tanggal_lahir);
+            $now = Carbon::now();
+            $totalMonths = (int) $dob->diffInMonths($now);
+
+            if ($totalMonths >= 60) {
+                return (int) $dob->diffInYears($now).' th';
+            }
+
+            return $totalMonths.' bln';
+        }
+
+        if (! is_null($sasaran->umur_sasaran ?? null)) {
+            $umur = (int) $sasaran->umur_sasaran;
+
+            return $umur >= 5 ? $umur.' th' : ($umur * 12).' bln';
+        }
+
+        return '-';
     }
 
     /**

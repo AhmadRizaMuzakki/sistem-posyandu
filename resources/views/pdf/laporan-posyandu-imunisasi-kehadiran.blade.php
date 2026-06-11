@@ -6,54 +6,63 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <title>Laporan Kehadiran Imunisasi - {{ $posyandu->nama_posyandu }}</title>
+    <title>{{ !empty($isGlobeReport) ? 'Laporan Kategori Sasaran Posyandu' : 'Laporan Kehadiran Imunisasi' }} - {{ $posyandu->nama_posyandu }}</title>
     <style>
         @page {
             margin: 15mm 20mm;
         }
         * {
             font-family: DejaVu Sans, Arial, sans-serif;
-            font-size: 11px;
+            font-size: 10px;
+            box-sizing: border-box;
         }
         body {
             margin: 0;
             color: #111827;
         }
+        .page-content {
+            width: 94%;
+            max-width: 94%;
+            margin: 0 auto;
+        }
         h1, h2, h3 {
             margin: 0;
             padding: 0;
+            font-size: 11px;
         }
         .header {
             text-align: center;
-            margin-bottom: 16px;
+            margin-bottom: 12px;
         }
         .title {
-            font-size: 18px;
+            font-size: 14px;
             font-weight: bold;
             text-transform: uppercase;
         }
         .subtitle {
-            font-size: 13px;
-            margin-top: 4px;
+            font-size: 11px;
+            margin-top: 3px;
         }
         .meta-table {
             width: 100%;
             border-collapse: collapse;
-            margin-bottom: 16px;
+            margin-bottom: 12px;
+            font-size: 9px;
         }
         .meta-table td {
-            padding: 4px 6px;
+            padding: 3px 4px;
             vertical-align: top;
         }
         .meta-label {
-            width: 140px;
+            width: 110px;
             font-weight: bold;
         }
         table.data {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 8px;
+            margin-top: 6px;
             page-break-inside: auto;
+            table-layout: fixed;
         }
         table.data thead {
             display: table-header-group;
@@ -64,44 +73,43 @@
         table.data th,
         table.data td {
             border: 1px solid #d1d5db;
-            padding: 4px 6px;
+            padding: 2px 3px;
             word-wrap: break-word;
             white-space: normal;
+            font-size: 8px;
+            line-height: 1.25;
         }
         table.data th {
             background: #f3f4f6;
             font-weight: bold;
             text-align: center;
         }
-        table.data td {
-            font-size: 10px;
-        }
         .text-center { text-align: center; }
-        .small { font-size: 10px; }
-        .mt-2 { margin-top: 8px; }
-        .badge-hadir { background: #d1fae8; color: #065f46; padding: 2px 6px; border-radius: 4px; }
-        .badge-tidak-hadir { background: #fee2e2; color: #991b1b; padding: 2px 6px; border-radius: 4px; }
-        .signature-wrap { margin-top: 32px; width: 100%; }
-        table.signature-ttd { border: none; border-collapse: collapse; width: 100%; font-size: 11px; table-layout: fixed; }
-        table.signature-ttd td { border: none; padding: 4px 8px; vertical-align: top; }
+        .small { font-size: 9px; }
+        .mt-2 { margin-top: 6px; }
+        .badge-hadir { background: #d1fae8; color: #065f46; padding: 1px 4px; border-radius: 3px; font-size: 7px; }
+        .badge-tidak-hadir { background: #fee2e2; color: #991b1b; padding: 1px 4px; border-radius: 3px; font-size: 7px; }
+        .signature-wrap { margin-top: 24px; width: 100%; }
+        table.signature-ttd { border: none; border-collapse: collapse; width: 100%; font-size: 9px; table-layout: fixed; }
+        table.signature-ttd td { border: none; padding: 3px 6px; vertical-align: top; }
         table.signature-ttd .ttd-col-left { width: 50%; text-align: center; }
         table.signature-ttd .ttd-col-right { width: 50%; text-align: center; }
-        .ttd-mengetahui { font-style: italic; margin-bottom: 8px; }
-        .ttd-jabatan { font-weight: bold; text-transform: uppercase; margin-bottom: 48px; letter-spacing: 0.5px; }
-        .ttd-nama { margin-top: 8px; }
+        .ttd-mengetahui { font-style: italic; margin-bottom: 6px; }
+        .ttd-jabatan { font-weight: bold; text-transform: uppercase; margin-bottom: 40px; letter-spacing: 0.4px; font-size: 9px; }
+        .ttd-nama { margin-top: 6px; }
         .ttd-nama .ttd-kurung { margin: 0 auto; }
-        .ttd-kurung { display: inline-block; border-bottom: 1px solid #111827; width: 160px; max-width: 160px; padding: 0 4px; box-sizing: border-box; }
-        .ttd-ketua { font-size: 10px; margin-top: 4px; }
-        .galeri-section { margin-top: 28px; page-break-inside: avoid; }
-        .galeri-title { font-size: 12px; font-weight: bold; margin-bottom: 10px; text-align: center; }
-        table.galeri-grid { width: 100%; border-collapse: collapse; margin-bottom: 8px; table-layout: fixed; }
-        table.galeri-grid td { padding: 6px 6px; vertical-align: top; text-align: center; border: none; }
+        .ttd-kurung { display: inline-block; border-bottom: 1px solid #111827; width: 140px; max-width: 140px; padding: 0 4px; box-sizing: border-box; }
+        .ttd-ketua { font-size: 8px; margin-top: 3px; }
+        .galeri-section { margin-top: 20px; page-break-inside: avoid; }
+        .galeri-title { font-size: 10px; font-weight: bold; margin-bottom: 8px; text-align: center; }
+        table.galeri-grid { width: 100%; border-collapse: collapse; margin-bottom: 6px; table-layout: fixed; }
+        table.galeri-grid td { padding: 4px 4px; vertical-align: top; text-align: center; border: none; }
         .galeri-img-wrap {
             border: 1px solid #d1d5db;
-            padding: 6px;
+            padding: 4px;
             background: #fafafa;
             width: 100%;
-            height: 200px;
+            height: 160px;
             overflow: hidden;
             box-sizing: border-box;
             text-align: center;
@@ -110,19 +118,19 @@
             display: block;
             margin: 0 auto;
             max-width: 100%;
-            max-height: 188px;
+            max-height: 148px;
             width: auto;
             height: auto;
             object-fit: contain;
         }
-        .galeri-caption { font-size: 9px; margin-top: 4px; color: #374151; line-height: 1.3; }
-        .galeri-date { font-size: 9px; font-weight: bold; margin-top: 4px; color: #111827; }
+        .galeri-caption { font-size: 8px; margin-top: 3px; color: #374151; line-height: 1.2; }
+        .galeri-date { font-size: 8px; font-weight: bold; margin-top: 3px; color: #111827; }
     </style>
 </head>
 <body>
-    <div style="padding: 0 10mm;">
+    <div class="page-content">
     <div class="header">
-        <div class="title">Laporan Kehadiran Imunisasi Posyandu</div>
+        <div class="title">{{ !empty($isGlobeReport) ? 'Laporan Kategori Sasaran Posyandu' : 'Laporan Kehadiran Imunisasi Posyandu' }}</div>
         <div class="subtitle">{{ $posyandu->nama_posyandu }}</div>
         @if ($posyandu->alamat_posyandu)
             <div class="small">{{ $posyandu->alamat_posyandu }}</div>
@@ -142,12 +150,14 @@
             <td class="meta-label">Kategori Sasaran</td>
             <td>: {{ $kategoriLabel ?? 'Semua' }}</td>
         </tr>
+        @if (empty($isGlobeReport))
         <tr>
             <td class="meta-label">Jenis Vaksin</td>
             <td>: {{ $jenisVaksinLabel ?? 'Semua' }}</td>
             <td class="meta-label">Filter Kehadiran</td>
             <td>: {{ $kehadiranLabel ?? 'Semua' }}</td>
         </tr>
+        @endif
         <tr>
             <td class="meta-label">Total Sasaran</td>
             <td>: {{ count($rows) }} orang</td>
@@ -156,7 +166,7 @@
         </tr>
     </table>
 
-    <h3>Daftar Sasaran dan Status Kehadiran Imunisasi</h3>
+    <h3>{{ !empty($isGlobeReport) ? 'Daftar Sasaran per Kategori' : 'Daftar Sasaran dan Status Kehadiran Imunisasi' }}</h3>
 
     @if (empty($rows))
         <p class="mt-2">Tidak ada data sasaran untuk filter yang dipilih.</p>
@@ -164,16 +174,24 @@
         <table class="data mt-2">
             <thead>
                 <tr>
-                    <th>No</th>
-                    <th>Nama Sasaran</th>
-                    <th>Kategori</th>
-                    <th>Status Kehadiran</th>
-                    <th>Tanggal Imunisasi</th>
-                    <th>Jenis Imunisasi</th>
-                    <th>Tinggi (cm)</th>
-                    <th>Berat (kg)</th>
-                    <th>Petugas</th>
-                    <th>Keterangan</th>
+                    @if (!empty($isGlobeReport))
+                        <th>Nama Sasaran</th>
+                        <th>Kategori</th>
+                        <th>Umur</th>
+                        <th>Alamat</th>
+                    @else
+                        <th>No</th>
+                        <th>Nama Sasaran</th>
+                        <th>Kategori</th>
+                        <th>Status Kehadiran</th>
+                        <th>Tanggal Imunisasi</th>
+                        <th>Jenis Imunisasi</th>
+                        <th>Tinggi (cm)</th>
+                        <th>Berat (kg)</th>
+                        <th>Tekanan Darah</th>
+                        <th>Gula Darah</th>
+                        <th>Petugas</th>
+                    @endif
                 </tr>
             </thead>
             <tbody>
@@ -184,6 +202,12 @@
                         $imunisasi = $row['imunisasi'] ?? null;
                     @endphp
                     <tr>
+                        @if (!empty($isGlobeReport))
+                            <td>{{ $sasaran->nama_sasaran ?? '-' }}</td>
+                            <td class="text-center">{{ $row['kategori_label'] ?? $row['kategori_sasaran'] }}</td>
+                            <td class="text-center">{{ $row['umur_label'] ?? '-' }}</td>
+                            <td>{{ $sasaran->alamat_sasaran ?? '-' }}</td>
+                        @else
                         <td class="text-center">{{ $index + 1 }}</td>
                         <td>{{ $sasaran->nama_sasaran ?? '-' }}</td>
                         <td class="text-center">{{ $row['kategori_label'] ?? $row['kategori_sasaran'] }}</td>
@@ -216,8 +240,14 @@
                                 -
                             @endif
                         </td>
+                        <td class="text-center">
+                            {{ $imunisasi && $imunisasi->tekanan_darah ? $imunisasi->tekanan_darah.' mmHg' : '-' }}
+                        </td>
+                        <td class="text-center">
+                            {{ $imunisasi && ! is_null($imunisasi->gula_darah) ? number_format($imunisasi->gula_darah, 0, ',', '.').' mg/dL' : '-' }}
+                        </td>
                         <td>{{ $imunisasi && $imunisasi->user ? $imunisasi->user->name : '-' }}</td>
-                        <td>{{ $imunisasi ? ($imunisasi->keterangan ?? '-') : '-' }}</td>
+                        @endif
                     </tr>
                 @endforeach
             </tbody>

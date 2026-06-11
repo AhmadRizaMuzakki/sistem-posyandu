@@ -192,6 +192,61 @@
             @endif
         </div>
 
+        {{-- Laporan Globe --}}
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4 sm:p-6 mb-6">
+            <div class="flex items-center gap-2 mb-4 pb-3 border-b border-gray-200">
+                <i class="ph ph-globe text-2xl text-emerald-600 shrink-0"></i>
+                <h2 class="text-xl font-semibold text-gray-800 break-words">Laporan Globe</h2>
+            </div>
+            <div class="space-y-4">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Filter Tahun</label>
+                        <select id="dashboardFilterTahunGlobe" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-primary focus:border-primary">
+                            <option value="">Semua Tahun</option>
+                            @foreach(range(now()->year, now()->year - 5) as $y)
+                                <option value="{{ $y }}" {{ $y == now()->year ? 'selected' : '' }}>{{ $y }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Filter Bulan</label>
+                        <select id="dashboardFilterBulanGlobe" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-primary focus:border-primary">
+                            <option value="">Semua Bulan</option>
+                            @foreach(range(1, 12) as $m)
+                                <option value="{{ $m }}" {{ $m == now()->month ? 'selected' : '' }}>{{ \Carbon\Carbon::create(now()->year, $m, 1)->locale('id')->translatedFormat('F') }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Filter berdasarkan Kategori Sasaran</label>
+                    <select id="dashboardFilterKategoriGlobe" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-primary focus:border-primary">
+                        <x-laporan-kategori-sasaran-options :kategori-list="$kategoriSasaranList ?? []" :kategori-labels="$kategoriLabels" />
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Filter berdasarkan Nama Sasaran</label>
+                    <select id="dashboardFilterNamaSasaranGlobe" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-primary focus:border-primary">
+                        <option value="">Semua Nama Sasaran</option>
+                        @foreach($namaSasaranList ?? [] as $nama)
+                            <option value="{{ $nama }}">{{ $nama }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="kader-mobile-stack flex flex-col sm:flex-row sm:flex-wrap gap-2">
+                    <button type="button" onclick="dashboardExportGlobeImunisasi()" class="inline-flex items-center justify-center px-4 py-2 rounded-lg bg-primary text-white text-sm font-medium shadow-sm hover:bg-indigo-700 transition-colors w-full sm:w-auto">
+                        <i class="ph ph-globe text-lg mr-2"></i>
+                        Laporan Globe
+                    </button>
+                    <a href="{{ route('adminPosyandu.laporan') }}" class="inline-flex items-center justify-center px-4 py-2 rounded-lg bg-gray-100 text-gray-700 text-sm font-medium hover:bg-gray-200 transition-colors w-full sm:w-auto">
+                        <i class="ph ph-list mr-2"></i>
+                        Halaman Laporan Lengkap
+                    </a>
+                </div>
+            </div>
+        </div>
+
         {{-- Laporan Imunisasi (Kehadiran) --}}
         <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4 sm:p-6 mb-6">
             <div class="flex items-center gap-2 mb-4 pb-3 border-b border-gray-200">
@@ -201,7 +256,7 @@
             <div class="mb-4">
                 <div class="flex items-center gap-2 mb-3">
                     <i class="ph ph-file-pdf text-lg text-primary"></i>
-                    <h3 class="text-base font-semibold text-gray-800">Export Laporan Kehadiran Imunisasi</h3>
+                    <h3 class="text-base font-semibold text-gray-800">Export dengan Filter</h3>
                 </div>
                 <p class="text-sm text-gray-500 mb-4">Cetak daftar sasaran dengan status hadir/tidak hadir imunisasi per periode. Pilih tahun dan bulan wajib.</p>
                 <div class="space-y-4">
@@ -226,13 +281,13 @@
                         </div>
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Kategori Sasaran</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Filter berdasarkan Kategori Sasaran</label>
                         <select id="dashboardFilterKategori" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-primary focus:border-primary">
                             <x-laporan-kategori-sasaran-options :kategori-list="$kategoriSasaranList ?? []" :kategori-labels="$kategoriLabels" />
                         </select>
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Jenis Vaksin</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Filter berdasarkan Jenis Vaksin</label>
                         <select id="dashboardFilterJenisVaksin" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-primary focus:border-primary">
                             <option value="">Semua Jenis Vaksin</option>
                             @foreach($jenisVaksinList ?? [] as $jenisVaksin)
@@ -241,7 +296,7 @@
                         </select>
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Nama Sasaran</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Filter berdasarkan Nama Sasaran</label>
                         <select id="dashboardFilterNamaSasaran" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-primary focus:border-primary">
                             <option value="">Semua Nama Sasaran</option>
                             @foreach($namaSasaranList ?? [] as $nama)
@@ -250,7 +305,7 @@
                         </select>
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Kehadiran Imunisasi</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Filter berdasarkan Kehadiran Imunisasi</label>
                         <select id="dashboardFilterKehadiranImunisasi" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-primary focus:border-primary">
                             <option value="">Semua (Hadir &amp; Tidak Hadir)</option>
                             <option value="hadir">Hadir</option>
@@ -260,7 +315,7 @@
                     <div class="kader-mobile-stack flex flex-col sm:flex-row sm:flex-wrap gap-2">
                         <button type="button" onclick="dashboardExportImunisasiKehadiran()" class="inline-flex items-center justify-center px-4 py-2 rounded-lg bg-primary text-white text-sm font-medium shadow-sm hover:bg-indigo-700 transition-colors w-full sm:w-auto">
                             <i class="ph ph-file-pdf text-lg mr-2"></i>
-                            Export PDF Laporan Kehadiran
+                            Export dengan Filter
                         </button>
                         <a href="{{ route('adminPosyandu.laporan') }}" class="inline-flex items-center justify-center px-4 py-2 rounded-lg bg-gray-100 text-gray-700 text-sm font-medium hover:bg-gray-200 transition-colors w-full sm:w-auto">
                             <i class="ph ph-list mr-2"></i>
@@ -742,6 +797,29 @@
 @push('scripts')
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script>
+    function dashboardExportGlobeImunisasi() {
+        var tahun = document.getElementById('dashboardFilterTahunGlobe') && document.getElementById('dashboardFilterTahunGlobe').value;
+        var bulan = document.getElementById('dashboardFilterBulanGlobe') && document.getElementById('dashboardFilterBulanGlobe').value;
+        if (!tahun || !bulan) {
+            if (window.dispatchEvent && typeof CustomEvent !== 'undefined') {
+                window.dispatchEvent(new CustomEvent('show-alert', { detail: { message: 'Tahun dan bulan wajib dipilih untuk laporan kehadiran imunisasi.', type: 'warning' } }));
+            } else {
+                alert('Tahun dan bulan wajib dipilih untuk laporan kehadiran imunisasi.');
+            }
+            return;
+        }
+        var url = '{{ route("adminPosyandu.laporan.pdf.imunisasi-kehadiran") }}';
+        var params = new URLSearchParams();
+        params.append('tahun', tahun);
+        params.append('bulan', bulan);
+        params.append('laporan', 'globe');
+        var kategori = document.getElementById('dashboardFilterKategoriGlobe') && document.getElementById('dashboardFilterKategoriGlobe').value;
+        var namaSasaran = document.getElementById('dashboardFilterNamaSasaranGlobe') && document.getElementById('dashboardFilterNamaSasaranGlobe').value;
+        if (kategori) params.append('kategori', kategori);
+        if (namaSasaran) params.append('nama_sasaran', namaSasaran);
+        window.open(url + '?' + params.toString(), '_blank');
+    }
+
     function dashboardExportImunisasiKehadiran() {
         var tahun = document.getElementById('dashboardFilterTahunImunisasi') && document.getElementById('dashboardFilterTahunImunisasi').value;
         var bulan = document.getElementById('dashboardFilterBulanImunisasi') && document.getElementById('dashboardFilterBulanImunisasi').value;

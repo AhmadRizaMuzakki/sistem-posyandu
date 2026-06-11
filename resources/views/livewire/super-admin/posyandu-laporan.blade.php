@@ -42,6 +42,60 @@
             </div>
         </div>
 
+        {{-- Grup Laporan Globe --}}
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+            <div class="flex items-center gap-2 mb-4 pb-3 border-b border-gray-200">
+                <i class="ph ph-globe text-2xl text-emerald-600"></i>
+                <h2 class="text-xl font-semibold text-gray-800">Laporan Globe</h2>
+            </div>
+            <div class="space-y-4">
+                    {{-- Filter Tahun & Bulan --}}
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Filter Tahun</label>
+                            <select id="filterTahunGlobe" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-primary focus:border-primary">
+                                <option value="">Semua Tahun</option>
+                                @foreach(range(now()->year, now()->year - 5) as $y)
+                                    <option value="{{ $y }}" {{ $y == now()->year ? 'selected' : '' }}>{{ $y }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Filter Bulan</label>
+                            <select id="filterBulanGlobe" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-primary focus:border-primary">
+                                <option value="">Semua Bulan</option>
+                                @foreach(range(1, 12) as $m)
+                                    <option value="{{ $m }}" {{ $m == now()->month ? 'selected' : '' }}>{{ \Carbon\Carbon::create(now()->year, $m, 1)->locale('id')->translatedFormat('F') }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                    </div>
+                    {{-- Filter Kategori Sasaran --}}
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Filter berdasarkan Kategori Sasaran</label>
+                        <select id="filterKategoriGlobe" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-primary focus:border-primary">
+                            <x-laporan-kategori-sasaran-options :kategori-list="$kategoriSasaranList" :kategori-labels="$kategoriLabels" />
+                        </select>
+                    </div>
+                    {{-- Filter Nama Sasaran --}}
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Filter berdasarkan Nama Sasaran</label>
+                        <select id="filterNamaSasaranGlobe" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-primary focus:border-primary">
+                            <option value="">Semua Nama Sasaran</option>
+                            @foreach($namaSasaranList as $nama)
+                                <option value="{{ $nama }}">{{ $nama }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div>
+                        <button onclick="exportGlobeImunisasi()" class="w-full inline-flex items-center justify-center px-4 py-2 rounded-lg bg-primary text-white text-sm font-medium shadow-sm hover:bg-indigo-700 transition-colors">
+                            <i class="ph ph-globe text-lg mr-2"></i>
+                            Laporan Globe
+                        </button>
+                    </div>
+            </div>
+        </div>
+
         {{-- Grup Laporan Imunisasi --}}
         <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
             <div class="flex items-center gap-2 mb-4 pb-3 border-b border-gray-200">
@@ -189,6 +243,30 @@
 @include('livewire.super-admin.posyandu-detail.scripts')
 
 <script>
+    function exportGlobeImunisasi() {
+        const tahun = document.getElementById('filterTahunGlobe').value;
+        const bulan = document.getElementById('filterBulanGlobe').value;
+        if (!tahun || !bulan) {
+            window.dispatchEvent(new CustomEvent('show-alert', {
+                detail: {
+                    message: 'Tahun dan bulan wajib dipilih untuk laporan kehadiran imunisasi.',
+                    type: 'warning'
+                }
+            }));
+            return;
+        }
+        const url = '{{ route("superadmin.posyandu.laporan.pdf.imunisasi-kehadiran", ["id" => encrypt($posyandu->id_posyandu)]) }}';
+        const params = new URLSearchParams();
+        params.append('tahun', tahun);
+        params.append('bulan', bulan);
+        params.append('laporan', 'globe');
+        const kategori = document.getElementById('filterKategoriGlobe').value;
+        const namaSasaran = document.getElementById('filterNamaSasaranGlobe').value;
+        if (kategori) params.append('kategori', kategori);
+        if (namaSasaran) params.append('nama_sasaran', namaSasaran);
+        window.open(url + '?' + params.toString(), '_blank');
+    }
+
     function exportFilteredImunisasi() {
         const tahun = document.getElementById('filterTahunImunisasi').value;
         const bulan = document.getElementById('filterBulanImunisasi').value;
