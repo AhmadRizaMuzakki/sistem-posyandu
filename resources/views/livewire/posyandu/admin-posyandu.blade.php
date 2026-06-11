@@ -228,10 +228,7 @@
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-2">Kategori Sasaran</label>
                         <select id="dashboardFilterKategori" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-primary focus:border-primary">
-                            <option value="">Semua Kategori</option>
-                            @foreach($kategoriSasaranList ?? [] as $kategori)
-                                <option value="{{ $kategori }}">{{ $kategoriLabels[$kategori] ?? ucfirst($kategori) }}</option>
-                            @endforeach
+                            <x-laporan-kategori-sasaran-options :kategori-list="$kategoriSasaranList ?? []" :kategori-labels="$kategoriLabels" />
                         </select>
                     </div>
                     <div>

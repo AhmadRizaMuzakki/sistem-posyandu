@@ -119,15 +119,7 @@ class PosyanduDashboard extends Component
                 'absenPetugas', 'statusKeluargaCount');
         });
 
-        // Mapping label kategori
-        $kategoriLabels = [
-            'bayibalita' => 'Bayi dan Balita',
-            'remaja' => 'Remaja',
-            'dewasa' => 'Dewasa',
-            'pralansia' => 'Pralansia',
-            'lansia' => 'Lansia',
-            'ibuhamil' => 'Ibu Hamil',
-        ];
+        $kategoriLabels = \App\Helpers\SasaranFilterOptions::kategoriLabels();
 
         return view('livewire.posyandu.admin-posyandu', array_merge($cachedData, [
             'posyandu' => $this->posyandu,

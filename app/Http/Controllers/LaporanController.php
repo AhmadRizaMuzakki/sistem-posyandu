@@ -2,16 +2,17 @@
 
 namespace App\Http\Controllers;
 
+use App\Helpers\SasaranFilterOptions;
 use App\Models\Galeri;
 use App\Models\Imunisasi;
 use App\Models\Jadwal;
 use App\Models\Kader;
-use App\Models\Posyandu;
 use App\Models\Pendidikan;
+use App\Models\Posyandu;
 use Carbon\Carbon;
 use Dompdf\Dompdf;
-use Illuminate\Http\Request;
 use Dompdf\Options;
+use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
@@ -91,6 +92,7 @@ class LaporanController extends Controller
         $posyandu = $kader->posyandu;
         $data = $this->buildImunisasiKehadiranData($posyandu, $request);
         $fileName = 'Laporan-Kehadiran-Imunisasi-'.$posyandu->nama_posyandu.'-'.now('Asia/Jakarta')->format('Ymd_His').'.pdf';
+
         return $this->renderPdf('pdf.laporan-posyandu-imunisasi-kehadiran', array_merge($data, [
             'posyandu' => $posyandu,
             'user' => $user,
@@ -111,6 +113,7 @@ class LaporanController extends Controller
         $posyandu = Posyandu::findOrFail($decryptedId);
         $data = $this->buildImunisasiKehadiranData($posyandu, $request);
         $fileName = 'Laporan-Kehadiran-Imunisasi-'.$posyandu->nama_posyandu.'-'.now('Asia/Jakarta')->format('Ymd_His').'.pdf';
+
         return $this->renderPdf('pdf.laporan-posyandu-imunisasi-kehadiran', array_merge($data, [
             'posyandu' => $posyandu,
             'user' => Auth::user(),
@@ -131,9 +134,8 @@ class LaporanController extends Controller
         $tahun = (int) $tahun;
         $bulan = (int) $bulan;
 
-        $kategorisImunisasi = ['bayibalita', 'remaja', 'dewasa', 'pralansia', 'lansia'];
-        $kategoriFilter = $request->query('kategori');
-        $kategoris = $kategoriFilter ? (in_array($kategoriFilter, $kategorisImunisasi, true) ? [$kategoriFilter] : $kategorisImunisasi) : $kategorisImunisasi;
+        $kategoriFilter = $request->query('kategori') ? (string) $request->query('kategori') : null;
+        $kategoris = SasaranFilterOptions::resolveImunisasiKategoris($kategoriFilter);
 
         $jenisVaksin = $request->query('jenis_vaksin') ? (string) $request->query('jenis_vaksin') : null;
         $kehadiranFilter = $request->query('kehadiran');
@@ -164,6 +166,9 @@ class LaporanController extends Controller
             $config = $this->getSasaranKategoriConfig($kategori);
             $sasarans = $posyandu->{$config['relation']}()->orderBy('nama_sasaran')->get();
             foreach ($sasarans as $sasaran) {
+                if ($kategoriFilter && ! SasaranFilterOptions::matchesSasaranFilter($sasaran, $kategoriFilter)) {
+                    continue;
+                }
                 $idSasaran = $sasaran->getKey();
                 $key = $kategori.'_'.(string) $idSasaran;
                 $imunisasi = $hadirMap[$key] ?? null;
@@ -186,7 +191,7 @@ class LaporanController extends Controller
 
         $bulanNama = \Carbon\Carbon::create($tahun, $bulan, 1)->locale('id')->translatedFormat('F');
         $periodeLabel = $bulanNama.' '.$tahun;
-        $kategoriLabel = $kategoriFilter ? $this->getKategoriLabel($kategoriFilter) : 'Semua Kategori';
+        $kategoriLabel = SasaranFilterOptions::getLabel($kategoriFilter);
         $jenisVaksinLabel = $jenisVaksin ?: 'Semua Jenis Vaksin';
         $kehadiranLabel = $kehadiranFilter === 'hadir' ? 'Hadir' : ($kehadiranFilter === 'tidak_hadir' ? 'Tidak Hadir' : 'Semua');
 
@@ -305,6 +310,7 @@ class LaporanController extends Controller
         $imunisasiList = $allImunisasi
             ->filter(function ($imunisasi) use ($namaDecoded) {
                 $sasaran = $imunisasi->sasaran;
+
                 return $sasaran && $sasaran->nama_sasaran === $namaDecoded;
             })
             ->values();
@@ -425,6 +431,7 @@ class LaporanController extends Controller
         $imunisasiList = $allImunisasi
             ->filter(function ($imunisasi) use ($namaDecoded) {
                 $sasaran = $imunisasi->sasaran;
+
                 return $sasaran && $sasaran->nama_sasaran === $namaDecoded;
             })
             ->values();
@@ -585,7 +592,7 @@ class LaporanController extends Controller
         $fileName = 'Laporan-Sasaran-'.$kategoriLabel.'-'.$posyandu->nama_posyandu.'-'.now()->format('Ymd_His').'.xlsx';
 
         return response()->streamDownload(function () use ($headers, $rows) {
-            $spreadsheet = new Spreadsheet();
+            $spreadsheet = new Spreadsheet;
             $sheet = $spreadsheet->getActiveSheet();
             $sheet->setTitle('Laporan Sasaran');
             $sheet->fromArray([$headers], null, 'A1');
@@ -676,10 +683,10 @@ class LaporanController extends Controller
             $dob = Carbon::parse($item->tanggal_lahir);
             $now = Carbon::now();
             $umur = $kategori === 'bayibalita'
-                ? $dob->diffInMonths($now) . ' bln'
-                : $dob->diffInYears($now) . ' th';
+                ? $dob->diffInMonths($now).' bln'
+                : $dob->diffInYears($now).' th';
         } elseif (! is_null($item->umur_sasaran)) {
-            $umur = (int) $item->umur_sasaran . ' th';
+            $umur = (int) $item->umur_sasaran.' th';
         }
 
         $base = [
@@ -751,16 +758,45 @@ class LaporanController extends Controller
      */
     protected function getKategoriLabel(string $kategori): string
     {
-        $labels = [
-            'bayibalita' => 'Bayi dan Balita',
-            'remaja' => 'Remaja',
-            'dewasa' => 'Dewasa',
-            'pralansia' => 'Pralansia',
-            'lansia' => 'Lansia',
-            'ibuhamil' => 'Ibu Hamil',
-        ];
+        return SasaranFilterOptions::getLabel($kategori);
+    }
 
-        return $labels[$kategori] ?? ucfirst($kategori);
+    /**
+     * Terapkan filter pendidikan dari query string (kategori / usia / tahun lahir, pendidikan, nama).
+     */
+    protected function applyPendidikanFilters($query, Request $request): array
+    {
+        $filterSasaran = $request->query('filter_sasaran') ? (string) $request->query('filter_sasaran') : null;
+        $pendidikan = $request->query('pendidikan') ? trim((string) $request->query('pendidikan')) : null;
+        $nama = $request->query('nama') ? trim((string) $request->query('nama')) : null;
+
+        if ($filterSasaran) {
+            SasaranFilterOptions::applyToPendidikanQuery($query, $filterSasaran);
+        }
+
+        if ($pendidikan) {
+            $query->where('pendidikan_terakhir', urldecode($pendidikan));
+        }
+
+        if ($nama) {
+            $query->where('nama', 'like', '%'.urldecode($nama).'%');
+        }
+
+        $labelParts = [];
+        if ($filterSasaran) {
+            $labelParts[] = SasaranFilterOptions::getLabel($filterSasaran);
+        }
+        if ($pendidikan) {
+            $labelParts[] = 'Pendidikan: '.urldecode($pendidikan);
+        }
+        if ($nama) {
+            $labelParts[] = 'Nama: '.urldecode($nama);
+        }
+
+        return [
+            'kategoriLabel' => ! empty($labelParts) ? implode(' | ', $labelParts) : 'Semua',
+            'kategoriPendidikan' => $pendidikan ? urldecode($pendidikan) : null,
+        ];
     }
 
     /**
@@ -811,7 +847,7 @@ class LaporanController extends Controller
     /**
      * Generate laporan pendidikan Posyandu untuk Super Admin (berdasarkan ID Posyandu).
      */
-    public function superadminPosyanduPendidikanPdf(string $id, ?string $kategoriPendidikan = null): Response
+    public function superadminPosyanduPendidikanPdf(Request $request, string $id, ?string $kategoriPendidikan = null): Response
     {
         try {
             $decryptedId = decrypt($id);
@@ -824,18 +860,25 @@ class LaporanController extends Controller
         $query = Pendidikan::with(['user'])
             ->where('id_posyandu', $posyandu->id_posyandu);
 
-        // Filter berdasarkan kategori pendidikan jika ada
-        if ($kategoriPendidikan && $kategoriPendidikan !== 'semua') {
-            $query->where('pendidikan_terakhir', urldecode($kategoriPendidikan));
+        if ($request->query('filter_sasaran') || $request->query('pendidikan') || $request->query('nama')) {
+            $filterMeta = $this->applyPendidikanFilters($query, $request);
+        } else {
+            if ($kategoriPendidikan && $kategoriPendidikan !== 'semua') {
+                $query->where('pendidikan_terakhir', urldecode($kategoriPendidikan));
+            }
+            $filterMeta = [
+                'kategoriLabel' => $kategoriPendidikan && $kategoriPendidikan !== 'semua'
+                    ? urldecode($kategoriPendidikan)
+                    : 'Semua',
+                'kategoriPendidikan' => $kategoriPendidikan && $kategoriPendidikan !== 'semua' ? urldecode($kategoriPendidikan) : null,
+            ];
         }
 
         $pendidikanList = $query->orderBy('tanggal_lahir', 'desc')->get();
 
         $user = Auth::user();
 
-        $kategoriLabel = $kategoriPendidikan && $kategoriPendidikan !== 'semua' 
-            ? urldecode($kategoriPendidikan) 
-            : 'Semua';
+        $kategoriLabel = $filterMeta['kategoriLabel'];
         $fileName = 'Laporan-Pendidikan-'.str_replace(['/', ' '], ['-', '-'], $kategoriLabel).'-'.$posyandu->nama_posyandu.'-'.now('Asia/Jakarta')->format('Ymd_His').'.pdf';
 
         return $this->renderPdf('pdf.laporan-posyandu-pendidikan', [
@@ -843,7 +886,7 @@ class LaporanController extends Controller
             'pendidikanList' => $pendidikanList,
             'generatedAt' => now('Asia/Jakarta'),
             'user' => $user,
-            'kategoriPendidikan' => $kategoriPendidikan && $kategoriPendidikan !== 'semua' ? urldecode($kategoriPendidikan) : null,
+            'kategoriPendidikan' => $filterMeta['kategoriPendidikan'],
             'kategoriLabel' => $kategoriLabel,
         ], $fileName);
     }
@@ -878,7 +921,7 @@ class LaporanController extends Controller
             'generatedAt' => now('Asia/Jakarta'),
             'user' => $user,
             'kategoriPendidikan' => null,
-            'kategoriLabel' => 'Kategori: ' . $kategoriLabel,
+            'kategoriLabel' => 'Kategori: '.$kategoriLabel,
         ], $fileName);
     }
 
@@ -898,7 +941,7 @@ class LaporanController extends Controller
 
         $query = Pendidikan::with(['user'])
             ->where('id_posyandu', $posyandu->id_posyandu)
-            ->where('nama', 'like', '%' . $namaDecoded . '%');
+            ->where('nama', 'like', '%'.$namaDecoded.'%');
 
         $pendidikanList = $query->orderBy('tanggal_lahir', 'desc')->get();
 
@@ -912,14 +955,14 @@ class LaporanController extends Controller
             'generatedAt' => now('Asia/Jakarta'),
             'user' => $user,
             'kategoriPendidikan' => null,
-            'kategoriLabel' => 'Nama: ' . $namaDecoded,
+            'kategoriLabel' => 'Nama: '.$namaDecoded,
         ], $fileName);
     }
 
     /**
      * Generate laporan pendidikan Posyandu (admin Posyandu) dalam bentuk PDF.
      */
-    public function posyanduPendidikanPdf(?string $kategori = null): Response
+    public function posyanduPendidikanPdf(Request $request, ?string $kategori = null): Response
     {
         $user = Auth::user();
 
@@ -936,14 +979,21 @@ class LaporanController extends Controller
         $query = Pendidikan::with(['user'])
             ->where('id_posyandu', $posyandu->id_posyandu);
 
-        // Filter berdasarkan kategori pendidikan jika ada
-        if ($kategori && $kategori !== 'semua') {
-            $query->where('pendidikan_terakhir', urldecode($kategori));
+        if ($request->query('filter_sasaran') || $request->query('pendidikan') || $request->query('nama')) {
+            $filterMeta = $this->applyPendidikanFilters($query, $request);
+        } else {
+            if ($kategori && $kategori !== 'semua') {
+                $query->where('pendidikan_terakhir', urldecode($kategori));
+            }
+            $filterMeta = [
+                'kategoriLabel' => $kategori && $kategori !== 'semua' ? urldecode($kategori) : 'Semua',
+                'kategoriPendidikan' => $kategori && $kategori !== 'semua' ? urldecode($kategori) : null,
+            ];
         }
 
         $pendidikanList = $query->orderBy('tanggal_lahir', 'desc')->get();
 
-        $kategoriLabel = $kategori && $kategori !== 'semua' ? urldecode($kategori) : 'Semua';
+        $kategoriLabel = $filterMeta['kategoriLabel'];
         $fileName = 'Laporan-Pendidikan-'.str_replace(['/', ' '], ['-', '-'], $kategoriLabel).'-'.$posyandu->nama_posyandu.'-'.now('Asia/Jakarta')->format('Ymd_His').'.pdf';
 
         return $this->renderPdf('pdf.laporan-posyandu-pendidikan', [
@@ -951,7 +1001,7 @@ class LaporanController extends Controller
             'pendidikanList' => $pendidikanList,
             'generatedAt' => now('Asia/Jakarta'),
             'user' => $user,
-            'kategoriPendidikan' => $kategori && $kategori !== 'semua' ? urldecode($kategori) : null,
+            'kategoriPendidikan' => $filterMeta['kategoriPendidikan'],
             'kategoriLabel' => $kategoriLabel,
         ], $fileName);
     }
@@ -988,7 +1038,7 @@ class LaporanController extends Controller
             'generatedAt' => now('Asia/Jakarta'),
             'user' => $user,
             'kategoriPendidikan' => null,
-            'kategoriLabel' => 'Kategori: ' . $kategoriLabel,
+            'kategoriLabel' => 'Kategori: '.$kategoriLabel,
         ], $fileName);
     }
 
@@ -1012,7 +1062,7 @@ class LaporanController extends Controller
 
         $query = Pendidikan::with(['user'])
             ->where('id_posyandu', $posyandu->id_posyandu)
-            ->where('nama', 'like', '%' . $namaDecoded . '%');
+            ->where('nama', 'like', '%'.$namaDecoded.'%');
 
         $pendidikanList = $query->orderBy('tanggal_lahir', 'desc')->get();
 
@@ -1024,7 +1074,7 @@ class LaporanController extends Controller
             'generatedAt' => now('Asia/Jakarta'),
             'user' => $user,
             'kategoriPendidikan' => null,
-            'kategoriLabel' => 'Nama: ' . $namaDecoded,
+            'kategoriLabel' => 'Nama: '.$namaDecoded,
         ], $fileName);
     }
 
@@ -1048,7 +1098,7 @@ class LaporanController extends Controller
             ->where('id_posyandu', $posyandu->id_posyandu)
             ->where('kategori_sasaran', $kategoriSasaranDecoded)
             ->where('pendidikan_terakhir', $kategoriPendidikanDecoded)
-            ->where('nama', 'like', '%' . $namaDecoded . '%');
+            ->where('nama', 'like', '%'.$namaDecoded.'%');
 
         $pendidikanList = $query->orderBy('tanggal_lahir', 'desc')->get();
 
@@ -1062,7 +1112,7 @@ class LaporanController extends Controller
             'generatedAt' => now('Asia/Jakarta'),
             'user' => $user,
             'kategoriPendidikan' => $kategoriPendidikanDecoded,
-            'kategoriLabel' => 'Kategori: ' . $kategoriSasaranDecoded . ' | Pendidikan: ' . $kategoriPendidikanDecoded . ' | Nama: ' . $namaDecoded,
+            'kategoriLabel' => 'Kategori: '.$kategoriSasaranDecoded.' | Pendidikan: '.$kategoriPendidikanDecoded.' | Nama: '.$namaDecoded,
         ], $fileName);
     }
 
@@ -1098,7 +1148,7 @@ class LaporanController extends Controller
             'generatedAt' => now('Asia/Jakarta'),
             'user' => $user,
             'kategoriPendidikan' => $kategoriPendidikanDecoded,
-            'kategoriLabel' => 'Kategori: ' . $kategoriSasaranDecoded . ' | Pendidikan: ' . $kategoriPendidikanDecoded,
+            'kategoriLabel' => 'Kategori: '.$kategoriSasaranDecoded.' | Pendidikan: '.$kategoriPendidikanDecoded,
         ], $fileName);
     }
 
@@ -1120,7 +1170,7 @@ class LaporanController extends Controller
         $query = Pendidikan::with(['user'])
             ->where('id_posyandu', $posyandu->id_posyandu)
             ->where('kategori_sasaran', $kategoriSasaranDecoded)
-            ->where('nama', 'like', '%' . $namaDecoded . '%');
+            ->where('nama', 'like', '%'.$namaDecoded.'%');
 
         $pendidikanList = $query->orderBy('tanggal_lahir', 'desc')->get();
 
@@ -1134,7 +1184,7 @@ class LaporanController extends Controller
             'generatedAt' => now('Asia/Jakarta'),
             'user' => $user,
             'kategoriPendidikan' => null,
-            'kategoriLabel' => 'Kategori: ' . $kategoriSasaranDecoded . ' | Nama: ' . $namaDecoded,
+            'kategoriLabel' => 'Kategori: '.$kategoriSasaranDecoded.' | Nama: '.$namaDecoded,
         ], $fileName);
     }
 
@@ -1156,7 +1206,7 @@ class LaporanController extends Controller
         $query = Pendidikan::with(['user'])
             ->where('id_posyandu', $posyandu->id_posyandu)
             ->where('pendidikan_terakhir', $kategoriPendidikanDecoded)
-            ->where('nama', 'like', '%' . $namaDecoded . '%');
+            ->where('nama', 'like', '%'.$namaDecoded.'%');
 
         $pendidikanList = $query->orderBy('tanggal_lahir', 'desc')->get();
 
@@ -1170,7 +1220,7 @@ class LaporanController extends Controller
             'generatedAt' => now('Asia/Jakarta'),
             'user' => $user,
             'kategoriPendidikan' => $kategoriPendidikanDecoded,
-            'kategoriLabel' => 'Pendidikan: ' . $kategoriPendidikanDecoded . ' | Nama: ' . $namaDecoded,
+            'kategoriLabel' => 'Pendidikan: '.$kategoriPendidikanDecoded.' | Nama: '.$namaDecoded,
         ], $fileName);
     }
 
@@ -1240,7 +1290,7 @@ class LaporanController extends Controller
             ->where('id_posyandu', $posyandu->id_posyandu)
             ->where('kategori_sasaran', $kategoriSasaranDecoded)
             ->where('pendidikan_terakhir', $kategoriPendidikanDecoded)
-            ->where('nama', 'like', '%' . $namaDecoded . '%');
+            ->where('nama', 'like', '%'.$namaDecoded.'%');
 
         $pendidikanList = $query->orderBy('tanggal_lahir', 'desc')->get();
 
@@ -1252,7 +1302,7 @@ class LaporanController extends Controller
             'generatedAt' => now('Asia/Jakarta'),
             'user' => $user,
             'kategoriPendidikan' => $kategoriPendidikanDecoded,
-            'kategoriLabel' => 'Kategori: ' . $kategoriSasaranDecoded . ' | Pendidikan: ' . $kategoriPendidikanDecoded . ' | Nama: ' . $namaDecoded,
+            'kategoriLabel' => 'Kategori: '.$kategoriSasaranDecoded.' | Pendidikan: '.$kategoriPendidikanDecoded.' | Nama: '.$namaDecoded,
         ], $fileName);
     }
 
@@ -1290,7 +1340,7 @@ class LaporanController extends Controller
             'generatedAt' => now('Asia/Jakarta'),
             'user' => $user,
             'kategoriPendidikan' => $kategoriPendidikanDecoded,
-            'kategoriLabel' => 'Kategori: ' . $kategoriSasaranDecoded . ' | Pendidikan: ' . $kategoriPendidikanDecoded,
+            'kategoriLabel' => 'Kategori: '.$kategoriSasaranDecoded.' | Pendidikan: '.$kategoriPendidikanDecoded,
         ], $fileName);
     }
 
@@ -1316,7 +1366,7 @@ class LaporanController extends Controller
         $query = Pendidikan::with(['user'])
             ->where('id_posyandu', $posyandu->id_posyandu)
             ->where('kategori_sasaran', $kategoriSasaranDecoded)
-            ->where('nama', 'like', '%' . $namaDecoded . '%');
+            ->where('nama', 'like', '%'.$namaDecoded.'%');
 
         $pendidikanList = $query->orderBy('tanggal_lahir', 'desc')->get();
 
@@ -1328,7 +1378,7 @@ class LaporanController extends Controller
             'generatedAt' => now('Asia/Jakarta'),
             'user' => $user,
             'kategoriPendidikan' => null,
-            'kategoriLabel' => 'Kategori: ' . $kategoriSasaranDecoded . ' | Nama: ' . $namaDecoded,
+            'kategoriLabel' => 'Kategori: '.$kategoriSasaranDecoded.' | Nama: '.$namaDecoded,
         ], $fileName);
     }
 
@@ -1354,7 +1404,7 @@ class LaporanController extends Controller
         $query = Pendidikan::with(['user'])
             ->where('id_posyandu', $posyandu->id_posyandu)
             ->where('pendidikan_terakhir', $kategoriPendidikanDecoded)
-            ->where('nama', 'like', '%' . $namaDecoded . '%');
+            ->where('nama', 'like', '%'.$namaDecoded.'%');
 
         $pendidikanList = $query->orderBy('tanggal_lahir', 'desc')->get();
 
@@ -1366,7 +1416,7 @@ class LaporanController extends Controller
             'generatedAt' => now('Asia/Jakarta'),
             'user' => $user,
             'kategoriPendidikan' => $kategoriPendidikanDecoded,
-            'kategoriLabel' => 'Pendidikan: ' . $kategoriPendidikanDecoded . ' | Nama: ' . $namaDecoded,
+            'kategoriLabel' => 'Pendidikan: '.$kategoriPendidikanDecoded.' | Nama: '.$namaDecoded,
         ], $fileName);
     }
 
@@ -1501,7 +1551,7 @@ class LaporanController extends Controller
      */
     protected function renderPdf(string $view, array $data, string $fileName, string $orientation = 'portrait'): Response
     {
-        $options = new Options();
+        $options = new Options;
         $options->set('isRemoteEnabled', true);
 
         $dompdf = new Dompdf($options);
@@ -1518,5 +1568,3 @@ class LaporanController extends Controller
         ]);
     }
 }
-
-

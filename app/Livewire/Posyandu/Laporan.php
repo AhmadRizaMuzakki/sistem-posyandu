@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Posyandu;
 
+use App\Helpers\SasaranFilterOptions;
 use App\Models\Imunisasi;
 use App\Models\Kader;
 use App\Models\Pendidikan;
@@ -79,15 +80,7 @@ class Laporan extends Component
             ->filter()
             ->toArray();
 
-        // Mapping label kategori
-        $kategoriLabels = [
-            'bayibalita' => 'Bayi dan Balita',
-            'remaja' => 'Remaja',
-            'dewasa' => 'Dewasa',
-            'pralansia' => 'Pralansia',
-            'lansia' => 'Lansia',
-            'ibuhamil' => 'Ibu Hamil',
-        ];
+        $kategoriLabels = SasaranFilterOptions::kategoriLabels();
 
         return view('livewire.posyandu.laporan', [
             'title' => 'Laporan - '.$this->posyandu->nama_posyandu,
@@ -102,5 +95,3 @@ class Laporan extends Component
         ]);
     }
 }
-
-

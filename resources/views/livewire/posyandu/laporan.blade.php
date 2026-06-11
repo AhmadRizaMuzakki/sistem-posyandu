@@ -77,10 +77,7 @@
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">Filter berdasarkan Kategori Sasaran</label>
                     <select id="filterKategori" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-primary focus:border-primary">
-                        <option value="">Semua Kategori</option>
-                        @foreach($kategoriSasaranList as $kategori)
-                            <option value="{{ $kategori }}">{{ $kategoriLabels[$kategori] ?? ucfirst($kategori) }}</option>
-                        @endforeach
+                        <x-laporan-kategori-sasaran-options :kategori-list="$kategoriSasaranList" :kategori-labels="$kategoriLabels" />
                     </select>
                 </div>
                 {{-- Filter Jenis Vaksin --}}
@@ -142,10 +139,7 @@
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">Filter berdasarkan Kategori Sasaran</label>
                     <select id="filterKategoriPendidikan" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-primary focus:border-primary">
-                        <option value="">Semua Kategori</option>
-                        @foreach($kategoriSasaranPendidikanList ?? [] as $kategori)
-                            <option value="{{ route('adminPosyandu.pendidikan.pdf.kategori-sasaran', urlencode($kategori)) }}">{{ $kategoriLabels[$kategori] ?? ucfirst($kategori) }}</option>
-                        @endforeach
+                        <x-laporan-kategori-sasaran-options :kategori-list="$kategoriSasaranPendidikanList ?? []" :kategori-labels="$kategoriLabels" />
                     </select>
                 </div>
                 {{-- Filter Pendidikan --}}
@@ -154,7 +148,7 @@
                     <select id="filterPendidikan" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-primary focus:border-primary">
                         <option value="">Semua Pendidikan</option>
                         @foreach($kategoriPendidikanList as $pendidikan)
-                            <option value="{{ route('adminPosyandu.pendidikan.pdf.kategori', urlencode($pendidikan)) }}">{{ $pendidikan }}</option>
+                            <option value="{{ $pendidikan }}">{{ $pendidikan }}</option>
                         @endforeach
                     </select>
                 </div>
@@ -164,7 +158,7 @@
                     <select id="filterNamaSasaranPendidikan" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-primary focus:border-primary">
                         <option value="">Semua Nama Sasaran</option>
                         @foreach($namaSasaranPendidikanList ?? [] as $nama)
-                            <option value="{{ route('adminPosyandu.pendidikan.pdf.nama', urlencode($nama)) }}">{{ $nama }}</option>
+                            <option value="{{ $nama }}">{{ $nama }}</option>
                         @endforeach
                     </select>
                 </div>
@@ -207,67 +201,15 @@
         }
 
         function exportFilteredPendidikan() {
-            const kategori = document.getElementById('filterKategoriPendidikan').value;
+            const filterSasaran = document.getElementById('filterKategoriPendidikan').value;
             const pendidikan = document.getElementById('filterPendidikan').value;
             const namaSasaran = document.getElementById('filterNamaSasaranPendidikan').value;
-            
-            let url = '';
-            
-            // Extract values dari route
-            const getValueFromRoute = (route, pattern) => {
-                const match = route.match(pattern);
-                return match ? decodeURIComponent(match[1]) : null;
-            };
-            
-            const kategoriValue = kategori ? getValueFromRoute(kategori, /kategori-sasaran\/([^\/]+)/) : null;
-            const pendidikanValue = pendidikan ? getValueFromRoute(pendidikan, /kategori\/([^\/]+)/) : null;
-            const namaValue = namaSasaran ? getValueFromRoute(namaSasaran, /nama\/([^\/]+)/) : null;
-            
-            // Kombinasi 3 filter: kategori sasaran + pendidikan + nama
-            if (kategoriValue && pendidikanValue && namaValue) {
-                url = '{{ route("adminPosyandu.pendidikan.pdf.all-filters", ["kategoriSasaran" => ":kategori", "kategoriPendidikan" => ":pendidikan", "nama" => ":nama"]) }}'
-                    .replace(':kategori', encodeURIComponent(kategoriValue))
-                    .replace(':pendidikan', encodeURIComponent(pendidikanValue))
-                    .replace(':nama', encodeURIComponent(namaValue));
-            }
-            // Kombinasi 2 filter: kategori sasaran + pendidikan
-            else if (kategoriValue && pendidikanValue) {
-                url = '{{ route("adminPosyandu.pendidikan.pdf.kategori-sasaran-pendidikan", ["kategoriSasaran" => ":kategori", "kategoriPendidikan" => ":pendidikan"]) }}'
-                    .replace(':kategori', encodeURIComponent(kategoriValue))
-                    .replace(':pendidikan', encodeURIComponent(pendidikanValue));
-            }
-            // Kombinasi 2 filter: kategori sasaran + nama
-            else if (kategoriValue && namaValue) {
-                url = '{{ route("adminPosyandu.pendidikan.pdf.kategori-sasaran-nama", ["kategoriSasaran" => ":kategori", "nama" => ":nama"]) }}'
-                    .replace(':kategori', encodeURIComponent(kategoriValue))
-                    .replace(':nama', encodeURIComponent(namaValue));
-            }
-            // Kombinasi 2 filter: pendidikan + nama
-            else if (pendidikanValue && namaValue) {
-                url = '{{ route("adminPosyandu.pendidikan.pdf.pendidikan-nama", ["kategoriPendidikan" => ":pendidikan", "nama" => ":nama"]) }}'
-                    .replace(':pendidikan', encodeURIComponent(pendidikanValue))
-                    .replace(':nama', encodeURIComponent(namaValue));
-            }
-            // Filter tunggal: kategori sasaran
-            else if (kategori) {
-                url = kategori;
-            }
-            // Filter tunggal: pendidikan
-            else if (pendidikan) {
-                url = pendidikan;
-            }
-            // Filter tunggal: nama sasaran
-            else if (namaSasaran) {
-                url = namaSasaran;
-            }
-            // Semua filter = Semua → export semua data
-            else {
-                url = '{{ route("adminPosyandu.pendidikan.pdf") }}';
-            }
-            
-            if (url) {
-                window.open(url, '_blank');
-            }
+            const url = '{{ route("adminPosyandu.pendidikan.pdf") }}';
+            const params = new URLSearchParams();
+            if (filterSasaran) params.append('filter_sasaran', filterSasaran);
+            if (pendidikan) params.append('pendidikan', pendidikan);
+            if (namaSasaran) params.append('nama', namaSasaran);
+            window.open(url + (params.toString() ? '?' + params.toString() : ''), '_blank');
         }
     </script>
 </div>

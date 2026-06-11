@@ -2,6 +2,7 @@
 
 namespace App\Livewire\SuperAdmin;
 
+use App\Helpers\SasaranFilterOptions;
 use App\Models\Imunisasi;
 use App\Models\Pendidikan;
 use App\Models\Posyandu;
@@ -11,6 +12,7 @@ use Livewire\Component;
 class PosyanduLaporan extends Component
 {
     public $posyandu;
+
     public $posyanduId;
 
     #[Layout('layouts.superadmindashboard')]
@@ -66,15 +68,7 @@ class PosyanduLaporan extends Component
         }
         $namaSasaranList = $namaSasaranList->unique()->sort()->values()->toArray();
 
-        // Mapping label kategori
-        $kategoriLabels = [
-            'bayibalita' => 'Bayi dan Balita',
-            'remaja' => 'Remaja',
-            'dewasa' => 'Dewasa',
-            'pralansia' => 'Pralansia',
-            'lansia' => 'Lansia',
-            'ibuhamil' => 'Ibu Hamil',
-        ];
+        $kategoriLabels = SasaranFilterOptions::kategoriLabels();
 
         // Ambil daftar kategori pendidikan yang unik dari database
         $kategoriPendidikanList = Pendidikan::where('id_posyandu', $this->posyandu->id_posyandu)
@@ -115,5 +109,3 @@ class PosyanduLaporan extends Component
         ]);
     }
 }
-
-
