@@ -2,6 +2,7 @@
 
 namespace App\Livewire\SuperAdmin\Traits;
 
+use App\Helpers\SasaranInputRules;
 use App\Models\Orangtua;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
@@ -81,24 +82,26 @@ trait OrangtuaCrud
         $this->combineTanggalLahirOrangtua();
 
         $this->validate([
-            'nik_orangtua' => 'required|numeric|unique:orangtua,nik' . ($this->nik_orangtua ? ',' . $this->nik_orangtua . ',nik' : ''),
+            'nik_orangtua' => SasaranInputRules::nikRule() . '|unique:orangtua,nik' . ($this->nik_orangtua ? ',' . $this->nik_orangtua . ',nik' : ''),
             'nama_orangtua' => 'required|string|max:100',
-            'no_kk_orangtua' => 'nullable|numeric',
+            'no_kk_orangtua' => SasaranInputRules::noKkRule(false),
+            'pekerjaan_orangtua' => SasaranInputRules::pekerjaanRule(),
             'tempat_lahir_orangtua' => 'required|string|max:50',
             'hari_lahir_orangtua' => 'required|numeric|min:1|max:31',
             'bulan_lahir_orangtua' => 'required|numeric|min:1|max:12',
             'tahun_lahir_orangtua' => 'required|numeric|min:1900|max:' . date('Y'),
             'tanggal_lahir_orangtua' => 'required|date',
-            'pendidikan_orangtua' => 'nullable|string',
+            'pendidikan_orangtua' => SasaranInputRules::pendidikanRule(),
             'kelamin_orangtua' => 'required|in:Laki-laki,Perempuan',
             'alamat_orangtua' => 'required|string|max:225',
             'kepersertaan_bpjs_orangtua' => 'nullable|in:PBI,NON PBI',
             'nomor_bpjs_orangtua' => 'nullable|string|max:50',
             'nomor_telepon_orangtua' => 'nullable|string|max:20',
         ], [
-            'nik_orangtua.required' => 'NIK wajib diisi.',
-            'nik_orangtua.numeric' => 'NIK harus berupa angka.',
+            ...SasaranInputRules::nikMessages('nik_orangtua'),
             'nik_orangtua.unique' => 'NIK sudah terdaftar.',
+            ...SasaranInputRules::noKkMessages('no_kk_orangtua'),
+            ...SasaranInputRules::pekerjaanMessages('pekerjaan_orangtua'),
             'nama_orangtua.required' => 'Nama wajib diisi.',
             'nama_orangtua.max' => 'Nama maksimal 100 karakter.',
             'tempat_lahir_orangtua.required' => 'Tempat lahir wajib diisi.',
@@ -117,7 +120,7 @@ trait OrangtuaCrud
             'tahun_lahir_orangtua.max' => 'Tahun maksimal ' . date('Y') . '.',
             'tanggal_lahir_orangtua.required' => 'Tanggal lahir wajib diisi.',
             'tanggal_lahir_orangtua.date' => 'Tanggal lahir harus berupa tanggal yang valid.',
-            'pendidikan_orangtua.string' => 'Pendidikan harus berupa teks.',
+            ...SasaranInputRules::pendidikanMessages('pendidikan_orangtua'),
             'kelamin_orangtua.required' => 'Jenis kelamin wajib dipilih.',
             'kelamin_orangtua.in' => 'Jenis kelamin harus Laki-laki atau Perempuan.',
             'alamat_orangtua.required' => 'Alamat wajib diisi.',

@@ -18,12 +18,12 @@
                         </div>
                         <div>
                             <label class="block text-gray-700 text-sm font-bold mb-2">NIK Sasaran <span class="text-red-500">*</span></label>
-                            <input type="number" wire:model="{{ $prefix }}nik_sasaran" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-primary focus:border-primary" placeholder="NIK Sasaran">
+                            <input type="text" inputmode="numeric" maxlength="16" pattern="[0-9]*" wire:model="{{ $prefix }}nik_sasaran" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-primary focus:border-primary" placeholder="NIK Sasaran">
                             @error($prefix . 'nik_sasaran') <span class="text-red-500 text-xs">{{ $message }}</span>@enderror
                         </div>
                         <div>
                             <label class="block text-gray-700 text-sm font-bold mb-2">No. KK</label>
-                            <input type="number" wire:model="{{ $prefix }}no_kk_sasaran" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-primary focus:border-primary" placeholder="No. KK (opsional)">
+                            <input type="text" inputmode="numeric" maxlength="16" pattern="[0-9]*" wire:model="{{ $prefix }}no_kk_sasaran" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-primary focus:border-primary" placeholder="No. KK (opsional)">
                             @error($prefix . 'no_kk_sasaran') <span class="text-red-500 text-xs">{{ $message }}</span>@enderror
                         </div>
                         <div>
@@ -52,7 +52,7 @@
                         </div>
                         <div>
                             <label class="block text-gray-700 text-sm font-bold mb-2">NIK Orangtua</label>
-                            <input type="number" wire:model="{{ $prefix }}nik_orangtua" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-primary focus:border-primary" placeholder="NIK salah satu orangtua">
+                            <input type="text" inputmode="numeric" maxlength="16" pattern="[0-9]*" wire:model="{{ $prefix }}nik_orangtua" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-primary focus:border-primary" placeholder="NIK salah satu orangtua">
                             @error($prefix . 'nik_orangtua') <span class="text-red-500 text-xs">{{ $message }}</span>@enderror
                         </div>
                         <div class="md:col-span-2">

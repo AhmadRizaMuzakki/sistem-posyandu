@@ -2,6 +2,7 @@
 
 namespace App\Livewire\SuperAdmin\Traits;
 
+use App\Helpers\SasaranInputRules;
 use App\Models\Pendidikan;
 use App\Models\SasaranDewasa;
 use App\Models\SasaranBayibalita;
@@ -105,8 +106,8 @@ trait DewasaCrud
 
         $this->validate([
             'nama_sasaran_dewasa' => 'required|string|max:100',
-            'nik_sasaran_dewasa' => 'required|numeric',
-            'no_kk_sasaran_dewasa' => 'required|numeric',
+            'nik_sasaran_dewasa' => SasaranInputRules::nikRule(),
+            'no_kk_sasaran_dewasa' => SasaranInputRules::noKkRule(),
             'hari_lahir_dewasa' => 'required|numeric|min:1|max:31',
             'bulan_lahir_dewasa' => 'required|numeric|min:1|max:12',
             'tahun_lahir_dewasa' => 'required|numeric|min:1900|max:' . date('Y'),
@@ -116,10 +117,8 @@ trait DewasaCrud
             'alamat_sasaran_dewasa' => 'required|string|max:225',
         ], [
             'nama_sasaran_dewasa.required' => 'Nama sasaran wajib diisi.',
-            'nik_sasaran_dewasa.required' => 'NIK wajib diisi.',
-            'nik_sasaran_dewasa.numeric' => 'NIK harus berupa angka.',
-            'no_kk_sasaran_dewasa.required' => 'No KK wajib diisi.',
-            'no_kk_sasaran_dewasa.numeric' => 'No KK harus berupa angka.',
+            ...SasaranInputRules::nikMessages('nik_sasaran_dewasa'),
+            ...SasaranInputRules::noKkMessages('no_kk_sasaran_dewasa'),
             'hari_lahir_dewasa.required' => 'Hari lahir wajib diisi.',
             'hari_lahir_dewasa.numeric' => 'Hari harus berupa angka.',
             'hari_lahir_dewasa.min' => 'Hari minimal 1.',

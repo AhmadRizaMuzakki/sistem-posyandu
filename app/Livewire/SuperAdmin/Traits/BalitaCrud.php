@@ -2,6 +2,7 @@
 
 namespace App\Livewire\SuperAdmin\Traits;
 
+use App\Helpers\SasaranInputRules;
 use App\Models\Pendidikan;
 use App\Models\SasaranBayibalita;
 use App\Models\Orangtua;
@@ -129,8 +130,8 @@ trait BalitaCrud
         $this->validate([
             'id_posyandu_sasaran' => 'required|exists:posyandu,id_posyandu',
             'nama_sasaran' => 'required|string|max:100',
-            'nik_sasaran' => 'required|numeric',
-            'no_kk_sasaran' => 'required|numeric',
+            'nik_sasaran' => SasaranInputRules::nikRule(),
+            'no_kk_sasaran' => SasaranInputRules::noKkRule(),
             'hari_lahir_sasaran' => 'required|numeric|min:1|max:31',
             'bulan_lahir_sasaran' => 'required|numeric|min:1|max:12',
             'tahun_lahir_sasaran' => 'required|numeric|min:1900|max:' . date('Y'),
@@ -138,15 +139,15 @@ trait BalitaCrud
             'jenis_kelamin' => 'required|in:Laki-laki,Perempuan',
             'status_keluarga' => 'nullable|in:kepala keluarga,istri,anak',
             'alamat_sasaran' => 'required|string|max:225',
-            'nik_orangtua' => 'required|numeric',
+            'nik_orangtua' => SasaranInputRules::nikRule(),
             'nama_orangtua' => 'required|string|max:100',
             'tempat_lahir_orangtua' => 'required|string|max:100',
             'hari_lahir_orangtua' => 'required|numeric|min:1|max:31',
             'bulan_lahir_orangtua' => 'required|numeric|min:1|max:12',
             'tahun_lahir_orangtua' => 'required|numeric|min:1900|max:' . date('Y'),
             'tanggal_lahir_orangtua' => 'required|date',
-            'pekerjaan_orangtua' => 'required|string',
-            'pendidikan_orangtua' => 'nullable|string',
+            'pekerjaan_orangtua' => SasaranInputRules::pekerjaanRule(),
+            'pendidikan_orangtua' => SasaranInputRules::pendidikanRule(),
             'kelamin_orangtua' => 'required|in:Laki-laki,Perempuan',
             'status_keluarga_orangtua' => 'nullable|in:kepala keluarga,istri,mertua,menantu,kerabat lain',
             'kepersertaan_bpjs_orangtua' => 'nullable|in:PBI,NON PBI',
@@ -156,10 +157,8 @@ trait BalitaCrud
             'id_posyandu_sasaran.required' => 'Posyandu wajib dipilih.',
             'id_posyandu_sasaran.exists' => 'Posyandu yang dipilih tidak valid.',
             'nama_sasaran.required' => 'Nama sasaran wajib diisi.',
-            'nik_sasaran.required' => 'NIK wajib diisi.',
-            'nik_sasaran.numeric' => 'NIK harus berupa angka.',
-            'no_kk_sasaran.required' => 'No KK wajib diisi.',
-            'no_kk_sasaran.numeric' => 'No KK harus berupa angka.',
+            ...SasaranInputRules::nikMessages('nik_sasaran'),
+            ...SasaranInputRules::noKkMessages('no_kk_sasaran'),
             'hari_lahir_sasaran.required' => 'Hari lahir wajib diisi.',
             'hari_lahir_sasaran.numeric' => 'Hari harus berupa angka.',
             'hari_lahir_sasaran.min' => 'Hari minimal 1.',
@@ -178,8 +177,7 @@ trait BalitaCrud
             'jenis_kelamin.in' => 'Jenis kelamin harus Laki-laki atau Perempuan.',
             'alamat_sasaran.required' => 'Alamat wajib diisi.',
             'alamat_sasaran.max' => 'Alamat maksimal 225 karakter.',
-            'nik_orangtua.required' => 'NIK orangtua wajib diisi.',
-            'nik_orangtua.numeric' => 'NIK orangtua harus berupa angka.',
+            ...SasaranInputRules::nikMessages('nik_orangtua', 'NIK orangtua'),
             'nama_orangtua.required' => 'Nama orangtua wajib diisi.',
             'tempat_lahir_orangtua.required' => 'Tempat lahir orangtua wajib diisi.',
             'hari_lahir_orangtua.required' => 'Hari lahir orangtua wajib diisi.',
@@ -196,8 +194,8 @@ trait BalitaCrud
             'tahun_lahir_orangtua.max' => 'Tahun lahir orangtua maksimal ' . date('Y') . '.',
             'tanggal_lahir_orangtua.required' => 'Tanggal lahir orangtua wajib diisi.',
             'tanggal_lahir_orangtua.date' => 'Tanggal lahir orangtua harus berupa tanggal yang valid.',
-            'pekerjaan_orangtua.required' => 'Pekerjaan orangtua wajib dipilih.',
-            'pendidikan_orangtua.string' => 'Pendidikan orangtua harus berupa teks.',
+            ...SasaranInputRules::pekerjaanMessages('pekerjaan_orangtua', 'Pekerjaan orangtua'),
+            ...SasaranInputRules::pendidikanMessages('pendidikan_orangtua', 'Pendidikan orangtua'),
             'kelamin_orangtua.required' => 'Jenis kelamin orangtua wajib dipilih.',
             'kelamin_orangtua.in' => 'Jenis kelamin orangtua harus Laki-laki atau Perempuan.',
             'kepersertaan_bpjs_orangtua.in' => 'Kepersertaan BPJS orangtua harus PBI atau NON PBI.',

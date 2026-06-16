@@ -5,7 +5,7 @@ namespace App\Helpers;
 class EnumConstants
 {
     /**
-     * Daftar pekerjaan yang digunakan di sistem
+     * Daftar pekerjaan yang digunakan di sistem (sesuai enum kolom orangtua.pekerjaan).
      */
     public static function pekerjaan(): array
     {
@@ -14,9 +14,9 @@ class EnumConstants
             'Mengurus Rumah Tangga',
             'Pelajar/Mahasiswa',
             'Pensiunan',
-            'Pegawai Negeri Sipil',
+            'Aparatur Sipil Negara (ASN)',
             'Tentara Nasional Indonesia',
-            'Kepolisian RI',
+            'Kepolisian RI (POLRI)',
             'Perdagangan',
             'Petani/Pekebun',
             'Peternak',
@@ -49,7 +49,7 @@ class EnumConstants
             'Tabib',
             'Paraji',
             'Perancang Busana',
-            'Penterjemah',
+            'Penerjemah',
             'Imam Masjid',
             'Pendeta',
             'Pastor',
@@ -64,7 +64,7 @@ class EnumConstants
             'Wakil Presiden',
             'Anggota Mahkamah Konstitusi',
             'Anggota Kabinet/Kementerian',
-            'Duta Besar',
+            'Duta Besar/Kepala Perwakilan',
             'Gubernur',
             'Wakil Gubernur',
             'Bupati',
@@ -72,7 +72,7 @@ class EnumConstants
             'Walikota',
             'Wakil Walikota',
             'Anggota DPRD Provinsi',
-            'Anggota DPRD Kabupaten/Kota',
+            'Anggota DPRD Kab/Kota',
             'Dosen',
             'Guru',
             'Pilot',
@@ -98,7 +98,25 @@ class EnumConstants
             'Kepala Desa',
             'Biarawati',
             'Wiraswasta',
-            'Lainnya'
+            'Artis',
+            'Atlet',
+            'Chef',
+            'Manajer',
+            'Tenaga Tata Usaha',
+            'Operator',
+            'Pekerja Pengolahan, Kerajinan',
+            'Teknisi',
+            'Asisten Ahli',
+            'Gembala',
+            'Uskup',
+            'Biarawan',
+            'Pandita',
+            'Pinandita',
+            'Bhikkhu',
+            'Xueshi',
+            'Wenshi',
+            'Jiaosheng',
+            'Lainnya',
         ];
     }
 
@@ -117,7 +135,7 @@ class EnumConstants
             'Akademi/Diploma III/Sarjana Muda',
             'Diploma IV/Strata I',
             'Strata II',
-            'Strata III'
+            'Strata III',
         ];
     }
 
@@ -129,4 +147,3 @@ class EnumConstants
         return ['PBI', 'NON PBI'];
     }
 }
-

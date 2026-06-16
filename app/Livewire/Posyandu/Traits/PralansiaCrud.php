@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Posyandu\Traits;
 
+use App\Helpers\SasaranInputRules;
 use App\Models\Pendidikan;
 use App\Models\SasaranPralansia;
 use App\Models\SasaranBayibalita;
@@ -101,8 +102,8 @@ trait PralansiaCrud
 
         $this->validate([
             'nama_sasaran_pralansia' => 'required|string|max:100',
-            'nik_sasaran_pralansia' => 'required|numeric',
-            'no_kk_sasaran_pralansia' => 'required|numeric',
+            'nik_sasaran_pralansia' => SasaranInputRules::nikRule(),
+            'no_kk_sasaran_pralansia' => SasaranInputRules::noKkRule(),
             'hari_lahir_pralansia' => 'required|numeric|min:1|max:31',
             'bulan_lahir_pralansia' => 'required|numeric|min:1|max:12',
             'tahun_lahir_pralansia' => 'required|numeric|min:1900|max:' . date('Y'),
@@ -110,13 +111,12 @@ trait PralansiaCrud
             'jenis_kelamin_pralansia' => 'required|in:Laki-laki,Perempuan',
             'status_keluarga_pralansia' => 'nullable|in:kepala keluarga,istri,anak',
             'alamat_sasaran_pralansia' => 'required|string|max:225',
-            'pendidikan_pralansia' => 'nullable|string',
+            'pendidikan_pralansia' => SasaranInputRules::pendidikanRule(),
         ], [
             'nama_sasaran_pralansia.required' => 'Nama sasaran wajib diisi.',
-            'nik_sasaran_pralansia.required' => 'NIK wajib diisi.',
-            'nik_sasaran_pralansia.numeric' => 'NIK harus berupa angka.',
-            'no_kk_sasaran_pralansia.required' => 'No KK wajib diisi.',
-            'no_kk_sasaran_pralansia.numeric' => 'No KK harus berupa angka.',
+            ...SasaranInputRules::nikMessages('nik_sasaran_pralansia'),
+            ...SasaranInputRules::noKkMessages('no_kk_sasaran_pralansia'),
+            ...SasaranInputRules::pendidikanMessages('pendidikan_pralansia'),
             'hari_lahir_pralansia.required' => 'Hari lahir wajib diisi.',
             'hari_lahir_pralansia.numeric' => 'Hari harus berupa angka.',
             'hari_lahir_pralansia.min' => 'Hari minimal 1.',

@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Posyandu\Traits;
 
+use App\Helpers\SasaranInputRules;
 use App\Models\Pendidikan;
 use App\Models\SasaranLansia;
 use App\Models\SasaranBayibalita;
@@ -101,8 +102,8 @@ trait LansiaCrud
 
         $this->validate([
             'nama_sasaran_lansia' => 'required|string|max:100',
-            'nik_sasaran_lansia' => 'required|numeric',
-            'no_kk_sasaran_lansia' => 'required|numeric',
+            'nik_sasaran_lansia' => SasaranInputRules::nikRule(),
+            'no_kk_sasaran_lansia' => SasaranInputRules::noKkRule(),
             'hari_lahir_lansia' => 'required|numeric|min:1|max:31',
             'bulan_lahir_lansia' => 'required|numeric|min:1|max:12',
             'tahun_lahir_lansia' => 'required|numeric|min:1900|max:' . date('Y'),
@@ -110,13 +111,12 @@ trait LansiaCrud
             'jenis_kelamin_lansia' => 'required|in:Laki-laki,Perempuan',
             'status_keluarga_lansia' => 'nullable|in:kepala keluarga,istri,anak',
             'alamat_sasaran_lansia' => 'required|string|max:225',
-            'pendidikan_lansia' => 'nullable|string',
+            'pendidikan_lansia' => SasaranInputRules::pendidikanRule(),
         ], [
             'nama_sasaran_lansia.required' => 'Nama sasaran wajib diisi.',
-            'nik_sasaran_lansia.required' => 'NIK wajib diisi.',
-            'nik_sasaran_lansia.numeric' => 'NIK harus berupa angka.',
-            'no_kk_sasaran_lansia.required' => 'No KK wajib diisi.',
-            'no_kk_sasaran_lansia.numeric' => 'No KK harus berupa angka.',
+            ...SasaranInputRules::nikMessages('nik_sasaran_lansia'),
+            ...SasaranInputRules::noKkMessages('no_kk_sasaran_lansia'),
+            ...SasaranInputRules::pendidikanMessages('pendidikan_lansia'),
             'hari_lahir_lansia.required' => 'Hari lahir wajib diisi.',
             'hari_lahir_lansia.numeric' => 'Hari harus berupa angka.',
             'hari_lahir_lansia.min' => 'Hari minimal 1.',

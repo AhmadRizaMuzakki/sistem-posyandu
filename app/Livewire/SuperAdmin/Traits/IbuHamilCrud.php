@@ -2,6 +2,7 @@
 
 namespace App\Livewire\SuperAdmin\Traits;
 
+use App\Helpers\SasaranInputRules;
 use App\Models\Pendidikan;
 use App\Models\SasaranIbuhamil;
 use App\Models\SasaranDewasa;
@@ -121,7 +122,12 @@ trait IbuHamilCrud
 
         $this->validate([
             'nama_sasaran_ibuhamil' => 'required|string|max:100',
-            'nik_sasaran_ibuhamil' => 'required|numeric',
+            'nik_sasaran_ibuhamil' => SasaranInputRules::nikRule(),
+            'no_kk_sasaran_ibuhamil' => SasaranInputRules::noKkRule(false),
+            'nik_suami_ibuhamil' => SasaranInputRules::nikRule(false),
+            'pendidikan_ibuhamil' => SasaranInputRules::pendidikanRule(),
+            'pekerjaan_ibuhamil' => SasaranInputRules::pekerjaanRule(false),
+            'pekerjaan_suami_ibuhamil' => SasaranInputRules::pekerjaanRule(false),
             'hari_lahir_ibuhamil' => 'required|numeric|min:1|max:31',
             'bulan_lahir_ibuhamil' => 'required|numeric|min:1|max:12',
             'tahun_lahir_ibuhamil' => 'required|numeric|min:1900|max:' . date('Y'),
@@ -131,8 +137,12 @@ trait IbuHamilCrud
             'alamat_sasaran_ibuhamil' => 'required|string|max:225',
         ], [
             'nama_sasaran_ibuhamil.required' => 'Nama sasaran wajib diisi.',
-            'nik_sasaran_ibuhamil.required' => 'NIK wajib diisi.',
-            'nik_sasaran_ibuhamil.numeric' => 'NIK harus berupa angka.',
+            ...SasaranInputRules::nikMessages('nik_sasaran_ibuhamil'),
+            ...SasaranInputRules::noKkMessages('no_kk_sasaran_ibuhamil'),
+            ...SasaranInputRules::nikMessages('nik_suami_ibuhamil', 'NIK suami'),
+            ...SasaranInputRules::pendidikanMessages('pendidikan_ibuhamil'),
+            ...SasaranInputRules::pekerjaanMessages('pekerjaan_ibuhamil', 'Pekerjaan'),
+            ...SasaranInputRules::pekerjaanMessages('pekerjaan_suami_ibuhamil', 'Pekerjaan suami'),
             'hari_lahir_ibuhamil.required' => 'Hari lahir wajib diisi.',
             'hari_lahir_ibuhamil.numeric' => 'Hari harus berupa angka.',
             'hari_lahir_ibuhamil.min' => 'Hari minimal 1.',
