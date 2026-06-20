@@ -235,7 +235,7 @@
                     </select>
                 </div>
                 <div class="kader-mobile-stack flex flex-col sm:flex-row sm:flex-wrap gap-2">
-                    <button type="button" onclick="dashboardExportGlobeImunisasi()" class="inline-flex items-center justify-center px-4 py-2 rounded-lg bg-primary text-white text-sm font-medium shadow-sm hover:bg-indigo-700 transition-colors w-full sm:w-auto">
+                    <button type="button" onclick="exportGlobeImunisasi()" class="inline-flex items-center justify-center px-4 py-2 rounded-lg bg-primary text-white text-sm font-medium shadow-sm hover:bg-indigo-700 transition-colors w-full sm:w-auto">
                         <i class="ph ph-globe text-lg mr-2"></i>
                         Laporan Globe
                     </button>
@@ -258,13 +258,13 @@
                     <i class="ph ph-file-pdf text-lg text-primary"></i>
                     <h3 class="text-base font-semibold text-gray-800">Export dengan Filter</h3>
                 </div>
-                <p class="text-sm text-gray-500 mb-4">Cetak daftar sasaran dengan status hadir/tidak hadir imunisasi per periode. Pilih tahun dan bulan wajib.</p>
+                <p class="text-sm text-gray-500 mb-4">Cetak laporan imunisasi atau kehadiran sesuai filter. Laporan kehadiran memerlukan tahun dan bulan tertentu; pilih &quot;Semua Bulan&quot; untuk export daftar imunisasi.</p>
                 <div class="space-y-4">
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">Filter Tahun</label>
                             <select id="dashboardFilterTahunImunisasi" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-primary focus:border-primary">
-                                <option value="">Pilih Tahun</option>
+                                <option value="">Semua Tahun</option>
                                 @foreach(range(now()->year, now()->year - 5) as $y)
                                     <option value="{{ $y }}" {{ $y == now()->year ? 'selected' : '' }}>{{ $y }}</option>
                                 @endforeach
@@ -273,7 +273,7 @@
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">Filter Bulan</label>
                             <select id="dashboardFilterBulanImunisasi" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-primary focus:border-primary">
-                                <option value="">Pilih Bulan</option>
+                                <option value="">Semua Bulan</option>
                                 @foreach(range(1, 12) as $m)
                                     <option value="{{ $m }}" {{ $m == now()->month ? 'selected' : '' }}>{{ \Carbon\Carbon::create(now()->year, $m, 1)->locale('id')->translatedFormat('F') }}</option>
                                 @endforeach
@@ -313,7 +313,7 @@
                         </select>
                     </div>
                     <div class="kader-mobile-stack flex flex-col sm:flex-row sm:flex-wrap gap-2">
-                        <button type="button" onclick="dashboardExportImunisasiKehadiran()" class="inline-flex items-center justify-center px-4 py-2 rounded-lg bg-primary text-white text-sm font-medium shadow-sm hover:bg-indigo-700 transition-colors w-full sm:w-auto">
+                        <button type="button" onclick="exportFilteredImunisasi()" class="inline-flex items-center justify-center px-4 py-2 rounded-lg bg-primary text-white text-sm font-medium shadow-sm hover:bg-indigo-700 transition-colors w-full sm:w-auto">
                             <i class="ph ph-file-pdf text-lg mr-2"></i>
                             Export dengan Filter
                         </button>
@@ -796,56 +796,18 @@
 
 @push('scripts')
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-<script>
-    function dashboardExportGlobeImunisasi() {
-        var tahun = document.getElementById('dashboardFilterTahunGlobe') && document.getElementById('dashboardFilterTahunGlobe').value;
-        var bulan = document.getElementById('dashboardFilterBulanGlobe') && document.getElementById('dashboardFilterBulanGlobe').value;
-        if (!tahun || !bulan) {
-            if (window.dispatchEvent && typeof CustomEvent !== 'undefined') {
-                window.dispatchEvent(new CustomEvent('show-alert', { detail: { message: 'Tahun dan bulan wajib dipilih untuk laporan kehadiran imunisasi.', type: 'warning' } }));
-            } else {
-                alert('Tahun dan bulan wajib dipilih untuk laporan kehadiran imunisasi.');
-            }
-            return;
-        }
-        var url = '{{ route("adminPosyandu.laporan.pdf.imunisasi-kehadiran") }}';
-        var params = new URLSearchParams();
-        params.append('tahun', tahun);
-        params.append('bulan', bulan);
-        params.append('laporan', 'globe');
-        var kategori = document.getElementById('dashboardFilterKategoriGlobe') && document.getElementById('dashboardFilterKategoriGlobe').value;
-        var namaSasaran = document.getElementById('dashboardFilterNamaSasaranGlobe') && document.getElementById('dashboardFilterNamaSasaranGlobe').value;
-        if (kategori) params.append('kategori', kategori);
-        if (namaSasaran) params.append('nama_sasaran', namaSasaran);
-        window.open(url + '?' + params.toString(), '_blank');
-    }
 
-    function dashboardExportImunisasiKehadiran() {
-        var tahun = document.getElementById('dashboardFilterTahunImunisasi') && document.getElementById('dashboardFilterTahunImunisasi').value;
-        var bulan = document.getElementById('dashboardFilterBulanImunisasi') && document.getElementById('dashboardFilterBulanImunisasi').value;
-        if (!tahun || !bulan) {
-            if (window.dispatchEvent && typeof CustomEvent !== 'undefined') {
-                window.dispatchEvent(new CustomEvent('show-alert', { detail: { message: 'Tahun dan bulan wajib dipilih untuk laporan kehadiran imunisasi.', type: 'warning' } }));
-            } else {
-                alert('Tahun dan bulan wajib dipilih untuk laporan kehadiran imunisasi.');
-            }
-            return;
-        }
-        var url = '{{ route("adminPosyandu.laporan.pdf.imunisasi-kehadiran") }}';
-        var params = new URLSearchParams();
-        params.append('tahun', tahun);
-        params.append('bulan', bulan);
-        var kategori = document.getElementById('dashboardFilterKategori') && document.getElementById('dashboardFilterKategori').value;
-        var jenisVaksin = document.getElementById('dashboardFilterJenisVaksin') && document.getElementById('dashboardFilterJenisVaksin').value;
-        var namaSasaran = document.getElementById('dashboardFilterNamaSasaran') && document.getElementById('dashboardFilterNamaSasaran').value;
-        var kehadiran = document.getElementById('dashboardFilterKehadiranImunisasi') && document.getElementById('dashboardFilterKehadiranImunisasi').value;
-        if (kategori) params.append('kategori', kategori);
-        if (jenisVaksin) params.append('jenis_vaksin', jenisVaksin);
-        if (namaSasaran) params.append('nama_sasaran', namaSasaran);
-        if (kehadiran) params.append('kehadiran', kehadiran);
-        window.open(url + '?' + params.toString(), '_blank');
-    }
-</script>
+<x-laporan-globe-export-script
+    :kehadiran-pdf-url="route('adminPosyandu.laporan.pdf.imunisasi-kehadiran')"
+    id-prefix="dashboard"
+/>
+
+<x-laporan-imunisasi-export-script
+    :kehadiran-pdf-url="route('adminPosyandu.laporan.pdf.imunisasi-kehadiran')"
+    :imunisasi-pdf-base-url="route('adminPosyandu.laporan.pdf')"
+    :imunisasi-pdf-kategori-url="route('adminPosyandu.laporan.pdf.kategori', ['kategori' => '__KATEGORI__'])"
+    id-prefix="dashboard"
+/>
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         const isMobile = window.innerWidth < 768;

@@ -36,6 +36,38 @@ class LaporanController extends Controller
         }
     }
 
+    private function applyImunisasiOptionalFilters($query, Request $request): void
+    {
+        $jenisVaksin = $request->query('jenis_vaksin');
+        if ($jenisVaksin !== null && $jenisVaksin !== '') {
+            $query->where('jenis_imunisasi', (string) $jenisVaksin);
+        }
+    }
+
+    private function filterImunisasiListByNamaSasaran($imunisasiList, Request $request)
+    {
+        $namaSasaran = $request->query('nama_sasaran');
+        if ($namaSasaran === null || $namaSasaran === '') {
+            return $imunisasiList;
+        }
+
+        $namaSasaran = trim((string) $namaSasaran);
+
+        Imunisasi::preloadSasaran($imunisasiList);
+
+        $filtered = $imunisasiList
+            ->filter(function ($imunisasi) use ($namaSasaran) {
+                $sasaran = $imunisasi->sasaran;
+
+                return $sasaran && trim((string) $sasaran->nama_sasaran) === $namaSasaran;
+            })
+            ->values();
+
+        Imunisasi::clearSasaranCache();
+
+        return $filtered;
+    }
+
     /**
      * Generate laporan imunisasi Posyandu (admin Posyandu) dalam bentuk PDF.
      */
@@ -61,9 +93,11 @@ class LaporanController extends Controller
             $query->where('kategori_sasaran', $kategori);
         }
 
+        $this->applyImunisasiOptionalFilters($query, $request);
         $this->applyBulanTahunFilter($query, $request);
 
         $imunisasiList = $query->orderBy('tanggal_imunisasi', 'desc')->get();
+        $imunisasiList = $this->filterImunisasiListByNamaSasaran($imunisasiList, $request);
 
         $kategoriLabel = $kategori && $kategori !== 'semua' ? $this->getKategoriLabel($kategori) : 'Semua';
         $fileName = 'Laporan-Imunisasi-'.str_replace(['/', ' '], ['-', '-'], $kategoriLabel).'-'.$posyandu->nama_posyandu.'-'.now('Asia/Jakarta')->format('Ymd_His').'.pdf';
@@ -132,11 +166,23 @@ class LaporanController extends Controller
     {
         $tahun = $request->query('tahun');
         $bulan = $request->query('bulan');
-        if (! $tahun || ! $bulan || ! is_numeric($tahun) || ! is_numeric($bulan) || (int) $bulan < 1 || (int) $bulan > 12) {
-            abort(422, 'Tahun dan bulan wajib dipilih untuk laporan kehadiran imunisasi.');
+        $isGlobeReport = $request->query('laporan') === 'globe';
+
+        if ($isGlobeReport) {
+            if (! $tahun || ! is_numeric($tahun) || (int) $tahun < 2000 || (int) $tahun > 2100) {
+                abort(422, 'Tahun wajib dipilih untuk laporan globe.');
+            }
+            $tahun = (int) $tahun;
+            $bulan = ($bulan && is_numeric($bulan) && (int) $bulan >= 1 && (int) $bulan <= 12)
+                ? (int) $bulan
+                : null;
+        } else {
+            if (! $tahun || ! $bulan || ! is_numeric($tahun) || ! is_numeric($bulan) || (int) $bulan < 1 || (int) $bulan > 12) {
+                abort(422, 'Tahun dan bulan wajib dipilih untuk laporan kehadiran imunisasi.');
+            }
+            $tahun = (int) $tahun;
+            $bulan = (int) $bulan;
         }
-        $tahun = (int) $tahun;
-        $bulan = (int) $bulan;
 
         $kategoriFilter = $request->query('kategori') ? (string) $request->query('kategori') : null;
         $kategoris = SasaranFilterOptions::resolveImunisasiKategoris($kategoriFilter);
@@ -150,8 +196,10 @@ class LaporanController extends Controller
 
         $queryImunisasi = Imunisasi::with(['user'])
             ->where('id_posyandu', $posyandu->id_posyandu)
-            ->whereMonth('tanggal_imunisasi', $bulan)
             ->whereYear('tanggal_imunisasi', $tahun);
+        if ($bulan !== null) {
+            $queryImunisasi->whereMonth('tanggal_imunisasi', $bulan);
+        }
         if ($jenisVaksin !== null && $jenisVaksin !== '') {
             $queryImunisasi->where('jenis_imunisasi', $jenisVaksin);
         }
@@ -194,8 +242,12 @@ class LaporanController extends Controller
             }
         }
 
-        $bulanNama = \Carbon\Carbon::create($tahun, $bulan, 1)->locale('id')->translatedFormat('F');
-        $periodeLabel = $bulanNama.' '.$tahun;
+        if ($bulan !== null) {
+            $bulanNama = \Carbon\Carbon::create($tahun, $bulan, 1)->locale('id')->translatedFormat('F');
+            $periodeLabel = $bulanNama.' '.$tahun;
+        } else {
+            $periodeLabel = 'Semua Bulan '.$tahun;
+        }
         $kategoriLabel = SasaranFilterOptions::getLabel($kategoriFilter);
         $jenisVaksinLabel = $jenisVaksin ?: 'Semua Jenis Vaksin';
         $kehadiranLabel = $kehadiranFilter === 'hadir' ? 'Hadir' : ($kehadiranFilter === 'tidak_hadir' ? 'Tidak Hadir' : 'Semua');
@@ -240,14 +292,18 @@ class LaporanController extends Controller
      *
      * @return array<int, array{caption: ?string, tanggal_formatted: string, data_uri: string}>
      */
-    protected function getGaleriFotosForPdf(Posyandu $posyandu, int $bulan, int $tahun): array
+    protected function getGaleriFotosForPdf(Posyandu $posyandu, ?int $bulan, int $tahun): array
     {
-        $items = Galeri::query()
+        $query = Galeri::query()
             ->where('id_posyandu', $posyandu->id_posyandu)
             ->whereNotNull('tanggal_foto')
-            ->whereMonth('tanggal_foto', $bulan)
-            ->whereYear('tanggal_foto', $tahun)
-            ->orderBy('tanggal_foto')
+            ->whereYear('tanggal_foto', $tahun);
+
+        if ($bulan !== null) {
+            $query->whereMonth('tanggal_foto', $bulan);
+        }
+
+        $items = $query->orderBy('tanggal_foto')
             ->orderBy('id')
             ->get();
 
@@ -380,9 +436,11 @@ class LaporanController extends Controller
             $query->where('kategori_sasaran', $kategori);
         }
 
+        $this->applyImunisasiOptionalFilters($query, $request);
         $this->applyBulanTahunFilter($query, $request);
 
         $imunisasiList = $query->orderBy('tanggal_imunisasi', 'desc')->get();
+        $imunisasiList = $this->filterImunisasiListByNamaSasaran($imunisasiList, $request);
 
         $user = Auth::user();
 

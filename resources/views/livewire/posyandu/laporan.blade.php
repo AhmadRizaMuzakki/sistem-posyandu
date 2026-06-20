@@ -227,57 +227,6 @@
     </div>
 
     <script>
-        function exportGlobeImunisasi() {
-            const tahun = document.getElementById('filterTahunGlobe').value;
-            const bulan = document.getElementById('filterBulanGlobe').value;
-            if (!tahun || !bulan) {
-                window.dispatchEvent(new CustomEvent('show-alert', {
-                    detail: {
-                        message: 'Tahun dan bulan wajib dipilih untuk laporan kehadiran imunisasi.',
-                        type: 'warning'
-                    }
-                }));
-                return;
-            }
-            const url = '{{ route("adminPosyandu.laporan.pdf.imunisasi-kehadiran") }}';
-            const params = new URLSearchParams();
-            params.append('tahun', tahun);
-            params.append('bulan', bulan);
-            params.append('laporan', 'globe');
-            const kategori = document.getElementById('filterKategoriGlobe').value;
-            const namaSasaran = document.getElementById('filterNamaSasaranGlobe').value;
-            if (kategori) params.append('kategori', kategori);
-            if (namaSasaran) params.append('nama_sasaran', namaSasaran);
-            window.open(url + '?' + params.toString(), '_blank');
-        }
-
-        function exportFilteredImunisasi() {
-            const tahun = document.getElementById('filterTahunImunisasi').value;
-            const bulan = document.getElementById('filterBulanImunisasi').value;
-            if (!tahun || !bulan) {
-                window.dispatchEvent(new CustomEvent('show-alert', {
-                    detail: {
-                        message: 'Tahun dan bulan wajib dipilih untuk laporan kehadiran imunisasi.',
-                        type: 'warning'
-                    }
-                }));
-                return;
-            }
-            const url = '{{ route("adminPosyandu.laporan.pdf.imunisasi-kehadiran") }}';
-            const params = new URLSearchParams();
-            params.append('tahun', tahun);
-            params.append('bulan', bulan);
-            const kategori = document.getElementById('filterKategori').value;
-            const jenisVaksin = document.getElementById('filterJenisVaksin').value;
-            const namaSasaran = document.getElementById('filterNamaSasaran').value;
-            const kehadiran = document.getElementById('filterKehadiranImunisasi').value;
-            if (kategori) params.append('kategori', kategori);
-            if (jenisVaksin) params.append('jenis_vaksin', jenisVaksin);
-            if (namaSasaran) params.append('nama_sasaran', namaSasaran);
-            if (kehadiran) params.append('kehadiran', kehadiran);
-            window.open(url + '?' + params.toString(), '_blank');
-        }
-
         function exportFilteredPendidikan() {
             const filterSasaran = document.getElementById('filterKategoriPendidikan').value;
             const pendidikan = document.getElementById('filterPendidikan').value;
@@ -290,6 +239,16 @@
             window.open(url + (params.toString() ? '?' + params.toString() : ''), '_blank');
         }
     </script>
+
+    <x-laporan-imunisasi-export-script
+        :kehadiran-pdf-url="route('adminPosyandu.laporan.pdf.imunisasi-kehadiran')"
+        :imunisasi-pdf-base-url="route('adminPosyandu.laporan.pdf')"
+        :imunisasi-pdf-kategori-url="route('adminPosyandu.laporan.pdf.kategori', ['kategori' => '__KATEGORI__'])"
+    />
+
+    <x-laporan-globe-export-script
+        :kehadiran-pdf-url="route('adminPosyandu.laporan.pdf.imunisasi-kehadiran')"
+    />
 </div>
 
 
