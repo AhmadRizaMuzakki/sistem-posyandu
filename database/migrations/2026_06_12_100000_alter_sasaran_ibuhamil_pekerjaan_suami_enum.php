@@ -19,23 +19,23 @@ return new class extends Migration
 
         $this->alterEnum($transitionalList);
 
-        DB::table('sasaran_ibuhamil')
+        DB::table('sasaran_ibuhamils')
             ->where('pekerjaan_suami', 'Pegawai Negeri Sipil')
             ->update(['pekerjaan_suami' => 'Aparatur Sipil Negara (ASN)']);
 
-        DB::table('sasaran_ibuhamil')
+        DB::table('sasaran_ibuhamils')
             ->where('pekerjaan_suami', 'Kepolisian RI')
             ->update(['pekerjaan_suami' => 'Kepolisian RI (POLRI)']);
 
-        DB::table('sasaran_ibuhamil')
+        DB::table('sasaran_ibuhamils')
             ->where('pekerjaan_suami', 'Penterjemah')
             ->update(['pekerjaan_suami' => 'Penerjemah']);
 
-        DB::table('sasaran_ibuhamil')
+        DB::table('sasaran_ibuhamils')
             ->where('pekerjaan_suami', 'Anggota DPRD Kabupaten/Kota')
             ->update(['pekerjaan_suami' => 'Anggota DPRD Kab/Kota']);
 
-        DB::table('sasaran_ibuhamil')
+        DB::table('sasaran_ibuhamils')
             ->where('pekerjaan_suami', 'Duta Besar')
             ->update(['pekerjaan_suami' => 'Duta Besar/Kepala Perwakilan']);
 
@@ -49,7 +49,7 @@ return new class extends Migration
             $values
         )) . "'";
 
-        DB::statement("ALTER TABLE `sasaran_ibuhamil` MODIFY COLUMN `pekerjaan_suami` ENUM($enumString) NULL");
+        DB::statement("ALTER TABLE `sasaran_ibuhamils` MODIFY COLUMN `pekerjaan_suami` ENUM($enumString) NULL");
     }
 
     public function down(): void

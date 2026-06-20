@@ -12,9 +12,6 @@ use App\Models\SasaranLansia;
 use App\Services\AntropometriService;
 use Livewire\Component;
 use Livewire\Attributes\Layout;
-use Illuminate\Support\Facades\Auth;
-use Dompdf\Dompdf;
-use Dompdf\Options;
 
 #[Layout('layouts.orangtuadashboard')]
 class OrangtuaImunisasi extends Component
@@ -141,57 +138,6 @@ class OrangtuaImunisasi extends Component
             'grafikImunisasiJenis' => $analytics['grafikImunisasiJenis'],
             'penilaianPerKategori' => $analytics['penilaianPerKategori'],
             'totalImunisasi' => $analytics['totalImunisasi'],
-        ]);
-    }
-
-    /**
-     * Export data imunisasi ke PDF (dengan filter saat ini).
-     */
-    public function exportImunisasiPdf()
-    {
-        $data = $this->getImunisasiData();
-        $rows = collect();
-        $no = 1;
-        foreach ($data['imunisasiList'] as $item) {
-            foreach ($item['imunisasi'] as $im) {
-                $rows->push((object) [
-                    'no' => $no++,
-                    'nama_sasaran' => $item['sasaran']['nama'] ?? '-',
-                    'kategori_sasaran' => ucfirst($item['sasaran']['kategori'] ?? '-'),
-                    'jenis_imunisasi' => $im->jenis_imunisasi ?? '-',
-                    'tanggal_imunisasi' => $im->tanggal_imunisasi ? $im->tanggal_imunisasi->format('d/m/Y') : '-',
-                    'tinggi_badan' => $im->tinggi_badan !== null ? number_format($im->tinggi_badan, 1, ',', '.') : '-',
-                    'berat_badan' => $im->berat_badan !== null ? number_format($im->berat_badan, 1, ',', '.') : '-',
-                    'tekanan_darah' => $im->tekanan_darah ? $im->tekanan_darah . ' mmHg' : '-',
-                    'gula_darah' => $im->gula_darah !== null ? number_format($im->gula_darah, 0, ',', '.') . ' mg/dL' : '-',
-                    'keterangan' => $im->keterangan ?? '-',
-                ]);
-            }
-        }
-
-        $user = Auth::user();
-        $filename = 'Laporan_Imunisasi_' . date('Y-m-d_His') . '.pdf';
-
-        $options = new Options();
-        $options->set('isRemoteEnabled', true);
-        $options->set('defaultFont', 'DejaVu Sans');
-        $dompdf = new Dompdf($options);
-
-        $html = view('pdf.laporan-orangtua-imunisasi', [
-            'rows' => $rows,
-            'user' => $user,
-            'generatedAt' => now('Asia/Jakarta'),
-            'filterNama' => $this->filterNama,
-        ])->render();
-
-        $dompdf->loadHtml(mb_convert_encoding($html, 'HTML-ENTITIES', 'UTF-8'));
-        $dompdf->setPaper('A4', 'portrait');
-        $dompdf->render();
-
-        return response()->streamDownload(function () use ($dompdf) {
-            echo $dompdf->output();
-        }, $filename, [
-            'Content-Type' => 'application/pdf',
         ]);
     }
 }

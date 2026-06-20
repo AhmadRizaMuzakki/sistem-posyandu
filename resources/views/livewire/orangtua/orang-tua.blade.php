@@ -61,11 +61,12 @@
                 </div>
                 <div class="flex items-center gap-3">
                     @if($allKeluarga->count() > 0)
-                        <button wire:click="exportKeluarga" 
+                        <a href="{{ route('orangtua.keluarga.pdf') }}"
+                           target="_blank"
                            class="inline-flex items-center px-5 py-2.5 bg-red-600 hover:bg-red-700 text-white text-sm font-semibold rounded-lg shadow-md transition-all duration-200 transform hover:scale-105">
                             <i class="ph ph-file-pdf text-lg mr-2"></i>
                             Export PDF
-                        </button>
+                        </a>
                     @endif
                     <div class="bg-primary bg-opacity-10 rounded-full p-3">
                         <i class="ph ph-users text-2xl text-primary"></i>

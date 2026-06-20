@@ -5,6 +5,7 @@ use App\Livewire\Posyandu\Kaders;
 use App\Livewire\Posyandu\Laporan as PosyanduLaporan;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\LaporanController;
+use App\Http\Controllers\OrangtuaExportController;
 use App\Http\Controllers\StorageController;
 use App\Http\Controllers\IndexController;
 use App\Livewire\SuperAdmin\Kader\Edit;
@@ -130,6 +131,8 @@ Route::prefix('posyandu')->middleware(['auth', 'verified', 'role:adminPosyandu|s
 Route::prefix('orangtua')->middleware(['auth', 'verified', 'role:orangtua|superadmin'])->group(function () {
     Route::get('/', OrangtuaDashboard::class)->name('orangtua.dashboard');
     Route::get('/imunisasi', OrangtuaImunisasi::class)->name('orangtua.imunisasi');
+    Route::get('/keluarga/pdf', [OrangtuaExportController::class, 'keluargaPdf'])->name('orangtua.keluarga.pdf');
+    Route::get('/imunisasi/pdf', [OrangtuaExportController::class, 'imunisasiPdf'])->name('orangtua.imunisasi.pdf');
 });
 
 

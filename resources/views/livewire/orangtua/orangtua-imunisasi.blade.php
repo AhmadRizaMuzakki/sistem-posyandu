@@ -8,11 +8,12 @@
                     Status Imunisasi
                 </h2>
                 @if($imunisasiList->count() > 0)
-                    <button wire:click="exportImunisasiPdf"
-                            class="inline-flex items-center px-4 py-2 bg-primary text-white text-sm font-medium rounded-lg hover:bg-primary-dark transition-colors">
+                    <a href="{{ route('orangtua.imunisasi.pdf', array_filter(['sasaran' => $filterNama ?? ''])) }}"
+                       target="_blank"
+                       class="inline-flex items-center px-4 py-2 bg-primary text-white text-sm font-medium rounded-lg hover:bg-primary-dark transition-colors">
                         <i class="ph ph-file-pdf text-lg mr-2"></i>
                         Export PDF
-                    </button>
+                    </a>
                 @endif
             </div>
 
