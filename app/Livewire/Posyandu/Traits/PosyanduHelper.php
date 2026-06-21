@@ -24,6 +24,7 @@ trait PosyanduHelper
         }
 
         $this->posyanduId = $kader->id_posyandu;
+        app(\App\Services\SasaranKategoriService::class)->syncForPosyandu($this->posyanduId);
         $this->loadPosyandu();
     }
 

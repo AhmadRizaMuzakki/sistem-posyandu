@@ -1352,7 +1352,7 @@ trait SasaranImportTrait
                 $sasaranData['pendidikan'] = $orangtua->pendidikan;
                 SasaranDewasa::create($sasaranData);
             }
-        } elseif ($umur >= 46 && $umur <= 59) {
+        } elseif ($umur >= 45 && $umur <= 59) {
             if (!SasaranPralansia::where('nik_sasaran', $orangtua->nik)->where('id_posyandu', $posyanduId)->exists()) {
                 SasaranPralansia::create($sasaranData);
             }

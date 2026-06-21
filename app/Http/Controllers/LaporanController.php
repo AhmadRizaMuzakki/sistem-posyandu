@@ -176,6 +176,8 @@ class LaporanController extends Controller
             $bulan = ($bulan && is_numeric($bulan) && (int) $bulan >= 1 && (int) $bulan <= 12)
                 ? (int) $bulan
                 : null;
+
+            app(\App\Services\SasaranKategoriService::class)->syncForPosyandu($posyandu->id_posyandu);
         } else {
             if (! $tahun || ! $bulan || ! is_numeric($tahun) || ! is_numeric($bulan) || (int) $bulan < 1 || (int) $bulan > 12) {
                 abort(422, 'Tahun dan bulan wajib dipilih untuk laporan kehadiran imunisasi.');

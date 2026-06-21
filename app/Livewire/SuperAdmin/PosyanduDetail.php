@@ -71,6 +71,7 @@ class PosyanduDetail extends Component
         }
 
         $this->posyanduId = $decryptedId;
+        app(\App\Services\SasaranKategoriService::class)->syncForPosyandu($this->posyanduId);
         $this->loadPosyandu();
     }
 

@@ -899,8 +899,8 @@ trait BalitaCrud
                 $sasaranData['pendidikan'] = $orangtua->pendidikan;
                 SasaranDewasa::create($sasaranData);
             }
-        } elseif ($umur >= 46 && $umur <= 59) {
-            // Pralansia (46-59 tahun)
+        } elseif ($umur >= 45 && $umur <= 59) {
+            // Pralansia (45-59 tahun)
             $existing = SasaranPralansia::where('nik_sasaran', $orangtua->nik)
                 ->where('id_posyandu', $idPosyandu)
                 ->first();
