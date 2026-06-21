@@ -14,6 +14,7 @@ use App\Livewire\Posyandu\Traits\PosyanduHelper;
 use App\Livewire\Posyandu\Traits\SasaranHelper;
 use App\Livewire\Posyandu\Traits\ModalHelper;
 use App\Livewire\Posyandu\Traits\PosyanduCrudTrait;
+use App\Livewire\SuperAdmin\Traits\SasaranViewTrait;
 use App\Models\User;
 use App\Models\SasaranBayibalita;
 use App\Models\SasaranRemaja;
@@ -56,7 +57,7 @@ class PosyanduSasaran extends Component
         IbuHamilCrud::editIbuHamil as traitEditIbuHamil;
         IbuHamilCrud::deleteIbuHamil as traitDeleteIbuHamil;
     }
-    use OrangtuaCrud, SasaranImportTrait;
+    use OrangtuaCrud, SasaranImportTrait, SasaranViewTrait;
     use PosyanduHelper, SasaranHelper, ModalHelper, PosyanduCrudTrait;
 
     // Search properties for each sasaran type
@@ -381,6 +382,13 @@ class PosyanduSasaran extends Component
         $ibuhamil = SasaranIbuhamil::findOrFail($id);
         $this->validateSasaranPosyanduAccess($ibuhamil, 'id_posyandu');
         $this->traitDeleteIbuHamil($id);
+    }
+
+    public function viewSasaran(string $kategori, $id)
+    {
+        $model = $this->resolveSasaranForView($kategori, $id);
+        $this->validateSasaranPosyanduAccess($model, 'id_posyandu');
+        $this->applyViewSasaran($kategori, $model);
     }
 
     public function render()

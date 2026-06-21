@@ -10,6 +10,7 @@ use App\Livewire\SuperAdmin\Traits\LansiaCrud;
 use App\Livewire\SuperAdmin\Traits\IbuHamilCrud;
 use App\Livewire\SuperAdmin\Traits\OrangtuaCrud;
 use App\Livewire\SuperAdmin\Traits\SasaranImportTrait;
+use App\Livewire\SuperAdmin\Traits\SasaranViewTrait;
 use App\Models\Posyandu;
 use App\Models\User;
 use App\Models\Orangtua;
@@ -19,7 +20,7 @@ use Livewire\Attributes\Layout;
 
 class PosyanduSasaran extends Component
 {
-    use BalitaCrud, RemajaCrud, DewasaCrud, PralansiaCrud, LansiaCrud, IbuHamilCrud, OrangtuaCrud, SasaranImportTrait;
+    use BalitaCrud, RemajaCrud, DewasaCrud, PralansiaCrud, LansiaCrud, IbuHamilCrud, OrangtuaCrud, SasaranImportTrait, SasaranViewTrait;
 
     /**
      * Simple pseudo-user class for orangtua data

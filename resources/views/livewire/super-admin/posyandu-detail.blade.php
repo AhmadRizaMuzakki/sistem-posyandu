@@ -1,5 +1,5 @@
 <div>
-    <div class="space-y-6">
+    <div class="space-y-6 max-w-full min-w-0 overflow-x-hidden">
         {{-- Header --}}
         @include('livewire.super-admin.posyandu-detail.header')
 

@@ -42,6 +42,42 @@
             font-weight: 600;
         }
 
+        .sasaran-view-modal-scroll {
+            flex: 1 1 0%;
+            min-height: 0;
+            overflow-y: auto;
+            overflow-x: hidden;
+            overscroll-behavior: contain;
+            touch-action: pan-y;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+
+        .sasaran-view-modal-scroll::-webkit-scrollbar {
+            display: none;
+            width: 0;
+            height: 0;
+        }
+
+        .sasaran-view-modal-header__title {
+            display: flex;
+            align-items: center;
+            gap: 0.625rem;
+        }
+
+        .sasaran-view-modal-header__icon {
+            flex: 0 0 auto;
+        }
+
+        .sasaran-view-modal-header__close {
+            flex: 0 0 auto;
+        }
+
+        .sasaran-view-modal-name__value {
+            word-break: break-word;
+        }
+
         /* Mobile: ramah mata (kader yang rabun) */
         @media (max-width: 767px) {
             body.kader-mobile-friendly {
@@ -171,6 +207,29 @@
             body.kader-mobile-friendly .kader-dashboard-content span {
                 overflow-wrap: break-word;
                 word-break: break-word;
+            }
+
+            /* Modal detail sasaran — HP (bottom sheet) */
+            body.kader-mobile-friendly .sasaran-view-modal-mobile .sasaran-view-section-title {
+                font-size: 1.0625rem !important;
+            }
+
+            body.kader-mobile-friendly .sasaran-view-modal-mobile .sasaran-view-field-label {
+                font-size: 0.9375rem !important;
+            }
+
+            body.kader-mobile-friendly .sasaran-view-modal-mobile .sasaran-view-field-value {
+                font-size: 1.0625rem !important;
+                line-height: 1.5;
+            }
+
+            body.kader-mobile-friendly .sasaran-view-modal-mobile .sasaran-view-close-btn {
+                font-size: 1.0625rem !important;
+                min-height: 3rem;
+            }
+
+            body.kader-mobile-friendly .sasaran-view-modal-mobile .sasaran-view-modal-name__value {
+                font-size: 1.25rem !important;
             }
         }
     </style>

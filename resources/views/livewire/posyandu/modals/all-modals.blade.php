@@ -7,4 +7,5 @@
 @include('livewire.posyandu.modals.pralansia-modal')
 @include('livewire.posyandu.modals.lansia-modal')
 @include('livewire.posyandu.modals.orangtua-modal')
+@include('livewire.partials.sasaran-view-modal')
 

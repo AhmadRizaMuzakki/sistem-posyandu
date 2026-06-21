@@ -52,6 +52,76 @@
             color: #7c3aed !important; /* Dark purple text */
             font-weight: 600;
         }
+
+        .sasaran-view-modal-scroll {
+            flex: 1 1 0%;
+            min-height: 0;
+            overflow-y: auto;
+            overflow-x: hidden;
+            overscroll-behavior: contain;
+            touch-action: pan-y;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+
+        .sasaran-view-modal-scroll::-webkit-scrollbar {
+            display: none;
+            width: 0;
+            height: 0;
+        }
+
+        .sasaran-view-modal-header__title {
+            display: flex;
+            align-items: center;
+            gap: 0.625rem;
+        }
+
+        .sasaran-view-modal-header__icon {
+            flex: 0 0 auto;
+        }
+
+        .sasaran-view-modal-header__close {
+            flex: 0 0 auto;
+        }
+
+        .sasaran-view-modal-name__value {
+            word-break: break-word;
+        }
+
+        @media (max-width: 767px) {
+            main {
+                overflow-x: hidden;
+                padding: 1rem !important;
+            }
+
+            .sasaran-view-modal-mobile .sasaran-view-section-title {
+                font-size: 1rem;
+            }
+
+            .sasaran-view-modal-mobile .sasaran-view-field-label {
+                font-size: 0.8125rem;
+            }
+
+            .sasaran-view-modal-mobile .sasaran-view-field-value {
+                font-size: 0.9375rem;
+                line-height: 1.5;
+            }
+
+            .sasaran-view-modal-mobile .sasaran-view-close-btn {
+                min-height: 2.75rem;
+                font-size: 0.9375rem;
+            }
+
+            .sasaran-view-modal-mobile .sasaran-view-modal-name__value {
+                font-size: 1.125rem;
+            }
+
+            .sasaran-action-bar .sasaran-action-btn {
+                width: 100%;
+                min-height: 2.75rem;
+            }
+        }
     </style>
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])

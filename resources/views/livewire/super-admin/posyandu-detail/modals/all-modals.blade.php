@@ -9,4 +9,5 @@
 @include('livewire.super-admin.posyandu-detail.modals.pralansia-modal')
 @include('livewire.super-admin.posyandu-detail.modals.lansia-modal')
 @include('livewire.super-admin.posyandu-detail.modals.orangtua-modal')
+@include('livewire.partials.sasaran-view-modal')
 

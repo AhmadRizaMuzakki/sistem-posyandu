@@ -9,6 +9,7 @@ use App\Livewire\SuperAdmin\Traits\DewasaCrud;
 use App\Livewire\SuperAdmin\Traits\PralansiaCrud;
 use App\Livewire\SuperAdmin\Traits\LansiaCrud;
 use App\Livewire\SuperAdmin\Traits\IbuHamilCrud;
+use App\Livewire\SuperAdmin\Traits\SasaranViewTrait;
 use App\Models\Posyandu;
 use App\Models\User;
 use App\Models\Orangtua;
@@ -25,7 +26,7 @@ use Illuminate\Support\Str;
 
 class PosyanduDetail extends Component
 {
-    use BalitaCrud, KaderCrud, RemajaCrud, DewasaCrud, PralansiaCrud, LansiaCrud, IbuHamilCrud, WithFileUploads;
+    use BalitaCrud, KaderCrud, RemajaCrud, DewasaCrud, PralansiaCrud, LansiaCrud, IbuHamilCrud, SasaranViewTrait, WithFileUploads;
 
     public $posyandu;
     public $posyanduId;

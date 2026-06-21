@@ -11,13 +11,13 @@
     $showPendidikanColumn = !$isIbuHamil && !$isBalitaList;
 @endphp
 
-<div class="bg-white rounded-lg shadow-sm p-4 md:p-6 overflow-hidden">
+<div class="bg-white rounded-lg shadow-sm p-4 md:p-6 max-w-full min-w-0 overflow-hidden">
     <div class="hidden md:flex items-center justify-between mb-4">
         <h2 class="text-xl font-semibold text-gray-800 flex items-center min-w-0">
             <i class="ph {{ $icon }} text-2xl mr-3 text-primary shrink-0"></i>
             {{ $title }}
         </h2>
-        <div class="flex items-center gap-3 flex-shrink-0">
+        <div class="flex items-center gap-3 flex-shrink-0 flex-wrap justify-end">
             <span class="text-sm text-gray-500 whitespace-nowrap">{{ $count }} sasaran</span>
 
             @isset($importKategori)
@@ -56,11 +56,11 @@
     <div class="flex flex-col gap-4 mb-4 md:hidden">
         <h2 class="text-lg font-semibold text-gray-900 flex items-start gap-2 min-w-0">
             <i class="ph {{ $icon }} text-2xl shrink-0 text-primary"></i>
-            <span class="leading-snug">{{ $title }}</span>
+            <span class="leading-snug break-words">{{ $title }}</span>
         </h2>
-        <div class="sasaran-action-bar w-full">
+        <div class="sasaran-action-bar w-full min-w-0">
             <p class="text-sm text-gray-600 mb-2 font-medium">{{ $count }} sasaran</p>
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <div class="grid grid-cols-1 gap-2">
 
             @isset($importKategori)
                 <button wire:click="openImportModal('{{ $importKategori }}')"
@@ -88,7 +88,7 @@
             @endisset
 
             <button wire:click="{{ $openModal }}"
-                    class="sasaran-action-btn flex items-center justify-center px-4 py-3 text-sm font-semibold text-white bg-primary rounded-lg hover:bg-indigo-700 transition-colors whitespace-nowrap sm:col-span-2">
+                    class="sasaran-action-btn flex items-center justify-center px-4 py-3 text-sm font-semibold text-white bg-primary rounded-lg hover:bg-indigo-700 transition-colors">
                 <i class="ph ph-plus-circle text-lg mr-2 shrink-0"></i>
                 Tambah Sasaran
             </button>
@@ -116,8 +116,9 @@
     @endif
 
     @if($count > 0)
-        <div class="overflow-x-auto">
-            <table class="w-full text-sm text-left text-gray-500">
+        <p class="md:hidden text-xs text-gray-400 mb-2">Geser tabel ke kanan untuk melihat kolom lainnya</p>
+        <div class="overflow-x-auto max-w-full -mx-4 px-4 md:mx-0 md:px-0">
+            <table class="w-full min-w-[640px] text-sm text-left text-gray-500">
                 <thead class="text-xs text-gray-700 uppercase bg-gray-50">
                     <tr>
                         <th class="px-6 py-3">NIK</th>
@@ -344,6 +345,11 @@
                                     isset($item->id_sasaran_pralansia) && $item->id_sasaran_pralansia ||
                                     isset($item->id_sasaran_lansia) && $item->id_sasaran_lansia ||
                                     isset($item->id_sasaran_ibuhamil) && $item->id_sasaran_ibuhamil)
+                                <button wire:click="viewSasaran('{{ $viewKategori }}', {{ $item->getKey() }})"
+                                        class="text-emerald-600 hover:text-emerald-800 transition-colors"
+                                        title="Lihat">
+                                    <i class="ph ph-eye text-xl"></i>
+                                </button>
                                 <button wire:click="{{ $editMethod }}({{ $item->getKey() }})"
                                         class="text-blue-600 hover:text-blue-800 transition-colors"
                                         title="Edit">
@@ -356,6 +362,11 @@
                                     <i class="ph ph-trash text-xl"></i>
                                 </button>
                                 @else
+                                <button wire:click="viewOrangtua('{{ $item->getKey() }}')"
+                                        class="text-emerald-600 hover:text-emerald-800 transition-colors"
+                                        title="Lihat">
+                                    <i class="ph ph-eye text-xl"></i>
+                                </button>
                                 <button wire:click="editOrangtua({{ $item->getKey() }})"
                                         class="text-blue-600 hover:text-blue-800 transition-colors"
                                         title="Edit">
@@ -405,13 +416,13 @@
             </table>
             {{-- Pagination --}}
             @if(isset($pagination) && $pagination['total'] > 3)
-            <div class="mt-4 flex items-center justify-between">
-                <div class="text-sm text-gray-500">
+            <div class="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between max-w-full">
+                <div class="text-xs sm:text-sm text-gray-500 min-w-0">
                     Menampilkan {{ (($pagination['current_page'] - 1) * $pagination['per_page']) + 1 }}
                     sampai {{ min($pagination['current_page'] * $pagination['per_page'], $pagination['total']) }}
                     dari {{ $pagination['total'] }} data
                 </div>
-                <div class="flex items-center gap-2">
+                <div class="flex items-center gap-2 flex-wrap justify-center sm:justify-end shrink-0">
                     {{-- Previous Button --}}
                     <button wire:click="$set('{{ $pageProperty }}', {{ max(1, $pagination['current_page'] - 1) }})"
                             @if($pagination['current_page'] == 1) disabled @endif

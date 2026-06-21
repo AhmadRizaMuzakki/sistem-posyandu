@@ -1,11 +1,11 @@
 {{-- Import Master: satu file Excel berisi semua kategori sasaran --}}
-<div class="mb-4 flex items-center justify-between rounded-lg border border-primary/30 bg-primary/5 px-4 py-3">
-    <p class="text-sm text-gray-700">
+<div class="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between rounded-lg border border-primary/30 bg-primary/5 px-4 py-3 max-w-full min-w-0">
+    <p class="text-sm text-gray-700 min-w-0">
         <i class="ph ph-file-xls text-primary mr-2"></i>
         Satu file Excel berisi beberapa sheet (Bayi Balita, Remaja, Dewasa, Ibu Hamil, Pralansia, Lansia). Kolom tiap sheet sama seperti form—tanpa kolom gabungan.
     </p>
     <button wire:click="openImportModal('master')"
-            class="flex items-center px-4 py-2 text-sm font-medium text-white bg-primary rounded-lg hover:bg-primary/90 transition-colors">
+            class="flex items-center justify-center w-full sm:w-auto shrink-0 px-4 py-2.5 text-sm font-medium text-white bg-primary rounded-lg hover:bg-primary/90 transition-colors">
         <i class="ph ph-upload-simple text-lg mr-2"></i>
         Import Master Excel
     </button>
@@ -27,6 +27,7 @@
     'openModal' => 'openBalitaModal()',
     'editMethod' => 'editBalita',
     'deleteMethod' => 'deleteBalita',
+    'viewKategori' => 'bayibalita',
     'emptyMessage' => 'Belum ada sasaran terdaftar',
     'importKategori' => 'bayibalita',
     'exportUrl' => route('adminPosyandu.sasaran.pdf', ['kategori' => 'bayibalita']),
@@ -49,6 +50,7 @@
     'openModal' => 'openRemajaModal()',
     'editMethod' => 'editRemaja',
     'deleteMethod' => 'deleteRemaja',
+    'viewKategori' => 'remaja',
     'emptyMessage' => 'Belum ada sasaran remaja terdaftar',
     'importKategori' => 'remaja',
     'exportUrl' => route('adminPosyandu.sasaran.pdf', ['kategori' => 'remaja']),
@@ -71,6 +73,7 @@
     'openModal' => 'openDewasaModal()',
     'editMethod' => 'editDewasa',
     'deleteMethod' => 'deleteDewasa',
+    'viewKategori' => 'dewasa',
     'emptyMessage' => 'Belum ada sasaran dewasa terdaftar',
     'importKategori' => 'dewasa',
     'exportUrl' => route('adminPosyandu.sasaran.pdf', ['kategori' => 'dewasa']),
@@ -93,6 +96,7 @@
     'openModal' => 'openIbuHamilModal()',
     'editMethod' => 'editIbuHamil',
     'deleteMethod' => 'deleteIbuHamil',
+    'viewKategori' => 'ibuhamil',
     'emptyMessage' => 'Belum ada sasaran ibu hamil terdaftar',
     'importKategori' => 'ibuhamil',
     'exportUrl' => route('adminPosyandu.sasaran.pdf', ['kategori' => 'ibuhamil']),
@@ -115,6 +119,7 @@
     'openModal' => 'openPralansiaModal()',
     'editMethod' => 'editPralansia',
     'deleteMethod' => 'deletePralansia',
+    'viewKategori' => 'pralansia',
     'emptyMessage' => 'Belum ada sasaran pralansia terdaftar',
     'importKategori' => 'pralansia',
     'exportUrl' => route('adminPosyandu.sasaran.pdf', ['kategori' => 'pralansia']),
@@ -137,6 +142,7 @@
     'openModal' => 'openLansiaModal()',
     'editMethod' => 'editLansia',
     'deleteMethod' => 'deleteLansia',
+    'viewKategori' => 'lansia',
     'emptyMessage' => 'Belum ada sasaran lansia terdaftar',
     'importKategori' => 'lansia',
     'exportUrl' => route('adminPosyandu.sasaran.pdf', ['kategori' => 'lansia']),
