@@ -21,6 +21,12 @@ class OrangtuaImunisasi extends Component
     /** Filter: nama sasaran (dari query ?sasaran=) */
     public string $filterNama = '';
 
+    public string $filterBulan = '';
+
+    public string $filterTahun = '';
+
+    public int $filterLimit = 10;
+
     public function mount(): void
     {
         $this->syncFilterFromRequest();
@@ -30,6 +36,45 @@ class OrangtuaImunisasi extends Component
     {
         $sasaran = request()->query('sasaran', '');
         $this->filterNama = is_string($sasaran) ? trim($sasaran) : '';
+
+        $bulan = request()->query('bulan', '');
+        $this->filterBulan = is_string($bulan) || is_numeric($bulan) ? trim((string) $bulan) : '';
+
+        $tahun = request()->query('tahun', '');
+        $this->filterTahun = is_string($tahun) || is_numeric($tahun) ? trim((string) $tahun) : '';
+
+        $limit = request()->query('limit', 10);
+        $this->filterLimit = is_numeric($limit) && (int) $limit >= 1 && (int) $limit <= 10
+            ? (int) $limit
+            : 10;
+    }
+
+    /**
+     * @param  \Illuminate\Support\Collection  $imunisasiList
+     * @return array{rows: \Illuminate\Support\Collection, totalBaris: int, tampilBaris: int}
+     */
+    protected function buildRiwayatRows($imunisasiList): array
+    {
+        $rows = collect();
+
+        foreach ($imunisasiList as $item) {
+            foreach ($item['imunisasi'] as $imunisasi) {
+                $rows->push([
+                    'sasaran' => $item['sasaran'],
+                    'imunisasi' => $imunisasi,
+                ]);
+            }
+        }
+
+        $rows = $rows->sortByDesc(fn ($row) => $row['imunisasi']->tanggal_imunisasi)->values();
+        $totalBaris = $rows->count();
+        $limitedRows = $rows->take($this->filterLimit)->values();
+
+        return [
+            'rows' => $limitedRows,
+            'totalBaris' => $totalBaris,
+            'tampilBaris' => $limitedRows->count(),
+        ];
     }
 
     /**
@@ -80,6 +125,8 @@ class OrangtuaImunisasi extends Component
                 }
             });
 
+            $this->applyBulanTahunToImunisasiQuery($query, $this->filterBulan, $this->filterTahun);
+
             $allImunisasi = $query->orderBy('tanggal_imunisasi', 'desc')->get();
         }
 
@@ -111,16 +158,19 @@ class OrangtuaImunisasi extends Component
         $data = $this->getImunisasiData();
         $antropometri = app(AntropometriService::class);
         $sasaranAnalytics = $this->getSasaranUntukAnalytics();
-        $filterAktif = trim($this->filterNama) !== '';
+        $filterNamaAktif = trim($this->filterNama) !== '';
+        $filterBulanTahunAktif = $this->hasBulanTahunFilter($this->filterBulan, $this->filterTahun);
+        $filterAktif = $filterNamaAktif || $filterBulanTahunAktif;
+        $periodeLabel = $this->formatBulanTahunLabel($this->filterBulan, $this->filterTahun);
 
-        if ($filterAktif) {
+        if ($filterNamaAktif) {
             $sasaranAnalytics = $sasaranAnalytics->filter(
                 fn ($s) => trim($s['nama']) === trim($this->filterNama)
             )->values();
         }
 
-        $analytics = $filterAktif
-            ? $this->getImunisasiAnalytics($sasaranAnalytics, $antropometri)
+        $analytics = $filterNamaAktif
+            ? $this->getImunisasiAnalytics($sasaranAnalytics, $antropometri, $this->filterBulan, $this->filterTahun)
             : [
                 'grafikPertumbuhan' => [],
                 'grafikImunisasiJenis' => ['labels' => [], 'data' => []],
@@ -128,12 +178,23 @@ class OrangtuaImunisasi extends Component
                 'totalImunisasi' => 0,
             ];
 
+        $riwayat = $this->buildRiwayatRows($data['imunisasiList']);
+
         return view('livewire.orangtua.orangtua-imunisasi', [
             'imunisasiList' => $data['imunisasiList'],
+            'riwayatRows' => $riwayat['rows'],
+            'totalBaris' => $riwayat['totalBaris'],
+            'tampilBaris' => $riwayat['tampilBaris'],
             'allSasaran' => $data['allSasaran'],
             'namaSasaranList' => $data['namaSasaranList'],
             'filterAktif' => $filterAktif,
+            'filterNamaAktif' => $filterNamaAktif,
+            'filterBulanTahunAktif' => $filterBulanTahunAktif,
             'filterNama' => trim($this->filterNama),
+            'filterBulan' => $this->filterBulan,
+            'filterTahun' => $this->filterTahun,
+            'filterLimit' => $this->filterLimit,
+            'periodeLabel' => $periodeLabel,
             'grafikPertumbuhan' => $analytics['grafikPertumbuhan'],
             'grafikImunisasiJenis' => $analytics['grafikImunisasiJenis'],
             'penilaianPerKategori' => $analytics['penilaianPerKategori'],

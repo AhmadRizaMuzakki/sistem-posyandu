@@ -38,7 +38,9 @@ class OrangtuaExportController extends Controller
     public function imunisasiPdf(Request $request): Response
     {
         $filterNama = trim((string) $request->query('sasaran', ''));
-        $imunisasiList = $this->buildImunisasiList($filterNama);
+        $filterBulan = trim((string) $request->query('bulan', ''));
+        $filterTahun = trim((string) $request->query('tahun', ''));
+        $imunisasiList = $this->buildImunisasiList($filterNama, $filterBulan, $filterTahun);
 
         $rows = collect();
         $no = 1;
@@ -128,7 +130,7 @@ class OrangtuaExportController extends Controller
         ];
     }
 
-    private function buildImunisasiList(string $filterNama): Collection
+    private function buildImunisasiList(string $filterNama, string $filterBulan = '', string $filterTahun = ''): Collection
     {
         $noKk = $this->resolveNoKk();
         $allSasaran = collect();
@@ -170,6 +172,13 @@ class OrangtuaExportController extends Controller
                     });
                 }
             });
+
+            if ($filterBulan !== '' && is_numeric($filterBulan) && (int) $filterBulan >= 1 && (int) $filterBulan <= 12) {
+                $query->whereMonth('tanggal_imunisasi', (int) $filterBulan);
+            }
+            if ($filterTahun !== '' && is_numeric($filterTahun) && (int) $filterTahun >= 2000 && (int) $filterTahun <= 2100) {
+                $query->whereYear('tanggal_imunisasi', (int) $filterTahun);
+            }
 
             $allImunisasi = $query->orderBy('tanggal_imunisasi', 'desc')->get();
         }

@@ -14,6 +14,42 @@ use Illuminate\Support\Facades\Auth;
 
 trait ImunisasiAnalyticsTrait
 {
+    protected function applyBulanTahunToImunisasiQuery($query, ?string $bulan, ?string $tahun): void
+    {
+        if ($bulan !== null && $bulan !== '' && is_numeric($bulan) && (int) $bulan >= 1 && (int) $bulan <= 12) {
+            $query->whereMonth('tanggal_imunisasi', (int) $bulan);
+        }
+        if ($tahun !== null && $tahun !== '' && is_numeric($tahun) && (int) $tahun >= 2000 && (int) $tahun <= 2100) {
+            $query->whereYear('tanggal_imunisasi', (int) $tahun);
+        }
+    }
+
+    protected function hasBulanTahunFilter(?string $bulan, ?string $tahun): bool
+    {
+        $bulanValid = $bulan !== null && $bulan !== '' && is_numeric($bulan) && (int) $bulan >= 1 && (int) $bulan <= 12;
+        $tahunValid = $tahun !== null && $tahun !== '' && is_numeric($tahun) && (int) $tahun >= 2000 && (int) $tahun <= 2100;
+
+        return $bulanValid || $tahunValid;
+    }
+
+    protected function formatBulanTahunLabel(?string $bulan, ?string $tahun): ?string
+    {
+        $bulanValid = $bulan !== null && $bulan !== '' && is_numeric($bulan) && (int) $bulan >= 1 && (int) $bulan <= 12;
+        $tahunValid = $tahun !== null && $tahun !== '' && is_numeric($tahun);
+
+        if ($bulanValid && $tahunValid) {
+            return Carbon::create((int) $tahun, (int) $bulan, 1)->locale('id')->translatedFormat('F Y');
+        }
+        if ($bulanValid) {
+            return Carbon::create(now()->year, (int) $bulan, 1)->locale('id')->translatedFormat('F');
+        }
+        if ($tahunValid) {
+            return (string) (int) $tahun;
+        }
+
+        return null;
+    }
+
     protected function resolveNoKk(): ?string
     {
         $user = Auth::user();
@@ -65,7 +101,7 @@ trait ImunisasiAnalyticsTrait
     /**
      * @param  \Illuminate\Support\Collection  $allSasaran
      */
-    protected function getImunisasiAnalytics($allSasaran, AntropometriService $antropometri): array
+    protected function getImunisasiAnalytics($allSasaran, AntropometriService $antropometri, ?string $filterBulan = null, ?string $filterTahun = null): array
     {
         if ($allSasaran->isEmpty()) {
             return [
@@ -89,6 +125,8 @@ trait ImunisasiAnalyticsTrait
                 });
             }
         });
+
+        $this->applyBulanTahunToImunisasiQuery($query, $filterBulan, $filterTahun);
 
         $semuaImunisasi = $query->orderBy('tanggal_imunisasi', 'asc')->get();
         $totalImunisasi = $semuaImunisasi->count();

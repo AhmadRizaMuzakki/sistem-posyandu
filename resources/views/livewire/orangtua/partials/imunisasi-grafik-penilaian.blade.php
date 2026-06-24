@@ -5,8 +5,14 @@
         <p class="text-sm text-gray-500 mb-5">
             @if($totalImunisasi > 0)
                 {{ $totalImunisasi }} kunjungan — {{ $filterNama }}
+                @if(!empty($filterBulanTahunAktif) && !empty($periodeLabel))
+                    · {{ $periodeLabel }}
+                @endif
             @else
                 Belum ada data kunjungan untuk {{ $filterNama }}
+                @if(!empty($filterBulanTahunAktif) && !empty($periodeLabel))
+                    pada periode {{ $periodeLabel }}
+                @endif
             @endif
         </p>
 
@@ -42,7 +48,13 @@
 
     <div class="bg-white rounded-xl border border-gray-200 p-5 sm:p-6">
         <h2 class="text-lg font-semibold text-gray-900 mb-1">Hasil Penilaian</h2>
-        <p class="text-sm text-gray-500 mb-5">Pengukuran terakhir setiap kunjungan imunisasi/posyandu</p>
+        <p class="text-sm text-gray-500 mb-5">
+            @if(!empty($filterBulanTahunAktif) && !empty($periodeLabel))
+                Pengukuran terakhir pada periode {{ $periodeLabel }}
+            @else
+                Pengukuran terakhir setiap kunjungan imunisasi/posyandu
+            @endif
+        </p>
 
         @if($adaPenilaian)
             <div class="space-y-6">
