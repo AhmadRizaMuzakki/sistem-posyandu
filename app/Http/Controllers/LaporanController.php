@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Helpers\ImunisasiOptions;
 use App\Helpers\SasaranFilterOptions;
 use App\Models\Galeri;
 use App\Models\Imunisasi;
@@ -40,8 +41,46 @@ class LaporanController extends Controller
     {
         $jenisVaksin = $request->query('jenis_vaksin');
         if ($jenisVaksin !== null && $jenisVaksin !== '') {
-            $query->where('jenis_imunisasi', (string) $jenisVaksin);
+            $query->whereIn('jenis_imunisasi', ImunisasiOptions::valuesForFilter((string) $jenisVaksin));
         }
+    }
+
+    /**
+     * Ambil daftar imunisasi untuk laporan PDF (daftar), termasuk filter kategori klasik/usia/tahun lahir.
+     */
+    private function buildImunisasiListForPdf(Posyandu $posyandu, Request $request, ?string $kategori = null)
+    {
+        $kategori = $kategori ?: ($request->query('kategori') ? (string) $request->query('kategori') : null);
+        if ($kategori === 'semua') {
+            $kategori = null;
+        }
+
+        $query = Imunisasi::with(['user'])
+            ->where('id_posyandu', $posyandu->id_posyandu);
+
+        if ($kategori && SasaranFilterOptions::isKategori($kategori) && in_array($kategori, SasaranFilterOptions::imunisasiKategoris(), true)) {
+            $query->where('kategori_sasaran', $kategori);
+        }
+
+        $this->applyImunisasiOptionalFilters($query, $request);
+        $this->applyBulanTahunFilter($query, $request);
+
+        $imunisasiList = $query->orderBy('tanggal_imunisasi', 'desc')->get();
+        $imunisasiList = $this->filterImunisasiListByNamaSasaran($imunisasiList, $request);
+
+        if ($kategori && SasaranFilterOptions::isExtendedFilter($kategori)) {
+            Imunisasi::preloadSasaran($imunisasiList);
+            $imunisasiList = $imunisasiList
+                ->filter(function ($imunisasi) use ($kategori) {
+                    $sasaran = $imunisasi->sasaran;
+
+                    return $sasaran && SasaranFilterOptions::matchesSasaranFilter($sasaran, $kategori);
+                })
+                ->values();
+            Imunisasi::clearSasaranCache();
+        }
+
+        return [$imunisasiList, $kategori];
     }
 
     private function filterImunisasiListByNamaSasaran($imunisasiList, Request $request)
@@ -68,6 +107,30 @@ class LaporanController extends Controller
         return $filtered;
     }
 
+    private function buildImunisasiFilterSummary(Request $request, ?string $kategori = null): array
+    {
+        $tahun = $request->query('tahun');
+        $bulan = $request->query('bulan');
+        $jenisVaksin = $request->query('jenis_vaksin');
+        $namaSasaran = $request->query('nama_sasaran');
+
+        $periode = 'Semua Periode';
+        if ($tahun && $bulan && is_numeric($bulan)) {
+            $periode = Carbon::create((int) $tahun, (int) $bulan, 1)->locale('id')->translatedFormat('F Y');
+        } elseif ($tahun) {
+            $periode = 'Tahun '.(int) $tahun;
+        } elseif ($bulan && is_numeric($bulan)) {
+            $periode = Carbon::create(now()->year, (int) $bulan, 1)->locale('id')->translatedFormat('F').' (semua tahun)';
+        }
+
+        return [
+            'filterPeriodeLabel' => $periode,
+            'filterKategoriLabel' => $kategori ? SasaranFilterOptions::getLabel($kategori) : 'Semua Kategori',
+            'filterJenisVaksinLabel' => ($jenisVaksin !== null && $jenisVaksin !== '') ? (string) $jenisVaksin : 'Semua Jenis Vaksin',
+            'filterNamaSasaranLabel' => ($namaSasaran !== null && $namaSasaran !== '') ? (string) $namaSasaran : 'Semua Nama Sasaran',
+        ];
+    }
+
     /**
      * Generate laporan imunisasi Posyandu (admin Posyandu) dalam bentuk PDF.
      */
@@ -85,31 +148,20 @@ class LaporanController extends Controller
 
         $posyandu = $kader->posyandu;
 
-        $query = Imunisasi::with(['user'])
-            ->where('id_posyandu', $posyandu->id_posyandu);
+        [$imunisasiList, $resolvedKategori] = $this->buildImunisasiListForPdf($posyandu, $request, $kategori);
+        $filterSummary = $this->buildImunisasiFilterSummary($request, $resolvedKategori);
 
-        // Filter berdasarkan kategori sasaran jika ada
-        if ($kategori && $kategori !== 'semua') {
-            $query->where('kategori_sasaran', $kategori);
-        }
-
-        $this->applyImunisasiOptionalFilters($query, $request);
-        $this->applyBulanTahunFilter($query, $request);
-
-        $imunisasiList = $query->orderBy('tanggal_imunisasi', 'desc')->get();
-        $imunisasiList = $this->filterImunisasiListByNamaSasaran($imunisasiList, $request);
-
-        $kategoriLabel = $kategori && $kategori !== 'semua' ? $this->getKategoriLabel($kategori) : 'Semua';
+        $kategoriLabel = $resolvedKategori ? SasaranFilterOptions::getLabel($resolvedKategori) : 'Semua';
         $fileName = 'Laporan-Imunisasi-'.str_replace(['/', ' '], ['-', '-'], $kategoriLabel).'-'.$posyandu->nama_posyandu.'-'.now('Asia/Jakarta')->format('Ymd_His').'.pdf';
 
-        return $this->renderPdf('pdf.laporan-posyandu-imunisasi', [
+        return $this->renderPdf('pdf.laporan-posyandu-imunisasi', array_merge([
             'posyandu' => $posyandu,
             'imunisasiList' => $imunisasiList,
             'generatedAt' => now('Asia/Jakarta'),
             'user' => $user,
-            'kategoriSasaran' => $kategori && $kategori !== 'semua' ? $kategori : null,
+            'kategoriSasaran' => $resolvedKategori,
             'kategoriLabel' => $kategoriLabel,
-        ], $fileName);
+        ], $filterSummary), $fileName, 'landscape');
     }
 
     /**
@@ -203,7 +255,7 @@ class LaporanController extends Controller
             $queryImunisasi->whereMonth('tanggal_imunisasi', $bulan);
         }
         if ($jenisVaksin !== null && $jenisVaksin !== '') {
-            $queryImunisasi->where('jenis_imunisasi', $jenisVaksin);
+            $queryImunisasi->whereIn('jenis_imunisasi', ImunisasiOptions::valuesForFilter($jenisVaksin));
         }
         $imunisasiInPeriod = $queryImunisasi->orderBy('tanggal_imunisasi', 'desc')->get();
         $hadirMap = [];
@@ -346,13 +398,14 @@ class LaporanController extends Controller
 
         $posyandu = $kader->posyandu;
 
+        $decodedJenisVaksin = urldecode($jenisVaksin);
         $query = Imunisasi::with(['user'])
             ->where('id_posyandu', $posyandu->id_posyandu)
-            ->where('jenis_imunisasi', urldecode($jenisVaksin));
+            ->whereIn('jenis_imunisasi', ImunisasiOptions::valuesForFilter($decodedJenisVaksin));
         $this->applyBulanTahunFilter($query, $request);
         $imunisasiList = $query->orderBy('tanggal_imunisasi', 'desc')->get();
 
-        $jenisVaksinLabel = urldecode($jenisVaksin);
+        $jenisVaksinLabel = $decodedJenisVaksin;
         $fileName = 'Laporan-Imunisasi-'.str_replace(['/', ' '], ['-', '-'], $jenisVaksinLabel).'-'.$posyandu->nama_posyandu.'-'.now('Asia/Jakarta')->format('Ymd_His').'.pdf';
 
         return $this->renderPdf('pdf.laporan-posyandu-imunisasi', [
@@ -363,7 +416,7 @@ class LaporanController extends Controller
             'kategoriSasaran' => null,
             'kategoriLabel' => 'Jenis Vaksin: '.$jenisVaksinLabel,
             'jenisVaksin' => $jenisVaksinLabel,
-        ], $fileName);
+        ], $fileName, 'landscape');
     }
 
     /**
@@ -414,7 +467,7 @@ class LaporanController extends Controller
             'kategoriSasaran' => null,
             'kategoriLabel' => 'Nama: '.$namaDecoded,
             'namaSasaran' => $namaDecoded,
-        ], $fileName);
+        ], $fileName, 'landscape');
     }
 
     /**
@@ -430,33 +483,22 @@ class LaporanController extends Controller
 
         $posyandu = Posyandu::findOrFail($decryptedId);
 
-        $query = Imunisasi::with(['user'])
-            ->where('id_posyandu', $posyandu->id_posyandu);
-
-        // Filter berdasarkan kategori sasaran jika ada
-        if ($kategori && $kategori !== 'semua') {
-            $query->where('kategori_sasaran', $kategori);
-        }
-
-        $this->applyImunisasiOptionalFilters($query, $request);
-        $this->applyBulanTahunFilter($query, $request);
-
-        $imunisasiList = $query->orderBy('tanggal_imunisasi', 'desc')->get();
-        $imunisasiList = $this->filterImunisasiListByNamaSasaran($imunisasiList, $request);
+        [$imunisasiList, $resolvedKategori] = $this->buildImunisasiListForPdf($posyandu, $request, $kategori);
+        $filterSummary = $this->buildImunisasiFilterSummary($request, $resolvedKategori);
 
         $user = Auth::user();
 
-        $kategoriLabel = $kategori && $kategori !== 'semua' ? $this->getKategoriLabel($kategori) : 'Semua';
+        $kategoriLabel = $resolvedKategori ? SasaranFilterOptions::getLabel($resolvedKategori) : 'Semua';
         $fileName = 'Laporan-Imunisasi-'.str_replace(['/', ' '], ['-', '-'], $kategoriLabel).'-'.$posyandu->nama_posyandu.'-'.now('Asia/Jakarta')->format('Ymd_His').'.pdf';
 
-        return $this->renderPdf('pdf.laporan-posyandu-imunisasi', [
+        return $this->renderPdf('pdf.laporan-posyandu-imunisasi', array_merge([
             'posyandu' => $posyandu,
             'imunisasiList' => $imunisasiList,
             'generatedAt' => now('Asia/Jakarta'),
             'user' => $user,
-            'kategoriSasaran' => $kategori && $kategori !== 'semua' ? $kategori : null,
+            'kategoriSasaran' => $resolvedKategori,
             'kategoriLabel' => $kategoriLabel,
-        ], $fileName);
+        ], $filterSummary), $fileName, 'landscape');
     }
 
     /**
@@ -472,14 +514,15 @@ class LaporanController extends Controller
 
         $posyandu = Posyandu::findOrFail($decryptedId);
 
+        $decodedJenisVaksin = urldecode($jenisVaksin);
         $query = Imunisasi::with(['user'])
             ->where('id_posyandu', $posyandu->id_posyandu)
-            ->where('jenis_imunisasi', urldecode($jenisVaksin));
+            ->whereIn('jenis_imunisasi', ImunisasiOptions::valuesForFilter($decodedJenisVaksin));
         $this->applyBulanTahunFilter($query, $request);
         $imunisasiList = $query->orderBy('tanggal_imunisasi', 'desc')->get();
 
         $user = Auth::user();
-        $jenisVaksinLabel = urldecode($jenisVaksin);
+        $jenisVaksinLabel = $decodedJenisVaksin;
         $fileName = 'Laporan-Imunisasi-'.str_replace(['/', ' '], ['-', '-'], $jenisVaksinLabel).'-'.$posyandu->nama_posyandu.'-'.now('Asia/Jakarta')->format('Ymd_His').'.pdf';
 
         return $this->renderPdf('pdf.laporan-posyandu-imunisasi', [
@@ -490,7 +533,7 @@ class LaporanController extends Controller
             'kategoriSasaran' => null,
             'kategoriLabel' => 'Jenis Vaksin: '.$jenisVaksinLabel,
             'jenisVaksin' => $jenisVaksinLabel,
-        ], $fileName);
+        ], $fileName, 'landscape');
     }
 
     /**
@@ -538,7 +581,7 @@ class LaporanController extends Controller
             'kategoriSasaran' => null,
             'kategoriLabel' => 'Nama: '.$namaDecoded,
             'namaSasaran' => $namaDecoded,
-        ], $fileName);
+        ], $fileName, 'landscape');
     }
 
     /**
@@ -1641,6 +1684,9 @@ class LaporanController extends Controller
     {
         $options = new Options;
         $options->set('isRemoteEnabled', true);
+        $options->set('isHtml5ParserEnabled', true);
+        $options->set('defaultMediaType', 'print');
+        $options->set('isFontSubsettingEnabled', true);
 
         $dompdf = new Dompdf($options);
 
@@ -1652,7 +1698,10 @@ class LaporanController extends Controller
 
         return response($dompdf->output(), 200, [
             'Content-Type' => 'application/pdf',
-            'Content-Disposition' => 'attachment; filename="'.$fileName.'"',
+            'Content-Disposition' => 'inline; filename="'.$fileName.'"',
+            'Cache-Control' => 'no-store, no-cache, must-revalidate, max-age=0',
+            'Pragma' => 'no-cache',
+            'Expires' => '0',
         ]);
     }
 }

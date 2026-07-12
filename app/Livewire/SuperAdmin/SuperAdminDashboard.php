@@ -45,13 +45,6 @@ class SuperAdminDashboard extends Component
             ->pluck('kategori_sasaran')
             ->toArray();
 
-        $allJenisVaksinList = Imunisasi::distinct()
-            ->orderBy('jenis_imunisasi')
-            ->pluck('jenis_imunisasi')
-            ->toArray();
-
-        // Optimasi: Ambil nama sasaran tanpa N+1 query
-        // Mengambil distinct id_sasaran + kategori_sasaran lalu batch load nama
         $allNamaSasaranList = $this->getAllNamaSasaran();
 
         $allKategoriPendidikanList = Pendidikan::distinct()
@@ -79,7 +72,6 @@ class SuperAdminDashboard extends Component
             'posyanduList' => $posyanduList,
             'kategoriSasaranList' => $allKategoriSasaranList,
             'kategoriLabels' => $kategoriLabels,
-            'jenisVaksinList' => $allJenisVaksinList,
             'namaSasaranList' => $allNamaSasaranList,
             'kategoriPendidikanList' => $allKategoriPendidikanList,
         ]);

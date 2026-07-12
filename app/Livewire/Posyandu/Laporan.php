@@ -39,13 +39,6 @@ class Laporan extends Component
             ->pluck('kategori_sasaran')
             ->toArray();
 
-        // Ambil daftar jenis vaksin yang unik dari database
-        $jenisVaksinList = Imunisasi::where('id_posyandu', $this->posyandu->id_posyandu)
-            ->distinct()
-            ->orderBy('jenis_imunisasi')
-            ->pluck('jenis_imunisasi')
-            ->toArray();
-
         // Ambil daftar nama sasaran yang unik dari database
         $imunisasiList = Imunisasi::where('id_posyandu', $this->posyandu->id_posyandu)->get();
         $namaSasaranList = collect();
@@ -87,7 +80,6 @@ class Laporan extends Component
             'posyandu' => $this->posyandu,
             'kategoriSasaranList' => $kategoriSasaranList,
             'kategoriLabels' => $kategoriLabels,
-            'jenisVaksinList' => $jenisVaksinList,
             'namaSasaranList' => $namaSasaranList,
             'kategoriPendidikanList' => $kategoriPendidikanList,
             'kategoriSasaranPendidikanList' => $kategoriSasaranPendidikanList,

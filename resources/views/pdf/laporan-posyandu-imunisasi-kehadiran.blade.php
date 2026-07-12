@@ -228,14 +228,14 @@
                         <td>{{ $imunisasi ? ($imunisasi->jenis_imunisasi ?? '-') : '-' }}</td>
                         <td class="text-center">
                             @if ($imunisasi && $imunisasi->tinggi_badan !== null)
-                                {{ number_format($imunisasi->tinggi_badan, 2) }}
+                                {{ (int) round((float) $imunisasi->tinggi_badan) }}
                             @else
                                 -
                             @endif
                         </td>
                         <td class="text-center">
                             @if ($imunisasi && $imunisasi->berat_badan !== null)
-                                {{ number_format($imunisasi->berat_badan, 2) }}
+                                {{ number_format((float) $imunisasi->berat_badan, 1, ',', '') }}
                             @else
                                 -
                             @endif

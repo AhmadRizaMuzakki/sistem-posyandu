@@ -8,62 +8,77 @@
     <meta charset="UTF-8">
     <title>Laporan Imunisasi - {{ $posyandu->nama_posyandu }}</title>
     <style>
+        /*
+         * Margin 3cm (≈85pt) via cell padding — paling andal di DomPDF.
+         * Jangan andalkan @page margin saja (sering diabaikan).
+         */
         @page {
-            margin: 15mm 20mm;
+            margin: 0;
         }
         * {
             font-family: DejaVu Sans, Arial, sans-serif;
-            font-size: 11px;
         }
-        body {
-            margin: 0;
-            color: #111827;
-        }
-        h1, h2, h3 {
+        html, body {
             margin: 0;
             padding: 0;
+            color: #111827;
+        }
+        .page-frame {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .page-frame > tbody > tr > td.page-pad {
+            padding: 85pt;
+            vertical-align: top;
         }
         .header {
             text-align: center;
-            margin-bottom: 16px;
+            margin-bottom: 10px;
         }
         .title {
-            font-size: 18px;
+            font-size: 16px;
             font-weight: bold;
             text-transform: uppercase;
+            letter-spacing: 0.3px;
         }
         .subtitle {
-            font-size: 13px;
-            margin-top: 4px;
+            font-size: 12px;
+            margin-top: 3px;
+            font-weight: bold;
         }
-        .meta {
-            margin-top: 12px;
-            font-size: 11px;
+        .alamat {
+            font-size: 10px;
+            margin-top: 2px;
+            color: #374151;
         }
         .meta-table {
             width: 100%;
             border-collapse: collapse;
-            margin-bottom: 16px;
+            margin-bottom: 12px;
+            table-layout: fixed;
         }
         .meta-table td {
-            padding: 4px 6px;
+            padding: 3px 4px;
             vertical-align: top;
+            font-size: 10px;
         }
         .meta-label {
             width: 120px;
             font-weight: bold;
         }
+        h3 {
+            margin: 0 0 6px 0;
+            padding: 0;
+            font-size: 12px;
+        }
         table.data {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 8px;
+            table-layout: fixed;
             page-break-inside: auto;
         }
         table.data thead {
             display: table-header-group;
-        }
-        table.data tfoot {
-            display: table-row-group;
         }
         table.data tr {
             page-break-inside: avoid;
@@ -72,140 +87,157 @@
         table.data th,
         table.data td {
             border: 1px solid #d1d5db;
-            padding: 4px 6px;
+            padding: 4px 5px;
             word-wrap: break-word;
+            overflow-wrap: break-word;
+            word-break: break-word;
             white-space: normal;
+            vertical-align: middle;
         }
         table.data th {
             background: #f3f4f6;
             font-weight: bold;
             text-align: center;
+            font-size: 9px;
+            line-height: 1.25;
         }
         table.data td {
-            font-size: 10px;
+            font-size: 9px;
+            line-height: 1.3;
         }
-        .text-center {
-            text-align: center;
-        }
-        .text-right {
-            text-align: right;
-        }
-        .small {
-            font-size: 10px;
-        }
-        .mt-2 { margin-top: 8px; }
-        .mt-4 { margin-top: 16px; }
+        .col-no { width: 3%; }
+        .col-nama { width: 13%; }
+        .col-kat { width: 8%; }
+        .col-tgl { width: 8%; }
+        .col-jenis { width: 12%; }
+        .col-tb { width: 7%; }
+        .col-bb { width: 7%; }
+        .col-td { width: 10%; }
+        .col-gd { width: 9%; }
+        .col-petugas { width: 10%; }
+        .col-ket { width: 13%; }
+        .text-center { text-align: center; }
+        .mt-2 { margin-top: 6px; }
+        .mt-1 { margin-top: 4px; }
+        .small { font-size: 9px; }
     </style>
 </head>
 <body>
-    <div style="padding: 0 10mm;">
-    <div class="header">
-        <div class="title">Laporan Imunisasi Posyandu</div>
-        <div class="subtitle">{{ $posyandu->nama_posyandu }}</div>
-        @if ($posyandu->alamat_posyandu)
-            <div class="small">{{ $posyandu->alamat_posyandu }}</div>
-        @endif
-    </div>
-
-    <table class="meta-table">
-        <tr>
-            <td class="meta-label">Dicetak oleh</td>
-            <td>: {{ $user->name ?? '-' }}</td>
-            <td class="meta-label">Tanggal Cetak</td>
-            <td>: {{ Carbon::now('Asia/Jakarta')->format('d F Y H:i') }}</td>
-        </tr>
-        <tr>
-            <td class="meta-label">Total Data Imunisasi</td>
-            <td>: {{ $imunisasiList->count() }} data</td>
-            <td class="meta-label">Periode Data</td>
-            <td>
-                @php
-                    $first = $imunisasiList->min('tanggal_imunisasi');
-                    $last = $imunisasiList->max('tanggal_imunisasi');
-                @endphp
-                :
-                @if ($first && $last)
-                    {{ Carbon::parse($first)->format('d/m/Y') }}
-                    s/d
-                    {{ Carbon::parse($last)->format('d/m/Y') }}
-                @else
-                    -
+<table class="page-frame">
+    <tr>
+        <td class="page-pad">
+            <div class="header">
+                <div class="title">Laporan Imunisasi Posyandu</div>
+                <div class="subtitle">{{ $posyandu->nama_posyandu }}</div>
+                @if ($posyandu->alamat_posyandu)
+                    <div class="alamat">{{ $posyandu->alamat_posyandu }}</div>
                 @endif
-            </td>
-        </tr>
-        @if (isset($kategoriSasaran) && $kategoriSasaran)
-        <tr>
-            <td class="meta-label">Kategori Sasaran</td>
-            <td>: {{ $kategoriLabel ?? ucfirst($kategoriSasaran) }}</td>
-            <td></td>
-            <td></td>
-        </tr>
-        @endif
-    </table>
+            </div>
 
-    <h3>Daftar Data Imunisasi</h3>
-
-    @if ($imunisasiList->isEmpty())
-        <p class="mt-2">Belum ada data imunisasi untuk Posyandu ini.</p>
-    @else
-        <table class="data mt-2">
-            <thead>
+            <table class="meta-table">
                 <tr>
-                    <th>No</th>
-                    <th>Nama Sasaran</th>
-                    <th>Kategori Sasaran</th>
-                    <th>Tanggal</th>
-                    <th>Jenis Imunisasi</th>
-                    <th>Tinggi (cm)</th>
-                    <th>Berat (kg)</th>
-                    <th>Tekanan Darah</th>
-                    <th>Gula Darah</th>
-                    <th>Petugas</th>
-                    <th>Keterangan</th>
+                    <td class="meta-label">Dicetak oleh</td>
+                    <td>: {{ $user->name ?? '-' }}</td>
+                    <td class="meta-label">Tanggal Cetak</td>
+                    <td>: {{ Carbon::now('Asia/Jakarta')->format('d F Y H:i:s') }}</td>
                 </tr>
-            </thead>
-            <tbody>
-                @foreach ($imunisasiList as $index => $imunisasi)
-                    @php
-                        $sasaran = $imunisasi->sasaran;
-                    @endphp
-                    <tr>
-                        <td class="text-center">{{ $index + 1 }}</td>
-                        <td>
-                            @if ($sasaran)
-                                {{ $sasaran->nama_sasaran ?? '-' }}
-                            @else
-                                -
-                            @endif
-                        </td>
-                        <td class="text-center">{{ ucfirst($imunisasi->kategori_sasaran) }}</td>
-                        <td class="text-center">
-                            {{ optional($imunisasi->tanggal_imunisasi)->format('d/m/Y') ?? '-' }}
-                        </td>
-                        <td>{{ $imunisasi->jenis_imunisasi }}</td>
-                        <td class="text-center">
-                            {{ $imunisasi->tinggi_badan !== null ? number_format($imunisasi->tinggi_badan, 2) : '-' }}
-                        </td>
-                        <td class="text-center">
-                            {{ $imunisasi->berat_badan !== null ? number_format($imunisasi->berat_badan, 2) : '-' }}
-                        </td>
-                        <td class="text-center">
-                            {{ $imunisasi->tekanan_darah ? $imunisasi->tekanan_darah . ' mmHg' : '-' }}
-                        </td>
-                        <td class="text-center">
-                            {{ !is_null($imunisasi->gula_darah) ? number_format($imunisasi->gula_darah, 0, ',', '.') . ' mg/dL' : '-' }}
-                        </td>
-                        <td>
-                            {{ $imunisasi->user->name ?? '-' }}
-                        </td>
-                        <td>{{ $imunisasi->keterangan ?? '-' }}</td>
-                    </tr>
-                @endforeach
-            </tbody>
-        </table>
-    @endif
-    </div>
+                <tr>
+                    <td class="meta-label">Total Data Imunisasi</td>
+                    <td>: {{ $imunisasiList->count() }} data</td>
+                    <td class="meta-label">Periode Data</td>
+                    <td>
+                        @php
+                            $first = $imunisasiList->min('tanggal_imunisasi');
+                            $last = $imunisasiList->max('tanggal_imunisasi');
+                        @endphp
+                        :
+                        @if ($first && $last)
+                            {{ Carbon::parse($first)->format('d/m/Y') }}
+                            s/d
+                            {{ Carbon::parse($last)->format('d/m/Y') }}
+                        @else
+                            {{ $filterPeriodeLabel ?? '-' }}
+                        @endif
+                    </td>
+                </tr>
+                <tr>
+                    <td class="meta-label">Filter Periode</td>
+                    <td>: {{ $filterPeriodeLabel ?? 'Semua Periode' }}</td>
+                    <td class="meta-label">Filter Kategori</td>
+                    <td>: {{ $filterKategoriLabel ?? ($kategoriLabel ?? 'Semua Kategori') }}</td>
+                </tr>
+                <tr>
+                    <td class="meta-label">Filter Jenis Vaksin</td>
+                    <td>: {{ $filterJenisVaksinLabel ?? 'Semua Jenis Vaksin' }}</td>
+                    <td class="meta-label">Filter Nama</td>
+                    <td>: {{ $filterNamaSasaranLabel ?? 'Semua Nama Sasaran' }}</td>
+                </tr>
+                @if (isset($kategoriSasaran) && $kategoriSasaran && !isset($filterKategoriLabel))
+                <tr>
+                    <td class="meta-label">Kategori Sasaran</td>
+                    <td>: {{ $kategoriLabel ?? ucfirst($kategoriSasaran) }}</td>
+                    <td></td>
+                    <td></td>
+                </tr>
+                @endif
+            </table>
+
+            <h3>Daftar Data Imunisasi</h3>
+
+            @if ($imunisasiList->isEmpty())
+                <p class="mt-2">Belum ada data imunisasi untuk filter yang dipilih pada Posyandu ini.</p>
+                <p class="small mt-1">Coba pilih <strong>Semua Tahun</strong>, <strong>Semua Bulan</strong>, dan <strong>Semua Jenis Vaksin</strong>, atau sesuaikan filter dengan tanggal/jenis imunisasi yang ada di daftar.</p>
+            @else
+                <table class="data mt-2">
+                    <thead>
+                        <tr>
+                            <th class="col-no">No</th>
+                            <th class="col-nama">Nama Sasaran</th>
+                            <th class="col-kat">Kategori Sasaran</th>
+                            <th class="col-tgl">Tanggal</th>
+                            <th class="col-jenis">Jenis Imunisasi</th>
+                            <th class="col-tb">Tinggi (cm)</th>
+                            <th class="col-bb">Berat (kg)</th>
+                            <th class="col-td">Tekanan Darah</th>
+                            <th class="col-gd">Gula Darah</th>
+                            <th class="col-petugas">Petugas</th>
+                            <th class="col-ket">Keterangan</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach ($imunisasiList as $index => $imunisasi)
+                            @php
+                                $sasaran = $imunisasi->sasaran;
+                            @endphp
+                            <tr>
+                                <td class="text-center">{{ $index + 1 }}</td>
+                                <td>{{ $sasaran->nama_sasaran ?? '-' }}</td>
+                                <td class="text-center">{{ ucfirst($imunisasi->kategori_sasaran) }}</td>
+                                <td class="text-center">
+                                    {{ optional($imunisasi->tanggal_imunisasi)->format('d/m/Y') ?? '-' }}
+                                </td>
+                                <td>{{ $imunisasi->jenis_imunisasi }}</td>
+                                <td class="text-center">
+                                    {{ $imunisasi->tinggi_badan !== null ? (int) round((float) $imunisasi->tinggi_badan) : '-' }}
+                                </td>
+                                <td class="text-center">
+                                    {{ $imunisasi->berat_badan !== null ? number_format((float) $imunisasi->berat_badan, 1, ',', '') : '-' }}
+                                </td>
+                                <td class="text-center">
+                                    {{ $imunisasi->tekanan_darah ? $imunisasi->tekanan_darah.' mmHg' : '-' }}
+                                </td>
+                                <td class="text-center">
+                                    {{ !is_null($imunisasi->gula_darah) ? number_format($imunisasi->gula_darah, 0, ',', '.').' mg/dL' : '-' }}
+                                </td>
+                                <td>{{ $imunisasi->user->name ?? '-' }}</td>
+                                <td>{{ $imunisasi->keterangan ?? '-' }}</td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            @endif
+        </td>
+    </tr>
+</table>
 </body>
 </html>
-
-

@@ -78,7 +78,6 @@ class PosyanduDashboard extends Component
                 ->get();
 
             $kategoriSasaranList = $imunisasiData->pluck('kategori_sasaran')->unique()->sort()->values()->toArray();
-            $jenisVaksinList = $imunisasiData->pluck('jenis_imunisasi')->unique()->sort()->values()->toArray();
 
             // Optimasi: Ambil semua sasaran sekaligus untuk menghindari N+1
             $namaSasaranList = $this->getNamaSasaranFromImunisasi($imunisasiData);
@@ -115,7 +114,7 @@ class PosyanduDashboard extends Component
             ];
 
             return compact('totalKader', 'totalSasaran', 'sasaranByCategory', 'pendidikanData',
-                'kategoriSasaranList', 'jenisVaksinList', 'namaSasaranList', 'kategoriPendidikanList',
+                'kategoriSasaranList', 'namaSasaranList', 'kategoriPendidikanList',
                 'absenPetugas', 'statusKeluargaCount');
         });
 
