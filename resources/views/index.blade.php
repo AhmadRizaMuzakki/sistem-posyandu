@@ -875,17 +875,27 @@
                      @keydown.right.window="!isMobile && nextPage()"
                      @resize.window="checkMobile()">
                     <div class="absolute top-0 left-0 right-0 z-10 bg-gradient-to-b from-black/80 to-transparent p-4">
-                        <div class="max-w-6xl mx-auto flex items-center justify-between">
-                            <div class="text-white">
-                                <h2 class="text-lg md:text-xl font-bold" x-text="currentBook?.judul"></h2>
-                                <p class="text-xs md:text-sm text-white/70">
+                        <div class="max-w-6xl mx-auto flex items-center justify-between gap-3">
+                            <div class="text-white min-w-0 flex-1">
+                                <h2 class="text-lg md:text-xl font-bold truncate" x-text="currentBook?.judul"></h2>
+                                <p class="text-xs md:text-sm text-white/70 truncate">
                                     <span x-text="currentBook?.penulis"></span>
                                     <span x-show="currentBook?.isPdf" class="ml-2 px-2 py-0.5 bg-red-500/80 rounded text-xs">PDF</span>
                                 </p>
                             </div>
-                            <button @click="closeBook()" class="p-2 rounded-full bg-white/10 text-white hover:bg-white/20 transition">
-                                <i class="fa-solid fa-xmark text-xl md:text-2xl"></i>
-                            </button>
+                            <div class="flex items-center gap-2 shrink-0">
+                                <button x-show="isPdf && currentBook?.pdfUrl"
+                                        @click="downloadBook()"
+                                        type="button"
+                                        class="inline-flex items-center gap-1.5 px-3 py-2 rounded-full bg-primary hover:bg-primaryDark text-white text-xs sm:text-sm font-medium transition"
+                                        title="Unduh PDF">
+                                    <i class="fa-solid fa-download"></i>
+                                    <span class="hidden sm:inline">Unduh PDF</span>
+                                </button>
+                                <button @click="closeBook()" class="p-2 rounded-full bg-white/10 text-white hover:bg-white/20 transition">
+                                    <i class="fa-solid fa-xmark text-xl md:text-2xl"></i>
+                                </button>
+                            </div>
                         </div>
                     </div>
                     <div x-show="loading" class="h-full flex items-center justify-center pt-20">
@@ -894,7 +904,7 @@
                             <p>Memuat...</p>
                         </div>
                     </div>
-                    <div x-show="!loading && isMobile" x-cloak class="h-full overflow-y-auto pt-20 pb-4 px-4">
+                    <div x-show="!loading && isMobile" x-cloak class="h-full overflow-y-auto pt-20 pb-24 px-4">
                         <div x-show="isPdf" x-ref="mobileContainer" class="max-w-lg mx-auto space-y-4"></div>
                         <div x-show="!isPdf" class="max-w-lg mx-auto space-y-4">
                             <template x-for="(page, index) in pages" :key="index">
@@ -933,16 +943,35 @@
                     </div>
                     <div x-show="!loading && !isMobile" class="absolute bottom-0 left-0 right-0 z-10 bg-gradient-to-t from-black/80 to-transparent p-4">
                         <div class="max-w-6xl mx-auto">
-                            <div class="flex items-center justify-center gap-4 text-white">
-                                <span class="text-sm">Halaman</span>
+                            <div class="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 text-white">
                                 <div class="flex items-center gap-2">
+                                    <span class="text-sm">Halaman</span>
                                     <button @click="goToFirst()" class="px-2 py-1 text-sm hover:bg-white/20 rounded"><i class="fa-solid fa-backward-step"></i></button>
                                     <button @click="prevPage()" class="px-2 py-1 text-sm hover:bg-white/20 rounded"><i class="fa-solid fa-chevron-left"></i></button>
                                     <span class="px-4 py-1 bg-white/20 rounded-full text-sm font-medium"><span x-text="isPdf ? currentPage : currentPage + 1"></span> / <span x-text="isPdf ? totalPages : pages.length"></span></span>
                                     <button @click="nextPage()" class="px-2 py-1 text-sm hover:bg-white/20 rounded"><i class="fa-solid fa-chevron-right"></i></button>
                                     <button @click="goToLast()" class="px-2 py-1 text-sm hover:bg-white/20 rounded"><i class="fa-solid fa-forward-step"></i></button>
                                 </div>
+                                <button x-show="isPdf && currentBook?.pdfUrl"
+                                        @click="downloadBook()"
+                                        type="button"
+                                        class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary hover:bg-primaryDark text-sm font-medium transition">
+                                    <i class="fa-solid fa-download"></i>
+                                    Unduh PDF
+                                </button>
                             </div>
+                        </div>
+                    </div>
+                    <div x-show="!loading && isMobile && isPdf && currentBook?.pdfUrl"
+                         x-cloak
+                         class="fixed bottom-0 left-0 right-0 z-20 bg-gradient-to-t from-black/90 via-black/70 to-transparent p-4">
+                        <div class="max-w-lg mx-auto">
+                            <button @click="downloadBook()"
+                                    type="button"
+                                    class="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-primary hover:bg-primaryDark text-white font-medium transition shadow-lg">
+                                <i class="fa-solid fa-download"></i>
+                                Unduh PDF
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -1336,12 +1365,31 @@
                     else { if (this.currentPage > 0) { this.currentPage -= 2; if (this.currentPage < 0) this.currentPage = 0; } }
                 },
                 async goToFirst() { if (this.isPdf) { this.currentPage = 1; await this.renderPdfPages(); } else { this.currentPage = 0; } },
-                async goToLast() { if (this.isPdf) { this.currentPage = this.totalPages; await this.renderPdfPages(); } else { this.currentPage = Math.max(0, this.pages.length - 1); } }
+                async goToLast() { if (this.isPdf) { this.currentPage = this.totalPages; await this.renderPdfPages(); } else { this.currentPage = Math.max(0, this.pages.length - 1); } },
+                async downloadBook() {
+                    if (!this.currentBook?.pdfUrl) return;
+                    const fileName = ((this.currentBook.judul || 'buku').replace(/[\\/:*?"<>|]/g, '').trim() || 'buku') + '.pdf';
+                    try {
+                        const response = await fetch(this.currentBook.pdfUrl);
+                        if (!response.ok) throw new Error('Download failed');
+                        const blob = await response.blob();
+                        const url = URL.createObjectURL(blob);
+                        const link = document.createElement('a');
+                        link.href = url;
+                        link.download = fileName;
+                        document.body.appendChild(link);
+                        link.click();
+                        document.body.removeChild(link);
+                        URL.revokeObjectURL(url);
+                    } catch (e) {
+                        window.open(this.currentBook.pdfUrl, '_blank', 'noopener,noreferrer');
+                    }
+                }
             };
         }
     </script>
     @else
-    <script>function publicFlipbook(){return{showFlipbook:false,openBook(){},closeBook(){},checkMobile(){},nextPage(){},prevPage(){},goToFirst(){},goToLast(){}};}</script>
+    <script>function publicFlipbook(){return{showFlipbook:false,openBook(){},closeBook(){},checkMobile(){},nextPage(){},prevPage(){},goToFirst(){},goToLast(){},downloadBook(){}};}</script>
     @endif
 
 </body>
