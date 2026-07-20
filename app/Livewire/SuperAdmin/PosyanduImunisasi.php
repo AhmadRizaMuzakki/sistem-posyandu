@@ -12,10 +12,11 @@ use App\Models\SasaranPralansia;
 use App\Models\SasaranLansia;
 use Livewire\Component;
 use Livewire\Attributes\Layout;
+use Livewire\WithPagination;
 
 class PosyanduImunisasi extends Component
 {
-    use ImunisasiCrud;
+    use ImunisasiCrud, WithPagination;
 
     public $posyandu;
     public $posyanduId;
@@ -110,6 +111,11 @@ class PosyanduImunisasi extends Component
         return $results;
     }
 
+    public function updatedSearch()
+    {
+        $this->resetPage();
+    }
+
     public function render()
     {
         $daftarPosyandu = Posyandu::select('id_posyandu', 'nama_posyandu')->get();
@@ -141,7 +147,7 @@ class PosyanduImunisasi extends Component
             });
         }
 
-        $imunisasiList = $query->orderBy('tanggal_imunisasi', 'desc')->get();
+        $imunisasiList = $query->orderBy('tanggal_imunisasi', 'desc')->paginate(10);
 
         // Keterangan per kategori: X sasaran sudah imunisasi dari Y total sasaran (tanpa filter search)
         $kategoriConfig = [

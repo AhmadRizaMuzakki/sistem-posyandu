@@ -15,6 +15,7 @@ use App\Models\SasaranLansia;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
 use Livewire\Attributes\Layout;
+use Livewire\WithPagination;
 
 class KaderImunisasi extends Component
 {
@@ -23,7 +24,7 @@ class KaderImunisasi extends Component
         ImunisasiCrud::editImunisasi as traitEditImunisasi;
         ImunisasiCrud::deleteImunisasi as traitDeleteImunisasi;
     }
-    use PosyanduHelper, PosyanduCrudTrait, NotificationModal;
+    use PosyanduHelper, PosyanduCrudTrait, NotificationModal, WithPagination;
 
     public $search = '';
     public $filterKeteranganBulan = '';
@@ -172,6 +173,11 @@ class KaderImunisasi extends Component
         return $results;
     }
 
+    public function updatedSearch()
+    {
+        $this->resetPage();
+    }
+
     public function render()
     {
         // Ambil imunisasi hanya untuk posyandu kader ini dengan filter search
@@ -201,7 +207,7 @@ class KaderImunisasi extends Component
             });
         }
 
-        $imunisasiList = $query->orderBy('tanggal_imunisasi', 'desc')->get();
+        $imunisasiList = $query->orderBy('tanggal_imunisasi', 'desc')->paginate(10);
 
         // Keterangan per kategori: X sasaran sudah imunisasi dari Y total (tanpa filter search)
         $kategoriConfig = [

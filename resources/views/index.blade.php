@@ -1095,9 +1095,9 @@
                         <div class="w-10 h-10 bg-primary rounded-full flex items-center justify-center text-white text-lg">
                             <i class="fa-solid fa-heart-pulse"></i>
                         </div>
-                        <span class="font-bold text-xl text-white">{{ $posyandu ? $posyandu->nama_posyandu : 'Posyandu' }}</span>
+                        <span class="font-bold text-xl text-white">Posyandu Karanggan</span>
                     </div>
-                    <p class="text-slate-400 text-sm leading-relaxed mb-4">{{ $posyandu ? $posyandu->nama_posyandu : 'Posyandu' }} mengabdi untuk kesehatan masyarakat dengan pelayanan prima, profesional, dan sepenuh hati. Bersama mewujudkan generasi sehat dan produktif.</p>
+                    <p class="text-slate-400 text-sm leading-relaxed mb-4">Posyandu Karanggan mengabdi untuk kesehatan masyarakat dengan pelayanan prima, profesional, dan sepenuh hati. Bersama mewujudkan generasi sehat dan produktif.</p>
                     <div class="flex space-x-3">
                         <a href="#" class="w-9 h-9 rounded-full bg-slate-800 flex items-center justify-center text-slate-300 hover:bg-primary hover:text-white transition"><i class="fa-brands fa-instagram"></i></a>
                         <a href="#" class="w-9 h-9 rounded-full bg-slate-800 flex items-center justify-center text-slate-300 hover:bg-primary hover:text-white transition"><i class="fa-brands fa-facebook-f"></i></a>
@@ -1158,7 +1158,7 @@
             
             <div class="border-t border-slate-800 pt-8">
                 <div class="flex flex-col md:flex-row justify-between items-center gap-4">
-                    <p class="text-sm text-slate-400">&copy; {{ date('Y') }} {{ $posyandu ? $posyandu->nama_posyandu : 'Posyandu' }}. All rights reserved.</p>
+                    <p class="text-sm text-slate-400">&copy; {{ date('Y') }} Posyandu Karanggan. All rights reserved.</p>
                     <div class="flex gap-6 text-sm text-slate-400">
                         <a href="#" class="hover:text-primary transition">Kebijakan Privasi</a>
                         <a href="#" class="hover:text-primary transition">Syarat & Ketentuan</a>

@@ -25,7 +25,7 @@
         </div>
     </div>
 
-    @if($imunisasiList->count() > 0)
+    @if($imunisasiList->total() > 0)
         <div class="overflow-x-auto">
             <table class="min-w-full divide-y divide-gray-200">
                 <thead class="bg-gray-50">
@@ -49,8 +49,8 @@
                             $sasaran = $imunisasi->sasaran;
                             $sasaranNama = $sasaran ? $sasaran->nama_sasaran : 'Tidak ditemukan';
                         @endphp
-                        <tr class="hover:bg-gray-50">
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ $index + 1 }}</td>
+                                <tr class="hover:bg-gray-50">
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ $imunisasiList->firstItem() + $loop->index }}</td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ $sasaranNama }}</td>
                             <td class="px-6 py-4 whitespace-nowrap">
                                 <span class="px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800 capitalize">
@@ -110,14 +110,31 @@
                 </tbody>
             </table>
         </div>
+
+        @if($imunisasiList->hasPages())
+            <div class="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div class="text-xs sm:text-sm text-gray-500">
+                    Menampilkan {{ $imunisasiList->firstItem() }}
+                    sampai {{ $imunisasiList->lastItem() }}
+                    dari {{ $imunisasiList->total() }} data
+                </div>
+                <div>
+                    {{ $imunisasiList->links('vendor.pagination.tailwind') }}
+                </div>
+            </div>
+        @endif
     @else
         <div class="text-center py-12 text-gray-500">
             <i class="ph ph-syringe text-4xl mb-2"></i>
-            <p>Belum ada data imunisasi</p>
-            <button wire:click="openImunisasiModal" 
-                    class="mt-4 px-4 py-2 bg-primary text-white rounded-lg hover:bg-indigo-700 transition-colors">
-                Tambah Imunisasi Pertama
-            </button>
+            @if(!empty($search))
+                <p>Tidak ada data imunisasi yang cocok dengan pencarian</p>
+            @else
+                <p>Belum ada data imunisasi</p>
+                <button wire:click="openImunisasiModal" 
+                        class="mt-4 px-4 py-2 bg-primary text-white rounded-lg hover:bg-indigo-700 transition-colors">
+                    Tambah Imunisasi Pertama
+                </button>
+            @endif
         </div>
     @endif
 
