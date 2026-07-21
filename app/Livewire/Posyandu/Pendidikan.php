@@ -9,6 +9,7 @@ use App\Models\Pendidikan as PendidikanModel;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
 use Livewire\Attributes\Layout;
+use Livewire\WithPagination;
 
 class Pendidikan extends Component
 {
@@ -17,7 +18,7 @@ class Pendidikan extends Component
         PendidikanCrud::editPendidikan as traitEditPendidikan;
         PendidikanCrud::deletePendidikan as traitDeletePendidikan;
     }
-    use PosyanduHelper, PosyanduCrudTrait;
+    use PosyanduHelper, PosyanduCrudTrait, WithPagination;
 
     public $search = '';
 
@@ -72,9 +73,14 @@ class Pendidikan extends Component
         $this->initializePosyandu();
     }
 
+    public function updatedSearch()
+    {
+        $this->resetPage();
+    }
+
     public function render()
     {
-        $pendidikanList = $this->getPendidikanQuery($this->posyanduId)->get();
+        $pendidikanList = $this->getPendidikanQuery($this->posyanduId)->paginate(10);
 
         return view('livewire.posyandu.pendidikan', [
             'title' => 'Pendidikan - ' . $this->posyandu->nama_posyandu,

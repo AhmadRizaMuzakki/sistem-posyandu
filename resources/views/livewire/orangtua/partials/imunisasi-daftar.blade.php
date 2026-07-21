@@ -25,7 +25,7 @@
                 </h3>
                 <p class="text-sm text-gray-500 mt-2.5 leading-relaxed">
                     @if($hasData)
-                        Menampilkan {{ $tampilBaris ?? 0 }} dari {{ $totalBaris }} catatan
+                        Menampilkan {{ $riwayatFirstItem ?? 0 }}–{{ $riwayatLastItem ?? 0 }} dari {{ $totalBaris }} catatan
                         · {{ $imunisasiList->count() }} sasaran
                     @else
                         {{ $imunisasiList->count() }} sasaran · 0 catatan imunisasi
@@ -46,61 +46,55 @@
     {{-- Panel filter --}}
     @if(count($namaSasaranList ?? []) > 0)
         <div class="px-6 sm:px-8 py-5 sm:py-6 bg-gray-50/80 border-b border-gray-100">
-            <form method="GET" action="{{ route('orangtua.imunisasi') }}">
-                <div class="flex items-center gap-2 mb-4">
-                    <i class="ph ph-funnel text-primary text-base"></i>
-                    <span class="text-sm font-medium text-gray-700">Filter Riwayat Rekap</span>
+            <div class="flex items-center gap-2 mb-4">
+                <i class="ph ph-funnel text-primary text-base"></i>
+                <span class="text-sm font-medium text-gray-700">Filter Riwayat Rekap</span>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 sm:gap-5">
+                <div>
+                    <label for="filter-sasaran" class="block text-xs font-medium text-gray-500 mb-2">Nama Sasaran</label>
+                    <select id="filter-sasaran"
+                            wire:model.live="filterNama"
+                            class="w-full px-3 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm bg-white shadow-sm">
+                        <option value="">Semua sasaran</option>
+                        @foreach($namaSasaranList as $nama)
+                            <option value="{{ $nama }}">{{ $nama }}</option>
+                        @endforeach
+                    </select>
                 </div>
-                <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 sm:gap-5">
-                    <div>
-                        <label for="filter-sasaran" class="block text-xs font-medium text-gray-500 mb-2">Nama Sasaran</label>
-                        <select id="filter-sasaran"
-                                name="sasaran"
-                                onchange="this.form.submit()"
-                                class="w-full px-3 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm bg-white shadow-sm">
-                            <option value="">Semua sasaran</option>
-                            @foreach($namaSasaranList as $nama)
-                                <option value="{{ $nama }}" @selected(trim($filterNama ?? '') === trim($nama))>{{ $nama }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-                    <div>
-                        <label for="filter-bulan" class="block text-xs font-medium text-gray-500 mb-2">Bulan</label>
-                        <select id="filter-bulan"
-                                name="bulan"
-                                onchange="this.form.submit()"
-                                class="w-full px-3 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm bg-white shadow-sm">
-                            <option value="">Semua Bulan</option>
-                            @foreach(['1'=>'Januari','2'=>'Februari','3'=>'Maret','4'=>'April','5'=>'Mei','6'=>'Juni','7'=>'Juli','8'=>'Agustus','9'=>'September','10'=>'Oktober','11'=>'November','12'=>'Desember'] as $v => $l)
-                                <option value="{{ $v }}" @selected((string) ($filterBulan ?? '') === (string) $v)>{{ $l }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-                    <div>
-                        <label for="filter-tahun" class="block text-xs font-medium text-gray-500 mb-2">Tahun</label>
-                        <select id="filter-tahun"
-                                name="tahun"
-                                onchange="this.form.submit()"
-                                class="w-full px-3 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm bg-white shadow-sm">
-                            <option value="">Semua Tahun</option>
-                            @for($y = now()->year; $y >= now()->year - 5; $y--)
-                                <option value="{{ $y }}" @selected((string) ($filterTahun ?? '') === (string) $y)>{{ $y }}</option>
-                            @endfor
-                        </select>
-                    </div>
-                    <div>
-                        <label for="filter-limit" class="block text-xs font-medium text-gray-500 mb-2">Tampilkan</label>
-                        <select id="filter-limit"
-                                name="limit"
-                                onchange="this.form.submit()"
-                                class="w-full px-3 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm bg-white shadow-sm">
-                            @for($n = 1; $n <= 10; $n++)
-                                <option value="{{ $n }}" @selected((int) ($filterLimit ?? 10) === $n)>{{ $n }} baris</option>
-                            @endfor
-                        </select>
-                    </div>
+                <div>
+                    <label for="filter-bulan" class="block text-xs font-medium text-gray-500 mb-2">Bulan</label>
+                    <select id="filter-bulan"
+                            wire:model.live="filterBulan"
+                            class="w-full px-3 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm bg-white shadow-sm">
+                        <option value="">Semua Bulan</option>
+                        @foreach(['1'=>'Januari','2'=>'Februari','3'=>'Maret','4'=>'April','5'=>'Mei','6'=>'Juni','7'=>'Juli','8'=>'Agustus','9'=>'September','10'=>'Oktober','11'=>'November','12'=>'Desember'] as $v => $l)
+                            <option value="{{ $v }}">{{ $l }}</option>
+                        @endforeach
+                    </select>
                 </div>
-            </form>
+                <div>
+                    <label for="filter-tahun" class="block text-xs font-medium text-gray-500 mb-2">Tahun</label>
+                    <select id="filter-tahun"
+                            wire:model.live="filterTahun"
+                            class="w-full px-3 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm bg-white shadow-sm">
+                        <option value="">Semua Tahun</option>
+                        @for($y = now()->year; $y >= now()->year - 5; $y--)
+                            <option value="{{ $y }}">{{ $y }}</option>
+                        @endfor
+                    </select>
+                </div>
+                <div>
+                    <label for="filter-limit" class="block text-xs font-medium text-gray-500 mb-2">Per halaman</label>
+                    <select id="filter-limit"
+                            wire:model.live="filterLimit"
+                            class="w-full px-3 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm bg-white shadow-sm">
+                        @foreach([5, 10, 25, 50] as $n)
+                            <option value="{{ $n }}">{{ $n }} baris</option>
+                        @endforeach
+                    </select>
+                </div>
+            </div>
         </div>
     @endif
 
@@ -125,7 +119,7 @@
                     @foreach($riwayatRows as $index => $row)
                         @php $imunisasi = $row['imunisasi']; @endphp
                         <tr class="hover:bg-gray-50/80 transition-colors">
-                            <td class="px-5 py-5 whitespace-nowrap text-sm text-gray-500 align-middle">{{ $index + 1 }}</td>
+                            <td class="px-5 py-5 whitespace-nowrap text-sm text-gray-500 align-middle">{{ ($riwayatFirstItem ?? 1) + $loop->index }}</td>
                             <td class="px-5 py-5 whitespace-nowrap align-middle">
                                 <div class="text-sm font-medium text-gray-900 leading-relaxed">{{ $row['sasaran']['nama'] }}</div>
                                 <div class="text-xs text-gray-400 mt-1">NIK: {{ $row['sasaran']['nik'] ?? '-' }}</div>
@@ -178,10 +172,42 @@
             </table>
         </div>
 
-        @if(($tampilBaris ?? 0) < ($totalBaris ?? 0))
-            <div class="px-6 sm:px-8 py-4 sm:py-5 bg-gray-50 border-t border-gray-100 text-xs sm:text-sm text-gray-500 text-center leading-relaxed">
-                Menampilkan {{ $tampilBaris }} catatan terbaru dari total {{ $totalBaris }}.
-                Ubah filter <strong>Tampilkan</strong> untuk melihat lebih banyak.
+        @if(!empty($riwayatHasPages))
+            <div class="px-6 sm:px-8 py-4 sm:py-5 border-t border-gray-100 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <p class="text-xs sm:text-sm text-gray-500">
+                    Menampilkan
+                    <span class="font-medium text-gray-700">{{ $riwayatFirstItem }}</span>
+                    –
+                    <span class="font-medium text-gray-700">{{ $riwayatLastItem }}</span>
+                    dari
+                    <span class="font-medium text-gray-700">{{ $totalBaris }}</span>
+                    data
+                </p>
+                <div class="flex items-center gap-1.5 flex-wrap justify-center sm:justify-end">
+                    <button wire:click="previousRiwayatPage"
+                            @if(($riwayatCurrentPage ?? 1) <= 1) disabled @endif
+                            class="inline-flex items-center justify-center w-9 h-9 text-sm font-medium text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 hover:border-gray-300 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-white transition-colors"
+                            aria-label="Sebelumnya">
+                        <i class="ph ph-caret-left text-base"></i>
+                    </button>
+
+                    @for($page = max(1, ($riwayatCurrentPage ?? 1) - 2); $page <= min(($riwayatLastPage ?? 1), ($riwayatCurrentPage ?? 1) + 2); $page++)
+                        <button wire:click="gotoRiwayatPage({{ $page }})"
+                                class="inline-flex items-center justify-center min-w-[2.25rem] h-9 px-2.5 text-sm font-medium rounded-lg transition-colors
+                                {{ $page == ($riwayatCurrentPage ?? 1)
+                                    ? 'bg-primary text-white border border-primary shadow-sm'
+                                    : 'text-gray-700 bg-white border border-gray-200 hover:bg-gray-50 hover:border-gray-300' }}">
+                            {{ $page }}
+                        </button>
+                    @endfor
+
+                    <button wire:click="nextRiwayatPage"
+                            @if(($riwayatCurrentPage ?? 1) >= ($riwayatLastPage ?? 1)) disabled @endif
+                            class="inline-flex items-center justify-center w-9 h-9 text-sm font-medium text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 hover:border-gray-300 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-white transition-colors"
+                            aria-label="Berikutnya">
+                        <i class="ph ph-caret-right text-base"></i>
+                    </button>
+                </div>
             </div>
         @endif
     @else

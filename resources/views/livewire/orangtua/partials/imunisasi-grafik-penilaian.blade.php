@@ -68,6 +68,7 @@
                                         @include('livewire.orangtua.partials.penilaian-card', [
                                             'penilaian' => $sasaran['penilaian'],
                                             'namaSasaran' => $sasaran['nama'],
+                                            'tanggalLahir' => $sasaran['tanggal_lahir'] ?? null,
                                             'tanggalKunjungan' => trim(
                                                 ($sasaran['tanggal_imunisasi_terakhir'] ?? '') .
                                                 (!empty($sasaran['jenis_imunisasi_terakhir']) ? ' — ' . $sasaran['jenis_imunisasi_terakhir'] : '')

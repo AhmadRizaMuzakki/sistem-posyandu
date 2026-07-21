@@ -21,8 +21,6 @@ class PosyanduImunisasi extends Component
     public $posyandu;
     public $posyanduId;
     public $search = '';
-    public $filterKeteranganBulan = '';
-    public $filterKeteranganTahun = '';
 
     #[Layout('layouts.superadmindashboard')]
 
@@ -36,10 +34,6 @@ class PosyanduImunisasi extends Component
 
         $this->posyanduId = $decryptedId;
         $this->loadPosyandu();
-        if ($this->filterKeteranganBulan === '' && $this->filterKeteranganTahun === '') {
-            $this->filterKeteranganBulan = (string) date('n');
-            $this->filterKeteranganTahun = (string) date('Y');
-        }
     }
 
     /**
@@ -149,59 +143,14 @@ class PosyanduImunisasi extends Component
 
         $imunisasiList = $query->orderBy('tanggal_imunisasi', 'desc')->paginate(10);
 
-        // Keterangan per kategori: X sasaran sudah imunisasi dari Y total sasaran (tanpa filter search)
-        $kategoriConfig = [
-            'bayibalita' => ['label' => 'Bayi/Balita', 'model' => SasaranBayibalita::class, 'primaryKey' => 'id_sasaran_bayibalita'],
-            'remaja'     => ['label' => 'Remaja', 'model' => SasaranRemaja::class, 'primaryKey' => 'id_sasaran_remaja'],
-            'dewasa'     => ['label' => 'Dewasa', 'model' => SasaranDewasa::class, 'primaryKey' => 'id_sasaran_dewasa'],
-            'pralansia'  => ['label' => 'Pralansia', 'model' => SasaranPralansia::class, 'primaryKey' => 'id_sasaran_pralansia'],
-            'lansia'     => ['label' => 'Lansia', 'model' => SasaranLansia::class, 'primaryKey' => 'id_sasaran_lansia'],
-        ];
-        $imunisasiKeteranganPerKategori = collect();
-        $applyBulanTahun = $this->filterKeteranganBulan && $this->filterKeteranganTahun;
-        foreach ($kategoriConfig as $kategori => $config) {
-            $totalSasaran = $config['model']::where('id_posyandu', $this->posyanduId)->count();
-            $qSudah = Imunisasi::where('id_posyandu', $this->posyanduId)
-                ->where('kategori_sasaran', $kategori);
-            if ($applyBulanTahun) {
-                $qSudah->whereMonth('tanggal_imunisasi', $this->filterKeteranganBulan)
-                    ->whereYear('tanggal_imunisasi', $this->filterKeteranganTahun);
-            }
-            $sudahImunisasi = $qSudah->select('id_sasaran')
-                ->groupBy('id_sasaran')
-                ->get()
-                ->count();
-            $imunisasiKeteranganPerKategori->push([
-                'kategori' => $kategori,
-                'label' => $config['label'],
-                'sudah_imunisasi' => $sudahImunisasi,
-                'total_sasaran' => $totalSasaran,
-            ]);
-        }
-        $totalSemuaSasaran = $imunisasiKeteranganPerKategori->sum('total_sasaran');
-        $qTotal = Imunisasi::where('id_posyandu', $this->posyanduId);
-        if ($applyBulanTahun) {
-            $qTotal->whereMonth('tanggal_imunisasi', $this->filterKeteranganBulan)
-                ->whereYear('tanggal_imunisasi', $this->filterKeteranganTahun);
-        }
-        $totalSudahImunisasi = $qTotal->select('id_sasaran', 'kategori_sasaran')
-            ->groupBy('id_sasaran', 'kategori_sasaran')
-            ->get()
-            ->count();
-
         return view('livewire.super-admin.posyandu-imunisasi', [
             'title' => 'Imunisasi - ' . $this->posyandu->nama_posyandu,
             'daftarPosyandu' => $daftarPosyandu,
             'dataPosyandu' => $daftarPosyandu,
             'imunisasiList' => $imunisasiList,
-            'imunisasiKeteranganPerKategori' => $imunisasiKeteranganPerKategori,
-            'totalSemuaSasaran' => $totalSemuaSasaran,
-            'totalSudahImunisasi' => $totalSudahImunisasi,
             'isImunisasiModalOpen' => $this->isImunisasiModalOpen,
             'id_imunisasi' => $this->id_imunisasi,
             'petugasKesehatanList' => $this->getPetugasKesehatanList(),
-            'filterKeteranganBulan' => $this->filterKeteranganBulan,
-            'filterKeteranganTahun' => $this->filterKeteranganTahun,
         ]);
     }
 }

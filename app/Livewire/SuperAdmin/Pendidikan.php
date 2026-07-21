@@ -6,10 +6,11 @@ use App\Livewire\SuperAdmin\Traits\PendidikanCrud;
 use App\Models\Posyandu;
 use Livewire\Component;
 use Livewire\Attributes\Layout;
+use Livewire\WithPagination;
 
 class Pendidikan extends Component
 {
-    use PendidikanCrud;
+    use PendidikanCrud, WithPagination;
 
     public $posyandu;
     public $search = '';
@@ -61,6 +62,11 @@ class Pendidikan extends Component
         }
     }
 
+    public function updatedSearch()
+    {
+        $this->resetPage();
+    }
+
     /**
      * Render component
      * Data pendidikan diambil berdasarkan sasaran yang dipilih
@@ -70,7 +76,7 @@ class Pendidikan extends Component
     {
         // Query pendidikan berdasarkan posyandu (hanya sebagai filter)
         // Data pendidikan sendiri berasal dari sasaran yang dipilih saat input
-        $pendidikanList = $this->getPendidikanQuery($this->posyandu->id_posyandu)->get();
+        $pendidikanList = $this->getPendidikanQuery($this->posyandu->id_posyandu)->paginate(10);
 
         return view('livewire.super-admin.pendidikan', [
             'title' => 'Pendidikan - ' . $this->posyandu->nama_posyandu,

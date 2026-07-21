@@ -144,14 +144,40 @@
                 </div>
 
                 @if($imunisasiList->hasPages())
-                    <div class="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                        <div class="text-xs sm:text-sm text-gray-500">
-                            Menampilkan {{ $imunisasiList->firstItem() }}
-                            sampai {{ $imunisasiList->lastItem() }}
-                            dari {{ $imunisasiList->total() }} data
-                        </div>
-                        <div>
-                            {{ $imunisasiList->links('vendor.pagination.tailwind') }}
+                    <div class="mt-5 pt-4 border-t border-gray-100 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                        <p class="text-xs sm:text-sm text-gray-500">
+                            Menampilkan
+                            <span class="font-medium text-gray-700">{{ $imunisasiList->firstItem() }}</span>
+                            –
+                            <span class="font-medium text-gray-700">{{ $imunisasiList->lastItem() }}</span>
+                            dari
+                            <span class="font-medium text-gray-700">{{ $imunisasiList->total() }}</span>
+                            data
+                        </p>
+                        <div class="flex items-center gap-1.5 flex-wrap justify-center sm:justify-end">
+                            <button wire:click="previousPage"
+                                    @if($imunisasiList->onFirstPage()) disabled @endif
+                                    class="inline-flex items-center justify-center w-9 h-9 text-sm font-medium text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 hover:border-gray-300 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-white transition-colors"
+                                    aria-label="Sebelumnya">
+                                <i class="ph ph-caret-left text-base"></i>
+                            </button>
+
+                            @foreach($imunisasiList->getUrlRange(max(1, $imunisasiList->currentPage() - 2), min($imunisasiList->lastPage(), $imunisasiList->currentPage() + 2)) as $page => $url)
+                                <button wire:click="gotoPage({{ $page }})"
+                                        class="inline-flex items-center justify-center min-w-[2.25rem] h-9 px-2.5 text-sm font-medium rounded-lg transition-colors
+                                        {{ $page == $imunisasiList->currentPage()
+                                            ? 'bg-primary text-white border border-primary shadow-sm'
+                                            : 'text-gray-700 bg-white border border-gray-200 hover:bg-gray-50 hover:border-gray-300' }}">
+                                    {{ $page }}
+                                </button>
+                            @endforeach
+
+                            <button wire:click="nextPage"
+                                    @if(!$imunisasiList->hasMorePages()) disabled @endif
+                                    class="inline-flex items-center justify-center w-9 h-9 text-sm font-medium text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 hover:border-gray-300 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-white transition-colors"
+                                    aria-label="Berikutnya">
+                                <i class="ph ph-caret-right text-base"></i>
+                            </button>
                         </div>
                     </div>
                 @endif
@@ -168,107 +194,6 @@
                         </button>
                     @endif
                 </div>
-            @endif
-
-            {{-- Card Keterangan: per kategori X dari Y sasaran (di bawah tabel) --}}
-            @if(isset($imunisasiKeteranganPerKategori))
-            <div class="mt-5 pt-5 border-t border-gray-100">
-                {{-- Header dengan filter Bulan & Tahun --}}
-                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-3">
-                    <div class="flex items-center gap-2">
-                        <div class="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
-                            <i class="ph ph-chart-pie-slice text-primary text-sm"></i>
-                        </div>
-                        <div>
-                            <h3 class="text-sm font-bold text-gray-800">Keterangan Imunisasi</h3>
-                            <p class="text-xs text-gray-500">
-                                Per kategori
-                                @if(!empty($filterKeteranganBulan) && !empty($filterKeteranganTahun))
-                                    · {{ \Carbon\Carbon::create()->month((int) $filterKeteranganBulan)->translatedFormat('F') }} {{ $filterKeteranganTahun }}
-                                @else
-                                    · Semua waktu
-                                @endif
-                            </p>
-                        </div>
-                    </div>
-                    <div class="flex flex-wrap items-center gap-2">
-                        <select wire:model.live="filterKeteranganBulan" class="px-3 py-1.5 text-sm border border-gray-300 rounded-lg focus:ring-primary focus:border-primary">
-                            <option value="">Semua Bulan</option>
-                            @foreach(['1'=>'Januari','2'=>'Februari','3'=>'Maret','4'=>'April','5'=>'Mei','6'=>'Juni','7'=>'Juli','8'=>'Agustus','9'=>'September','10'=>'Oktober','11'=>'November','12'=>'Desember'] as $v => $l)
-                                <option value="{{ $v }}">{{ $l }}</option>
-                            @endforeach
-                        </select>
-                        <select wire:model.live="filterKeteranganTahun" class="px-3 py-1.5 text-sm border border-gray-300 rounded-lg focus:ring-primary focus:border-primary">
-                            <option value="">Semua Tahun</option>
-                            @for($y = date('Y'); $y >= date('Y') - 5; $y--)
-                                <option value="{{ $y }}">{{ $y }}</option>
-                            @endfor
-                        </select>
-                    </div>
-                </div>
-
-                {{-- Kartu per kategori --}}
-                <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 xl:grid-cols-6 gap-2">
-                    @php
-                        $kategoriStyles = [
-                            'bayibalita' => ['bar' => 'bg-amber-500', 'icon' => 'bg-amber-500/15', 'text' => 'text-amber-700', 'ph' => 'ph-baby'],
-                            'remaja'     => ['bar' => 'bg-violet-500', 'icon' => 'bg-violet-500/15', 'text' => 'text-violet-700', 'ph' => 'ph-person'],
-                            'dewasa'     => ['bar' => 'bg-emerald-500', 'icon' => 'bg-emerald-500/15', 'text' => 'text-emerald-700', 'ph' => 'ph-users-three'],
-                            'pralansia'  => ['bar' => 'bg-orange-500', 'icon' => 'bg-orange-500/15', 'text' => 'text-orange-700', 'ph' => 'ph-user-circle'],
-                            'lansia'     => ['bar' => 'bg-indigo-500', 'icon' => 'bg-indigo-500/15', 'text' => 'text-indigo-700', 'ph' => 'ph-user-gear'],
-                        ];
-                    @endphp
-                    @foreach($imunisasiKeteranganPerKategori as $row)
-                        @if($row['total_sasaran'] > 0)
-                        @php
-                            $c = $kategoriStyles[$row['kategori']] ?? ['bar' => 'bg-primary', 'icon' => 'bg-primary/15', 'text' => 'text-gray-700', 'ph' => 'ph-syringe'];
-                            $persen = $row['total_sasaran'] > 0 ? round(($row['sudah_imunisasi'] / $row['total_sasaran']) * 100) : 0;
-                        @endphp
-                        <div class="bg-white rounded-lg p-3 shadow-sm border border-gray-100 hover:shadow transition-shadow">
-                            <div class="flex items-center justify-between gap-2 mb-1.5">
-                                <div class="w-7 h-7 rounded-md {{ $c['icon'] }} flex items-center justify-center flex-shrink-0">
-                                    <i class="ph {{ $c['ph'] }} text-sm {{ $c['text'] }}"></i>
-                                </div>
-                                <span class="text-[10px] font-bold {{ $c['text'] }}">{{ $persen }}%</span>
-                            </div>
-                            <p class="text-[10px] font-semibold text-gray-400 uppercase tracking-wide">{{ $row['label'] }}</p>
-                            <p class="text-base font-bold text-gray-800 tabular-nums leading-tight">
-                                <span class="{{ $c['text'] }}">{{ $row['sudah_imunisasi'] }}</span><span class="text-gray-300">/</span><span class="text-gray-600">{{ $row['total_sasaran'] }}</span>
-                            </p>
-                            <div class="h-1 bg-gray-100 rounded-full overflow-hidden mt-1.5">
-                                <div class="h-full {{ $c['bar'] }} rounded-full transition-all duration-500" style="width: {{ min($persen, 100) }}%"></div>
-                            </div>
-                        </div>
-                        @endif
-                    @endforeach
-                </div>
-
-                {{-- Total ringkasan --}}
-                @php
-                    $totalPersen = $totalSemuaSasaran > 0 ? round(($totalSudahImunisasi / $totalSemuaSasaran) * 100) : 0;
-                @endphp
-                <div class="mt-3 px-3 py-2.5 rounded-lg bg-primary/5 border border-primary/10 flex flex-wrap items-center gap-3">
-                    <div class="w-8 h-8 rounded-lg bg-primary flex items-center justify-center flex-shrink-0">
-                        <i class="ph ph-clipboard-text text-white text-sm"></i>
-                    </div>
-                    <div>
-                        <p class="text-xs text-gray-500">Total</p>
-                        <p class="text-sm font-bold text-gray-800 tabular-nums">{{ $totalSudahImunisasi }} dari {{ $totalSemuaSasaran }} sasaran <span class="text-primary font-semibold">({{ $totalPersen }}%)</span></p>
-                    </div>
-                    <div class="flex-1 min-w-[80px] max-w-[120px]">
-                        <div class="h-1.5 bg-gray-200 rounded-full overflow-hidden">
-                            <div class="h-full bg-primary rounded-full transition-all duration-500" style="width: {{ $totalPersen }}%"></div>
-                        </div>
-                    </div>
-                    <span class="text-xs text-gray-400">
-                        @if(!empty($filterKeteranganBulan) && !empty($filterKeteranganTahun))
-                            {{ \Carbon\Carbon::create()->month((int) $filterKeteranganBulan)->translatedFormat('F') }} {{ $filterKeteranganTahun }}
-                        @else
-                            Semua waktu
-                        @endif
-                    </span>
-                </div>
-            </div>
             @endif
         </div>
 

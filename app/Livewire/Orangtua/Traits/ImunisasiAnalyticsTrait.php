@@ -226,6 +226,7 @@ trait ImunisasiAnalyticsTrait
                 'nama' => $sasaran['nama'],
                 'nik' => $sasaran['nik'],
                 'jenis_kelamin' => $sasaran['jenis_kelamin'],
+                'tanggal_lahir' => $tanggalLahir?->format('d/m/Y'),
                 'tanggal_imunisasi_terakhir' => $terakhir?->tanggal_imunisasi?->format('d/m/Y'),
                 'jenis_imunisasi_terakhir' => $terakhir?->jenis_imunisasi,
                 'total_imunisasi' => $records->count(),

@@ -32,7 +32,7 @@
 <body>
     <div style="padding: 0 10mm;">
     <div class="header">
-        <div class="title">Laporan Imunisasi (Orangtua)</div>
+        <div class="title">Laporan Imunisasi</div>
         <div class="subtitle">{{ $user->name ?? '-' }}</div>
     </div>
 

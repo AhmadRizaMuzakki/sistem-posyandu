@@ -25,7 +25,14 @@ class OrangtuaImunisasi extends Component
 
     public string $filterTahun = '';
 
+    /** Jumlah baris per halaman */
     public int $filterLimit = 10;
+
+    /** Halaman aktif tabel riwayat */
+    public int $riwayatPage = 1;
+
+    /** @var array<int> */
+    public array $limitOptions = [5, 10, 25, 50];
 
     public function mount(): void
     {
@@ -44,14 +51,66 @@ class OrangtuaImunisasi extends Component
         $this->filterTahun = is_string($tahun) || is_numeric($tahun) ? trim((string) $tahun) : '';
 
         $limit = request()->query('limit', 10);
-        $this->filterLimit = is_numeric($limit) && (int) $limit >= 1 && (int) $limit <= 10
+        $this->filterLimit = is_numeric($limit) && in_array((int) $limit, $this->limitOptions, true)
             ? (int) $limit
             : 10;
+
+        $page = request()->query('page', 1);
+        $this->riwayatPage = is_numeric($page) && (int) $page >= 1 ? (int) $page : 1;
+    }
+
+    public function updatedFilterNama(): void
+    {
+        $this->riwayatPage = 1;
+    }
+
+    public function updatedFilterBulan(): void
+    {
+        $this->riwayatPage = 1;
+    }
+
+    public function updatedFilterTahun(): void
+    {
+        $this->riwayatPage = 1;
+    }
+
+    public function updatedFilterLimit(): void
+    {
+        $this->filterLimit = (int) $this->filterLimit;
+        if (! in_array($this->filterLimit, $this->limitOptions, true)) {
+            $this->filterLimit = 10;
+        }
+        $this->riwayatPage = 1;
+    }
+
+    public function gotoRiwayatPage(int $page): void
+    {
+        $this->riwayatPage = max(1, $page);
+    }
+
+    public function previousRiwayatPage(): void
+    {
+        $this->riwayatPage = max(1, $this->riwayatPage - 1);
+    }
+
+    public function nextRiwayatPage(): void
+    {
+        $this->riwayatPage = max(1, $this->riwayatPage + 1);
     }
 
     /**
      * @param  \Illuminate\Support\Collection  $imunisasiList
-     * @return array{rows: \Illuminate\Support\Collection, totalBaris: int, tampilBaris: int}
+     * @return array{
+     *     rows: \Illuminate\Support\Collection,
+     *     totalBaris: int,
+     *     tampilBaris: int,
+     *     currentPage: int,
+     *     lastPage: int,
+     *     perPage: int,
+     *     firstItem: int,
+     *     lastItem: int,
+     *     hasPages: bool
+     * }
      */
     protected function buildRiwayatRows($imunisasiList): array
     {
@@ -68,12 +127,25 @@ class OrangtuaImunisasi extends Component
 
         $rows = $rows->sortByDesc(fn ($row) => $row['imunisasi']->tanggal_imunisasi)->values();
         $totalBaris = $rows->count();
-        $limitedRows = $rows->take($this->filterLimit)->values();
+        $perPage = max(1, $this->filterLimit);
+        $lastPage = max(1, (int) ceil($totalBaris / $perPage));
+        $currentPage = min(max(1, $this->riwayatPage), $lastPage);
+        $this->riwayatPage = $currentPage;
+
+        $paginatedRows = $rows->forPage($currentPage, $perPage)->values();
+        $firstItem = $totalBaris > 0 ? (($currentPage - 1) * $perPage) + 1 : 0;
+        $lastItem = $totalBaris > 0 ? min($currentPage * $perPage, $totalBaris) : 0;
 
         return [
-            'rows' => $limitedRows,
+            'rows' => $paginatedRows,
             'totalBaris' => $totalBaris,
-            'tampilBaris' => $limitedRows->count(),
+            'tampilBaris' => $paginatedRows->count(),
+            'currentPage' => $currentPage,
+            'lastPage' => $lastPage,
+            'perPage' => $perPage,
+            'firstItem' => $firstItem,
+            'lastItem' => $lastItem,
+            'hasPages' => $lastPage > 1,
         ];
     }
 
@@ -185,6 +257,11 @@ class OrangtuaImunisasi extends Component
             'riwayatRows' => $riwayat['rows'],
             'totalBaris' => $riwayat['totalBaris'],
             'tampilBaris' => $riwayat['tampilBaris'],
+            'riwayatCurrentPage' => $riwayat['currentPage'],
+            'riwayatLastPage' => $riwayat['lastPage'],
+            'riwayatFirstItem' => $riwayat['firstItem'],
+            'riwayatLastItem' => $riwayat['lastItem'],
+            'riwayatHasPages' => $riwayat['hasPages'],
             'allSasaran' => $data['allSasaran'],
             'namaSasaranList' => $data['namaSasaranList'],
             'filterAktif' => $filterAktif,
