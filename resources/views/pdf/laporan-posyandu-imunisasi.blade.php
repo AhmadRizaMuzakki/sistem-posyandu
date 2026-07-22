@@ -108,14 +108,14 @@
         .col-no { width: 3%; }
         .col-nama { width: 13%; }
         .col-kat { width: 8%; }
+        .col-umur { width: 6%; }
         .col-tgl { width: 8%; }
         .col-jenis { width: 12%; }
         .col-tb { width: 7%; }
         .col-bb { width: 7%; }
         .col-td { width: 10%; }
         .col-gd { width: 9%; }
-        .col-petugas { width: 10%; }
-        .col-ket { width: 13%; }
+        .col-ket { width: 17%; }
         .text-center { text-align: center; }
         .mt-2 { margin-top: 6px; }
         .mt-1 { margin-top: 4px; }
@@ -134,13 +134,20 @@
                 @endif
             </div>
 
+            @php
+                if (isset($posyandu) && method_exists($posyandu, 'loadMissing')) {
+                    $posyandu->loadMissing(['kader.user']);
+                }
+                $ketuaKader = collect($posyandu->kader ?? [])
+                    ->first(function ($kader) {
+                        return strcasecmp((string) ($kader->jabatan_kader ?? ''), 'Ketua') === 0;
+                    });
+                $petugasPosyanduLabel = $ketuaKader
+                    ? ($ketuaKader->nama_kader ?: ($ketuaKader->user->name ?? '-'))
+                    : '-';
+            @endphp
+
             <table class="meta-table">
-                <tr>
-                    <td class="meta-label">Dicetak oleh</td>
-                    <td>: {{ $user->name ?? '-' }}</td>
-                    <td class="meta-label">Tanggal Cetak</td>
-                    <td>: {{ Carbon::now('Asia/Jakarta')->format('d F Y H:i:s') }}</td>
-                </tr>
                 <tr>
                     <td class="meta-label">Total Data Imunisasi</td>
                     <td>: {{ $imunisasiList->count() }} data</td>
@@ -180,6 +187,18 @@
                     <td></td>
                 </tr>
                 @endif
+                <tr>
+                    <td class="meta-label">Tanggal Cetak</td>
+                    <td>: {{ Carbon::now('Asia/Jakarta')->format('d F Y H:i:s') }}</td>
+                    <td></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td class="meta-label">Dicetak oleh</td>
+                    <td>: {{ $user->name ?? '-' }}</td>
+                    <td class="meta-label">Petugas</td>
+                    <td>: {{ $petugasPosyanduLabel }}</td>
+                </tr>
             </table>
 
             <h3>Daftar Data Imunisasi</h3>
@@ -194,13 +213,13 @@
                             <th class="col-no">No</th>
                             <th class="col-nama">Nama Sasaran</th>
                             <th class="col-kat">Kategori Sasaran</th>
+                            <th class="col-umur">Umur</th>
                             <th class="col-tgl">Tanggal</th>
                             <th class="col-jenis">Jenis Imunisasi</th>
                             <th class="col-tb">Tinggi (cm)</th>
                             <th class="col-bb">Berat (kg)</th>
                             <th class="col-td">Tekanan Darah</th>
                             <th class="col-gd">Gula Darah</th>
-                            <th class="col-petugas">Petugas</th>
                             <th class="col-ket">Keterangan</th>
                         </tr>
                     </thead>
@@ -208,11 +227,24 @@
                         @foreach ($imunisasiList as $index => $imunisasi)
                             @php
                                 $sasaran = $imunisasi->sasaran;
+                                $umurLabel = '-';
+                                if ($sasaran && ! empty($sasaran->tanggal_lahir)) {
+                                    $dob = Carbon::parse($sasaran->tanggal_lahir);
+                                    $now = Carbon::now();
+                                    $totalMonths = (int) $dob->diffInMonths($now);
+                                    $umurLabel = $totalMonths >= 60
+                                        ? ((int) $dob->diffInYears($now)).' th'
+                                        : $totalMonths.' bln';
+                                } elseif ($sasaran && ! is_null($sasaran->umur_sasaran ?? null)) {
+                                    $umur = (int) $sasaran->umur_sasaran;
+                                    $umurLabel = $umur >= 5 ? $umur.' th' : ($umur * 12).' bln';
+                                }
                             @endphp
                             <tr>
                                 <td class="text-center">{{ $index + 1 }}</td>
                                 <td>{{ $sasaran->nama_sasaran ?? '-' }}</td>
                                 <td class="text-center">{{ ucfirst($imunisasi->kategori_sasaran) }}</td>
+                                <td class="text-center">{{ $umurLabel }}</td>
                                 <td class="text-center">
                                     {{ optional($imunisasi->tanggal_imunisasi)->format('d/m/Y') ?? '-' }}
                                 </td>
@@ -229,7 +261,6 @@
                                 <td class="text-center">
                                     {{ !is_null($imunisasi->gula_darah) ? number_format($imunisasi->gula_darah, 0, ',', '.').' mg/dL' : '-' }}
                                 </td>
-                                <td>{{ $imunisasi->user->name ?? '-' }}</td>
                                 <td>{{ $imunisasi->keterangan ?? '-' }}</td>
                             </tr>
                         @endforeach

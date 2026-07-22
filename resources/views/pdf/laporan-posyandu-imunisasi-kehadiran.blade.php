@@ -137,13 +137,20 @@
         @endif
     </div>
 
+    @php
+        if (isset($posyandu) && method_exists($posyandu, 'loadMissing')) {
+            $posyandu->loadMissing(['kader.user']);
+        }
+        $ketuaKader = collect($posyandu->kader ?? [])
+            ->first(function ($kader) {
+                return strcasecmp((string) ($kader->jabatan_kader ?? ''), 'Ketua') === 0;
+            });
+        $petugasPosyanduLabel = $ketuaKader
+            ? ($ketuaKader->nama_kader ?: ($ketuaKader->user->name ?? '-'))
+            : '-';
+    @endphp
+
     <table class="meta-table">
-        <tr>
-            <td class="meta-label">Dicetak oleh</td>
-            <td>: {{ $user->name ?? '-' }}</td>
-            <td class="meta-label">Tanggal Cetak</td>
-            <td>: {{ $generatedAt->format('d F Y H:i') }}</td>
-        </tr>
         <tr>
             <td class="meta-label">Periode</td>
             <td>: {{ $periodeLabel ?? '' }}</td>
@@ -161,8 +168,14 @@
         <tr>
             <td class="meta-label">Total Sasaran</td>
             <td>: {{ count($rows) }} orang</td>
-            <td></td>
-            <td></td>
+            <td class="meta-label">Tanggal Cetak</td>
+            <td>: {{ $generatedAt->format('d F Y H:i') }}</td>
+        </tr>
+        <tr>
+            <td class="meta-label">Dicetak oleh</td>
+            <td>: {{ $user->name ?? '-' }}</td>
+            <td class="meta-label">Petugas</td>
+            <td>: {{ $petugasPosyanduLabel }}</td>
         </tr>
     </table>
 
@@ -176,6 +189,7 @@
                 <tr>
                     @if (!empty($isGlobeReport))
                         <th>Nama Sasaran</th>
+                        <th>Tanggal Lahir</th>
                         <th>Kategori</th>
                         <th>Umur</th>
                         <th>Alamat</th>
@@ -183,6 +197,7 @@
                         <th>No</th>
                         <th>Nama Sasaran</th>
                         <th>Kategori</th>
+                        <th>Umur</th>
                         <th>Status Kehadiran</th>
                         <th>Tanggal Imunisasi</th>
                         <th>Jenis Imunisasi</th>
@@ -190,7 +205,7 @@
                         <th>Berat (kg)</th>
                         <th>Tekanan Darah</th>
                         <th>Gula Darah</th>
-                        <th>Petugas</th>
+                        <th>Keterangan</th>
                     @endif
                 </tr>
             </thead>
@@ -204,6 +219,13 @@
                     <tr>
                         @if (!empty($isGlobeReport))
                             <td>{{ $sasaran->nama_sasaran ?? '-' }}</td>
+                            <td class="text-center">
+                                @if (! empty($sasaran->tanggal_lahir))
+                                    {{ Carbon::parse($sasaran->tanggal_lahir)->format('d/m/Y') }}
+                                @else
+                                    -
+                                @endif
+                            </td>
                             <td class="text-center">{{ $row['kategori_label'] ?? $row['kategori_sasaran'] }}</td>
                             <td class="text-center">{{ $row['umur_label'] ?? '-' }}</td>
                             <td>{{ $sasaran->alamat_sasaran ?? '-' }}</td>
@@ -211,6 +233,7 @@
                         <td class="text-center">{{ $index + 1 }}</td>
                         <td>{{ $sasaran->nama_sasaran ?? '-' }}</td>
                         <td class="text-center">{{ $row['kategori_label'] ?? $row['kategori_sasaran'] }}</td>
+                        <td class="text-center">{{ $row['umur_label'] ?? '-' }}</td>
                         <td class="text-center">
                             @if ($status === 'hadir')
                                 <span class="badge-hadir">Hadir</span>
@@ -246,7 +269,7 @@
                         <td class="text-center">
                             {{ $imunisasi && ! is_null($imunisasi->gula_darah) ? number_format($imunisasi->gula_darah, 0, ',', '.').' mg/dL' : '-' }}
                         </td>
-                        <td>{{ $imunisasi && $imunisasi->user ? $imunisasi->user->name : '-' }}</td>
+                        <td>{{ $imunisasi ? ($imunisasi->keterangan ?? '-') : '-' }}</td>
                         @endif
                     </tr>
                 @endforeach

@@ -69,7 +69,7 @@ class OrangtuaExportController extends Controller
             'user' => $user,
             'generatedAt' => now('Asia/Jakarta'),
             'filterNama' => $filterNama,
-        ], $filename);
+        ], $filename, 'landscape');
     }
 
     private function resolveNoKk(): ?string

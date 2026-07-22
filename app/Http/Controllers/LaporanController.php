@@ -185,7 +185,7 @@ class LaporanController extends Controller
             'user' => $user,
             'generatedAt' => now('Asia/Jakarta'),
             'isGlobeReport' => $isGlobeReport,
-        ]), $fileName);
+        ]), $fileName, 'landscape');
     }
 
     /**
@@ -208,7 +208,7 @@ class LaporanController extends Controller
             'user' => Auth::user(),
             'generatedAt' => now('Asia/Jakarta'),
             'isGlobeReport' => $isGlobeReport,
-        ]), $fileName);
+        ]), $fileName, 'landscape');
     }
 
     /**
