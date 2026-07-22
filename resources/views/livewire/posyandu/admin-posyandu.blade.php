@@ -80,56 +80,58 @@
         </div>
 
         <!-- Card SK Posyandu -->
-        <div class="bg-white rounded-lg shadow-md p-4 sm:p-6 mb-6">
-            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
-                <h2 class="text-xl font-semibold text-gray-800 flex items-center">
+        <div class="bg-white rounded-lg shadow-md p-4 sm:p-6 mb-6 overflow-hidden">
+            <div class="flex flex-col gap-3 mb-4">
+                <h2 class="text-lg sm:text-xl font-semibold text-gray-800 flex items-center min-w-0">
                     <i class="ph ph-file-text text-2xl mr-3 text-primary shrink-0"></i>
-                    SK Posyandu
+                    <span class="break-words">SK Posyandu</span>
                 </h2>
-                <div class="flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center gap-2">
+                <div class="grid grid-cols-1 min-[400px]:grid-cols-2 sm:flex sm:flex-wrap gap-2">
                     <a 
                         href="{{ route('adminPosyandu.sk.pdf') }}"
                         target="_blank"
-                        class="px-4 py-2 text-sm bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center justify-center space-x-2 w-full sm:w-auto">
-                        <i class="ph ph-download text-sm"></i>
+                        class="px-4 py-2 text-sm bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center justify-center gap-1.5 whitespace-nowrap">
+                        <i class="ph ph-download text-sm shrink-0"></i>
                         <span>Download SK</span>
                     </a>
                     <button 
+                        type="button"
                         wire:click="$set('showUploadModal', true)"
-                        class="px-4 py-2 text-sm bg-primary text-white rounded-lg hover:bg-primary-dark transition-colors flex items-center justify-center space-x-2 w-full sm:w-auto">
-                        <i class="ph ph-upload text-sm"></i>
+                        class="px-4 py-2 text-sm bg-primary text-white rounded-lg hover:bg-primary-dark transition-colors flex items-center justify-center gap-1.5 whitespace-nowrap">
+                        <i class="ph ph-upload text-sm shrink-0"></i>
                         <span>Upload SK</span>
                     </button>
                     @if($posyandu->sk_posyandu)
                     <button 
+                        type="button"
                         wire:click="openConfirmModal('deleteSk', 'Apakah Anda yakin ingin menghapus file SK ini?')"
-                        class="px-4 py-2 text-sm bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors flex items-center justify-center space-x-2 w-full sm:w-auto">
-                        <i class="ph ph-trash text-sm"></i>
+                        class="px-4 py-2 text-sm bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors flex items-center justify-center gap-1.5 whitespace-nowrap min-[400px]:col-span-2 sm:col-span-1">
+                        <i class="ph ph-trash text-sm shrink-0"></i>
                         <span>Hapus SK</span>
                     </button>
                     @endif
                 </div>
             </div>
-            <div class="flex flex-col items-center justify-center py-6">
+            <div class="flex flex-col items-center justify-center py-4 sm:py-6">
                 @if($posyandu->sk_posyandu)
                     <div class="relative group w-full max-w-md">
-                        <div class="p-6 bg-gray-50 rounded-lg border-2 border-gray-200 hover:border-primary transition-colors">
-                            <div class="flex flex-col items-center space-y-3">
-                                <i class="ph ph-file-pdf text-6xl text-red-500"></i>
-                                <div class="text-center">
+                        <div class="p-4 sm:p-6 bg-gray-50 rounded-lg border-2 border-gray-200 hover:border-primary transition-colors">
+                            <div class="flex flex-col items-center space-y-3 min-w-0">
+                                <i class="ph ph-file-pdf text-5xl sm:text-6xl text-red-500"></i>
+                                <div class="text-center w-full min-w-0 px-1">
                                     <a href="{{ uploads_asset($posyandu->sk_posyandu) }}" target="_blank" 
-                                       class="text-primary hover:underline font-medium text-sm flex items-center justify-center space-x-2">
-                                        <i class="ph ph-eye text-lg"></i>
+                                       class="text-primary hover:underline font-medium text-sm inline-flex items-center justify-center gap-2">
+                                        <i class="ph ph-eye text-lg shrink-0"></i>
                                         <span>Lihat File SK</span>
                                     </a>
-                                    <p class="text-xs text-gray-500 mt-2">{{ basename($posyandu->sk_posyandu) }}</p>
+                                    <p class="text-xs text-gray-500 mt-2 break-all">{{ basename($posyandu->sk_posyandu) }}</p>
                                 </div>
                             </div>
                         </div>
                     </div>
                 @else
-                    <div class="w-full max-w-md p-6 bg-gray-100 rounded-lg border-2 border-dashed border-gray-300 flex flex-col items-center justify-center">
-                        <i class="ph ph-file-x text-6xl text-gray-400 mb-3"></i>
+                    <div class="w-full max-w-md p-4 sm:p-6 bg-gray-100 rounded-lg border-2 border-dashed border-gray-300 flex flex-col items-center justify-center">
+                        <i class="ph ph-file-x text-5xl sm:text-6xl text-gray-400 mb-3"></i>
                         <p class="text-sm text-gray-500 text-center px-4">Belum ada file SK posyandu</p>
                     </div>
                 @endif
@@ -137,16 +139,17 @@
         </div>
 
         <!-- Galeri Gambar Posyandu (tampil di halaman detail publik) -->
-        <div class="bg-white rounded-lg shadow-md p-4 sm:p-6 mb-6">
-            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
-                <h2 class="text-xl font-semibold text-gray-800 flex items-center">
+        <div class="bg-white rounded-lg shadow-md p-4 sm:p-6 mb-6 overflow-hidden">
+            <div class="flex flex-col gap-3 mb-4">
+                <h2 class="text-lg sm:text-xl font-semibold text-gray-800 flex items-center min-w-0">
                     <i class="ph ph-images text-2xl mr-3 text-primary shrink-0"></i>
-                    Gambar Posyandu
+                    <span class="break-words">Gambar Posyandu</span>
                 </h2>
                 <button 
+                    type="button"
                     wire:click="$set('showGambarModal', true)"
-                    class="px-4 py-2 text-sm bg-primary text-white rounded-lg hover:bg-primary-dark transition-colors flex items-center justify-center space-x-2 w-full sm:w-auto">
-                    <i class="ph ph-plus text-sm"></i>
+                    class="w-full sm:w-auto px-4 py-2 text-sm bg-primary text-white rounded-lg hover:bg-primary-dark transition-colors flex items-center justify-center gap-1.5 whitespace-nowrap self-stretch sm:self-start">
+                    <i class="ph ph-plus text-sm shrink-0"></i>
                     <span>Tambah Gambar</span>
                 </button>
             </div>
@@ -157,19 +160,20 @@
             @endphp
 
             @if($gambarList->count() > 0)
-                <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+                <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
                     @foreach($gambarList as $gambar)
                     <div class="relative group aspect-square rounded-lg overflow-hidden border border-gray-200 shadow-sm">
                         <img src="{{ uploads_asset($gambar->path) }}" 
                              alt="{{ $gambar->caption ?? 'Gambar Posyandu' }}" 
                              class="w-full h-full object-cover">
-                        {{-- Overlay actions --}}
-                        <div class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                        {{-- Overlay actions: selalu tampil di mobile (tanpa hover) --}}
+                        <div class="absolute inset-0 bg-black/50 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
                             <a href="{{ uploads_asset($gambar->path) }}" target="_blank" 
                                class="w-9 h-9 rounded-full bg-white text-gray-700 flex items-center justify-center hover:bg-primary hover:text-white transition-colors">
                                 <i class="ph ph-eye text-lg"></i>
                             </a>
-                            <button wire:click="deleteGambarPosyandu({{ $gambar->id }})"
+                            <button type="button"
+                                    wire:click="deleteGambarPosyandu({{ $gambar->id }})"
                                     wire:confirm="Hapus gambar ini?"
                                     class="w-9 h-9 rounded-full bg-white text-red-600 flex items-center justify-center hover:bg-red-600 hover:text-white transition-colors">
                                 <i class="ph ph-trash text-lg"></i>
@@ -184,10 +188,10 @@
                     @endforeach
                 </div>
             @else
-                <div class="w-full p-8 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300 flex flex-col items-center justify-center">
-                    <i class="ph ph-images text-6xl text-gray-400 mb-3"></i>
+                <div class="w-full p-6 sm:p-8 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300 flex flex-col items-center justify-center">
+                    <i class="ph ph-images text-5xl sm:text-6xl text-gray-400 mb-3"></i>
                     <p class="text-sm text-gray-500 text-center">Belum ada gambar posyandu.</p>
-                    <p class="text-xs text-gray-400 mt-1">Klik "Tambah Gambar" untuk mengunggah foto.</p>
+                    <p class="text-xs text-gray-400 mt-1 text-center px-2">Klik "Tambah Gambar" untuk mengunggah foto.</p>
                 </div>
             @endif
         </div>
