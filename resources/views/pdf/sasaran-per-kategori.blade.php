@@ -14,11 +14,12 @@
     <title>Laporan Sasaran {{ $kategoriLabel }} - {{ $posyandu->nama_posyandu }}</title>
     <style>
         @page {
-            margin: 15mm 20mm;
+            size: A4 landscape;
+            margin: 8mm 6mm;
         }
         * {
             font-family: DejaVu Sans, Arial, sans-serif;
-            font-size: 11px;
+            font-size: 8px;
         }
         body {
             margin: 0;
@@ -30,37 +31,43 @@
         }
         .header {
             text-align: center;
-            margin-bottom: 16px;
+            margin-bottom: 10px;
         }
         .title {
-            font-size: 18px;
+            font-size: 14px;
             font-weight: bold;
             text-transform: uppercase;
         }
         .subtitle {
-            font-size: 13px;
-            margin-top: 4px;
+            font-size: 10px;
+            margin-top: 3px;
         }
         .small {
-            font-size: 10px;
+            font-size: 8px;
         }
         .meta-table {
             width: 100%;
             border-collapse: collapse;
-            margin-bottom: 16px;
+            margin-bottom: 10px;
         }
         .meta-table td {
-            padding: 4px 6px;
+            padding: 3px 5px;
             vertical-align: top;
+            font-size: 8px;
         }
         .meta-label {
-            width: 130px;
+            width: 110px;
             font-weight: bold;
+        }
+        h3 {
+            font-size: 10px;
+            margin-bottom: 4px;
         }
         table.data {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 8px;
+            margin-top: 4px;
+            table-layout: fixed;
             page-break-inside: auto;
         }
         table.data thead {
@@ -76,31 +83,75 @@
         table.data th,
         table.data td {
             border: 1px solid #d1d5db;
-            padding: 4px 6px;
+            padding: 3pt 3pt 3pt 3pt;
             word-wrap: break-word;
+            overflow-wrap: break-word;
             white-space: normal;
-        }
-        table.data .col-alamat {
-            width: 120px;
-            max-width: 120px;
-            word-break: break-all;
+            vertical-align: top;
+            font-size: 7px;
+            line-height: 1.35;
         }
         table.data th {
             background: #f3f4f6;
             font-weight: bold;
             text-align: center;
+            font-size: 7px;
         }
-        table.data td {
-            font-size: 10px;
+        table.data .col-no {
+            width: 3%;
         }
+        table.data .col-nik {
+            width: 9%;
+        }
+        table.data .col-nama {
+            width: 10%;
+        }
+        table.data .col-tgl {
+            width: 6%;
+        }
+        table.data .col-jk {
+            width: 6%;
+        }
+        table.data .col-umur {
+            width: 4%;
+        }
+        table.data .col-pendidikan {
+            width: 8%;
+        }
+        table.data .col-alamat {
+            width: 11%;
+            word-break: break-word;
+        }
+        table.data .col-bpjs {
+            width: 6%;
+        }
+        table.data .col-telp {
+            width: 7%;
+        }
+
+        /* Remaja: 14 kolom — lebar disesuaikan agar Pendidikan tidak terhimpit */
+        body.kategori-remaja table.data th,
+        body.kategori-remaja table.data td {
+            font-size: 6.5px;
+        }
+        body.kategori-remaja table.data .col-no { width: 2.5%; }
+        body.kategori-remaja table.data .col-nik { width: 7.5%; }
+        body.kategori-remaja table.data .col-nama { width: 8%; }
+        body.kategori-remaja table.data .col-tgl { width: 5%; }
+        body.kategori-remaja table.data .col-jk { width: 5.5%; }
+        body.kategori-remaja table.data .col-umur { width: 3.5%; }
+        body.kategori-remaja table.data .col-pendidikan { width: 7.5%; }
+        body.kategori-remaja table.data .col-alamat { width: 9%; }
+        body.kategori-remaja table.data .col-bpjs { width: 5.5%; }
+        body.kategori-remaja table.data .col-telp { width: 6%; }
+
         .text-center {
             text-align: center;
         }
-        .mt-2 { margin-top: 8px; }
+        .mt-2 { margin-top: 6px; }
     </style>
 </head>
-<body>
-    <div style="padding: 0 10mm;">
+<body class="kategori-{{ $kategori }}">
     <div class="header">
         <div class="title">Laporan Sasaran {{ $kategoriLabel }}</div>
         <div class="subtitle">{{ $posyandu->nama_posyandu }}</div>
@@ -132,42 +183,42 @@
         <table class="data mt-2">
             <thead>
                 <tr>
-                    <th>No</th>
-                    <th>NIK</th>
-                    <th>No KK</th>
-                    <th>Nama</th>
-                    <th>Tanggal Lahir</th>
-                    <th>Jenis Kelamin</th>
-                    <th>Umur</th>
+                    <th class="col-no">No</th>
+                    <th class="col-nik">NIK</th>
+                    <th class="col-nik">No KK</th>
+                    <th class="col-nama">Nama</th>
+                    <th class="col-tgl">Tgl Lahir</th>
+                    <th class="col-jk">Jenis Kelamin</th>
+                    <th class="col-umur">Umur</th>
 
                     @if ($showPendidikan)
-                        <th>Pendidikan</th>
+                        <th class="col-pendidikan">Pendidikan</th>
                     @endif
 
                     @if ($isDetailed)
                         <th class="col-alamat">Alamat</th>
-                        <th>Kepersertaan BPJS</th>
-                        <th>Nomor BPJS</th>
-                        <th>Nomor Telepon</th>
-                        <th>NIK Orang Tua</th>
-                        <th>Nama Orang Tua</th>
+                        <th class="col-bpjs">Kepesertaan BPJS</th>
+                        <th class="col-nik">Nomor BPJS</th>
+                        <th class="col-telp">No. Telepon</th>
+                        <th class="col-nik">NIK Orang Tua</th>
+                        <th class="col-nama">Nama Orang Tua</th>
                     @elseif (! $isIbuHamil)
                         <th class="col-alamat">Alamat</th>
-                        <th>Kepersertaan BPJS</th>
-                        <th>Nomor BPJS</th>
-                        <th>Nomor Telepon</th>
+                        <th class="col-bpjs">Kepesertaan BPJS</th>
+                        <th class="col-nik">Nomor BPJS</th>
+                        <th class="col-telp">No. Telepon</th>
                     @endif
 
                     @if ($isIbuHamil)
                         <th>Pekerjaan</th>
                         <th class="col-alamat">Alamat</th>
-                        <th>RT</th>
-                        <th>RW</th>
-                        <th>Nama Suami</th>
-                        <th>NIK Suami</th>
+                        <th class="col-umur">RT</th>
+                        <th class="col-umur">RW</th>
+                        <th class="col-nama">Nama Suami</th>
+                        <th class="col-nik">NIK Suami</th>
                         <th>Pekerjaan Suami</th>
-                        <th>Kepersertaan BPJS</th>
-                        <th>Nomor Telepon</th>
+                        <th class="col-bpjs">Kepesertaan BPJS</th>
+                        <th class="col-telp">No. Telepon</th>
                     @endif
                 </tr>
             </thead>
@@ -208,12 +259,12 @@
                         </td>
 
                         @if ($showPendidikan)
-                            <td>{{ $item->pendidikan ?? '-' }}</td>
+                            <td class="col-pendidikan">{{ $item->pendidikan ?? '-' }}</td>
                         @endif
 
                         @if ($isDetailed)
                             <td class="col-alamat">{{ $item->alamat_sasaran ?? '-' }}</td>
-                            <td>
+                            <td class="text-center">
                                 @if (! empty($item->kepersertaan_bpjs))
                                     {{ $item->kepersertaan_bpjs }}
                                 @else
@@ -226,7 +277,7 @@
                             <td>{{ $item->orangtua->nama ?? '-' }}</td>
                         @elseif (! $isIbuHamil)
                             <td class="col-alamat">{{ $item->alamat_sasaran ?? '-' }}</td>
-                            <td>
+                            <td class="text-center">
                                 @if (! empty($item->kepersertaan_bpjs))
                                     {{ $item->kepersertaan_bpjs }}
                                 @else
@@ -245,7 +296,7 @@
                             <td>{{ $item->nama_suami ?? '-' }}</td>
                             <td>{{ $item->nik_suami ?? '-' }}</td>
                             <td>{{ $item->pekerjaan_suami ?? '-' }}</td>
-                            <td>
+                            <td class="text-center">
                                 @if (! empty($item->kepersertaan_bpjs))
                                     {{ $item->kepersertaan_bpjs }}
                                 @else
@@ -259,8 +310,5 @@
             </tbody>
         </table>
     @endif
-    </div>
 </body>
 </html>
-
-
