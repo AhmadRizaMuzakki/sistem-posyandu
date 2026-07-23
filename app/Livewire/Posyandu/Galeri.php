@@ -22,14 +22,23 @@ class Galeri extends Component
     public $fotoFiles = [];
     public $caption = '';
     public $showUploadModal = false;
+    public $editingId = null;
+    public $editingPreviewPath = null;
 
     protected function rules()
     {
-        return array_merge([
-            'fotoFiles' => 'required',
-            'fotoFiles.*' => 'image|max:2048',
+        $rules = array_merge([
             'caption' => 'nullable|string|max:255',
         ], $this->galeriTanggalRules());
+
+        if ($this->editingId) {
+            return $rules;
+        }
+
+        return array_merge($rules, [
+            'fotoFiles' => 'required',
+            'fotoFiles.*' => 'image|max:2048',
+        ]);
     }
 
     protected function messages()
@@ -48,39 +57,64 @@ class Galeri extends Component
 
     public function openUploadModal()
     {
-        $this->reset(['fotoFiles', 'caption']);
+        $this->reset(['fotoFiles', 'caption', 'editingId', 'editingPreviewPath']);
         $this->resetGaleriTanggalFields();
+        $this->showUploadModal = true;
+    }
+
+    public function openEditModal($id)
+    {
+        $id = filter_var($id, FILTER_VALIDATE_INT);
+        if ($id === false) {
+            abort(404);
+        }
+
+        $galeri = GaleriModel::where('id_posyandu', $this->posyanduId)->findOrFail($id);
+        $this->editingId = $galeri->id;
+        $this->editingPreviewPath = $galeri->path;
+        $this->caption = $galeri->caption ?? '';
+        $this->tanggal_foto = $galeri->tanggal_foto
+            ? $galeri->tanggal_foto->format('Y-m-d')
+            : '';
+        $this->fotoFiles = [];
         $this->showUploadModal = true;
     }
 
     public function closeUploadModal()
     {
         $this->showUploadModal = false;
-        $this->reset(['fotoFiles', 'caption']);
+        $this->reset(['fotoFiles', 'caption', 'editingId', 'editingPreviewPath']);
         $this->resetGaleriTanggalFields();
     }
 
     public function saveFoto()
     {
+        if ($this->editingId) {
+            $this->updateFoto();
+
+            return;
+        }
+
         $this->validate();
         $tanggalFoto = $this->resolveTanggalFoto();
         $caption = $this->caption ?: null;
         $dir = uploads_base_path('uploads/galeri');
-        if (!File::isDirectory($dir)) {
+        if (! File::isDirectory($dir)) {
             File::makeDirectory($dir, 0755, true);
         }
         $allowedImageMimes = ['image/jpeg' => 'jpg', 'image/pjpeg' => 'jpg', 'image/png' => 'png', 'image/gif' => 'gif', 'image/webp' => 'webp'];
         $saved = 0;
         foreach ($this->fotoFiles as $file) {
             $ext = safe_upload_extension($file, $allowedImageMimes) ?? 'jpg';
-            $safeName = 'galeri_' . $this->posyanduId . '_' . Str::random(8) . '.' . $ext;
-            $destFile = $dir . DIRECTORY_SEPARATOR . $safeName;
-            if (!File::copy($file->getRealPath(), $destFile)) {
+            $safeName = 'galeri_'.$this->posyanduId.'_'.Str::random(8).'.'.$ext;
+            $destFile = $dir.DIRECTORY_SEPARATOR.$safeName;
+            if (! File::copy($file->getRealPath(), $destFile)) {
                 session()->flash('messageType', 'error');
-                session()->flash('message', 'Gagal menyimpan file ke ' . $dir);
+                session()->flash('message', 'Gagal menyimpan file ke '.$dir);
+
                 return;
             }
-            $path = 'galeri/' . $safeName;
+            $path = 'galeri/'.$safeName;
             GaleriModel::create([
                 'path' => $path,
                 'caption' => $caption,
@@ -91,6 +125,20 @@ class Galeri extends Component
         }
         $this->closeUploadModal();
         session()->flash('message', $saved > 1 ? "{$saved} foto berhasil ditambahkan." : 'Foto berhasil ditambahkan.');
+    }
+
+    public function updateFoto()
+    {
+        $this->validate();
+
+        $galeri = GaleriModel::where('id_posyandu', $this->posyanduId)->findOrFail($this->editingId);
+        $galeri->update([
+            'caption' => $this->caption ?: null,
+            'tanggal_foto' => $this->resolveTanggalFoto(),
+        ]);
+
+        $this->closeUploadModal();
+        session()->flash('message', 'Data foto berhasil diperbarui.');
     }
 
     public function deleteFoto($id)
@@ -111,9 +159,10 @@ class Galeri extends Component
     public function render()
     {
         $items = GaleriModel::where('id_posyandu', $this->posyanduId)->latest()->paginate(24);
+
         return view('livewire.posyandu.galeri', [
             'items' => $items,
-            'title' => 'Galeri - ' . $this->posyandu->nama_posyandu,
+            'title' => 'Galeri - '.$this->posyandu->nama_posyandu,
         ]);
     }
 }

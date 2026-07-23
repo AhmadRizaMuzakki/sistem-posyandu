@@ -1,26 +1,37 @@
-{{-- Urutan: Foto → Tanggal → Keterangan --}}
+{{-- Urutan: Foto → Tanggal → Nama Kegiatan (caption/deskripsi) --}}
+@php
+    $isEditing = !empty($editingId ?? null);
+@endphp
 <div class="space-y-4">
-    <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">Foto <span class="text-red-500">*</span> (bisa pilih banyak)</label>
-        <div x-data="{ dragging: false }"
-             @dragover.prevent="dragging = true"
-             @dragleave.prevent="dragging = false"
-             @drop.prevent="dragging = false; $refs.fileInput.files = $event.dataTransfer.files; $refs.fileInput.dispatchEvent(new Event('change', { bubbles: true }))"
-             class="relative border-2 border-dashed rounded-xl p-8 text-center transition-colors cursor-pointer aspect-square max-w-md mx-auto flex items-center justify-center"
-             :class="dragging ? 'border-primary bg-primary/10' : 'border-gray-300 hover:border-primary/50 hover:bg-gray-50'">
-            <input type="file" x-ref="fileInput" wire:model="fotoFiles" accept="image/*" multiple class="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
-            <div class="pointer-events-none">
-                <i class="ph ph-cloud-arrow-up text-5xl text-gray-400 mb-3 block"></i>
-                <p class="text-sm text-gray-600">Drag & drop foto di sini atau <span class="text-primary font-medium">klik untuk memilih</span></p>
-                <p class="text-xs text-gray-400 mt-1">JPG, PNG, GIF, WebP • Maks. 2 MB per foto • Bisa banyak sekaligus</p>
-            </div>
+    @if($isEditing)
+        <div class="rounded-lg overflow-hidden border border-gray-200 bg-gray-50">
+            <img src="{{ uploads_asset($editingPreviewPath) }}" alt="Preview foto"
+                 class="w-full max-h-48 object-contain bg-white">
         </div>
-        @if(!empty($fotoFiles) && count($fotoFiles) > 0)
-            <p class="mt-2 text-sm text-primary font-medium"><i class="ph ph-check-circle mr-1"></i> {{ count($fotoFiles) }} foto dipilih</p>
-        @endif
-        @error('fotoFiles') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
-        @error('fotoFiles.*') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
-    </div>
+        <p class="text-xs text-gray-500">Foto tidak diganti. Hanya nama kegiatan dan tanggal yang diubah.</p>
+    @else
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Foto <span class="text-red-500">*</span> (bisa pilih banyak)</label>
+            <div x-data="{ dragging: false }"
+                 @dragover.prevent="dragging = true"
+                 @dragleave.prevent="dragging = false"
+                 @drop.prevent="dragging = false; $refs.fileInput.files = $event.dataTransfer.files; $refs.fileInput.dispatchEvent(new Event('change', { bubbles: true }))"
+                 class="relative border-2 border-dashed rounded-xl p-8 text-center transition-colors cursor-pointer aspect-square max-w-md mx-auto flex items-center justify-center"
+                 :class="dragging ? 'border-primary bg-primary/10' : 'border-gray-300 hover:border-primary/50 hover:bg-gray-50'">
+                <input type="file" x-ref="fileInput" wire:model="fotoFiles" accept="image/*" multiple class="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
+                <div class="pointer-events-none">
+                    <i class="ph ph-cloud-arrow-up text-5xl text-gray-400 mb-3 block"></i>
+                    <p class="text-sm text-gray-600">Drag & drop foto di sini atau <span class="text-primary font-medium">klik untuk memilih</span></p>
+                    <p class="text-xs text-gray-400 mt-1">JPG, PNG, GIF, WebP • Maks. 2 MB per foto • Bisa banyak sekaligus</p>
+                </div>
+            </div>
+            @if(!empty($fotoFiles) && count($fotoFiles) > 0)
+                <p class="mt-2 text-sm text-primary font-medium"><i class="ph ph-check-circle mr-1"></i> {{ count($fotoFiles) }} foto dipilih</p>
+            @endif
+            @error('fotoFiles') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
+            @error('fotoFiles.*') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
+        </div>
+    @endif
 
     <div>
         <label class="block text-sm font-medium text-gray-700 mb-1">
@@ -54,8 +65,8 @@
     </div>
 
     <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">Keterangan (opsional)</label>
-        <input type="text" wire:model="caption" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-primary focus:border-primary" placeholder="Deskripsi foto">
+        <label class="block text-sm font-medium text-gray-700 mb-1">Nama Kegiatan / Deskripsi</label>
+        <input type="text" wire:model="caption" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-primary focus:border-primary" placeholder="Contoh: Imunisasi bayi Juli 2026">
         @error('caption') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
     </div>
 </div>

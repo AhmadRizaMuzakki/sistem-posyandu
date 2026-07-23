@@ -19,14 +19,23 @@ class Galeri extends Component
     public $fotoFiles = [];
     public $caption = '';
     public $showUploadModal = false;
+    public $editingId = null;
+    public $editingPreviewPath = null;
 
     protected function rules()
     {
-        return [
-            'fotoFiles' => 'required',
-            'fotoFiles.*' => 'image|max:2048',
+        $rules = [
             'caption' => 'nullable|string|max:255',
         ];
+
+        if ($this->editingId) {
+            return $rules;
+        }
+
+        return array_merge($rules, [
+            'fotoFiles' => 'required',
+            'fotoFiles.*' => 'image|max:2048',
+        ]);
     }
 
     protected function messages()
@@ -40,18 +49,39 @@ class Galeri extends Component
 
     public function openUploadModal()
     {
-        $this->reset(['fotoFiles', 'caption']);
+        $this->reset(['fotoFiles', 'caption', 'editingId', 'editingPreviewPath']);
+        $this->showUploadModal = true;
+    }
+
+    public function openEditModal($id)
+    {
+        $id = filter_var($id, FILTER_VALIDATE_INT);
+        if ($id === false) {
+            abort(404);
+        }
+
+        $galeri = GaleriModel::findOrFail($id);
+        $this->editingId = $galeri->id;
+        $this->editingPreviewPath = $galeri->path;
+        $this->caption = $galeri->caption ?? '';
+        $this->fotoFiles = [];
         $this->showUploadModal = true;
     }
 
     public function closeUploadModal()
     {
         $this->showUploadModal = false;
-        $this->reset(['fotoFiles', 'caption']);
+        $this->reset(['fotoFiles', 'caption', 'editingId', 'editingPreviewPath']);
     }
 
     public function saveFoto()
     {
+        if ($this->editingId) {
+            $this->updateFoto();
+
+            return;
+        }
+
         $this->validate();
         $caption = $this->caption ?: null;
         $dir = uploads_base_path('uploads/galeri');
@@ -99,6 +129,19 @@ class Galeri extends Component
         }
         $this->closeUploadModal();
         session()->flash('message', $saved > 1 ? "{$saved} foto berhasil ditambahkan." : 'Foto berhasil ditambahkan.');
+    }
+
+    public function updateFoto()
+    {
+        $this->validate();
+
+        $galeri = GaleriModel::findOrFail($this->editingId);
+        $galeri->update([
+            'caption' => $this->caption ?: null,
+        ]);
+
+        $this->closeUploadModal();
+        session()->flash('message', 'Data foto berhasil diperbarui.');
     }
 
     public function deleteFoto($id)

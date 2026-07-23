@@ -67,7 +67,7 @@
             padding: 4px;
             background: #fafafa;
             width: 100%;
-            height: 180px;
+            height: 240px;
             overflow: hidden;
             box-sizing: border-box;
             text-align: center;
@@ -76,7 +76,7 @@
             display: block;
             margin: 0 auto;
             max-width: 100%;
-            max-height: 168px;
+            max-height: 228px;
             width: auto;
             height: auto;
             object-fit: contain;
@@ -87,17 +87,6 @@
             margin-top: 6px;
             color: #111827;
             line-height: 1.3;
-        }
-        .galeri-date {
-            font-size: 9px;
-            margin-top: 3px;
-            color: #4b5563;
-        }
-        .footer {
-            margin-top: 20px;
-            text-align: right;
-            font-size: 10px;
-            color: #6b7280;
         }
     </style>
 </head>
@@ -152,8 +141,7 @@
                         <div class="galeri-img-wrap">
                             <img src="{{ $foto['data_uri'] }}" alt="{{ $foto['caption'] ?? 'Foto kegiatan' }}" class="galeri-img">
                         </div>
-                        <div class="galeri-title">{{ $foto['caption'] ?: 'Tanpa judul' }}</div>
-                        <div class="galeri-date">{{ $foto['tanggal_formatted'] }}</div>
+                        <div class="galeri-title">{{ trim((string) ($foto['caption'] ?? '')) !== '' ? $foto['caption'] : '-' }}</div>
                     </td>
                 @endforeach
                 @for ($pad = count($fotoRow); $pad < $galeriMaxKolom; $pad++)
@@ -167,9 +155,5 @@
             <p>Tidak ada gambar kegiatan untuk periode yang dipilih.</p>
         </div>
     @endif
-
-    <div class="footer">
-        <p>Dicetak pada {{ $generatedAt->format('d F Y, H:i:s') }} WIB</p>
-    </div>
 </body>
 </html>

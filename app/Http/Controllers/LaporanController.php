@@ -77,8 +77,9 @@ class LaporanController extends Controller
                     return $sasaran && SasaranFilterOptions::matchesSasaranFilter($sasaran, $kategori);
                 })
                 ->values();
-            Imunisasi::clearSasaranCache();
         }
+
+        Imunisasi::preloadSasaran($imunisasiList);
 
         return [$imunisasiList, $kategori];
     }
@@ -94,17 +95,13 @@ class LaporanController extends Controller
 
         Imunisasi::preloadSasaran($imunisasiList);
 
-        $filtered = $imunisasiList
+        return $imunisasiList
             ->filter(function ($imunisasi) use ($namaSasaran) {
                 $sasaran = $imunisasi->sasaran;
 
                 return $sasaran && trim((string) $sasaran->nama_sasaran) === $namaSasaran;
             })
             ->values();
-
-        Imunisasi::clearSasaranCache();
-
-        return $filtered;
     }
 
     private function buildImunisasiFilterSummary(Request $request, ?string $kategori = null): array

@@ -39,8 +39,14 @@
                             </div>
                         @endif
                         <div class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-                            <button wire:click="deleteFoto({{ $item->id }})" wire:confirm="Hapus foto ini?"
-                                class="p-2 rounded-full bg-red-600 text-white hover:bg-red-700">
+                            <button type="button" wire:click="openEditModal({{ $item->id }})"
+                                class="p-2 rounded-full bg-white text-primary hover:bg-primary hover:text-white transition-colors"
+                                title="Edit">
+                                <i class="ph ph-pencil-simple text-lg"></i>
+                            </button>
+                            <button type="button" wire:click="deleteFoto({{ $item->id }})" wire:confirm="Hapus foto ini?"
+                                class="p-2 rounded-full bg-red-600 text-white hover:bg-red-700"
+                                title="Hapus">
                                 <i class="ph ph-trash text-lg"></i>
                             </button>
                         </div>
@@ -53,18 +59,22 @@
         @endif
     </div>
 
-    {{-- Modal Upload --}}
+    {{-- Modal Upload / Edit --}}
     @if($showUploadModal)
         <div class="fixed inset-0 z-50 overflow-y-auto" aria-modal="true">
             <div class="flex items-center justify-center min-h-screen px-4">
                 <div class="fixed inset-0 bg-gray-500/75" wire:click="closeUploadModal"></div>
-                <div class="relative bg-white rounded-lg shadow-xl w-full max-w-xl min-h-[520px] flex flex-col p-8">
-                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Tambah Foto Galeri</h3>
+                <div class="relative bg-white rounded-lg shadow-xl w-full max-w-xl {{ $editingId ? 'min-h-0' : 'min-h-[520px]' }} flex flex-col p-8">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">
+                        {{ $editingId ? 'Edit Foto Galeri' : 'Tambah Foto Galeri' }}
+                    </h3>
                     <form wire:submit.prevent="saveFoto">
                         @include('components.galeri-upload-form-fields')
                         <div class="mt-6 flex justify-end gap-2">
                             <button type="button" wire:click="closeUploadModal" class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50">Batal</button>
-                            <button type="submit" class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-indigo-700">Simpan</button>
+                            <button type="submit" class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-indigo-700">
+                                {{ $editingId ? 'Simpan Perubahan' : 'Simpan' }}
+                            </button>
                         </div>
                     </form>
                 </div>
