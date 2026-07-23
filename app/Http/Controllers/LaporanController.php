@@ -1552,6 +1552,153 @@ class LaporanController extends Controller
     }
 
     /**
+     * Build data laporan informasi posyandu (info, statistik kategori, ringkasan pendidikan).
+     */
+    protected function buildInformasiPosyanduData(Posyandu $posyandu): array
+    {
+        $posyandu->loadMissing([
+            'kader.user',
+            'sasaran_bayibalita',
+            'sasaran_remaja',
+            'sasaran_dewasa',
+            'sasaran_ibuhamil',
+            'sasaran_pralansia',
+            'sasaran_lansia',
+        ]);
+
+        $statistikKategori = [
+            ['label' => 'Bayi/Balita', 'jumlah' => $posyandu->sasaran_bayibalita->count()],
+            ['label' => 'Remaja', 'jumlah' => $posyandu->sasaran_remaja->count()],
+            ['label' => 'Dewasa', 'jumlah' => $posyandu->sasaran_dewasa->count()],
+            ['label' => 'Ibu Hamil', 'jumlah' => $posyandu->sasaran_ibuhamil->count()],
+            ['label' => 'Pralansia', 'jumlah' => $posyandu->sasaran_pralansia->count()],
+            ['label' => 'Lansia', 'jumlah' => $posyandu->sasaran_lansia->count()],
+        ];
+
+        $totalSasaran = collect($statistikKategori)->sum('jumlah');
+
+        $ketuaKader = $posyandu->kader->first(function ($kader) {
+            return strcasecmp((string) ($kader->jabatan_kader ?? ''), 'Ketua') === 0;
+        });
+        $petugasPosyanduLabel = $ketuaKader
+            ? ($ketuaKader->nama_kader ?: ($ketuaKader->user->name ?? '-'))
+            : '-';
+
+        $pendidikanData = Pendidikan::where('id_posyandu', $posyandu->id_posyandu)
+            ->selectRaw('pendidikan_terakhir, COUNT(*) as jumlah')
+            ->groupBy('pendidikan_terakhir')
+            ->orderByRaw('
+                CASE
+                    WHEN pendidikan_terakhir = "Tidak/Belum Sekolah" THEN 1
+                    WHEN pendidikan_terakhir = "PAUD" THEN 2
+                    WHEN pendidikan_terakhir = "TK" THEN 3
+                    WHEN pendidikan_terakhir = "Tidak Tamat SD/Sederajat" THEN 4
+                    WHEN pendidikan_terakhir = "Tamat SD/Sederajat" THEN 5
+                    WHEN pendidikan_terakhir = "SLTP/Sederajat" THEN 6
+                    WHEN pendidikan_terakhir = "SLTA/Sederajat" THEN 7
+                    WHEN pendidikan_terakhir = "Diploma I/II" THEN 8
+                    WHEN pendidikan_terakhir = "Akademi/Diploma III/Sarjana Muda" THEN 9
+                    WHEN pendidikan_terakhir = "Diploma IV/Strata I" THEN 10
+                    WHEN pendidikan_terakhir = "Strata II" THEN 11
+                    WHEN pendidikan_terakhir = "Strata III" THEN 12
+                    ELSE 13
+                END
+            ')
+            ->get();
+
+        $pendidikanRows = $pendidikanData->map(function ($row) {
+            return [
+                'label' => $row->pendidikan_terakhir ?: '-',
+                'jumlah' => (int) $row->jumlah,
+            ];
+        })->values()->all();
+
+        return [
+            'posyandu' => $posyandu,
+            'totalSasaran' => $totalSasaran,
+            'totalKader' => $posyandu->kader->count(),
+            'statistikKategori' => $statistikKategori,
+            'pendidikanRows' => $pendidikanRows,
+            'totalPendidikan' => collect($pendidikanRows)->sum('jumlah'),
+            'statistikChartUri' => \App\Helpers\PdfChartHelper::barChartDataUri($statistikKategori, 560, 240),
+            'pendidikanChartUri' => \App\Helpers\PdfChartHelper::pieChartDataUri($pendidikanRows, 560, 240),
+            'logoPosyanduUri' => $this->resolvePosyanduLogoDataUri($posyandu),
+            'petugasPosyanduLabel' => $petugasPosyanduLabel,
+            'generatedAt' => now('Asia/Jakarta'),
+        ];
+    }
+
+    /**
+     * Ambil logo posyandu sebagai data URI untuk DomPDF.
+     */
+    protected function resolvePosyanduLogoDataUri(Posyandu $posyandu): ?string
+    {
+        $logoPath = $posyandu->logo_posyandu ?? null;
+        if (! $logoPath) {
+            return null;
+        }
+
+        $path = ltrim(str_replace('\\', '/', (string) $logoPath), '/');
+        if (str_starts_with($path, 'storage/')) {
+            $path = substr($path, strlen('storage/'));
+        }
+        if (str_starts_with($path, 'uploads/')) {
+            $path = substr($path, strlen('uploads/'));
+        }
+
+        $fullPath = uploads_safe_full_path($path);
+        if (! $fullPath || ! is_readable($fullPath)) {
+            return null;
+        }
+
+        $mime = mime_content_type($fullPath) ?: 'image/png';
+        if (! str_starts_with($mime, 'image/')) {
+            return null;
+        }
+
+        return 'data:'.$mime.';base64,'.base64_encode((string) file_get_contents($fullPath));
+    }
+
+    /**
+     * Export informasi posyandu (Admin Posyandu / Kader).
+     */
+    public function posyanduInformasiPdf(): Response
+    {
+        $user = Auth::user();
+        $kader = Kader::with('posyandu')->where('id_users', $user->id)->first();
+        if (! $kader || ! $kader->posyandu) {
+            abort(403, 'Posyandu untuk akun ini tidak ditemukan.');
+        }
+
+        $data = $this->buildInformasiPosyanduData($kader->posyandu);
+        $fileName = 'Informasi-Posyandu-'.$kader->posyandu->nama_posyandu.'-'.now('Asia/Jakarta')->format('Ymd_His').'.pdf';
+
+        return $this->renderPdf('pdf.laporan-informasi-posyandu', array_merge($data, [
+            'user' => $user,
+        ]), $fileName, 'portrait');
+    }
+
+    /**
+     * Export informasi posyandu (Supervisor / Super Admin).
+     */
+    public function superadminPosyanduInformasiPdf(string $id): Response
+    {
+        try {
+            $decryptedId = decrypt($id);
+        } catch (\Illuminate\Contracts\Encryption\DecryptException $e) {
+            abort(404, 'ID tidak valid');
+        }
+
+        $posyandu = Posyandu::findOrFail($decryptedId);
+        $data = $this->buildInformasiPosyanduData($posyandu);
+        $fileName = 'Informasi-Posyandu-'.$posyandu->nama_posyandu.'-'.now('Asia/Jakarta')->format('Ymd_His').'.pdf';
+
+        return $this->renderPdf('pdf.laporan-informasi-posyandu', array_merge($data, [
+            'user' => Auth::user(),
+        ]), $fileName, 'portrait');
+    }
+
+    /**
      * Generate SK Posyandu untuk Admin Posyandu.
      */
     public function posyanduSkPdf(): Response
