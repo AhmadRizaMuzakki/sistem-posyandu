@@ -369,7 +369,7 @@ class LaporanController extends Controller
     {
         $fotos = [];
         foreach ($items as $item) {
-            $fullPath = $item->path ? uploads_safe_full_path($item->path) : null;
+            $fullPath = $this->resolveGaleriFullPath($item->path);
             if (! $fullPath || ! is_readable($fullPath)) {
                 continue;
             }
@@ -377,14 +377,54 @@ class LaporanController extends Controller
             if (! str_starts_with($mime, 'image/')) {
                 continue;
             }
+            $tanggal = $item->tanggal_foto ?? $item->created_at;
             $fotos[] = [
                 'caption' => $item->caption,
-                'tanggal_formatted' => $item->tanggal_foto->format('d/m/Y'),
+                'tanggal_formatted' => $tanggal ? $tanggal->format('d/m/Y') : '-',
                 'data_uri' => 'data:'.$mime.';base64,'.base64_encode((string) file_get_contents($fullPath)),
             ];
         }
 
         return $fotos;
+    }
+
+    /**
+     * Resolve path file galeri (dukung format DB lama: galeri/x, uploads/galeri/x, storage/galeri/x).
+     */
+    protected function resolveGaleriFullPath(?string $path): ?string
+    {
+        if (! $path) {
+            return null;
+        }
+
+        $normalized = ltrim(str_replace('\\', '/', $path), '/');
+
+        $candidates = [$normalized];
+        if (str_starts_with($normalized, 'uploads/')) {
+            $candidates[] = substr($normalized, strlen('uploads/'));
+        }
+        if (str_starts_with($normalized, 'storage/')) {
+            $candidates[] = substr($normalized, strlen('storage/'));
+        }
+
+        foreach ($candidates as $candidate) {
+            $full = uploads_safe_full_path($candidate);
+            if ($full) {
+                return $full;
+            }
+
+            // Fallback storage lama (public/storage atau storage/app/public)
+            $storagePublic = public_path('storage'.DIRECTORY_SEPARATOR.str_replace('/', DIRECTORY_SEPARATOR, $candidate));
+            if (is_readable($storagePublic)) {
+                return $storagePublic;
+            }
+            $storageApp = storage_path('app/public'.DIRECTORY_SEPARATOR.str_replace('/', DIRECTORY_SEPARATOR, $candidate));
+            if (is_readable($storageApp)) {
+                return $storageApp;
+            }
+        }
+
+        return null;
     }
 
     /**
@@ -403,19 +443,36 @@ class LaporanController extends Controller
         }
 
         $query = Galeri::query()
-            ->where('id_posyandu', $posyandu->id_posyandu)
-            ->whereNotNull('tanggal_foto');
+            ->where('id_posyandu', $posyandu->id_posyandu);
 
-        if ($tahun !== null) {
-            $query->whereYear('tanggal_foto', $tahun);
-        }
-
-        if ($bulan !== null) {
-            $query->whereMonth('tanggal_foto', $bulan);
+        // Filter periode: pakai tanggal_foto, fallback ke created_at jika tanggal_foto kosong
+        // (banyak foto lama/upload tanpa mengisi tanggal).
+        if ($tahun !== null || $bulan !== null) {
+            $query->where(function ($q) use ($tahun, $bulan) {
+                $q->where(function ($q2) use ($tahun, $bulan) {
+                    $q2->whereNotNull('tanggal_foto');
+                    if ($tahun !== null) {
+                        $q2->whereYear('tanggal_foto', $tahun);
+                    }
+                    if ($bulan !== null) {
+                        $q2->whereMonth('tanggal_foto', $bulan);
+                    }
+                })->orWhere(function ($q2) use ($tahun, $bulan) {
+                    $q2->whereNull('tanggal_foto');
+                    if ($tahun !== null) {
+                        $q2->whereYear('created_at', $tahun);
+                    }
+                    if ($bulan !== null) {
+                        $q2->whereMonth('created_at', $bulan);
+                    }
+                });
+            });
         }
 
         $galeriFotos = $this->mapGaleriItemsToPdfFotos(
-            $query->orderBy('tanggal_foto')->orderBy('id')->get()
+            $query->orderByRaw('COALESCE(tanggal_foto, DATE(created_at))')
+                ->orderBy('id')
+                ->get()
         );
 
         if ($tahun !== null && $bulan !== null) {
