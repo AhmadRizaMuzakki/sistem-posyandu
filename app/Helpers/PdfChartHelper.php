@@ -40,12 +40,14 @@ class PdfChartHelper
 
         $paddingLeft = 48;
         $paddingRight = 16;
-        $paddingTop = max(16, (int) ($height * 0.08));
-        $paddingBottom = max(40, (int) ($height * 0.22));
+        $paddingTop = max(18, (int) ($height * 0.09));
+        $paddingBottom = max(44, (int) ($height * 0.20));
         $chartW = $width - $paddingLeft - $paddingRight;
-        $chartH = $height - $paddingTop - $paddingBottom;
+        $chartH = max(80, $height - $paddingTop - $paddingBottom);
 
         $max = max(1, (int) max(array_column($rows, 'jumlah')));
+        // Beri ruang headroom supaya batang tinggi tidak mepet ke atas
+        $axisMax = (int) max($max, ceil($max * 1.15));
         $count = count($rows);
         $gap = max(8, (int) ($width * 0.02));
         $barW = max(14, (int) (($chartW - ($gap * ($count + 1))) / $count));
@@ -54,13 +56,13 @@ class PdfChartHelper
         for ($i = 0; $i <= 4; $i++) {
             $y = $paddingTop + (int) (($chartH / 4) * $i);
             imageline($img, $paddingLeft, $y, $width - $paddingRight, $y, $gray);
-            $val = (int) round($max * (1 - ($i / 4)));
+            $val = (int) round($axisMax * (1 - ($i / 4)));
             imagestring($img, 2, 8, $y - 6, (string) $val, $dark);
         }
 
         foreach ($rows as $index => $row) {
             $value = (float) ($row['jumlah'] ?? 0);
-            $barH = (int) round(($value / $max) * $chartH);
+            $barH = (int) round(($value / $axisMax) * $chartH);
             $x = $paddingLeft + $gap + ($index * ($barW + $gap));
             $y = $paddingTop + $chartH - $barH;
 

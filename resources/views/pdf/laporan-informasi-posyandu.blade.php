@@ -36,29 +36,29 @@
         }
         .logo-wrap {
             text-align: center;
-            margin: 8px 0 10px 0;
+            margin: 6px 0 8px 0;
         }
         .logo-img {
-            width: 72px;
-            height: 72px;
+            width: 110px;
+            height: 110px;
             object-fit: contain;
         }
         .meta-table {
             width: 100%;
             border-collapse: collapse;
-            margin-bottom: 6px;
+            margin-bottom: 4px;
             table-layout: fixed;
         }
         .meta-table td {
-            padding: 2px 4px;
+            padding: 1px 4px;
             vertical-align: top;
             font-size: 9px;
         }
         h3 {
-            margin: 0 0 4px 0;
+            margin: 0 0 3px 0;
             font-size: 11px;
         }
-        .section { margin-bottom: 8px; }
+        .section { margin-bottom: 6px; }
         .info-label {
             width: 140px;
             font-weight: bold;
@@ -68,14 +68,19 @@
             margin-top: 2px;
         }
         .chart-img {
-            width: 78%;
-            max-width: 78%;
+            width: 88%;
+            max-width: 88%;
+            height: auto;
+        }
+        .chart-img-bar {
+            width: 92%;
+            max-width: 92%;
             height: auto;
         }
         .chart-note {
             font-size: 8px;
             color: #6b7280;
-            margin-top: 2px;
+            margin-top: 1px;
         }
     </style>
 </head>
@@ -133,7 +138,7 @@
         <h3>Statistik Sasaran per Kategori</h3>
         <div class="chart-wrap">
             @if (!empty($statistikChartUri))
-                <img class="chart-img" src="{{ $statistikChartUri }}" alt="Chart Statistik Sasaran">
+                <img class="chart-img chart-img-bar" src="{{ $statistikChartUri }}" alt="Chart Statistik Sasaran">
                 <div class="chart-note">Total sasaran: {{ number_format($totalSasaran, 0, ',', '.') }} orang</div>
             @else
                 <p>Belum ada data statistik sasaran.</p>
