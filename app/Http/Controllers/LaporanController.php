@@ -357,10 +357,16 @@ class LaporanController extends Controller
             $query->whereMonth('tanggal_foto', $bulan);
         }
 
-        $items = $query->orderBy('tanggal_foto')
-            ->orderBy('id')
-            ->get();
+        return $this->mapGaleriItemsToPdfFotos(
+            $query->orderBy('tanggal_foto')->orderBy('id')->get()
+        );
+    }
 
+    /**
+     * Ubah koleksi Galeri menjadi array foto siap embed Dompdf.
+     */
+    protected function mapGaleriItemsToPdfFotos($items): array
+    {
         $fotos = [];
         foreach ($items as $item) {
             $fullPath = $item->path ? uploads_safe_full_path($item->path) : null;
@@ -379,6 +385,103 @@ class LaporanController extends Controller
         }
 
         return $fotos;
+    }
+
+    /**
+     * Build data & label periode untuk laporan galeri kegiatan berdasarkan tahun/bulan.
+     */
+    protected function buildGaleriLaporanData(Posyandu $posyandu, Request $request): array
+    {
+        $tahunRaw = $request->query('tahun');
+        $bulanRaw = $request->query('bulan');
+
+        $tahun = is_numeric($tahunRaw) ? (int) $tahunRaw : null;
+        $bulan = is_numeric($bulanRaw) ? (int) $bulanRaw : null;
+
+        if ($bulan !== null && ($bulan < 1 || $bulan > 12)) {
+            $bulan = null;
+        }
+
+        $query = Galeri::query()
+            ->where('id_posyandu', $posyandu->id_posyandu)
+            ->whereNotNull('tanggal_foto');
+
+        if ($tahun !== null) {
+            $query->whereYear('tanggal_foto', $tahun);
+        }
+
+        if ($bulan !== null) {
+            $query->whereMonth('tanggal_foto', $bulan);
+        }
+
+        $galeriFotos = $this->mapGaleriItemsToPdfFotos(
+            $query->orderBy('tanggal_foto')->orderBy('id')->get()
+        );
+
+        if ($tahun !== null && $bulan !== null) {
+            $periodeLabel = Carbon::create($tahun, $bulan, 1)->locale('id')->translatedFormat('F Y');
+        } elseif ($tahun !== null) {
+            $periodeLabel = 'Tahun '.$tahun;
+        } elseif ($bulan !== null) {
+            $periodeLabel = Carbon::create(now()->year, $bulan, 1)->locale('id')->translatedFormat('F').' (Semua Tahun)';
+        } else {
+            $periodeLabel = 'Semua Periode';
+        }
+
+        return [
+            'galeriFotos' => $galeriFotos,
+            'periodeLabel' => $periodeLabel,
+            'tahun' => $tahun,
+            'bulan' => $bulan,
+        ];
+    }
+
+    /**
+     * Generate laporan gambar kegiatan Posyandu (admin/kader) berdasarkan rentang tanggal.
+     */
+    public function posyanduGaleriPdf(Request $request): Response
+    {
+        $user = Auth::user();
+
+        $kader = Kader::with('posyandu')
+            ->where('id_users', $user->id)
+            ->first();
+
+        if (! $kader || ! $kader->posyandu) {
+            abort(403, 'Posyandu untuk akun ini tidak ditemukan.');
+        }
+
+        $posyandu = $kader->posyandu;
+        $data = $this->buildGaleriLaporanData($posyandu, $request);
+        $fileName = 'Laporan-Gambar-Kegiatan-'.$posyandu->nama_posyandu.'-'.now('Asia/Jakarta')->format('Ymd_His').'.pdf';
+
+        return $this->renderPdf('pdf.laporan-posyandu-galeri', array_merge($data, [
+            'posyandu' => $posyandu,
+            'user' => $user,
+            'generatedAt' => now('Asia/Jakarta'),
+        ]), $fileName);
+    }
+
+    /**
+     * Generate laporan gambar kegiatan Posyandu (super admin) berdasarkan rentang tanggal.
+     */
+    public function superadminPosyanduGaleriPdf(Request $request, string $id): Response
+    {
+        try {
+            $decryptedId = decrypt($id);
+        } catch (\Illuminate\Contracts\Encryption\DecryptException $e) {
+            abort(404, 'ID tidak valid');
+        }
+
+        $posyandu = Posyandu::findOrFail($decryptedId);
+        $data = $this->buildGaleriLaporanData($posyandu, $request);
+        $fileName = 'Laporan-Gambar-Kegiatan-'.$posyandu->nama_posyandu.'-'.now('Asia/Jakarta')->format('Ymd_His').'.pdf';
+
+        return $this->renderPdf('pdf.laporan-posyandu-galeri', array_merge($data, [
+            'posyandu' => $posyandu,
+            'user' => Auth::user(),
+            'generatedAt' => now('Asia/Jakarta'),
+        ]), $fileName);
     }
 
     /**
