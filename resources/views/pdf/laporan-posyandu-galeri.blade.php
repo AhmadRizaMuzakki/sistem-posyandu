@@ -67,7 +67,7 @@
             padding: 4px;
             background: #fafafa;
             width: 100%;
-            height: 240px;
+            height: 180px;
             overflow: hidden;
             box-sizing: border-box;
             text-align: center;
@@ -76,7 +76,7 @@
             display: block;
             margin: 0 auto;
             max-width: 100%;
-            max-height: 228px;
+            max-height: 168px;
             width: auto;
             height: auto;
             object-fit: contain;
