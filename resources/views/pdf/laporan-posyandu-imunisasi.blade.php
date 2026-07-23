@@ -10,15 +10,17 @@
     <style>
         /*
          * Pakai @page margin (bukan nested table + padding).
-         * Wrapper table padding di DomPDF sering memotong baris di bawah halaman.
+         * Jangan set margin:0 pada html — di Dompdf style @page menempel ke root <html>,
+         * jadi html { margin:0 } menimpa margin halaman (jadi 0).
+         * Margin = standar MS Word Normal (2.54 cm / 1 inch).
          */
         @page {
-            margin: 14mm 12mm 16mm 12mm;
+            margin: 2.54cm;
         }
         * {
             font-family: DejaVu Sans, Arial, sans-serif;
         }
-        html, body {
+        body {
             margin: 0;
             padding: 0;
             color: #111827;
