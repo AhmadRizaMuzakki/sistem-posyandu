@@ -112,6 +112,10 @@
                 <td>: {{ $posyandu->domisili_posyandu ?? '-' }}</td>
             </tr>
             <tr>
+                <td class="info-label">Ketua</td>
+                <td>: {{ $petugasPosyanduLabel ?? '-' }}</td>
+            </tr>
+            <tr>
                 <td class="info-label">Jumlah Sasaran</td>
                 <td>: {{ number_format($totalSasaran, 0, ',', '.') }} orang</td>
             </tr>
@@ -122,10 +126,6 @@
             <tr>
                 <td class="info-label">Dicetak oleh</td>
                 <td>: {{ $user->name ?? '-' }}</td>
-            </tr>
-            <tr>
-                <td class="info-label">Petugas</td>
-                <td>: {{ $petugasPosyanduLabel ?? '-' }}</td>
             </tr>
             <tr>
                 <td class="info-label">Tanggal Cetak</td>

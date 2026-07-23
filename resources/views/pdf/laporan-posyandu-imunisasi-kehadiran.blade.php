@@ -174,7 +174,7 @@
         <tr>
             <td class="meta-label">Dicetak oleh</td>
             <td>: {{ $user->name ?? '-' }}</td>
-            <td class="meta-label">Petugas</td>
+            <td class="meta-label">Ketua</td>
             <td>: {{ $petugasPosyanduLabel }}</td>
         </tr>
     </table>
