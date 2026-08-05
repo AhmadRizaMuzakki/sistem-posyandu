@@ -267,7 +267,11 @@ class LaporanController extends Controller
         $rows = [];
         foreach ($kategoris as $kategori) {
             $config = $this->getSasaranKategoriConfig($kategori);
-            $sasarans = $posyandu->{$config['relation']}()->orderBy('nama_sasaran')->get();
+            $query = $posyandu->{$config['relation']}()->orderBy('nama_sasaran');
+            if (! empty($config['with'])) {
+                $query->with($config['with']);
+            }
+            $sasarans = $query->get();
             foreach ($sasarans as $sasaran) {
                 if ($kategoriFilter && ! SasaranFilterOptions::matchesSasaranFilter($sasaran, $kategoriFilter)) {
                     continue;

@@ -189,10 +189,12 @@
                 <tr>
                     @if (!empty($isGlobeReport))
                         <th>Nama Sasaran</th>
+                        <th>NIK</th>
                         <th>Tanggal Lahir</th>
                         <th>Kategori</th>
                         <th>Umur</th>
                         <th>Alamat</th>
+                        <th>Orang Tua</th>
                     @else
                         <th>No</th>
                         <th>Nama Sasaran</th>
@@ -219,6 +221,7 @@
                     <tr>
                         @if (!empty($isGlobeReport))
                             <td>{{ $sasaran->nama_sasaran ?? '-' }}</td>
+                            <td class="text-center">{{ $sasaran->nik_sasaran ?? '-' }}</td>
                             <td class="text-center">
                                 @if (! empty($sasaran->tanggal_lahir))
                                     {{ Carbon::parse($sasaran->tanggal_lahir)->format('d/m/Y') }}
@@ -229,6 +232,7 @@
                             <td class="text-center">{{ $row['kategori_label'] ?? $row['kategori_sasaran'] }}</td>
                             <td class="text-center">{{ $row['umur_label'] ?? '-' }}</td>
                             <td>{{ $sasaran->alamat_sasaran ?? '-' }}</td>
+                            <td>{{ $sasaran->orangtua->nama ?? '-' }}</td>
                         @else
                         <td class="text-center">{{ $index + 1 }}</td>
                         <td>{{ $sasaran->nama_sasaran ?? '-' }}</td>
