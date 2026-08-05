@@ -34,7 +34,7 @@
 
                         {{-- Pilih Sasaran (Searchable) --}}
                         <div>
-                            <label class="block text-gray-700 text-sm font-bold mb-2">Sasaran <span class="text-red-500">*</span></label>
+                            <label class="block text-gray-700 text-sm font-bold mb-2">Nama <span class="text-red-500">*</span></label>
                             <div class="relative" x-data="{
                                 open: false,
                                 searchText: '',
@@ -92,7 +92,7 @@
                                     @input="open = true"
                                     @keydown.escape="open = false"
                                     class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-primary focus:border-primary"
-                                    placeholder="Ketik untuk mencari sasaran..."
+                                    placeholder="Ketik untuk mencari nama..."
                                     autocomplete="off"
                                     @if(empty($sasaranList)) disabled @endif>
                                 <div x-show="open"
@@ -103,7 +103,7 @@
                                     <ul class="py-1">
                                         <li @click="selectedId = ''; searchText = ''; open = false; $wire.set('id_sasaran_pendidikan', '')"
                                             class="px-4 py-2 text-sm text-gray-500 hover:bg-gray-100 cursor-pointer">
-                                            -- Pilih Sasaran --
+                                            -- Pilih Nama --
                                         </li>
                                         @if(!empty($sasaranList))
                                             @foreach($sasaranList as $sasaran)
@@ -137,7 +137,7 @@
 
                         {{-- Kategori Sasaran (Auto-filled) --}}
                         <div>
-                            <label class="block text-gray-700 text-sm font-bold mb-2">Kategori Sasaran <span class="text-red-500">*</span></label>
+                            <label class="block text-gray-700 text-sm font-bold mb-2">Kategori <span class="text-red-500">*</span></label>
                             <input type="text"
                                    wire:model="kategori_sasaran_pendidikan"
                                    readonly
@@ -172,8 +172,7 @@
                             <label class="block text-gray-700 text-sm font-bold mb-2">Tanggal Lahir <span class="text-red-500">*</span></label>
                             <div class="grid grid-cols-3 gap-2">
                                 <div>
-                                    <select wire:model="hari_lahir_pendidikan"
-                                            wire:change="updatedHariLahirPendidikan"
+                                    <select wire:model.live="hari_lahir_pendidikan"
                                             class="shadow border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-primary focus:border-primary">
                                         <option value="">Hari</option>
                                         @for($i = 1; $i <= 31; $i++)
@@ -183,8 +182,7 @@
                                     @error('hari_lahir_pendidikan') <span class="text-red-500 text-xs">{{ $message }}</span>@enderror
                                 </div>
                                 <div>
-                                    <select wire:model="bulan_lahir_pendidikan"
-                                            wire:change="updatedBulanLahirPendidikan"
+                                    <select wire:model.live="bulan_lahir_pendidikan"
                                             class="shadow border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-primary focus:border-primary">
                                         <option value="">Bulan</option>
                                         <option value="1" @if($bulan_lahir_pendidikan == 1) selected @endif>Januari</option>
@@ -204,8 +202,7 @@
                                 </div>
                                 <div>
                                     <input type="number"
-                                           wire:model="tahun_lahir_pendidikan"
-                                           wire:change="updatedTahunLahirPendidikan"
+                                           wire:model.live="tahun_lahir_pendidikan"
                                            min="1900"
                                            max="{{ date('Y') }}"
                                            class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-primary focus:border-primary"

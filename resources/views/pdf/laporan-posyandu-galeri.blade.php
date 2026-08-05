@@ -2,7 +2,7 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <title>Laporan Gambar Kegiatan - {{ $posyandu->nama_posyandu }}</title>
+    <title>Laporan Foto Kegiatan Posyandu - {{ $posyandu->nama_posyandu }}</title>
     <style>
         @page {
             margin: 15mm 18mm;
@@ -92,7 +92,7 @@
 </head>
 <body>
     <div class="header">
-        <div class="title">Laporan Gambar Kegiatan Posyandu</div>
+        <div class="title">Laporan Foto Kegiatan Posyandu</div>
         <div class="subtitle">{{ $posyandu->nama_posyandu }}</div>
         <div class="meta">Periode: {{ $periodeLabel ?? 'Semua Periode' }}</div>
     </div>
