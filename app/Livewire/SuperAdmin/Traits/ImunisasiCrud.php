@@ -2,6 +2,7 @@
 
 namespace App\Livewire\SuperAdmin\Traits;
 
+use App\Helpers\ImunisasiOptions;
 use App\Models\Imunisasi;
 use App\Models\SasaranBayibalita;
 use App\Models\SasaranRemaja;
@@ -11,6 +12,7 @@ use App\Models\SasaranLansia;
 use App\Models\PetugasKesehatan;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
 use Carbon\Carbon;
 
 trait ImunisasiCrud
@@ -240,11 +242,19 @@ trait ImunisasiCrud
         // Gabungkan hari, bulan, tahun menjadi tanggal imunisasi
         $this->combineTanggalImunisasi();
 
+        $allowedJenis = ImunisasiOptions::allOptionValues();
+        if ($this->id_imunisasi) {
+            $existingJenis = Imunisasi::whereKey($this->id_imunisasi)->value('jenis_imunisasi');
+            if ($existingJenis && ! in_array($existingJenis, $allowedJenis, true)) {
+                $allowedJenis[] = $existingJenis;
+            }
+        }
+
         $this->validate([
             'id_posyandu_imunisasi' => 'required|exists:posyandu,id_posyandu',
             'id_sasaran_imunisasi' => 'required',
             'kategori_sasaran_imunisasi' => 'required|in:bayibalita,remaja,dewasa,pralansia,lansia',
-            'jenis_imunisasi' => 'required|string|max:255',
+            'jenis_imunisasi' => ['required', 'string', 'max:255', Rule::in($allowedJenis)],
             'hari_imunisasi' => 'required|numeric|min:1|max:31',
             'bulan_imunisasi' => 'required|numeric|min:1|max:12',
             'tahun_imunisasi' => 'required|numeric|min:1900|max:' . date('Y'),
@@ -261,7 +271,8 @@ trait ImunisasiCrud
             'id_sasaran_imunisasi.required' => 'Sasaran wajib dipilih.',
             'kategori_sasaran_imunisasi.required' => 'Kategori sasaran wajib dipilih.',
             'kategori_sasaran_imunisasi.in' => 'Kategori sasaran tidak valid.',
-            'jenis_imunisasi.required' => 'Jenis imunisasi wajib diisi.',
+            'jenis_imunisasi.required' => 'Jenis imunisasi wajib dipilih.',
+            'jenis_imunisasi.in' => 'Jenis imunisasi tidak valid. Silakan pilih dari daftar.',
             'hari_imunisasi.required' => 'Hari imunisasi wajib diisi.',
             'hari_imunisasi.numeric' => 'Hari imunisasi harus berupa angka.',
             'hari_imunisasi.min' => 'Hari imunisasi minimal 1.',

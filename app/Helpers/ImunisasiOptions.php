@@ -4,6 +4,8 @@ namespace App\Helpers;
 
 class ImunisasiOptions
 {
+    public const LAIN_LAIN = 'Dan lain-lain';
+
     /**
      * Jadwal imunisasi dasar bayi/balita sesuai jadwal Nasional Kemenkes.
      *
@@ -84,6 +86,8 @@ class ImunisasiOptions
         foreach (self::jadwalBayiBalita() as $items) {
             $values = array_merge($values, $items);
         }
+
+        $values[] = self::LAIN_LAIN;
 
         return array_values(array_unique($values));
     }

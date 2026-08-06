@@ -146,17 +146,6 @@
                             @error('kategori_sasaran_pendidikan') <span class="text-red-500 text-xs">{{ $message }}</span>@enderror
                         </div>
 
-                        {{-- Nama (Auto-filled dari sasaran, bisa diubah) --}}
-                        <div>
-                            <label class="block text-gray-700 text-sm font-bold mb-2">Nama <span class="text-red-500">*</span></label>
-                            <input type="text"
-                                   wire:model="nama_pendidikan"
-                                   class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-primary focus:border-primary"
-                                   placeholder="Akan terisi otomatis dari sasaran yang dipilih">
-                            @error('nama_pendidikan') <span class="text-red-500 text-xs">{{ $message }}</span>@enderror
-                            <p class="text-xs text-gray-500 mt-1">Nama akan terisi otomatis dari sasaran yang dipilih, atau bisa diubah manual</p>
-                        </div>
-
                         {{-- NIK --}}
                         <div>
                             <label class="block text-gray-700 text-sm font-bold mb-2">NIK</label>

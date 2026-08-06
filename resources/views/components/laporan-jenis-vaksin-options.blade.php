@@ -9,3 +9,4 @@
         @endforeach
     </optgroup>
 @endforeach
+<option value="{{ ImunisasiOptions::LAIN_LAIN }}">{{ ImunisasiOptions::LAIN_LAIN }}</option>
