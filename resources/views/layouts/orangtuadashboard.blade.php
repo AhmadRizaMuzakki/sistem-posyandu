@@ -78,6 +78,15 @@
                             <i class="ph ph-syringe text-sm sm:text-base"></i>
                             Imunisasi
                         </a>
+                        <a href="{{ route('orangtua.aduan') }}"
+                           @class([
+                               'inline-flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-4 py-2.5 text-xs sm:text-sm font-medium whitespace-nowrap border-b-2 transition-colors',
+                               'text-primary border-primary' => request()->routeIs('orangtua.aduan'),
+                               'text-gray-600 border-transparent hover:text-primary hover:border-gray-300' => !request()->routeIs('orangtua.aduan'),
+                           ])>
+                            <i class="ph ph-megaphone text-sm sm:text-base"></i>
+                            Aduan
+                        </a>
                     </div>
                 </div>
             </div>

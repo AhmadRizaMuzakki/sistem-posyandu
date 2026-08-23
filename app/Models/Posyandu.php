@@ -15,6 +15,7 @@ class Posyandu extends Model
         'jumlah_sasaran',
         'sk_posyandu',
         'domisili_posyandu',
+        'status_mbg',
         'link_maps',
         'logo_posyandu',
         'gambar_posyandu',

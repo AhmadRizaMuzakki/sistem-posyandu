@@ -6,6 +6,46 @@
             <p class="text-gray-600">Selamat datang, {{ Auth::user()->name }}!</p>
         </div>
 
+        {{-- Status Bar Aduan --}}
+        @if($aduanStats['total'] > 0)
+            <div class="bg-white rounded-lg shadow-sm p-6">
+                <div class="flex flex-wrap items-center justify-between gap-3 mb-5">
+                    <div class="flex items-center gap-3">
+                        <div class="bg-orange-100 rounded-full p-2.5">
+                            <i class="ph ph-megaphone text-xl text-orange-600"></i>
+                        </div>
+                        <div>
+                            <h2 class="text-lg font-semibold text-gray-800">Progres Aduan Keluarga</h2>
+                            <p class="text-sm text-gray-500">{{ $aduanStats['total'] }} aduan tercatat</p>
+                        </div>
+                    </div>
+                    <a href="{{ route('orangtua.aduan') }}"
+                       class="text-sm font-medium text-primary hover:underline">
+                        Lihat semua aduan
+                    </a>
+                </div>
+
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                    <div class="bg-amber-50 border border-amber-100 rounded-lg p-3 text-center">
+                        <p class="text-xl font-bold text-amber-700">{{ $aduanStats['menunggu'] }}</p>
+                        <p class="text-xs text-amber-600 mt-0.5">Menunggu (25%)</p>
+                    </div>
+                    <div class="bg-blue-50 border border-blue-100 rounded-lg p-3 text-center">
+                        <p class="text-xl font-bold text-blue-700">{{ $aduanStats['diproses'] }}</p>
+                        <p class="text-xs text-blue-600 mt-0.5">Diproses (50%)</p>
+                    </div>
+                    <div class="bg-green-50 border border-green-100 rounded-lg p-3 text-center">
+                        <p class="text-xl font-bold text-green-700">{{ $aduanStats['selesai'] }}</p>
+                        <p class="text-xs text-green-600 mt-0.5">Selesai (100%)</p>
+                    </div>
+                    <div class="bg-red-50 border border-red-100 rounded-lg p-3 text-center">
+                        <p class="text-xl font-bold text-red-700">{{ $aduanStats['ditolak'] }}</p>
+                        <p class="text-xs text-red-600 mt-0.5">Ditolak (0%)</p>
+                    </div>
+                </div>
+            </div>
+        @endif
+
         {{-- Quick Actions --}}
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {{-- Card Imunisasi --}}
@@ -21,6 +61,32 @@
                     </div>
                     <div class="bg-primary bg-opacity-10 rounded-full p-4">
                         <i class="ph ph-syringe text-3xl text-primary"></i>
+                    </div>
+                </div>
+            </a>
+
+            {{-- Card Aduan --}}
+            <a href="{{ route('orangtua.aduan') }}" class="bg-white rounded-lg shadow-sm p-6 hover:shadow-md transition-shadow border-l-4 border-orange-500">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h3 class="text-lg font-semibold text-gray-800 mb-2">Aduan Keluarga</h3>
+                        <p class="text-sm text-gray-600 mb-2">Lihat riwayat aduan keluarga Anda</p>
+                        @if(($aduanStats['menunggu'] ?? 0) > 0)
+                            <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-amber-100 text-amber-800 mb-3">
+                                {{ $aduanStats['menunggu'] }} menunggu
+                            </span>
+                        @elseif(($aduanStats['total'] ?? 0) > 0)
+                            <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 mb-3">
+                                {{ $aduanStats['total'] }} aduan
+                            </span>
+                        @endif
+                        <div class="flex items-center text-orange-600 font-medium">
+                            <span>Lihat Detail</span>
+                            <i class="ph ph-arrow-right ml-2"></i>
+                        </div>
+                    </div>
+                    <div class="bg-orange-100 rounded-full p-4">
+                        <i class="ph ph-megaphone text-3xl text-orange-600"></i>
                     </div>
                 </div>
             </a>

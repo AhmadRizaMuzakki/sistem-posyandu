@@ -2,6 +2,8 @@
 
 namespace App\Livewire\Orangtua;
 
+use App\Livewire\Orangtua\Traits\ResolvesNoKk;
+use App\Models\Aduan;
 use App\Models\Orangtua;
 use App\Models\SasaranBayibalita;
 use App\Models\SasaranRemaja;
@@ -10,21 +12,12 @@ use App\Models\SasaranPralansia;
 use App\Models\SasaranLansia;
 use Livewire\Component;
 use Livewire\Attributes\Layout;
-use Illuminate\Support\Facades\Auth;
 
 class OrangtuaDashboard extends Component
 {
+    use ResolvesNoKk;
+
     #[Layout('layouts.orangtuadashboard')]
-
-    protected function resolveNoKk(): ?string
-    {
-        $user = Auth::user();
-        if ($user->email && str_ends_with($user->email, '@gmail.com')) {
-            return str_replace('@gmail.com', '', $user->email);
-        }
-
-        return null;
-    }
 
     public function render()
     {
@@ -105,9 +98,26 @@ class OrangtuaDashboard extends Component
             }
         }
 
+        $aduanStats = [
+            'total' => 0,
+            'menunggu' => 0,
+            'diproses' => 0,
+            'selesai' => 0,
+            'ditolak' => 0,
+        ];
+        if ($noKk) {
+            $aduanBase = Aduan::where('no_kk', $noKk);
+            $aduanStats['total'] = (clone $aduanBase)->count();
+            $aduanStats['menunggu'] = (clone $aduanBase)->where('status', 'menunggu')->count();
+            $aduanStats['diproses'] = (clone $aduanBase)->where('status', 'diproses')->count();
+            $aduanStats['selesai'] = (clone $aduanBase)->where('status', 'selesai')->count();
+            $aduanStats['ditolak'] = (clone $aduanBase)->where('status', 'ditolak')->count();
+        }
+
         return view('livewire.orangtua.orang-tua', [
             'allKeluarga' => $allKeluarga,
             'orangtua' => $orangtua,
+            'aduanStats' => $aduanStats,
         ]);
     }
 }

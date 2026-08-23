@@ -2,12 +2,15 @@
 
 namespace App\Http\Controllers;
 
+use App\Helpers\AduanOptions;
 use App\Helpers\ImunisasiOptions;
 use App\Helpers\SasaranFilterOptions;
+use App\Models\Aduan;
 use App\Models\Galeri;
 use App\Models\Imunisasi;
 use App\Models\Jadwal;
 use App\Models\Kader;
+use App\Models\Orangtua;
 use App\Models\Pendidikan;
 use App\Models\Posyandu;
 use Carbon\Carbon;
@@ -1983,6 +1986,118 @@ class LaporanController extends Controller
             'bulanLabel' => $bulanLabel,
             'presensiLabel' => $presensiLabel,
         ], $fileName);
+    }
+
+    private function applyAduanLaporanFilters($query, Request $request): void
+    {
+        $status = $request->query('status');
+        if ($status !== null && $status !== '' && array_key_exists($status, AduanOptions::statusOptions())) {
+            $query->where('status', $status);
+        }
+
+        $kategori = $request->query('kategori');
+        if ($kategori !== null && $kategori !== '' && array_key_exists($kategori, AduanOptions::kategoriOptions())) {
+            $query->where('kategori', $kategori);
+        }
+
+        $bulan = $request->query('bulan');
+        if ($bulan !== null && $bulan !== '' && is_numeric($bulan) && (int) $bulan >= 1 && (int) $bulan <= 12) {
+            $query->whereMonth('tanggal_aduan', (int) $bulan);
+        }
+
+        $tahun = $request->query('tahun');
+        if ($tahun !== null && $tahun !== '' && is_numeric($tahun) && (int) $tahun >= 2000 && (int) $tahun <= 2100) {
+            $query->whereYear('tanggal_aduan', (int) $tahun);
+        }
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function buildAduanLaporanData(Posyandu $posyandu, Request $request): array
+    {
+        $query = Aduan::where('id_posyandu', $posyandu->id_posyandu);
+        $this->applyAduanLaporanFilters($query, $request);
+        $aduanList = $query->orderByDesc('tanggal_aduan')->get();
+
+        $noKkList = $aduanList->pluck('no_kk')->unique()->filter()->values();
+        $orangtuaMap = Orangtua::whereIn('no_kk', $noKkList)->get()->keyBy(fn ($o) => (string) $o->no_kk);
+
+        $status = $request->query('status');
+        $kategori = $request->query('kategori');
+        $bulan = $request->query('bulan');
+        $tahun = $request->query('tahun');
+
+        $periodeParts = [];
+        if ($bulan && is_numeric($bulan) && (int) $bulan >= 1 && (int) $bulan <= 12) {
+            $periodeParts[] = Carbon::create((int) ($tahun ?: now()->year), (int) $bulan, 1)
+                ->locale('id')
+                ->translatedFormat('F');
+        }
+        if ($tahun && is_numeric($tahun)) {
+            $periodeParts[] = (string) (int) $tahun;
+        }
+
+        return [
+            'aduanList' => $aduanList,
+            'orangtuaMap' => $orangtuaMap,
+            'statusFilterLabel' => ($status && array_key_exists($status, AduanOptions::statusOptions()))
+                ? AduanOptions::statusLabel($status)
+                : 'Semua Status',
+            'kategoriFilterLabel' => ($kategori && array_key_exists($kategori, AduanOptions::kategoriOptions()))
+                ? AduanOptions::kategoriLabel($kategori)
+                : 'Semua Bidang SPM',
+            'periodeLabel' => count($periodeParts) > 0 ? implode(' ', $periodeParts) : 'Semua Periode',
+            'stats' => [
+                'total' => $aduanList->count(),
+                'menunggu' => $aduanList->where('status', AduanOptions::STATUS_MENUNGGU)->count(),
+                'diproses' => $aduanList->where('status', AduanOptions::STATUS_DIPROSES)->count(),
+                'selesai' => $aduanList->where('status', AduanOptions::STATUS_SELESAI)->count(),
+                'ditolak' => $aduanList->where('status', AduanOptions::STATUS_DITOLAK)->count(),
+            ],
+        ];
+    }
+
+    public function posyanduAduanPdf(Request $request): Response
+    {
+        $user = Auth::user();
+
+        $kader = Kader::with('posyandu')
+            ->where('id_users', $user->id)
+            ->first();
+
+        if (! $kader || ! $kader->posyandu) {
+            abort(403, 'Posyandu untuk akun ini tidak ditemukan.');
+        }
+
+        $posyandu = $kader->posyandu;
+        $data = $this->buildAduanLaporanData($posyandu, $request);
+        $fileName = 'Laporan-Aduan-'.$posyandu->nama_posyandu.'-'.now('Asia/Jakarta')->format('Ymd_His').'.pdf';
+
+        return $this->renderPdf('pdf.laporan-posyandu-aduan', array_merge($data, [
+            'posyandu' => $posyandu,
+            'user' => $user,
+            'generatedAt' => now('Asia/Jakarta'),
+        ]), $fileName, 'landscape');
+    }
+
+    public function superadminPosyanduAduanPdf(Request $request, string $id): Response
+    {
+        try {
+            $decryptedId = decrypt($id);
+        } catch (\Illuminate\Contracts\Encryption\DecryptException $e) {
+            abort(404, 'ID tidak valid');
+        }
+
+        $posyandu = Posyandu::findOrFail($decryptedId);
+        $data = $this->buildAduanLaporanData($posyandu, $request);
+        $fileName = 'Laporan-Aduan-'.$posyandu->nama_posyandu.'-'.now('Asia/Jakarta')->format('Ymd_His').'.pdf';
+
+        return $this->renderPdf('pdf.laporan-posyandu-aduan', array_merge($data, [
+            'posyandu' => $posyandu,
+            'user' => Auth::user(),
+            'generatedAt' => now('Asia/Jakarta'),
+        ]), $fileName, 'landscape');
     }
 
     /**

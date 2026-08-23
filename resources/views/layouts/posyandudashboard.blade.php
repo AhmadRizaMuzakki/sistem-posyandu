@@ -311,6 +311,13 @@
                     <span class="font-medium">Pendidikan</span>
                 </a>
 
+                {{-- ADUAN --}}
+                <a href="{{ route('adminPosyandu.aduan') }}"
+                    class="sidebar-menu-item flex items-center px-4 py-3 rounded-lg {{ request()->routeIs('adminPosyandu.aduan') ? 'active' : 'text-gray-600' }}">
+                    <i class="ph ph-megaphone text-xl mr-3"></i>
+                    <span class="font-medium">Aduan</span>
+                </a>
+
                 {{-- 7. LAPORAN --}}
                 <a href="{{ route('adminPosyandu.laporan') }}"
                     class="sidebar-menu-item flex items-center px-4 py-3 rounded-lg {{ request()->routeIs('adminPosyandu.laporan') ? 'active' : 'text-gray-600' }}">

@@ -3,6 +3,7 @@
 namespace App\Livewire\SuperAdmin;
 
 use App\Models\Posyandu;
+use App\Helpers\PosyanduMbgOptions;
 use Livewire\Component;
 use Livewire\Attributes\Layout;
 use Livewire\WithFileUploads;
@@ -24,6 +25,7 @@ class PosyanduList extends Component
     public $nama_posyandu = '';
     public $alamat_posyandu = '';
     public $domisili_posyandu = '';
+    public $status_mbg = '';
     public $link_maps = '';
     public $skFile = null;
     public $logoFile = null;
@@ -70,6 +72,7 @@ class PosyanduList extends Component
         $this->nama_posyandu = '';
         $this->alamat_posyandu = '';
         $this->domisili_posyandu = '';
+        $this->status_mbg = '';
         $this->link_maps = '';
         $this->skFile = null;
         $this->logoFile = null;
@@ -148,6 +151,7 @@ class PosyanduList extends Component
             'nama_posyandu' => 'required|string|max:255',
             'alamat_posyandu' => 'nullable|string',
             'domisili_posyandu' => 'nullable|string|max:255',
+            'status_mbg' => 'nullable|in:' . implode(',', PosyanduMbgOptions::values()),
             'link_maps' => 'nullable|string|max:4096',
             'skFile' => 'nullable|file|mimes:pdf,doc,docx|max:5120',
             'logoFile' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
@@ -156,6 +160,7 @@ class PosyanduList extends Component
             'nama_posyandu.required' => 'Nama posyandu wajib diisi.',
             'nama_posyandu.max' => 'Nama posyandu maksimal 255 karakter.',
             'domisili_posyandu.max' => 'Domisili maksimal 255 karakter.',
+            'status_mbg.in' => 'Status MBG tidak valid.',
             'skFile.file' => 'File SK harus berupa file.',
             'skFile.mimes' => 'File SK harus berformat PDF, DOC, atau DOCX.',
             'skFile.max' => 'Ukuran file SK maksimal 5MB.',
@@ -172,6 +177,7 @@ class PosyanduList extends Component
                 'nama_posyandu' => $this->nama_posyandu,
                 'alamat_posyandu' => $this->alamat_posyandu ?: null,
                 'domisili_posyandu' => $this->domisili_posyandu ?: null,
+                'status_mbg' => $this->status_mbg ?: null,
                 'link_maps' => $linkMapsSanitized ?? null,
             ];
 
@@ -289,6 +295,7 @@ class PosyanduList extends Component
             $this->nama_posyandu = $posyandu->nama_posyandu;
             $this->alamat_posyandu = $posyandu->alamat_posyandu ?? '';
             $this->domisili_posyandu = $posyandu->domisili_posyandu ?? '';
+            $this->status_mbg = $posyandu->status_mbg ?? '';
             $this->link_maps = $posyandu->link_maps ?? '';
             $this->currentSkPath = $posyandu->sk_posyandu;
             $this->currentLogoPath = $posyandu->logo_posyandu;
@@ -464,6 +471,7 @@ class PosyanduList extends Component
         return view('livewire.super-admin.posyandu-list', [
             'title' => 'Daftar Posyandu',
             'daftarPosyandu' => $daftarPosyandu,
+            'statusMbgOptions' => PosyanduMbgOptions::options(),
         ]);
     }
 }

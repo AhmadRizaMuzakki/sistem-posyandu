@@ -82,6 +82,12 @@
                 </div>
                 @endif
                 <div>
+                    <label class="text-sm font-medium text-gray-500">Status MBG</label>
+                    <div class="mt-1">
+                        <x-status-mbg-badge :status="$posyandu->status_mbg" />
+                    </div>
+                </div>
+                <div>
                     <label class="text-sm font-medium text-gray-500">Jumlah Sasaran</label>
                     <p class="text-gray-800 mt-1">{{ number_format($totalSasaran ?? 0, 0, ',', '.') }} orang</p>
                 </div>

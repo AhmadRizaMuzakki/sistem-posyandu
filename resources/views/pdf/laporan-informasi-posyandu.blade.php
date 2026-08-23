@@ -112,6 +112,10 @@
                 <td>: {{ $posyandu->domisili_posyandu ?? '-' }}</td>
             </tr>
             <tr>
+                <td class="info-label">Status MBG</td>
+                <td>: {{ \App\Helpers\PosyanduMbgOptions::label($posyandu->status_mbg) }}</td>
+            </tr>
+            <tr>
                 <td class="info-label">Ketua</td>
                 <td>: {{ $petugasPosyanduLabel ?? '-' }}</td>
             </tr>

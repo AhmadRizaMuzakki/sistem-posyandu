@@ -235,6 +235,12 @@
                         <dd class="text-slate-800 mt-0.5">{{ $posyandu->domisili_posyandu }}</dd>
                     </div>
                     @endif
+                    <div>
+                        <dt class="text-sm font-medium text-slate-500">Status MBG</dt>
+                        <dd class="mt-0.5">
+                            <x-status-mbg-badge :status="$posyandu->status_mbg" />
+                        </dd>
+                    </div>
                     @if($posyandu->alamat_posyandu)
                     <div class="sm:col-span-2">
                         <dt class="text-sm font-medium text-slate-500">Alamat</dt>

@@ -23,6 +23,12 @@
                 <p class="text-gray-800 mt-1">{{ $posyandu->domisili_posyandu }}</p>
             </div>
             @endif
+            <div>
+                <label class="text-sm font-medium text-gray-500">Status MBG</label>
+                <div class="mt-1">
+                    <x-status-mbg-badge :status="$posyandu->status_mbg" />
+                </div>
+            </div>
             @if($posyandu->jumlah_sasaran)
             <div>
                 <label class="text-sm font-medium text-gray-500">Jumlah Sasaran</label>

@@ -185,6 +185,12 @@
             </div>
             @endif
             <div>
+                <label class="text-sm font-medium text-gray-500">Status MBG</label>
+                <div class="mt-1">
+                    <x-status-mbg-badge :status="$posyandu->status_mbg" />
+                </div>
+            </div>
+            <div>
                 <label class="text-sm font-medium text-gray-500">Jumlah Sasaran</label>
                 @php
                     $totalSasaran = ($posyandu->sasaran_bayibalita ? $posyandu->sasaran_bayibalita->count() : 0) +
