@@ -101,6 +101,7 @@
                                     :jenis-kelamin="$sasaran->jenis_kelamin ?? null"
                                     :tekanan-darah="$imunisasi->tekanan_darah"
                                     :gula-darah="$imunisasi->gula_darah"
+                                    :kategori-sasaran="$imunisasi->kategori_sasaran"
                                 />
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">

@@ -70,7 +70,8 @@ class OrangtuaExportController extends Controller
                         $im->tanggal_imunisasi ? Carbon::parse($im->tanggal_imunisasi) : null,
                         $jenisKelamin,
                         $im->tekanan_darah,
-                        $im->gula_darah !== null ? (float) $im->gula_darah : null
+                        $im->gula_darah !== null ? (float) $im->gula_darah : null,
+                        $item['sasaran']['kategori'] ?? $im->kategori_sasaran ?? null
                     ),
                     'keterangan' => $im->keterangan ?? '-',
                 ]);

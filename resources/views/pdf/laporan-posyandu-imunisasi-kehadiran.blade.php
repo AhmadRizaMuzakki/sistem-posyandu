@@ -228,7 +228,8 @@
                                 $imunisasi->tanggal_imunisasi ? Carbon::parse($imunisasi->tanggal_imunisasi) : null,
                                 $sasaran->jenis_kelamin ?? null,
                                 $imunisasi->tekanan_darah,
-                                $imunisasi->gula_darah !== null ? (float) $imunisasi->gula_darah : null
+                                $imunisasi->gula_darah !== null ? (float) $imunisasi->gula_darah : null,
+                                $row['kategori_sasaran'] ?? $imunisasi->kategori_sasaran ?? null
                             );
                         }
                     @endphp

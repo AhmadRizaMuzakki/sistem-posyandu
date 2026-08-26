@@ -112,6 +112,7 @@
                         <th class="px-5 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Berat</th>
                         <th class="px-5 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Tekanan Darah</th>
                         <th class="px-5 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Gula Darah</th>
+                        <th class="px-5 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Status Stunting</th>
                         <th class="px-5 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Keterangan</th>
                     </tr>
                 </thead>
@@ -162,6 +163,18 @@
                                 @else
                                     -
                                 @endif
+                            </td>
+                            <td class="px-5 py-5 whitespace-nowrap align-middle">
+                                <x-status-stunting-badge
+                                    :berat-badan="$imunisasi->berat_badan"
+                                    :tinggi-badan="$imunisasi->tinggi_badan"
+                                    :tanggal-lahir="$row['sasaran']['tanggal_lahir'] ?? null"
+                                    :tanggal-ukur="$imunisasi->tanggal_imunisasi"
+                                    :jenis-kelamin="$row['sasaran']['jenis_kelamin'] ?? null"
+                                    :tekanan-darah="$imunisasi->tekanan_darah"
+                                    :gula-darah="$imunisasi->gula_darah"
+                                    :kategori-sasaran="$row['sasaran']['kategori'] ?? $imunisasi->kategori_sasaran"
+                                />
                             </td>
                             <td class="px-5 py-5 text-sm text-gray-600 max-w-[160px] truncate align-middle" title="{{ $imunisasi->keterangan ?? '-' }}">
                                 {{ $imunisasi->keterangan ?? '-' }}

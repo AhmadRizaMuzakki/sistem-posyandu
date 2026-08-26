@@ -11,6 +11,7 @@ class AntropometriService
     public function __construct()
     {
         $this->config = config('antropometri');
+        $this->config['tb_u_5_19'] = config('antropometri_tb_u_5_19', []);
     }
 
     public function normalizeJenisKelamin(?string $jenisKelamin): string
@@ -101,42 +102,96 @@ class AntropometriService
     }
 
     /**
-     * Status stunting (TB/U) untuk anak usia ≤ 60 bulan.
+     * Kategori sasaran yang dinilai status stunting.
+     */
+    public function isKategoriStunting(?string $kategoriSasaran): bool
+    {
+        $kategori = strtolower(trim((string) $kategoriSasaran));
+
+        return in_array($kategori, ['bayibalita', 'remaja'], true);
+    }
+
+    /**
+     * Ambil standar TB/U:
+     * - ≤ 60 bulan: PMK 2/2020 (balita)
+     * - 61–228 bulan: WHO 2007 (anak sekolah / remaja)
      *
-     * @return array{status: string, color: string}|null
+     * @return array<string, float>|null
+     */
+    protected function lookupStandarTbU(string $jk, int $umurBulan): ?array
+    {
+        if ($umurBulan <= 60) {
+            $bulanKunci = max(12, min(60, $umurBulan));
+
+            return $this->config['tb_u'][$jk][$bulanKunci] ?? null;
+        }
+
+        if ($umurBulan > 228) {
+            return null;
+        }
+
+        $keys = array_map('intval', array_keys($this->config['tb_u_5_19'][$jk] ?? []));
+        sort($keys);
+        if ($keys === []) {
+            return null;
+        }
+
+        $bulanKunci = $keys[0];
+        foreach ($keys as $key) {
+            if ($umurBulan >= $key) {
+                $bulanKunci = $key;
+            }
+        }
+
+        return $this->config['tb_u_5_19'][$jk][$bulanKunci] ?? null;
+    }
+
+    /**
+     * Status stunting (TB/U) untuk balita & remaja (usia ≤ 19 tahun).
+     * Hasil: Stunting / Tidak stunting.
+     *
+     * @return array{status: string, color: string, is_stunting: bool}|null
      */
     public function statusStunting(
         ?float $tinggiBadan,
         ?Carbon $tanggalLahir,
         ?Carbon $tanggalUkur,
-        ?string $jenisKelamin
+        ?string $jenisKelamin,
+        ?string $kategoriSasaran = null
     ): ?array {
         if ($tinggiBadan === null || ! $tanggalLahir || ! $tanggalUkur) {
             return null;
         }
 
+        if ($kategoriSasaran !== null && $kategoriSasaran !== '' && ! $this->isKategoriStunting($kategoriSasaran)) {
+            return null;
+        }
+
         $umurBulan = $this->hitungUmurBulan($tanggalLahir, $tanggalUkur);
-        if ($umurBulan === null || $umurBulan > 60) {
+        if ($umurBulan === null || $umurBulan > 228) {
             return null;
         }
 
         $jk = $this->normalizeJenisKelamin($jenisKelamin);
-        $bulanKunci = max(12, min(60, $umurBulan));
-        $standarTb = $this->config['tb_u'][$jk][$bulanKunci] ?? null;
+        $standarTb = $this->lookupStandarTbU($jk, $umurBulan);
         $tbU = $this->klasifikasiStandar($tinggiBadan, $standarTb, 'tb_u');
 
         if (($tbU['kode'] ?? '') === 'unknown') {
             return null;
         }
 
+        $isStunting = in_array($tbU['kode'], ['sangat_rendah', 'rendah'], true);
+
         return [
-            'status' => $tbU['status'],
-            'color' => $tbU['color'],
+            'status' => $isStunting ? 'Stunting' : 'Tidak stunting',
+            'color' => $isStunting ? 'red' : 'green',
+            'is_stunting' => $isStunting,
         ];
     }
 
     /**
-     * Label status stunting (TB/U) — sama logika dengan halaman orangtua / badge UI.
+     * Label status stunting biner untuk sasaran balita & remaja.
+     * Dihitung dari usia, tinggi (TB/U), dengan berat untuk validasi penilaian balita.
      */
     public function labelStatusStunting(
         ?float $beratBadan,
@@ -145,8 +200,14 @@ class AntropometriService
         ?Carbon $tanggalUkur,
         ?string $jenisKelamin,
         ?string $tekananDarah = null,
-        ?float $gulaDarah = null
+        ?float $gulaDarah = null,
+        ?string $kategoriSasaran = null
     ): string {
+        if ($kategoriSasaran !== null && $kategoriSasaran !== '' && ! $this->isKategoriStunting($kategoriSasaran)) {
+            return '-';
+        }
+
+        // Balita: utamakan evaluasi lengkap (usia + berat + tinggi) seperti halaman orangtua
         if ($beratBadan !== null && $tinggiBadan !== null) {
             $penilaian = $this->evaluasi(
                 $beratBadan,
@@ -160,13 +221,22 @@ class AntropometriService
 
             if ($penilaian) {
                 $tbU = collect($penilaian['indeks'] ?? [])->firstWhere('singkat', 'TB/U');
-                if ($tbU && ! empty($tbU['status'])) {
-                    return (string) $tbU['status'];
+                if ($tbU) {
+                    $statusTb = strtolower((string) ($tbU['status'] ?? ''));
+                    $isStunting = str_contains($statusTb, 'pendek');
+
+                    return $isStunting ? 'Stunting' : 'Tidak stunting';
                 }
             }
         }
 
-        $fallback = $this->statusStunting($tinggiBadan, $tanggalLahir, $tanggalUkur, $jenisKelamin);
+        $fallback = $this->statusStunting(
+            $tinggiBadan,
+            $tanggalLahir,
+            $tanggalUkur,
+            $jenisKelamin,
+            $kategoriSasaran
+        );
 
         return $fallback['status'] ?? '-';
     }
