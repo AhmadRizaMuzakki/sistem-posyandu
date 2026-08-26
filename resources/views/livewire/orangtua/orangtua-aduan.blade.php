@@ -6,20 +6,20 @@
     <div class="bg-white rounded-lg shadow-sm p-6">
         <h2 class="text-xl font-semibold text-gray-800 flex items-center">
             <i class="ph ph-megaphone text-2xl mr-3 text-primary"></i>
-            Aduan Keluarga
+            Posyandu 6 SPM
         </h2>
-        <p class="text-sm text-gray-500 mt-2">Lihat riwayat aduan yang telah dibuat oleh keluarga Anda.</p>
+        <p class="text-sm text-gray-500 mt-2">Lihat riwayat 6 SPM yang telah dibuat oleh keluarga Anda.</p>
     </div>
 
-    {{-- Daftar aduan --}}
+    {{-- Daftar 6 SPM --}}
     <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
         <div class="px-6 sm:px-8 pt-6 sm:pt-7 pb-5 sm:pb-6 border-b border-gray-100">
-            <h3 class="text-lg font-semibold text-gray-900 leading-snug">Riwayat Aduan Keluarga</h3>
+            <h3 class="text-lg font-semibold text-gray-900 leading-snug">Riwayat Posyandu 6 SPM</h3>
             <p class="text-sm text-gray-500 mt-2.5 leading-relaxed">
                 @if($totalBaris > 0)
-                    Menampilkan {{ $firstItem }}–{{ $lastItem }} dari {{ $totalBaris }} aduan
+                    Menampilkan {{ $firstItem }}–{{ $lastItem }} dari {{ $totalBaris }} 6 SPM
                 @else
-                    0 aduan ditemukan
+                    0 data 6 SPM ditemukan
                 @endif
                 @if($filterAktif)
                     <span class="inline-flex items-center mt-2 sm:mt-0 sm:ml-2 px-2.5 py-1 rounded-full text-xs font-medium bg-primary/10 text-primary">
@@ -36,7 +36,7 @@
         <div class="px-6 sm:px-8 py-5 sm:py-6 bg-gray-50/80 border-b border-gray-100">
             <div class="flex items-center gap-2 mb-4">
                 <i class="ph ph-funnel text-primary text-base"></i>
-                <span class="text-sm font-medium text-gray-700">Filter Aduan (6 SPM)</span>
+                <span class="text-sm font-medium text-gray-700">Filter 6 SPM</span>
             </div>
             <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-4 sm:gap-5">
                 <div>
@@ -89,7 +89,7 @@
                             wire:model.live="filterLimit"
                             class="w-full px-3 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm bg-white shadow-sm">
                         @foreach([5, 10, 25, 50] as $n)
-                            <option value="{{ $n }}">{{ $n }} aduan</option>
+                            <option value="{{ $n }}">{{ $n }} baris</option>
                         @endforeach
                     </select>
                 </div>
@@ -144,7 +144,7 @@
 
                                 {{-- Isi aduan --}}
                                 <div class="mt-4 rounded-xl bg-gray-50/80 border border-gray-100 p-4 flex-1">
-                                    <p class="text-[11px] font-semibold uppercase tracking-wide text-gray-400 mb-1.5">Isi Aduan</p>
+                                    <p class="text-[11px] font-semibold uppercase tracking-wide text-gray-400 mb-1.5">Isi 6 SPM</p>
                                     <p class="text-sm text-gray-700 leading-relaxed line-clamp-3">
                                         {{ $aduan->isi_aduan }}
                                     </p>
@@ -186,7 +186,7 @@
                         <span class="font-medium text-gray-700">{{ $lastItem }}</span>
                         dari
                         <span class="font-medium text-gray-700">{{ $totalBaris }}</span>
-                        aduan
+                        6 SPM
                     </p>
                     <div class="flex items-center gap-1.5 flex-wrap justify-center sm:justify-end">
                         <button wire:click="previousPage"
@@ -220,12 +220,12 @@
                 <div class="w-14 h-14 mx-auto mb-4 rounded-full bg-gray-100 flex items-center justify-center">
                     <i class="ph ph-megaphone text-2xl text-gray-300"></i>
                 </div>
-                <h4 class="text-base font-semibold text-gray-700 mb-2">Belum Ada Aduan</h4>
+                <h4 class="text-base font-semibold text-gray-700 mb-2">Belum Ada 6 SPM</h4>
                 <p class="text-sm text-gray-500 max-w-md mx-auto leading-relaxed">
                     @if($filterAktif)
-                        Tidak ada aduan yang sesuai dengan filter yang dipilih.
+                        Tidak ada data 6 SPM yang sesuai dengan filter yang dipilih.
                     @else
-                        Belum ada aduan yang tercatat untuk keluarga Anda.
+                        Belum ada data 6 SPM yang tercatat untuk keluarga Anda.
                     @endif
                 </p>
             </div>
@@ -238,7 +238,7 @@
             <div>
                 <h4 class="text-sm font-semibold text-amber-800 mb-1">Informasi</h4>
                 <p class="text-sm text-amber-700 leading-relaxed">
-                    Halaman ini hanya untuk melihat riwayat aduan keluarga. Status aduan akan diperbarui oleh kader atau admin posyandu. Jika memerlukan bantuan segera, silakan hubungi kader posyandu terdekat.
+                    Halaman ini hanya untuk melihat riwayat Posyandu 6 SPM. Status 6 SPM akan diperbarui oleh kader atau admin posyandu. Jika memerlukan bantuan segera, silakan hubungi kader posyandu terdekat.
                 </p>
             </div>
         </div>

@@ -15,13 +15,13 @@
                             <i class="ph ph-megaphone text-xl text-orange-600"></i>
                         </div>
                         <div>
-                            <h2 class="text-lg font-semibold text-gray-800">Progres Aduan Keluarga</h2>
-                            <p class="text-sm text-gray-500">{{ $aduanStats['total'] }} aduan tercatat</p>
+                            <h2 class="text-lg font-semibold text-gray-800">Progres Posyandu 6 SPM</h2>
+                            <p class="text-sm text-gray-500">{{ $aduanStats['total'] }} data 6 SPM tercatat</p>
                         </div>
                     </div>
                     <a href="{{ route('orangtua.aduan') }}"
                        class="text-sm font-medium text-primary hover:underline">
-                        Lihat semua aduan
+                        Lihat semua 6 SPM
                     </a>
                 </div>
 
@@ -69,15 +69,15 @@
             <a href="{{ route('orangtua.aduan') }}" class="bg-white rounded-lg shadow-sm p-6 hover:shadow-md transition-shadow border-l-4 border-orange-500">
                 <div class="flex items-center justify-between">
                     <div>
-                        <h3 class="text-lg font-semibold text-gray-800 mb-2">Aduan Keluarga</h3>
-                        <p class="text-sm text-gray-600 mb-2">Lihat riwayat aduan keluarga Anda</p>
+                        <h3 class="text-lg font-semibold text-gray-800 mb-2">Posyandu 6 SPM</h3>
+                        <p class="text-sm text-gray-600 mb-2">Lihat riwayat Posyandu 6 SPM keluarga Anda</p>
                         @if(($aduanStats['menunggu'] ?? 0) > 0)
                             <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-amber-100 text-amber-800 mb-3">
                                 {{ $aduanStats['menunggu'] }} menunggu
                             </span>
                         @elseif(($aduanStats['total'] ?? 0) > 0)
                             <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 mb-3">
-                                {{ $aduanStats['total'] }} aduan
+                                {{ $aduanStats['total'] }} 6 SPM
                             </span>
                         @endif
                         <div class="flex items-center text-orange-600 font-medium">

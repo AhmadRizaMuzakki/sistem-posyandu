@@ -78,14 +78,43 @@ class OrangtuaExportController extends Controller
             }
         }
 
+        $grafikPertumbuhan = [];
+        $penilaianList = [];
+        $grafikChartUri = null;
+
+        if ($filterNama !== '') {
+            $analytics = $this->buildImunisasiAnalytics($imunisasiList, $antropometri);
+            $grafikPertumbuhan = $analytics['grafikPertumbuhan'];
+            $penilaianList = $analytics['penilaianList'];
+
+            $grafik = $grafikPertumbuhan[0] ?? null;
+            if ($grafik) {
+                $grafikChartUri = \App\Helpers\PdfChartHelper::pertumbuhanChartDataUri(
+                    $grafik['labels'] ?? [],
+                    $grafik['tinggi'] ?? [],
+                    $grafik['berat'] ?? [],
+                    760,
+                    220
+                );
+            }
+        }
+
         $user = Auth::user();
         $filename = 'Laporan_Imunisasi_' . date('Y-m-d_His') . '.pdf';
+        $periodeLabel = $this->formatPeriodeLabel($filterBulan, $filterTahun);
 
         return $this->renderPdf('pdf.laporan-orangtua-imunisasi', [
             'rows' => $rows,
             'user' => $user,
             'generatedAt' => now('Asia/Jakarta'),
             'filterNama' => $filterNama,
+            'filterBulan' => $filterBulan,
+            'filterTahun' => $filterTahun,
+            'periodeLabel' => $periodeLabel,
+            'grafikPertumbuhan' => $grafikPertumbuhan,
+            'grafikChartUri' => $grafikChartUri,
+            'penilaianList' => $penilaianList,
+            'includeAnalytics' => $filterNama !== '',
         ], $filename, 'landscape');
     }
 
@@ -233,12 +262,138 @@ class OrangtuaExportController extends Controller
         };
     }
 
+    private function formatPeriodeLabel(string $bulan, string $tahun): ?string
+    {
+        $bulanValid = $bulan !== '' && is_numeric($bulan) && (int) $bulan >= 1 && (int) $bulan <= 12;
+        $tahunValid = $tahun !== '' && is_numeric($tahun);
+
+        if ($bulanValid && $tahunValid) {
+            return Carbon::create((int) $tahun, (int) $bulan, 1)->locale('id')->translatedFormat('F Y');
+        }
+        if ($bulanValid) {
+            return Carbon::create(now()->year, (int) $bulan, 1)->locale('id')->translatedFormat('F');
+        }
+        if ($tahunValid) {
+            return (string) (int) $tahun;
+        }
+
+        return null;
+    }
+
+    /**
+     * @param  Collection<int, array{sasaran: array<string, mixed>, imunisasi: Collection}>  $imunisasiList
+     * @return array{grafikPertumbuhan: array<int, array<string, mixed>>, penilaianList: array<int, array<string, mixed>>}
+     */
+    private function buildImunisasiAnalytics(Collection $imunisasiList, AntropometriService $antropometri): array
+    {
+        $grafikPertumbuhan = [];
+        $penilaianList = [];
+
+        foreach ($imunisasiList as $item) {
+            $sasaran = $item['sasaran'];
+            $records = $item['imunisasi']->sortBy('tanggal_imunisasi')->values();
+            $tanggalLahir = ! empty($sasaran['tanggal_lahir'])
+                ? Carbon::parse($sasaran['tanggal_lahir'])
+                : null;
+
+            $labels = [];
+            $berat = [];
+            $tinggi = [];
+
+            foreach ($records as $im) {
+                if ($im->tanggal_imunisasi === null) {
+                    continue;
+                }
+                $labels[] = $im->tanggal_imunisasi->format('d/m/Y');
+                $berat[] = $im->berat_badan !== null ? (float) $im->berat_badan : null;
+                $tinggi[] = $im->tinggi_badan !== null ? (float) $im->tinggi_badan : null;
+            }
+
+            if (count($labels) > 0) {
+                $grafikPertumbuhan[] = [
+                    'nama' => $sasaran['nama'] ?? '-',
+                    'kategori' => $this->kategoriLabel($sasaran['kategori'] ?? ''),
+                    'labels' => $labels,
+                    'berat' => $berat,
+                    'tinggi' => $tinggi,
+                ];
+            }
+
+            $terakhir = $records->sortByDesc('tanggal_imunisasi')->first();
+            $penilaian = null;
+            if ($terakhir) {
+                if ($terakhir->berat_badan !== null && $terakhir->tinggi_badan !== null) {
+                    $penilaian = $antropometri->evaluasi(
+                        (float) $terakhir->berat_badan,
+                        (float) $terakhir->tinggi_badan,
+                        $tanggalLahir,
+                        $terakhir->tanggal_imunisasi ? Carbon::parse($terakhir->tanggal_imunisasi) : null,
+                        $sasaran['jenis_kelamin'] ?? null,
+                        $terakhir->tekanan_darah,
+                        $terakhir->gula_darah !== null ? (float) $terakhir->gula_darah : null
+                    );
+                } elseif ($terakhir->tekanan_darah || $terakhir->gula_darah !== null) {
+                    $penilaian = $antropometri->evaluasiTandaVital(
+                        $terakhir->tekanan_darah,
+                        $terakhir->gula_darah !== null ? (float) $terakhir->gula_darah : null
+                    );
+                }
+            }
+
+            $statusStunting = null;
+            if ($terakhir) {
+                $statusStunting = $antropometri->labelStatusStunting(
+                    $terakhir->berat_badan !== null ? (float) $terakhir->berat_badan : null,
+                    $terakhir->tinggi_badan !== null ? (float) $terakhir->tinggi_badan : null,
+                    $tanggalLahir,
+                    $terakhir->tanggal_imunisasi ? Carbon::parse($terakhir->tanggal_imunisasi) : null,
+                    $sasaran['jenis_kelamin'] ?? null,
+                    $terakhir->tekanan_darah,
+                    $terakhir->gula_darah !== null ? (float) $terakhir->gula_darah : null,
+                    $sasaran['kategori'] ?? $terakhir->kategori_sasaran ?? null
+                );
+                if ($statusStunting === '-') {
+                    $statusStunting = $penilaian['status_stunting'] ?? ($penilaian['card']['status_stunting'] ?? null);
+                }
+            }
+
+            $card = $penilaian['card'] ?? [];
+            $penilaianList[] = [
+                'nama' => $sasaran['nama'] ?? '-',
+                'kategori' => $this->kategoriLabel($sasaran['kategori'] ?? ''),
+                'nik' => $sasaran['nik'] ?? '-',
+                'tanggal_lahir' => $tanggalLahir?->format('d/m/Y') ?? '-',
+                'jenis_kelamin' => $card['jenis_kelamin'] ?? ($sasaran['jenis_kelamin'] ?? '-'),
+                'umur_label' => isset($card['umur_bulan'])
+                    ? $card['umur_bulan'] . ' Bulan'
+                    : ($card['umur_label'] ?? ($penilaian['umur_label'] ?? '-')),
+                'tanggal_kunjungan' => $terakhir?->tanggal_imunisasi?->format('d/m/Y'),
+                'jenis_imunisasi' => $terakhir?->jenis_imunisasi,
+                'berat_badan' => $card['berat_badan'] ?? $terakhir?->berat_badan,
+                'tinggi_badan' => $card['tinggi_badan'] ?? $terakhir?->tinggi_badan,
+                'tekanan_darah' => $card['tekanan_darah'] ?? $terakhir?->tekanan_darah,
+                'gula_darah' => $card['gula_darah'] ?? $terakhir?->gula_darah,
+                'indeks' => $card['indeks'] ?? ($penilaian['indeks'] ?? []),
+                'kesimpulan' => $card['kesimpulan'] ?? ($penilaian['kategori'] ?? null),
+                'penjelasan' => $penilaian['penjelasan'] ?? null,
+                'status_stunting' => ($statusStunting && $statusStunting !== '-') ? $statusStunting : null,
+            ];
+        }
+
+        return [
+            'grafikPertumbuhan' => $grafikPertumbuhan,
+            'penilaianList' => $penilaianList,
+        ];
+    }
+
     private function renderPdf(string $view, array $data, string $fileName, string $orientation = 'portrait'): Response
     {
         $options = new Options();
         $options->set('isRemoteEnabled', true);
+        $options->set('isHtml5ParserEnabled', true);
+        $options->set('isFontSubsettingEnabled', true);
         $options->set('defaultFont', 'DejaVu Sans');
-
+        $options->set('dpi', 96);
         $dompdf = new Dompdf($options);
 
         $html = view($view, $data)->render();

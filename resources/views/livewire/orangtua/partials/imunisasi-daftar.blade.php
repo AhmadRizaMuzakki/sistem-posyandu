@@ -112,7 +112,7 @@
                         <th class="px-5 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Berat</th>
                         <th class="px-5 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Tekanan Darah</th>
                         <th class="px-5 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Gula Darah</th>
-                        <th class="px-5 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Status Stunting</th>
+                        <th class="px-5 py-4 text-left text-[10px] font-semibold text-gray-500 uppercase tracking-wider">Status Stunting</th>
                         <th class="px-5 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Keterangan</th>
                     </tr>
                 </thead>
@@ -173,7 +173,7 @@
                                     :jenis-kelamin="$row['sasaran']['jenis_kelamin'] ?? null"
                                     :tekanan-darah="$imunisasi->tekanan_darah"
                                     :gula-darah="$imunisasi->gula_darah"
-                                    :kategori-sasaran="$row['sasaran']['kategori'] ?? $imunisasi->kategori_sasaran"
+                                    :kategori-sasaran="$imunisasi->kategori_sasaran ?? ($row['sasaran']['kategori'] ?? null)"
                                 />
                             </td>
                             <td class="px-5 py-5 text-sm text-gray-600 max-w-[160px] truncate align-middle" title="{{ $imunisasi->keterangan ?? '-' }}">

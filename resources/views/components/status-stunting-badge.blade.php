@@ -44,9 +44,9 @@
 @endphp
 
 @if($label !== '-')
-    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-bold {{ $badgeClasses }}">
+    <span {{ $attributes->merge(['class' => "inline-flex items-center px-1 py-0 rounded-full text-[7px] leading-3 font-medium {$badgeClasses}"]) }}>
         {{ $label }}
     </span>
 @else
-    <span class="text-sm text-gray-500">-</span>
+    <span {{ $attributes->merge(['class' => 'text-[9px] text-gray-500']) }}>-</span>
 @endif

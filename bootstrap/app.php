@@ -5,7 +5,6 @@ use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
-use Throwable;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -24,7 +23,7 @@ return Application::configure(basePath: dirname(__DIR__))
     })
     ->withExceptions(function (Exceptions $exceptions) {
         // Di production: jangan tampilkan halaman debug Ignition, tampilkan halaman status.
-        $exceptions->render(function (Throwable $e, Request $request) {
+        $exceptions->render(function (\Throwable $e, Request $request) {
             if (! app()->isProduction() || $request->expectsJson()) {
                 return null;
             }

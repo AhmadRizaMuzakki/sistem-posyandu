@@ -85,7 +85,7 @@
                                'text-gray-600 border-transparent hover:text-primary hover:border-gray-300' => !request()->routeIs('orangtua.aduan'),
                            ])>
                             <i class="ph ph-megaphone text-sm sm:text-base"></i>
-                            Aduan
+                            6 SPM
                         </a>
                     </div>
                 </div>

@@ -60,6 +60,25 @@
             ],
         };
     };
+
+    $statusStunting = $card['status_stunting'] ?? ($penilaian['status_stunting'] ?? null);
+    if ($statusStunting === null) {
+        $tbU = collect($card['indeks'] ?? ($penilaian['indeks'] ?? []))->firstWhere('singkat', 'TB/U');
+        if ($tbU) {
+            $statusTb = strtolower((string) ($tbU['status'] ?? ''));
+            if ($statusTb !== '' && $statusTb !== 'tidak tersedia') {
+                $statusStunting = str_contains($statusTb, 'pendek') ? 'Stunting' : 'Tidak stunting';
+            }
+        }
+    }
+    $statusStuntingColor = $card['status_stunting_color']
+        ?? ($penilaian['status_stunting_color'] ?? null)
+        ?? ($statusStunting === 'Stunting' ? 'red' : ($statusStunting === 'Tidak stunting' ? 'green' : 'gray'));
+    $statusStuntingBadge = match ($statusStuntingColor) {
+        'red' => 'bg-rose-500 text-white',
+        'green' => 'bg-emerald-500 text-white',
+        default => 'bg-gray-500 text-white',
+    };
 @endphp
 
 <article class="bg-white border border-gray-200 rounded-xl overflow-hidden">
@@ -72,7 +91,7 @@
     </div>
 
     <div class="p-5 space-y-5">
-        {{-- Grid data pengukuran 2x3 --}}
+        {{-- Grid data pengukuran --}}
         <div class="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
             @php
                 $stats = [
@@ -92,6 +111,19 @@
                     <p class="text-sm font-bold text-gray-800 mt-0.5 leading-snug">{{ $stat['value'] }}</p>
                 </div>
             @endforeach
+            <div class="rounded-xl bg-gray-50 border border-gray-100 px-3 py-2.5">
+                <i class="ph ph-chart-line-up {{ $accentClass }} text-sm mb-1"></i>
+                <p class="text-[8px] font-medium text-gray-400 uppercase tracking-wide">Status Stunting</p>
+                <div class="mt-0.5">
+                    @if($statusStunting)
+                        <span class="inline-flex items-center px-1 py-0 rounded-full text-[7px] leading-3 font-medium {{ $statusStuntingBadge }}">
+                            {{ $statusStunting }}
+                        </span>
+                    @else
+                        <p class="text-[10px] font-bold text-gray-800 leading-snug">-</p>
+                    @endif
+                </div>
+            </div>
         </div>
 
         {{-- Hasil penilaian per indeks --}}
@@ -133,16 +165,26 @@
         @endif
 
         {{-- Kesimpulan --}}
-        @if(!empty($card['kesimpulan']))
-            <div class="rounded-xl bg-gray-50 border border-gray-100 px-4 py-3 space-y-1">
-                <div class="flex items-start gap-2">
-                    <i class="ph ph-info {{ $accentClass }} text-sm mt-0.5 shrink-0"></i>
-                    <p class="text-xs text-gray-700">
-                        <span class="font-semibold text-gray-900">Kesimpulan:</span> {{ $card['kesimpulan'] }}
-                    </p>
-                </div>
+        @if(!empty($card['kesimpulan']) || $statusStunting)
+            <div class="rounded-xl bg-gray-50 border border-gray-100 px-4 py-3 space-y-1.5">
+                @if(!empty($card['kesimpulan']))
+                    <div class="flex items-start gap-2">
+                        <i class="ph ph-info {{ $accentClass }} text-sm mt-0.5 shrink-0"></i>
+                        <p class="text-xs text-gray-700">
+                            <span class="font-semibold text-gray-900">Kesimpulan:</span> {{ $card['kesimpulan'] }}
+                        </p>
+                    </div>
+                @endif
+                @if($statusStunting)
+                    <div class="flex items-center gap-1.5 {{ !empty($card['kesimpulan']) ? 'pl-5' : '' }}">
+                        <span class="text-[8px] text-gray-700 font-semibold">Status Stunting:</span>
+                        <span class="inline-flex items-center px-1 py-0 rounded-full text-[7px] leading-3 font-medium {{ $statusStuntingBadge }}">
+                            {{ $statusStunting }}
+                        </span>
+                    </div>
+                @endif
                 @if(!empty($penilaian['penjelasan']))
-                    <p class="text-xs text-gray-500 leading-relaxed pl-5">{{ $penilaian['penjelasan'] }}</p>
+                    <p class="text-xs text-gray-500 leading-relaxed {{ !empty($card['kesimpulan']) || $statusStunting ? 'pl-5' : '' }}">{{ $penilaian['penjelasan'] }}</p>
                 @endif
             </div>
         @endif

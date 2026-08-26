@@ -171,6 +171,174 @@ class PdfChartHelper
         return self::imageToDataUri($img);
     }
 
+    /**
+     * Grafik pertumbuhan line chart (tinggi + berat) untuk DomPDF.
+     *
+     * @param  array<int, string|null>  $labels
+     * @param  array<int, float|int|null>  $tinggi
+     * @param  array<int, float|int|null>  $berat
+     */
+    public static function pertumbuhanChartDataUri(
+        array $labels,
+        array $tinggi,
+        array $berat,
+        int $width = 920,
+        int $height = 360
+    ): ?string {
+        if (! function_exists('imagecreatetruecolor') || empty($labels)) {
+            return null;
+        }
+
+        $count = count($labels);
+        $tinggiVals = [];
+        $beratVals = [];
+        for ($i = 0; $i < $count; $i++) {
+            $tinggiVals[] = isset($tinggi[$i]) && $tinggi[$i] !== null && $tinggi[$i] !== ''
+                ? (float) $tinggi[$i]
+                : null;
+            $beratVals[] = isset($berat[$i]) && $berat[$i] !== null && $berat[$i] !== ''
+                ? (float) $berat[$i]
+                : null;
+        }
+
+        $tinggiPresent = array_values(array_filter($tinggiVals, fn ($v) => $v !== null));
+        $beratPresent = array_values(array_filter($beratVals, fn ($v) => $v !== null));
+        if (empty($tinggiPresent) && empty($beratPresent)) {
+            return null;
+        }
+
+        $img = imagecreatetruecolor($width, $height);
+        if ($img === false) {
+            return null;
+        }
+
+        $white = imagecolorallocate($img, 255, 255, 255);
+        $gray = imagecolorallocate($img, 229, 231, 235);
+        $dark = imagecolorallocate($img, 55, 65, 81);
+        $muted = imagecolorallocate($img, 107, 114, 128);
+        $tinggiColor = imagecolorallocate($img, 16, 185, 129);
+        $beratColor = imagecolorallocate($img, 59, 130, 246);
+        imagefilledrectangle($img, 0, 0, $width, $height, $white);
+
+        $paddingLeft = 56;
+        $paddingRight = 56;
+        $paddingTop = 40;
+        $paddingBottom = 52;
+        $chartW = $width - $paddingLeft - $paddingRight;
+        $chartH = max(80, $height - $paddingTop - $paddingBottom);
+
+        [$axisMinTinggi, $axisMaxTinggi] = self::axisRangeFromValues($tinggiPresent);
+        [$axisMinBerat, $axisMaxBerat] = self::axisRangeFromValues($beratPresent);
+        $spanTinggi = max(0.001, $axisMaxTinggi - $axisMinTinggi);
+        $spanBerat = max(0.001, $axisMaxBerat - $axisMinBerat);
+
+        // Legend
+        imageline($img, $paddingLeft, 16, $paddingLeft + 16, 16, $tinggiColor);
+        imagefilledellipse($img, $paddingLeft + 8, 16, 7, 7, $tinggiColor);
+        imageellipse($img, $paddingLeft + 8, 16, 7, 7, $white);
+        imagestring($img, 2, $paddingLeft + 22, 10, 'Tinggi (cm)', $dark);
+        imageline($img, $paddingLeft + 118, 16, $paddingLeft + 134, 16, $beratColor);
+        imagefilledellipse($img, $paddingLeft + 126, 16, 7, 7, $beratColor);
+        imageellipse($img, $paddingLeft + 126, 16, 7, 7, $white);
+        imagestring($img, 2, $paddingLeft + 140, 10, 'Berat (kg)', $dark);
+
+        // Grid + dual axis labels
+        for ($i = 0; $i <= 4; $i++) {
+            $y = $paddingTop + (int) (($chartH / 4) * $i);
+            imageline($img, $paddingLeft, $y, $width - $paddingRight, $y, $gray);
+            $valT = $axisMaxTinggi - (($spanTinggi / 4) * $i);
+            $valB = $axisMaxBerat - (($spanBerat / 4) * $i);
+            imagestring($img, 2, 6, $y - 6, (string) (int) round($valT), $tinggiColor);
+            imagestring($img, 2, $width - $paddingRight + 6, $y - 6, rtrim(rtrim(number_format($valB, 1, '.', ''), '0'), '.'), $beratColor);
+        }
+
+        $innerPadX = $count > 1 ? (int) ($chartW * 0.06) : (int) ($chartW / 2);
+        $usableW = max(1, $chartW - (2 * $innerPadX));
+        $stepX = $count > 1 ? $usableW / ($count - 1) : 0;
+        $pointsTinggi = [];
+        $pointsBerat = [];
+
+        for ($index = 0; $index < $count; $index++) {
+            $x = (int) round($paddingLeft + $innerPadX + ($count > 1 ? $index * $stepX : 0));
+
+            // vertical guide
+            imageline($img, $x, $paddingTop, $x, $paddingTop + $chartH, $gray);
+
+            if ($tinggiVals[$index] !== null) {
+                $ratio = ($tinggiVals[$index] - $axisMinTinggi) / $spanTinggi;
+                $y = (int) round($paddingTop + $chartH - ($ratio * $chartH));
+                $pointsTinggi[] = ['x' => $x, 'y' => $y, 'value' => $tinggiVals[$index]];
+            }
+            if ($beratVals[$index] !== null) {
+                $ratio = ($beratVals[$index] - $axisMinBerat) / $spanBerat;
+                $y = (int) round($paddingTop + $chartH - ($ratio * $chartH));
+                $pointsBerat[] = ['x' => $x, 'y' => $y, 'value' => $beratVals[$index]];
+            }
+
+            $label = self::truncateLabel((string) ($labels[$index] ?? ''), 10);
+            $labelX = $x - (int) ((strlen($label) * 5) / 2);
+            imagestring($img, 2, max($paddingLeft - 4, $labelX), $paddingTop + $chartH + 10, $label, $muted);
+        }
+
+        if (function_exists('imagesetthickness')) {
+            imagesetthickness($img, 2);
+        }
+
+        for ($i = 1; $i < count($pointsTinggi); $i++) {
+            imageline($img, $pointsTinggi[$i - 1]['x'], $pointsTinggi[$i - 1]['y'], $pointsTinggi[$i]['x'], $pointsTinggi[$i]['y'], $tinggiColor);
+        }
+        for ($i = 1; $i < count($pointsBerat); $i++) {
+            imageline($img, $pointsBerat[$i - 1]['x'], $pointsBerat[$i - 1]['y'], $pointsBerat[$i]['x'], $pointsBerat[$i]['y'], $beratColor);
+        }
+
+        if (function_exists('imagesetthickness')) {
+            imagesetthickness($img, 1);
+        }
+
+        foreach ($pointsTinggi as $point) {
+            imagefilledellipse($img, $point['x'], $point['y'], 9, 9, $tinggiColor);
+            imageellipse($img, $point['x'], $point['y'], 9, 9, $white);
+            $tLabel = rtrim(rtrim(number_format($point['value'], 1, '.', ''), '0'), '.');
+            imagestring($img, 1, $point['x'] - (int) ((strlen($tLabel) * 5) / 2), max($paddingTop + 1, $point['y'] - 14), $tLabel, $tinggiColor);
+        }
+        foreach ($pointsBerat as $point) {
+            imagefilledellipse($img, $point['x'], $point['y'], 9, 9, $beratColor);
+            imageellipse($img, $point['x'], $point['y'], 9, 9, $white);
+            $bLabel = rtrim(rtrim(number_format($point['value'], 1, '.', ''), '0'), '.');
+            imagestring($img, 1, $point['x'] - (int) ((strlen($bLabel) * 5) / 2), min($paddingTop + $chartH - 12, $point['y'] + 8), $bLabel, $beratColor);
+        }
+
+        imageline($img, $paddingLeft, $paddingTop, $paddingLeft, $paddingTop + $chartH, $dark);
+        imageline($img, $width - $paddingRight, $paddingTop, $width - $paddingRight, $paddingTop + $chartH, $dark);
+        imageline($img, $paddingLeft, $paddingTop + $chartH, $width - $paddingRight, $paddingTop + $chartH, $dark);
+
+        return self::imageToDataUri($img);
+    }
+
+    /**
+     * @param  array<int, float>  $values
+     * @return array{0: float, 1: float}
+     */
+    private static function axisRangeFromValues(array $values): array
+    {
+        if (empty($values)) {
+            return [0.0, 10.0];
+        }
+
+        $min = min($values);
+        $max = max($values);
+
+        if ($min === $max) {
+            $pad = max(1.0, $max * 0.25);
+
+            return [max(0.0, $min - $pad), $max + $pad];
+        }
+
+        $pad = ($max - $min) * 0.2;
+
+        return [max(0.0, $min - $pad), $max + $pad];
+    }
+
     private static function truncateLabel(string $label, int $max): string
     {
         if (strlen($label) <= $max) {
