@@ -125,6 +125,23 @@ class OrangtuaAduan extends Component
     public function render()
     {
         $noKk = $this->resolveNoKk();
+
+        if (! \Illuminate\Support\Facades\Schema::hasTable((new Aduan)->getTable())) {
+            return view('livewire.orangtua.orangtua-aduan', [
+                'aduanList' => collect(),
+                'totalBaris' => 0,
+                'firstItem' => 0,
+                'lastItem' => 0,
+                'currentPage' => 1,
+                'lastPage' => 1,
+                'hasPages' => false,
+                'filterAktif' => false,
+                'periodeLabel' => null,
+                'statusOptions' => AduanOptions::statusOptions(),
+                'kategoriOptions' => AduanOptions::kategoriOptions(),
+            ]);
+        }
+
         $query = Aduan::with('posyandu:id_posyandu,nama_posyandu')
             ->where('no_kk', $noKk ?? '')
             ->orderByDesc('tanggal_aduan');

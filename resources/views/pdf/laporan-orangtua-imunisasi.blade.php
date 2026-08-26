@@ -68,6 +68,7 @@
                     <th>Berat (kg)</th>
                     <th>Tekanan Darah</th>
                     <th>Gula Darah</th>
+                    <th>Status Stunting</th>
                     <th>Keterangan</th>
                 </tr>
             </thead>
@@ -83,6 +84,7 @@
                         <td class="text-center">{{ $row->berat_badan }}</td>
                         <td class="text-center">{{ $row->tekanan_darah ?? '-' }}</td>
                         <td class="text-center">{{ $row->gula_darah ?? '-' }}</td>
+                        <td class="text-center">{{ $row->status_stunting ?? '-' }}</td>
                         <td>{{ $row->keterangan }}</td>
                     </tr>
                 @endforeach

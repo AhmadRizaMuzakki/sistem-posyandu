@@ -53,9 +53,11 @@ class KaderAduan extends Component
 
     public string $judul = '';
 
-    public string $kategori = AduanOptions::SPM_KESEHATAN;
+    public string $kategori = AduanOptions::SPM_TRANTIBUMLINMAS;
 
     public string $isiAduan = '';
+
+    public string $noSuratPermohonanRt = '';
 
     public string $keluargaSearch = '';
 
@@ -117,9 +119,18 @@ class KaderAduan extends Component
         $this->keluargaSearch = '';
         $this->showKeluargaDropdown = false;
         $this->judul = '';
-        $this->kategori = AduanOptions::SPM_KESEHATAN;
+        $this->kategori = AduanOptions::SPM_TRANTIBUMLINMAS;
         $this->isiAduan = '';
+        $this->noSuratPermohonanRt = '';
         $this->resetValidation();
+    }
+
+    public function updatedKategori(): void
+    {
+        if ($this->kategori !== AduanOptions::SPM_PEKERJAAN_UMUM) {
+            $this->noSuratPermohonanRt = '';
+            $this->resetValidation('noSuratPermohonanRt');
+        }
     }
 
     public function updatedKeluargaSearch(): void
@@ -182,12 +193,17 @@ class KaderAduan extends Component
             'judul' => 'required|string|min:5|max:150',
             'kategori' => 'required|in:' . implode(',', array_keys(AduanOptions::kategoriOptions())),
             'isiAduan' => 'required|string|min:10|max:2000',
+            'noSuratPermohonanRt' => $this->kategori === AduanOptions::SPM_PEKERJAAN_UMUM
+                ? 'required|string|min:3|max:100'
+                : 'nullable|string|max:100',
         ], [
             'noKk.required' => 'Keluarga wajib dipilih.',
-            'judul.required' => 'Judul aduan wajib diisi.',
-            'judul.min' => 'Judul aduan minimal 5 karakter.',
-            'isiAduan.required' => 'Isi aduan wajib diisi.',
-            'isiAduan.min' => 'Isi aduan minimal 10 karakter.',
+            'judul.required' => 'Judul wajib diisi.',
+            'judul.min' => 'Judul minimal 5 karakter.',
+            'isiAduan.required' => 'Isi / keterangan wajib diisi.',
+            'isiAduan.min' => 'Isi / keterangan minimal 10 karakter.',
+            'noSuratPermohonanRt.required' => 'No Surat Permohonan RT wajib diisi untuk Bidang Pekerjaan Umum.',
+            'noSuratPermohonanRt.min' => 'No Surat Permohonan RT minimal 3 karakter.',
         ]);
 
         Aduan::create([
@@ -195,6 +211,9 @@ class KaderAduan extends Component
             'id_posyandu' => $this->posyanduId,
             'judul' => trim($this->judul),
             'isi_aduan' => trim($this->isiAduan),
+            'no_surat_permohonan_rt' => $this->kategori === AduanOptions::SPM_PEKERJAAN_UMUM
+                ? trim($this->noSuratPermohonanRt)
+                : null,
             'kategori' => $this->kategori,
             'status' => AduanOptions::STATUS_MENUNGGU,
             'user_id' => Auth::id(),
@@ -203,7 +222,7 @@ class KaderAduan extends Component
 
         $this->closeCreateModal();
         $this->resetPage();
-        $this->showSuccessNotification('Aduan berhasil dibuat.');
+        $this->showSuccessNotification('Data SPM berhasil dibuat.');
     }
 
     public function openEditModal(int $id): void
@@ -219,6 +238,7 @@ class KaderAduan extends Component
         $this->judul = $aduan->judul;
         $this->kategori = $aduan->kategori;
         $this->isiAduan = $aduan->isi_aduan;
+        $this->noSuratPermohonanRt = $aduan->no_surat_permohonan_rt ?? '';
         $this->statusUpdate = $aduan->status;
         $this->showKeluargaDropdown = false;
         $this->resetValidation();
@@ -246,13 +266,18 @@ class KaderAduan extends Component
             'judul' => 'required|string|min:5|max:150',
             'kategori' => 'required|in:' . implode(',', array_keys(AduanOptions::kategoriOptions())),
             'isiAduan' => 'required|string|min:10|max:2000',
+            'noSuratPermohonanRt' => $this->kategori === AduanOptions::SPM_PEKERJAAN_UMUM
+                ? 'required|string|min:3|max:100'
+                : 'nullable|string|max:100',
             'statusUpdate' => 'required|in:' . implode(',', array_keys(AduanOptions::statusOptions())),
         ], [
             'noKk.required' => 'Keluarga wajib dipilih.',
-            'judul.required' => 'Judul aduan wajib diisi.',
-            'judul.min' => 'Judul aduan minimal 5 karakter.',
-            'isiAduan.required' => 'Isi aduan wajib diisi.',
-            'isiAduan.min' => 'Isi aduan minimal 10 karakter.',
+            'judul.required' => 'Judul wajib diisi.',
+            'judul.min' => 'Judul minimal 5 karakter.',
+            'isiAduan.required' => 'Isi / keterangan wajib diisi.',
+            'isiAduan.min' => 'Isi / keterangan minimal 10 karakter.',
+            'noSuratPermohonanRt.required' => 'No Surat Permohonan RT wajib diisi untuk Bidang Pekerjaan Umum.',
+            'noSuratPermohonanRt.min' => 'No Surat Permohonan RT minimal 3 karakter.',
             'statusUpdate.required' => 'Status wajib dipilih.',
         ]);
 
@@ -261,12 +286,15 @@ class KaderAduan extends Component
             'no_kk' => $this->noKk,
             'judul' => trim($this->judul),
             'isi_aduan' => trim($this->isiAduan),
+            'no_surat_permohonan_rt' => $this->kategori === AduanOptions::SPM_PEKERJAAN_UMUM
+                ? trim($this->noSuratPermohonanRt)
+                : null,
             'kategori' => $this->kategori,
             'status' => $this->statusUpdate,
         ]);
 
         $this->closeEditModal();
-        $this->showSuccessNotification('Aduan berhasil diperbarui.');
+        $this->showSuccessNotification('Data SPM berhasil diperbarui.');
     }
 
     public function hapusAduan(int $id): void
@@ -282,7 +310,7 @@ class KaderAduan extends Component
             $this->closeEditModal();
         }
 
-        $this->showSuccessNotification('Aduan berhasil dihapus.');
+        $this->showSuccessNotification('Data SPM berhasil dihapus.');
     }
 
     /**
@@ -370,7 +398,7 @@ class KaderAduan extends Component
         ]);
 
         $this->closeDetailModal();
-        $this->showSuccessNotification('Tanggapan aduan berhasil disimpan.');
+        $this->showSuccessNotification('Tanggapan SPM berhasil disimpan.');
     }
 
     protected function findAduanForPosyandu(int $id): Aduan
@@ -439,7 +467,7 @@ class KaderAduan extends Component
         }
 
         return view('livewire.posyandu.kader-aduan', [
-            'title' => 'Aduan - ' . $this->posyandu->nama_posyandu,
+            'title' => 'SPM - ' . $this->posyandu->nama_posyandu,
             'posyandu' => $this->posyandu,
             'aduanList' => $aduanList,
             'orangtuaMap' => $orangtuaMap,

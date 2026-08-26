@@ -1,4 +1,5 @@
 @php
+    use App\Services\AntropometriService;
     use Carbon\Carbon;
 @endphp
 
@@ -109,9 +110,10 @@
         .col-jenis { width: 12%; }
         .col-tb { width: 7%; }
         .col-bb { width: 7%; }
-        .col-td { width: 10%; }
-        .col-gd { width: 9%; }
-        .col-ket { width: 17%; }
+        .col-td { width: 9%; }
+        .col-gd { width: 8%; }
+        .col-stunting { width: 9%; }
+        .col-ket { width: 12%; }
         .text-center { text-align: center; }
         .mt-2 { margin-top: 6px; }
         .mt-1 { margin-top: 4px; }
@@ -214,6 +216,7 @@
                     <th class="col-bb">Berat (kg)</th>
                     <th class="col-td">Tekanan Darah</th>
                     <th class="col-gd">Gula Darah</th>
+                    <th class="col-stunting">Status Stunting</th>
                     <th class="col-ket">Keterangan</th>
                 </tr>
             </thead>
@@ -234,6 +237,15 @@
                             $umurLabel = $umur >= 5 ? $umur.' th' : ($umur * 12).' bln';
                         }
                         $keterangan = trim((string) ($imunisasi->keterangan ?? ''));
+                        $statusStunting = app(AntropometriService::class)->labelStatusStunting(
+                            $imunisasi->berat_badan !== null ? (float) $imunisasi->berat_badan : null,
+                            $imunisasi->tinggi_badan !== null ? (float) $imunisasi->tinggi_badan : null,
+                            ($sasaran && ! empty($sasaran->tanggal_lahir)) ? Carbon::parse($sasaran->tanggal_lahir) : null,
+                            $imunisasi->tanggal_imunisasi ? Carbon::parse($imunisasi->tanggal_imunisasi) : null,
+                            $sasaran->jenis_kelamin ?? null,
+                            $imunisasi->tekanan_darah,
+                            $imunisasi->gula_darah !== null ? (float) $imunisasi->gula_darah : null
+                        );
                     @endphp
                     <tr>
                         <td class="text-center">{{ $index + 1 }}</td>
@@ -256,6 +268,7 @@
                         <td class="text-center">
                             {{ !is_null($imunisasi->gula_darah) ? number_format($imunisasi->gula_darah, 0, ',', '.').' mg/dL' : '-' }}
                         </td>
+                        <td class="text-center">{{ $statusStunting }}</td>
                         <td>{{ $keterangan !== '' ? $keterangan : '-' }}</td>
                     </tr>
                 @endforeach

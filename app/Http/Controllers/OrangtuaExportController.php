@@ -8,6 +8,7 @@ use App\Models\SasaranDewasa;
 use App\Models\SasaranLansia;
 use App\Models\SasaranPralansia;
 use App\Models\SasaranRemaja;
+use App\Services\AntropometriService;
 use Carbon\Carbon;
 use Dompdf\Dompdf;
 use Dompdf\Options;
@@ -44,7 +45,13 @@ class OrangtuaExportController extends Controller
 
         $rows = collect();
         $no = 1;
+        $antropometri = app(AntropometriService::class);
         foreach ($imunisasiList as $item) {
+            $tanggalLahir = ! empty($item['sasaran']['tanggal_lahir'] ?? null)
+                ? Carbon::parse($item['sasaran']['tanggal_lahir'])
+                : null;
+            $jenisKelamin = $item['sasaran']['jenis_kelamin'] ?? null;
+
             foreach ($item['imunisasi'] as $im) {
                 $rows->push((object) [
                     'no' => $no++,
@@ -56,6 +63,15 @@ class OrangtuaExportController extends Controller
                     'berat_badan' => $im->berat_badan !== null ? number_format($im->berat_badan, 1, ',', '.') : '-',
                     'tekanan_darah' => $im->tekanan_darah ? $im->tekanan_darah . ' mmHg' : '-',
                     'gula_darah' => $im->gula_darah !== null ? number_format($im->gula_darah, 0, ',', '.') . ' mg/dL' : '-',
+                    'status_stunting' => $antropometri->labelStatusStunting(
+                        $im->berat_badan !== null ? (float) $im->berat_badan : null,
+                        $im->tinggi_badan !== null ? (float) $im->tinggi_badan : null,
+                        $tanggalLahir,
+                        $im->tanggal_imunisasi ? Carbon::parse($im->tanggal_imunisasi) : null,
+                        $jenisKelamin,
+                        $im->tekanan_darah,
+                        $im->gula_darah !== null ? (float) $im->gula_darah : null
+                    ),
                     'keterangan' => $im->keterangan ?? '-',
                 ]);
             }
@@ -152,6 +168,8 @@ class OrangtuaExportController extends Controller
                         'kategori' => $cfg['slug'],
                         'nama' => $s->nama_sasaran,
                         'nik' => $s->nik_sasaran,
+                        'tanggal_lahir' => $s->tanggal_lahir,
+                        'jenis_kelamin' => $s->jenis_kelamin,
                     ]);
                 }
             }

@@ -7,21 +7,21 @@
         {{-- Header --}}
         <div class="bg-white rounded-lg shadow-sm p-4 md:p-6">
             <h1 class="text-2xl md:text-3xl font-bold text-gray-800">{{ $posyandu->nama_posyandu }}</h1>
-            <p class="text-gray-500 mt-1 text-sm md:text-base">Manajemen Aduan Keluarga (6 SPM)</p>
+            <p class="text-gray-500 mt-1 text-sm md:text-base">Manajemen Pencatatan SPM Posyandu</p>
         </div>
 
         <div class="bg-white rounded-lg shadow-sm p-4 md:p-6 overflow-hidden">
             <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-6">
                 <h2 class="text-xl font-semibold text-gray-800 flex items-center min-w-0">
                     <i class="ph ph-megaphone text-2xl mr-3 text-primary shrink-0"></i>
-                    Daftar Aduan
+                    Daftar SPM
                 </h2>
                 <div class="flex flex-wrap items-center gap-3">
                     <button type="button"
                             wire:click="openCreateModal"
                             class="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-primary rounded-lg hover:bg-indigo-700 transition-colors">
                         <i class="ph ph-plus-circle text-lg mr-2"></i>
-                        Tambah Aduan
+                        Tambah SPM
                     </button>
                     <div class="inline-flex items-center rounded-lg border border-gray-200 p-1 bg-gray-50">
                         <button type="button"
@@ -57,7 +57,7 @@
                     <input type="text"
                            wire:model.live.debounce.300ms="search"
                            class="w-full py-2.5 pl-10 pr-4 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
-                           placeholder="Cari judul, isi aduan, atau No. KK...">
+                           placeholder="Cari judul, isi, atau No. KK...">
                 </div>
             </div>
 
@@ -157,14 +157,14 @@
                                                 <button type="button"
                                                         wire:click="openEditModal({{ $aduan->id_aduan }})"
                                                         class="inline-flex items-center justify-center w-9 h-9 rounded-lg text-amber-600 border border-amber-200 hover:bg-amber-500 hover:text-white transition-colors"
-                                                        title="Edit aduan">
+                                                        title="Edit SPM">
                                                     <i class="ph ph-pencil-simple text-lg"></i>
                                                 </button>
                                                 <button type="button"
                                                         wire:click="hapusAduan({{ $aduan->id_aduan }})"
-                                                        wire:confirm="Yakin ingin menghapus aduan ini?"
+                                                        wire:confirm="Yakin ingin menghapus data SPM ini?"
                                                         class="inline-flex items-center justify-center w-9 h-9 rounded-lg text-red-600 border border-red-200 hover:bg-red-500 hover:text-white transition-colors"
-                                                        title="Hapus aduan">
+                                                        title="Hapus SPM">
                                                     <i class="ph ph-trash text-lg"></i>
                                                 </button>
                                             </div>
@@ -220,7 +220,7 @@
                                         </button>
                                         <button type="button"
                                                 wire:click="hapusAduan({{ $aduan->id_aduan }})"
-                                                wire:confirm="Yakin ingin menghapus aduan ini?"
+                                                wire:confirm="Yakin ingin menghapus data SPM ini?"
                                                 class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-red-600 border border-red-200 rounded-lg hover:bg-red-500 hover:text-white transition-colors">
                                             <i class="ph ph-trash text-lg"></i>
                                             Hapus
@@ -240,13 +240,13 @@
                     <div class="w-14 h-14 mx-auto mb-4 rounded-full bg-gray-100 flex items-center justify-center">
                         <i class="ph ph-megaphone text-2xl text-gray-300"></i>
                     </div>
-                    <h4 class="text-base font-semibold text-gray-700 mb-2">Belum Ada Aduan</h4>
-                    <p class="text-sm text-gray-500 mb-4">Belum ada aduan dari keluarga sasaran posyandu ini.</p>
+                    <h4 class="text-base font-semibold text-gray-700 mb-2">Belum Ada Data SPM</h4>
+                    <p class="text-sm text-gray-500 mb-4">Belum ada pencatatan SPM dari keluarga sasaran posyandu ini.</p>
                     <button type="button"
                             wire:click="openCreateModal"
                             class="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-primary rounded-lg hover:bg-indigo-700 transition-colors">
                         <i class="ph ph-plus-circle text-lg mr-2"></i>
-                        Tambah Aduan Pertama
+                        Tambah Data SPM Pertama
                     </button>
                 </div>
             @endif
@@ -287,8 +287,15 @@
                         </div>
 
                         <div>
-                            <p class="text-xs font-medium text-gray-500 uppercase mb-2">Isi Aduan</p>
+                            <p class="text-xs font-medium text-gray-500 uppercase mb-2">Isi / Keterangan</p>
                             <p class="text-sm text-gray-700 leading-relaxed bg-gray-50 rounded-lg p-4 whitespace-pre-line">{{ $selectedAduan->isi_aduan }}</p>
+
+                            @if($selectedAduan->kategori === AduanOptions::SPM_PEKERJAAN_UMUM)
+                                <div class="mt-4">
+                                    <p class="text-xs font-medium text-gray-500 uppercase mb-2">No Surat Permohonan RT</p>
+                                    <p class="text-sm text-gray-700 bg-gray-50 rounded-lg p-4">{{ $selectedAduan->no_surat_permohonan_rt ?: '-' }}</p>
+                                </div>
+                            @endif
                         </div>
 
                         <form wire:submit="simpanTanggapan" class="space-y-4 border-t border-gray-100 pt-5">
@@ -341,8 +348,8 @@
                 <div class="relative bg-white rounded-xl shadow-xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
                     <div class="px-6 py-5 border-b border-gray-100 flex items-start justify-between gap-4">
                         <div>
-                            <h3 class="text-lg font-semibold text-gray-900">Tambah Aduan Baru</h3>
-                            <p class="text-sm text-gray-500 mt-1">Buat aduan atas nama keluarga sasaran posyandu.</p>
+                            <h3 class="text-lg font-semibold text-gray-900">Tambah Data SPM</h3>
+                            <p class="text-sm text-gray-500 mt-1">Buat pencatatan SPM atas nama keluarga sasaran posyandu.</p>
                         </div>
                         <button type="button" wire:click="closeCreateModal" class="p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100 shrink-0">
                             <i class="ph ph-x text-xl"></i>
@@ -415,11 +422,11 @@
                         </div>
 
                         <div>
-                            <label for="aduan-judul" class="block text-sm font-medium text-gray-700 mb-1.5">Judul Aduan</label>
+                            <label for="aduan-judul" class="block text-sm font-medium text-gray-700 mb-1.5">Judul</label>
                             <input id="aduan-judul"
                                    type="text"
                                    wire:model="judul"
-                                   placeholder="Contoh: Keluhan layanan imunisasi"
+                                   placeholder="Contoh: Keluhan layanan / pengaduan warga"
                                    class="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary">
                             @error('judul')
                                 <p class="text-xs text-red-600 mt-1">{{ $message }}</p>
@@ -429,7 +436,7 @@
                         <div>
                             <label for="aduan-kategori" class="block text-sm font-medium text-gray-700 mb-1.5">Bidang SPM</label>
                             <select id="aduan-kategori"
-                                    wire:model="kategori"
+                                    wire:model.live="kategori"
                                     class="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary">
                                 @foreach($kategoriOptions as $value => $label)
                                     <option value="{{ $value }}">{{ $label }}</option>
@@ -440,12 +447,26 @@
                             @enderror
                         </div>
 
+                        @if($kategori === \App\Helpers\AduanOptions::SPM_PEKERJAAN_UMUM)
+                            <div>
+                                <label for="aduan-no-surat-rt" class="block text-sm font-medium text-gray-700 mb-1.5">No Surat Permohonan RT</label>
+                                <input id="aduan-no-surat-rt"
+                                       type="text"
+                                       wire:model="noSuratPermohonanRt"
+                                       placeholder="Contoh: 012/RT.01/VIII/2026"
+                                       class="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary">
+                                @error('noSuratPermohonanRt')
+                                    <p class="text-xs text-red-600 mt-1">{{ $message }}</p>
+                                @enderror
+                            </div>
+                        @endif
+
                         <div>
-                            <label for="aduan-isi" class="block text-sm font-medium text-gray-700 mb-1.5">Isi Aduan</label>
+                            <label for="aduan-isi" class="block text-sm font-medium text-gray-700 mb-1.5">Isi / Keterangan</label>
                             <textarea id="aduan-isi"
                                       wire:model="isiAduan"
                                       rows="4"
-                                      placeholder="Jelaskan aduan secara detail..."
+                                      placeholder="Jelaskan secara detail..."
                                       class="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm resize-y focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"></textarea>
                             @error('isiAduan')
                                 <p class="text-xs text-red-600 mt-1">{{ $message }}</p>
@@ -461,7 +482,7 @@
                                     wire:loading.attr="disabled"
                                     @if($keluargaList->count() === 0) disabled @endif
                                     class="px-4 py-2.5 bg-primary text-white rounded-lg text-sm font-medium hover:bg-indigo-700 disabled:opacity-60">
-                                <span wire:loading.remove wire:target="simpanAduan">Simpan Aduan</span>
+                                <span wire:loading.remove wire:target="simpanAduan">Simpan SPM</span>
                                 <span wire:loading wire:target="simpanAduan">Menyimpan...</span>
                             </button>
                         </div>
@@ -479,8 +500,8 @@
                 <div class="relative bg-white rounded-xl shadow-xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
                     <div class="px-6 py-5 border-b border-gray-100 flex items-start justify-between gap-4">
                         <div>
-                            <h3 class="text-lg font-semibold text-gray-900">Edit Aduan</h3>
-                            <p class="text-sm text-gray-500 mt-1">Perbarui data aduan keluarga.</p>
+                            <h3 class="text-lg font-semibold text-gray-900">Edit Data SPM</h3>
+                            <p class="text-sm text-gray-500 mt-1">Perbarui data pencatatan SPM keluarga.</p>
                         </div>
                         <button type="button" wire:click="closeEditModal" class="p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100 shrink-0">
                             <i class="ph ph-x text-xl"></i>
@@ -540,7 +561,7 @@
                         </div>
 
                         <div>
-                            <label for="edit-aduan-judul" class="block text-sm font-medium text-gray-700 mb-1.5">Judul Aduan</label>
+                            <label for="edit-aduan-judul" class="block text-sm font-medium text-gray-700 mb-1.5">Judul</label>
                             <input id="edit-aduan-judul"
                                    type="text"
                                    wire:model="judul"
@@ -554,7 +575,7 @@
                             <div>
                                 <label for="edit-aduan-kategori" class="block text-sm font-medium text-gray-700 mb-1.5">Bidang SPM</label>
                                 <select id="edit-aduan-kategori"
-                                        wire:model="kategori"
+                                        wire:model.live="kategori"
                                         class="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary">
                                     @foreach($kategoriOptions as $value => $label)
                                         <option value="{{ $value }}">{{ $label }}</option>
@@ -579,8 +600,22 @@
                             </div>
                         </div>
 
+                        @if($kategori === \App\Helpers\AduanOptions::SPM_PEKERJAAN_UMUM)
+                            <div>
+                                <label for="edit-aduan-no-surat-rt" class="block text-sm font-medium text-gray-700 mb-1.5">No Surat Permohonan RT</label>
+                                <input id="edit-aduan-no-surat-rt"
+                                       type="text"
+                                       wire:model="noSuratPermohonanRt"
+                                       placeholder="Contoh: 012/RT.01/VIII/2026"
+                                       class="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary">
+                                @error('noSuratPermohonanRt')
+                                    <p class="text-xs text-red-600 mt-1">{{ $message }}</p>
+                                @enderror
+                            </div>
+                        @endif
+
                         <div>
-                            <label for="edit-aduan-isi" class="block text-sm font-medium text-gray-700 mb-1.5">Isi Aduan</label>
+                            <label for="edit-aduan-isi" class="block text-sm font-medium text-gray-700 mb-1.5">Isi / Keterangan</label>
                             <textarea id="edit-aduan-isi"
                                       wire:model="isiAduan"
                                       rows="4"

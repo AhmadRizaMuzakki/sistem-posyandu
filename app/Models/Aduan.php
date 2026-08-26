@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Aduan extends Model
 {
-    protected $table = 'aduans';
+    protected $table = 'spm';
 
     protected $primaryKey = 'id_aduan';
 
@@ -16,6 +16,7 @@ class Aduan extends Model
         'id_posyandu',
         'judul',
         'isi_aduan',
+        'no_surat_permohonan_rt',
         'kategori',
         'status',
         'tanggapan',

@@ -8,12 +8,23 @@ return new class extends Migration
 {
     public function up(): void
     {
+        if (Schema::hasTable('aduans') && ! Schema::hasTable('spm')) {
+            Schema::rename('aduans', 'spm');
+
+            return;
+        }
+
+        if (Schema::hasTable('spm')) {
+            return;
+        }
+
         Schema::create('spm', function (Blueprint $table) {
             $table->id('id_aduan');
             $table->unsignedBigInteger('no_kk');
             $table->unsignedBigInteger('id_posyandu')->nullable();
             $table->string('judul');
             $table->text('isi_aduan');
+            $table->string('no_surat_permohonan_rt', 100)->nullable();
             $table->enum('kategori', [
                 'kesehatan',
                 'pendidikan',
@@ -41,7 +52,8 @@ return new class extends Migration
 
     public function down(): void
     {
-        Schema::dropIfExists('spm');
-        Schema::dropIfExists('aduans');
+        if (Schema::hasTable('spm') && ! Schema::hasTable('aduans')) {
+            Schema::rename('spm', 'aduans');
+        }
     }
 };

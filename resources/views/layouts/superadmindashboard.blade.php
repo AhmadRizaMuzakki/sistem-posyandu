@@ -341,6 +341,14 @@
                                 </a>
 
                                 <a
+                                    :href="`/supervisor/posyandu/${posyandu.encryptedId}/aduan`"
+                                    class="sidebar-menu-item flex items-center px-4 py-2 text-sm rounded-lg {{ request()->routeIs('posyandu.aduan') ? 'active' : 'text-gray-600' }}"
+                                >
+                                    <i class="ph ph-megaphone text-lg mr-3"></i>
+                                    <span class="font-medium">6 SPM</span>
+                                </a>
+
+                                <a
                                     :href="`/supervisor/posyandu/${posyandu.encryptedId}/laporan`"
                                     class="sidebar-menu-item flex items-center px-4 py-2 text-sm rounded-lg {{ request()->routeIs('posyandu.laporan') ? 'active' : 'text-gray-600' }}"
                                 >

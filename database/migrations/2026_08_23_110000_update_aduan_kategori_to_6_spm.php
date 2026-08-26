@@ -6,9 +6,23 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
+    private function tableName(): ?string
+    {
+        if (Schema::hasTable('spm')) {
+            return 'spm';
+        }
+
+        if (Schema::hasTable('aduans')) {
+            return 'aduans';
+        }
+
+        return null;
+    }
+
     public function up(): void
     {
-        if (! Schema::hasTable('aduans')) {
+        $table = $this->tableName();
+        if (! $table) {
             return;
         }
 
@@ -21,10 +35,10 @@ return new class extends Migration
         ];
 
         foreach ($map as $old => $new) {
-            DB::table('aduans')->where('kategori', $old)->update(['kategori' => $new]);
+            DB::table($table)->where('kategori', $old)->update(['kategori' => $new]);
         }
 
-        DB::statement("ALTER TABLE aduans MODIFY kategori ENUM(
+        DB::statement("ALTER TABLE {$table} MODIFY kategori ENUM(
             'kesehatan',
             'pendidikan',
             'pekerjaan_umum',
@@ -36,7 +50,8 @@ return new class extends Migration
 
     public function down(): void
     {
-        if (! Schema::hasTable('aduans')) {
+        $table = $this->tableName();
+        if (! $table) {
             return;
         }
 
@@ -50,10 +65,10 @@ return new class extends Migration
         ];
 
         foreach ($map as $old => $new) {
-            DB::table('aduans')->where('kategori', $old)->update(['kategori' => $new]);
+            DB::table($table)->where('kategori', $old)->update(['kategori' => $new]);
         }
 
-        DB::statement("ALTER TABLE aduans MODIFY kategori ENUM(
+        DB::statement("ALTER TABLE {$table} MODIFY kategori ENUM(
             'layanan',
             'fasilitas',
             'kader',

@@ -1,4 +1,5 @@
 ﻿@php
+    use App\Services\AntropometriService;
     use Carbon\Carbon;
 @endphp
 
@@ -207,6 +208,7 @@
                         <th>Berat (kg)</th>
                         <th>Tekanan Darah</th>
                         <th>Gula Darah</th>
+                        <th>Status Stunting</th>
                         <th>Keterangan</th>
                     @endif
                 </tr>
@@ -217,6 +219,18 @@
                         $sasaran = $row['sasaran'];
                         $status = $row['status'];
                         $imunisasi = $row['imunisasi'] ?? null;
+                        $statusStunting = '-';
+                        if ($imunisasi) {
+                            $statusStunting = app(AntropometriService::class)->labelStatusStunting(
+                                $imunisasi->berat_badan !== null ? (float) $imunisasi->berat_badan : null,
+                                $imunisasi->tinggi_badan !== null ? (float) $imunisasi->tinggi_badan : null,
+                                (! empty($sasaran->tanggal_lahir)) ? Carbon::parse($sasaran->tanggal_lahir) : null,
+                                $imunisasi->tanggal_imunisasi ? Carbon::parse($imunisasi->tanggal_imunisasi) : null,
+                                $sasaran->jenis_kelamin ?? null,
+                                $imunisasi->tekanan_darah,
+                                $imunisasi->gula_darah !== null ? (float) $imunisasi->gula_darah : null
+                            );
+                        }
                     @endphp
                     <tr>
                         @if (!empty($isGlobeReport))
@@ -273,6 +287,7 @@
                         <td class="text-center">
                             {{ $imunisasi && ! is_null($imunisasi->gula_darah) ? number_format($imunisasi->gula_darah, 0, ',', '.').' mg/dL' : '-' }}
                         </td>
+                        <td class="text-center">{{ $statusStunting }}</td>
                         <td>{{ $imunisasi ? ($imunisasi->keterangan ?? '-') : '-' }}</td>
                         @endif
                     </tr>

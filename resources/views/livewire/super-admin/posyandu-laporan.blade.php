@@ -279,7 +279,7 @@
         <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
             <div class="flex items-center gap-2 mb-4 pb-3 border-b border-gray-200">
                 <i class="ph ph-megaphone text-2xl text-orange-600"></i>
-                <h2 class="text-xl font-semibold text-gray-800">Laporan Aduan (Pengaduan)</h2>
+                <h2 class="text-xl font-semibold text-gray-800">Laporan SPM</h2>
             </div>
             <div class="space-y-4">
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -314,22 +314,20 @@
                         </select>
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Filter Bidang SPM</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Filter Bidang SPM <span class="text-red-500">*</span></label>
                         <select id="filterKategoriAduan" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-primary focus:border-primary">
                             <option value="">Semua Bidang SPM</option>
-                            <option value="kesehatan">Kesehatan</option>
+                            <option value="trantibumlinmas">Trantibum Linmas</option>
                             <option value="pendidikan">Pendidikan</option>
                             <option value="pekerjaan_umum">Pekerjaan Umum</option>
                             <option value="perumahan_rakyat">Perumahan Rakyat</option>
-                            <option value="trantibumlinmas">Ketenteraman & Ketertiban Umum</option>
-                            <option value="sosial">Sosial</option>
                         </select>
                     </div>
                 </div>
                 <div>
                     <button onclick="exportFilteredAduan()" class="w-full inline-flex items-center justify-center px-4 py-2 rounded-lg bg-orange-600 text-white text-sm font-medium shadow-sm hover:bg-orange-700 transition-colors">
                         <i class="ph ph-file-pdf text-lg mr-2"></i>
-                        Export Laporan Aduan (PDF)
+                        Export Laporan SPM (PDF)
                     </button>
                 </div>
             </div>
@@ -349,13 +347,18 @@
         const bulan = document.getElementById('filterBulanAduan').value;
         const status = document.getElementById('filterStatusAduan').value;
         const kategori = document.getElementById('filterKategoriAduan').value;
+        if (!kategori) {
+            alert('Pilih Bidang SPM terlebih dahulu agar PDF sesuai format lembar pencatatan.');
+            document.getElementById('filterKategoriAduan').focus();
+            return;
+        }
         const url = '{{ route("superadmin.posyandu.laporan.pdf.aduan", ["id" => encrypt($posyandu->id_posyandu)]) }}';
         const params = new URLSearchParams();
         if (tahun) params.append('tahun', tahun);
         if (bulan) params.append('bulan', bulan);
         if (status) params.append('status', status);
-        if (kategori) params.append('kategori', kategori);
-        window.open(url + (params.toString() ? '?' + params.toString() : ''), '_blank');
+        params.append('kategori', kategori);
+        window.open(url + '?' + params.toString(), '_blank');
     }
 
     function exportFilteredPendidikan() {

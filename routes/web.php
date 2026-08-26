@@ -71,6 +71,7 @@ Route::prefix('supervisor')->middleware(['auth', 'verified', 'role:superadmin'])
     Route::get('/posyandu/{id}/sasaran', PosyanduSasaran::class)->name('posyandu.sasaran');
     Route::get('/posyandu/{id}/imunisasi', PosyanduImunisasi::class)->name('posyandu.imunisasi');
     Route::get('/posyandu/{id}/pendidikan', PosyanduPendidikan::class)->name('posyandu.pendidikan');
+    Route::get('/posyandu/{id}/aduan', \App\Livewire\SuperAdmin\PosyanduAduan::class)->name('posyandu.aduan');
     Route::get('/posyandu/{id}/jadwal', \App\Livewire\SuperAdmin\PosyanduJadwal::class)->name('posyandu.jadwal');
     Route::get('/posyandu/{id}/laporan', SuperadminPosyanduLaporan::class)->name('posyandu.laporan');
     Route::get('/posyandu/{id}/galeri', \App\Livewire\SuperAdmin\PosyanduGaleri::class)->name('posyandu.galeri');

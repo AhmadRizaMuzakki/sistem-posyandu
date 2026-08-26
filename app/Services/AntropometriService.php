@@ -101,6 +101,77 @@ class AntropometriService
     }
 
     /**
+     * Status stunting (TB/U) untuk anak usia ≤ 60 bulan.
+     *
+     * @return array{status: string, color: string}|null
+     */
+    public function statusStunting(
+        ?float $tinggiBadan,
+        ?Carbon $tanggalLahir,
+        ?Carbon $tanggalUkur,
+        ?string $jenisKelamin
+    ): ?array {
+        if ($tinggiBadan === null || ! $tanggalLahir || ! $tanggalUkur) {
+            return null;
+        }
+
+        $umurBulan = $this->hitungUmurBulan($tanggalLahir, $tanggalUkur);
+        if ($umurBulan === null || $umurBulan > 60) {
+            return null;
+        }
+
+        $jk = $this->normalizeJenisKelamin($jenisKelamin);
+        $bulanKunci = max(12, min(60, $umurBulan));
+        $standarTb = $this->config['tb_u'][$jk][$bulanKunci] ?? null;
+        $tbU = $this->klasifikasiStandar($tinggiBadan, $standarTb, 'tb_u');
+
+        if (($tbU['kode'] ?? '') === 'unknown') {
+            return null;
+        }
+
+        return [
+            'status' => $tbU['status'],
+            'color' => $tbU['color'],
+        ];
+    }
+
+    /**
+     * Label status stunting (TB/U) — sama logika dengan halaman orangtua / badge UI.
+     */
+    public function labelStatusStunting(
+        ?float $beratBadan,
+        ?float $tinggiBadan,
+        ?Carbon $tanggalLahir,
+        ?Carbon $tanggalUkur,
+        ?string $jenisKelamin,
+        ?string $tekananDarah = null,
+        ?float $gulaDarah = null
+    ): string {
+        if ($beratBadan !== null && $tinggiBadan !== null) {
+            $penilaian = $this->evaluasi(
+                $beratBadan,
+                $tinggiBadan,
+                $tanggalLahir,
+                $tanggalUkur,
+                $jenisKelamin,
+                $tekananDarah,
+                $gulaDarah
+            );
+
+            if ($penilaian) {
+                $tbU = collect($penilaian['indeks'] ?? [])->firstWhere('singkat', 'TB/U');
+                if ($tbU && ! empty($tbU['status'])) {
+                    return (string) $tbU['status'];
+                }
+            }
+        }
+
+        $fallback = $this->statusStunting($tinggiBadan, $tanggalLahir, $tanggalUkur, $jenisKelamin);
+
+        return $fallback['status'] ?? '-';
+    }
+
+    /**
      * @return array<string, mixed>
      */
     protected function evaluasiAnakBalita(

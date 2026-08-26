@@ -38,18 +38,33 @@ class AduanOptions
     }
 
     /**
-     * 6 Standar Pelayanan Minimal (SPM) Posyandu — Permendagri No. 13 Tahun 2024.
+     * Bidang SPM aktif untuk form/filter aduan.
      *
      * @return array<string, string>
      */
     public static function kategoriOptions(): array
     {
         return [
+            self::SPM_TRANTIBUMLINMAS => 'Trantibum Linmas',
+            self::SPM_PENDIDIKAN => 'Pendidikan',
+            self::SPM_PEKERJAAN_UMUM => 'Pekerjaan Umum',
+            self::SPM_PERUMAHAN_RAKYAT => 'Perumahan Rakyat',
+        ];
+    }
+
+    /**
+     * Label semua kategori (termasuk yang sudah tidak dipakai di form).
+     *
+     * @return array<string, string>
+     */
+    public static function kategoriLabels(): array
+    {
+        return [
             self::SPM_KESEHATAN => 'Kesehatan',
             self::SPM_PENDIDIKAN => 'Pendidikan',
             self::SPM_PEKERJAAN_UMUM => 'Pekerjaan Umum',
             self::SPM_PERUMAHAN_RAKYAT => 'Perumahan Rakyat',
-            self::SPM_TRANTIBUMLINMAS => 'Ketenteraman & Ketertiban Umum',
+            self::SPM_TRANTIBUMLINMAS => 'Trantibum Linmas',
             self::SPM_SOSIAL => 'Sosial',
         ];
     }
@@ -69,7 +84,7 @@ class AduanOptions
             return '-';
         }
 
-        return self::kategoriOptions()[$kategori] ?? '-';
+        return self::kategoriLabels()[$kategori] ?? '-';
     }
 
     public static function statusBadgeClasses(?string $status): string

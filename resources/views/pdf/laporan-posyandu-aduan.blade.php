@@ -1,133 +1,253 @@
 @php
     use App\Helpers\AduanOptions;
+
+    $bidang = $kategori ?? '';
+    $bidangLabel = $bidangLabel ?? AduanOptions::kategoriLabel($bidang);
+    $tahunFooter = $generatedAt->format('Y');
+    $minRows = 10;
+    $rowCount = max($aduanList->count(), $minRows);
+
+    $isTl = function (?string $status): bool {
+        return in_array($status, [AduanOptions::STATUS_DIPROSES, AduanOptions::STATUS_SELESAI], true);
+    };
 @endphp
 <!DOCTYPE html>
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <title>Laporan Aduan - {{ $posyandu->nama_posyandu }}</title>
+    <title>Format Pencatatan SPM Posyandu Bidang {{ $bidangLabel }}</title>
     <style>
-        @page { margin: 12mm 14mm; }
-        * { font-family: DejaVu Sans, Arial, sans-serif; font-size: 10px; }
-        body { margin: 0; color: #111827; }
-        .header { text-align: center; margin-bottom: 14px; }
-        .title { font-size: 16px; font-weight: bold; text-transform: uppercase; }
-        .subtitle { font-size: 12px; margin-top: 4px; }
-        .meta-wrapper { width: 100%; border-collapse: collapse; margin-bottom: 12px; }
-        .meta-wrapper > tbody > tr > td { width: 50%; vertical-align: top; padding: 0 8px 0 0; }
-        .meta-wrapper > tbody > tr > td:last-child { padding: 0 0 0 8px; }
-        .meta-table { width: 100%; border-collapse: collapse; }
-        .meta-table td { padding: 4px 6px; vertical-align: top; }
-        .meta-table td:first-child { width: 42%; font-weight: bold; }
-        .stats-table { width: 100%; border-collapse: collapse; margin-bottom: 14px; }
-        .stats-table td { padding: 6px; text-align: center; border: 1px solid #d1d5db; font-weight: bold; }
-        .stats-label { font-size: 9px; font-weight: normal; color: #4b5563; }
-        table.data { width: 100%; border-collapse: collapse; margin-top: 8px; }
-        table.data th, table.data td { padding: 6px 5px; border: 1px solid #d1d5db; vertical-align: top; }
-        table.data th { background: #e5e7eb; font-weight: bold; text-align: left; }
-        table.data tr:nth-child(even) { background: #f9fafb; }
-        .text-center { text-align: center; }
-        .empty { text-align: center; padding: 24px; color: #6b7280; }
-        .footer { margin-top: 16px; text-align: right; font-size: 9px; color: #6b7280; }
+        @page { margin: 12mm 12mm; }
+        * { font-family: DejaVu Sans, Arial, sans-serif; }
+        body { margin: 0; color: #000; font-size: 11px; }
+        .title {
+            text-align: center;
+            font-size: 14px;
+            font-weight: bold;
+            margin: 0 0 14px 0;
+        }
+        .info {
+            width: 55%;
+            border-collapse: collapse;
+            margin-bottom: 16px;
+        }
+        .info td {
+            padding: 2px 0;
+            vertical-align: bottom;
+            font-size: 11px;
+        }
+        .info .label { width: 120px; white-space: nowrap; }
+        .info .colon { width: 12px; text-align: center; }
+        .info .value {
+            border-bottom: 1px solid #000;
+            min-width: 180px;
+            padding-left: 4px;
+        }
+        table.data {
+            width: 100%;
+            border-collapse: collapse;
+            table-layout: fixed;
+        }
+        table.data th,
+        table.data td {
+            border: 1px solid #000;
+            padding: 5px 3px;
+            vertical-align: middle;
+            font-size: 10px;
+        }
+        table.data th {
+            font-weight: bold;
+            text-align: center;
+            background: #fff;
+        }
+        table.data .num { text-align: center; width: 28px; }
+        table.data .center { text-align: center; }
+        table.data .cell-empty { height: 22px; }
+        .sign-wrap { margin-top: 28px; width: 100%; }
+        table.sign {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        table.sign td {
+            border: none;
+            width: 50%;
+            vertical-align: top;
+            font-size: 11px;
+        }
+        .sign-left { text-align: left; padding-left: 24px; }
+        .sign-right { text-align: center; }
+        .sign-space { height: 55px; }
+        .muted { color: #444; font-size: 9px; margin-top: 10px; text-align: right; }
     </style>
 </head>
 <body>
-    <div class="header">
-        <div class="title">Laporan Hasil Pengaduan (Aduan)</div>
-        <div class="subtitle">{{ $posyandu->nama_posyandu }}</div>
-    </div>
+    <div class="title">Format Pencatatan SPM Posyandu Bidang {{ $bidangLabel }}</div>
 
-    <table class="meta-wrapper">
+    <table class="info">
         <tr>
-            <td>
-                <table class="meta-table">
-                    <tr>
-                        <td>Nama Posyandu</td>
-                        <td>{{ $posyandu->nama_posyandu }}</td>
-                    </tr>
-                    <tr>
-                        <td>Alamat Posyandu</td>
-                        <td>{{ $posyandu->alamat_posyandu ?? '-' }}</td>
-                    </tr>
-                    <tr>
-                        <td>Filter Status</td>
-                        <td>{{ $statusFilterLabel }}</td>
-                    </tr>
-                    <tr>
-                        <td>Filter Bidang SPM</td>
-                        <td>{{ $kategoriFilterLabel }}</td>
-                    </tr>
-                </table>
-            </td>
-            <td>
-                <table class="meta-table">
-                    <tr>
-                        <td>Periode</td>
-                        <td>{{ $periodeLabel }}</td>
-                    </tr>
-                    <tr>
-                        <td>Tanggal Cetak</td>
-                        <td>{{ $generatedAt->format('d F Y, H:i:s') }} WIB</td>
-                    </tr>
-                    <tr>
-                        <td>Dicetak Oleh</td>
-                        <td>{{ $user->name }}</td>
-                    </tr>
-                </table>
-            </td>
+            <td class="label">Posyandu</td>
+            <td class="colon">:</td>
+            <td class="value">{{ $posyandu->nama_posyandu }}</td>
+        </tr>
+        <tr>
+            <td class="label">Kelurahan/Desa</td>
+            <td class="colon">:</td>
+            <td class="value">{{ $kelurahanDesa ?? '' }}</td>
+        </tr>
+        <tr>
+            <td class="label">Kecamatan</td>
+            <td class="colon">:</td>
+            <td class="value">{{ $kecamatan ?? '' }}</td>
+        </tr>
+        <tr>
+            <td class="label">Kabupaten/Kota</td>
+            <td class="colon">:</td>
+            <td class="value">{{ $kabupatenKota ?? '' }}</td>
         </tr>
     </table>
 
-    <table class="stats-table">
-        <tr>
-            <td>{{ $stats['total'] }}<br><span class="stats-label">Total</span></td>
-            <td>{{ $stats['menunggu'] }}<br><span class="stats-label">Menunggu</span></td>
-            <td>{{ $stats['diproses'] }}<br><span class="stats-label">Diproses</span></td>
-            <td>{{ $stats['selesai'] }}<br><span class="stats-label">Selesai</span></td>
-            <td>{{ $stats['ditolak'] }}<br><span class="stats-label">Ditolak</span></td>
-        </tr>
-    </table>
-
-    @if($aduanList->count() > 0)
+    @if($bidang === AduanOptions::SPM_PEKERJAAN_UMUM)
+        {{-- Template: Pekerjaan Umum --}}
         <table class="data">
             <thead>
                 <tr>
-                    <th class="text-center" style="width:4%">No</th>
-                    <th style="width:14%">Tanggal</th>
-                    <th style="width:12%">Keluarga</th>
-                    <th style="width:10%">No. KK</th>
-                    <th style="width:14%">Judul</th>
-                    <th style="width:10%">Bidang SPM</th>
-                    <th style="width:8%">Status</th>
-                    <th style="width:18%">Isi Aduan</th>
-                    <th style="width:10%">Tanggapan</th>
+                    <th rowspan="2" class="num">No</th>
+                    <th rowspan="2" style="width:9%">Tanggal</th>
+                    <th rowspan="2" style="width:14%">No Surat Permohonan RT</th>
+                    <th rowspan="2" style="width:14%">Nama</th>
+                    <th rowspan="2" style="width:20%">Keluhan</th>
+                    <th rowspan="2" style="width:18%">Lokasi Pembangunan Sarana</th>
+                    <th colspan="2" style="width:14%">Tindaklanjut</th>
+                </tr>
+                <tr>
+                    <th style="width:7%">TL</th>
+                    <th style="width:7%">BTL</th>
                 </tr>
             </thead>
             <tbody>
-                @foreach($aduanList as $index => $aduan)
+                @for($i = 0; $i < $rowCount; $i++)
                     @php
-                        $orangtua = $orangtuaMap->get((string) $aduan->no_kk);
+                        $aduan = $aduanList->values()->get($i);
+                        $orangtua = $aduan ? $orangtuaMap->get((string) $aduan->no_kk) : null;
                     @endphp
                     <tr>
-                        <td class="text-center">{{ $index + 1 }}</td>
-                        <td>{{ $aduan->tanggal_aduan?->format('d/m/Y') ?? '-' }}</td>
-                        <td>{{ $orangtua?->nama ?? '-' }}</td>
-                        <td>{{ $aduan->no_kk }}</td>
-                        <td>{{ $aduan->judul }}</td>
-                        <td>{{ AduanOptions::kategoriLabel($aduan->kategori) }}</td>
-                        <td>{{ AduanOptions::statusLabel($aduan->status) }}</td>
-                        <td>{{ $aduan->isi_aduan }}</td>
-                        <td>{{ $aduan->tanggapan ?? '-' }}</td>
+                        <td class="center">{{ $i + 1 }}</td>
+                        <td class="center">{{ $aduan?->tanggal_aduan?->format('d/m/Y') }}</td>
+                        <td class="center">{{ $aduan?->no_surat_permohonan_rt }}</td>
+                        <td>{{ $orangtua?->nama }}</td>
+                        <td>{{ $aduan?->isi_aduan ?? $aduan?->judul }}</td>
+                        <td>{{ $orangtua?->alamat }}</td>
+                        <td class="center">{{ $aduan && $isTl($aduan->status) ? 'V' : '' }}</td>
+                        <td class="center">{{ $aduan && ! $isTl($aduan->status) ? 'V' : '' }}</td>
                     </tr>
-                @endforeach
+                @endfor
             </tbody>
         </table>
+
+    @elseif($bidang === AduanOptions::SPM_PERUMAHAN_RAKYAT)
+        {{-- Template: Perumahan Rakyat --}}
+        <table class="data">
+            <thead>
+                <tr>
+                    <th rowspan="2" class="num">No</th>
+                    <th rowspan="2" style="width:8%">Tanggal</th>
+                    <th rowspan="2" style="width:11%">NIK</th>
+                    <th rowspan="2" style="width:12%">Nama</th>
+                    <th colspan="5" style="width:40%">Persyaratan</th>
+                    <th colspan="2" style="width:12%">Tindaklanjut</th>
+                    <th rowspan="2" style="width:10%">Ket.</th>
+                </tr>
+                <tr>
+                    <th style="width:7%; font-size:8px;">FC KK</th>
+                    <th style="width:7%; font-size:8px;">FC KTP</th>
+                    <th style="width:6%; font-size:8px;">SP*</th>
+                    <th style="width:10%; font-size:8px;">Suket Penghasilan</th>
+                    <th style="width:10%; font-size:8px;">Foto Kondisi Rumah</th>
+                    <th style="width:6%">TL</th>
+                    <th style="width:6%">BTL</th>
+                </tr>
+            </thead>
+            <tbody>
+                @for($i = 0; $i < $rowCount; $i++)
+                    @php
+                        $aduan = $aduanList->values()->get($i);
+                        $orangtua = $aduan ? $orangtuaMap->get((string) $aduan->no_kk) : null;
+                    @endphp
+                    <tr>
+                        <td class="center">{{ $i + 1 }}</td>
+                        <td class="center">{{ $aduan?->tanggal_aduan?->format('d/m/Y') }}</td>
+                        <td class="center">{{ $orangtua?->nik }}</td>
+                        <td>{{ $orangtua?->nama }}</td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td class="center">{{ $aduan && $isTl($aduan->status) ? 'V' : '' }}</td>
+                        <td class="center">{{ $aduan && ! $isTl($aduan->status) ? 'V' : '' }}</td>
+                        <td>{{ $aduan?->tanggapan }}</td>
+                    </tr>
+                @endfor
+            </tbody>
+        </table>
+
     @else
-        <div class="empty">Tidak ada data aduan untuk filter yang dipilih.</div>
+        {{-- Template default: Trantibum Linmas & Pendidikan (No, Tanggal, NIK, Nama, Hal Pengaduan, Keterangan TL/BTL) --}}
+        <table class="data">
+            <thead>
+                <tr>
+                    <th rowspan="2" class="num">No</th>
+                    <th rowspan="2" style="width:12%">Tanggal</th>
+                    <th rowspan="2" style="width:16%">NIK</th>
+                    <th rowspan="2" style="width:18%">Nama</th>
+                    <th rowspan="2" style="width:34%">Hal Pengaduan</th>
+                    <th colspan="2" style="width:14%">Keterangan</th>
+                </tr>
+                <tr>
+                    <th style="width:7%">TL</th>
+                    <th style="width:7%">BTL</th>
+                </tr>
+            </thead>
+            <tbody>
+                @for($i = 0; $i < $rowCount; $i++)
+                    @php
+                        $aduan = $aduanList->values()->get($i);
+                        $orangtua = $aduan ? $orangtuaMap->get((string) $aduan->no_kk) : null;
+                        $halPengaduan = $aduan
+                            ? trim(($aduan->judul ?? '') . (($aduan->judul && $aduan->isi_aduan) ? ' — ' : '') . ($aduan->isi_aduan ?? ''))
+                            : '';
+                    @endphp
+                    <tr>
+                        <td class="center">{{ $i + 1 }}</td>
+                        <td class="center">{{ $aduan?->tanggal_aduan?->format('d/m/Y') }}</td>
+                        <td class="center">{{ $orangtua?->nik }}</td>
+                        <td>{{ $orangtua?->nama }}</td>
+                        <td>{{ $halPengaduan }}</td>
+                        <td class="center">{{ $aduan && $isTl($aduan->status) ? 'V' : '' }}</td>
+                        <td class="center">{{ $aduan && ! $isTl($aduan->status) ? 'V' : '' }}</td>
+                    </tr>
+                @endfor
+            </tbody>
+        </table>
     @endif
 
-    <div class="footer">
-        Dokumen ini digenerate otomatis oleh Sistem Posyandu.
+    <div class="sign-wrap">
+        <table class="sign">
+            <tr>
+                <td class="sign-left">
+                    <div>Mengetahui:</div>
+                    <div>Kader Posyandu</div>
+                    <div class="sign-space"></div>
+                    <div>(................................)</div>
+                </td>
+                <td class="sign-right">
+                    <div>..........{{ $tahunFooter }}</div>
+                    <div>Kader Yang Melaporkan</div>
+                    <div class="sign-space"></div>
+                    <div>(................................)</div>
+                </td>
+            </tr>
+        </table>
     </div>
 </body>
 </html>

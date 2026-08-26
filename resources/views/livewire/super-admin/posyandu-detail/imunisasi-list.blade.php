@@ -39,6 +39,7 @@
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Berat (kg)</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tekanan Darah</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Gula Darah</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status Stunting</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Petugas Kesehatan</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Aksi</th>
                     </tr>
@@ -90,6 +91,17 @@
                                 @else
                                     -
                                 @endif
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <x-status-stunting-badge
+                                    :berat-badan="$imunisasi->berat_badan"
+                                    :tinggi-badan="$imunisasi->tinggi_badan"
+                                    :tanggal-lahir="$sasaran->tanggal_lahir ?? null"
+                                    :tanggal-ukur="$imunisasi->tanggal_imunisasi"
+                                    :jenis-kelamin="$sasaran->jenis_kelamin ?? null"
+                                    :tekanan-darah="$imunisasi->tekanan_darah"
+                                    :gula-darah="$imunisasi->gula_darah"
+                                />
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
                                 {{ $imunisasi->petugasKesehatan->nama_petugas_kesehatan ?? '-' }}

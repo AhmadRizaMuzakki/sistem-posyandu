@@ -105,13 +105,17 @@ class OrangtuaDashboard extends Component
             'selesai' => 0,
             'ditolak' => 0,
         ];
-        if ($noKk) {
-            $aduanBase = Aduan::where('no_kk', $noKk);
-            $aduanStats['total'] = (clone $aduanBase)->count();
-            $aduanStats['menunggu'] = (clone $aduanBase)->where('status', 'menunggu')->count();
-            $aduanStats['diproses'] = (clone $aduanBase)->where('status', 'diproses')->count();
-            $aduanStats['selesai'] = (clone $aduanBase)->where('status', 'selesai')->count();
-            $aduanStats['ditolak'] = (clone $aduanBase)->where('status', 'ditolak')->count();
+        if ($noKk && \Illuminate\Support\Facades\Schema::hasTable((new Aduan)->getTable())) {
+            try {
+                $aduanBase = Aduan::where('no_kk', $noKk);
+                $aduanStats['total'] = (clone $aduanBase)->count();
+                $aduanStats['menunggu'] = (clone $aduanBase)->where('status', 'menunggu')->count();
+                $aduanStats['diproses'] = (clone $aduanBase)->where('status', 'diproses')->count();
+                $aduanStats['selesai'] = (clone $aduanBase)->where('status', 'selesai')->count();
+                $aduanStats['ditolak'] = (clone $aduanBase)->where('status', 'ditolak')->count();
+            } catch (\Throwable $e) {
+                report($e);
+            }
         }
 
         return view('livewire.orangtua.orang-tua', [
