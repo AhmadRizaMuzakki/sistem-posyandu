@@ -76,15 +76,15 @@ class Pendidikan extends Component
     {
         // Query pendidikan berdasarkan posyandu (hanya sebagai filter)
         // Data pendidikan sendiri berasal dari sasaran yang dipilih saat input
-        $pendidikanList = $this->getPendidikanQuery($this->posyandu->id_posyandu)->paginate(10);
+        $pendidikanList = $this->getPendidikanList($this->posyandu->id_posyandu);
 
         return view('livewire.super-admin.pendidikan', [
             'title' => 'Pendidikan - ' . $this->posyandu->nama_posyandu,
-            'posyandu' => $this->posyandu, // Hanya untuk konteks/filter
-            'pendidikanList' => $pendidikanList, // Data dari sasaran
+            'posyandu' => $this->posyandu,
+            'pendidikanList' => $pendidikanList,
             'isPendidikanModalOpen' => $this->isPendidikanModalOpen,
             'id_pendidikan' => $this->id_pendidikan,
-            'sasaranList' => $this->sasaranList, // List sasaran untuk dipilih
+            'sasaranList' => $this->sasaranList,
         ]);
     }
 }

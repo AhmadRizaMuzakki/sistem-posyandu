@@ -20,6 +20,7 @@ trait AutoSavePendidikan
 
             // Tentukan primary key berdasarkan kategori
             $primaryKeyMap = [
+                'bayibalita' => 'id_sasaran_bayibalita',
                 'remaja' => 'id_sasaran_remaja',
                 'dewasa' => 'id_sasaran_dewasa',
                 'pralansia' => 'id_sasaran_pralansia',

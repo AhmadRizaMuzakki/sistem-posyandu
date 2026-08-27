@@ -205,7 +205,7 @@ class SasaranFilterOptions
         return true;
     }
 
-    public static function applyToPendidikanQuery(Builder $query, ?string $filter): Builder
+    public static function applyToPendidikanQuery($query, ?string $filter)
     {
         if (! $filter) {
             return $query;

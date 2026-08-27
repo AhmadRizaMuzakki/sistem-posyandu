@@ -1299,6 +1299,7 @@ trait SasaranImportTrait
                 'jenis_kelamin' => $jenisKelamin,
                 'status_keluarga' => in_array($row['status_keluarga'] ?? '', ['kepala keluarga', 'istri', 'anak']) ? $row['status_keluarga'] : null,
                 'umur_sasaran' => $umur,
+                'pendidikan' => 'Tidak/Belum Sekolah',
                 'nik_orangtua' => $nikOrtu,
                 'alamat_sasaran' => trim($row['alamat_sasaran'] ?? '') ?: null,
                 'rt' => trim($row['rt'] ?? '') ?: null,

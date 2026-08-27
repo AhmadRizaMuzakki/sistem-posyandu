@@ -20,6 +20,7 @@ class SasaranBayibalita extends Model
         'jenis_kelamin',
         'status_keluarga',
         'umur_sasaran',
+        'pendidikan',
         'nik_orangtua',
         'alamat_sasaran',
         'rt',

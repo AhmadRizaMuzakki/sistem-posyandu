@@ -13,6 +13,7 @@ use App\Models\Kader;
 use App\Models\Orangtua;
 use App\Models\Pendidikan;
 use App\Models\Posyandu;
+use App\Services\PendidikanChartService;
 use Carbon\Carbon;
 use Dompdf\Dompdf;
 use Dompdf\Options;
@@ -1057,6 +1058,16 @@ class LaporanController extends Controller
     }
 
     /**
+     * Query laporan pendidikan dari tabel pendidikans (auto-sync dari sasaran).
+     */
+    protected function pendidikanReportQuery(int $posyanduId)
+    {
+        PendidikanChartService::syncFromSasaran($posyanduId);
+
+        return Pendidikan::with(['user'])->where('id_posyandu', $posyanduId);
+    }
+
+    /**
      * Terapkan filter pendidikan dari query string (kategori / usia / tahun lahir, pendidikan, nama).
      */
     protected function applyPendidikanFilters($query, Request $request): array
@@ -1152,8 +1163,7 @@ class LaporanController extends Controller
 
         $posyandu = Posyandu::findOrFail($decryptedId);
 
-        $query = Pendidikan::with(['user'])
-            ->where('id_posyandu', $posyandu->id_posyandu);
+        $query = $this->pendidikanReportQuery($posyandu->id_posyandu);
 
         if ($request->query('filter_sasaran') || $request->query('pendidikan') || $request->query('nama')) {
             $filterMeta = $this->applyPendidikanFilters($query, $request);
@@ -1199,8 +1209,7 @@ class LaporanController extends Controller
 
         $posyandu = Posyandu::findOrFail($decryptedId);
 
-        $query = Pendidikan::with(['user'])
-            ->where('id_posyandu', $posyandu->id_posyandu)
+        $query = $this->pendidikanReportQuery($posyandu->id_posyandu)
             ->where('kategori_sasaran', urldecode($kategoriSasaran));
 
         $pendidikanList = $query->orderBy('tanggal_lahir', 'desc')->get();
@@ -1234,8 +1243,7 @@ class LaporanController extends Controller
         $posyandu = Posyandu::findOrFail($decryptedId);
         $namaDecoded = urldecode($nama);
 
-        $query = Pendidikan::with(['user'])
-            ->where('id_posyandu', $posyandu->id_posyandu)
+        $query = $this->pendidikanReportQuery($posyandu->id_posyandu)
             ->where('nama', 'like', '%'.$namaDecoded.'%');
 
         $pendidikanList = $query->orderBy('tanggal_lahir', 'desc')->get();
@@ -1271,8 +1279,7 @@ class LaporanController extends Controller
 
         $posyandu = $kader->posyandu;
 
-        $query = Pendidikan::with(['user'])
-            ->where('id_posyandu', $posyandu->id_posyandu);
+        $query = $this->pendidikanReportQuery($posyandu->id_posyandu);
 
         if ($request->query('filter_sasaran') || $request->query('pendidikan') || $request->query('nama')) {
             $filterMeta = $this->applyPendidikanFilters($query, $request);
@@ -1318,8 +1325,7 @@ class LaporanController extends Controller
 
         $posyandu = $kader->posyandu;
 
-        $query = Pendidikan::with(['user'])
-            ->where('id_posyandu', $posyandu->id_posyandu)
+        $query = $this->pendidikanReportQuery($posyandu->id_posyandu)
             ->where('kategori_sasaran', urldecode($kategoriSasaran));
 
         $pendidikanList = $query->orderBy('tanggal_lahir', 'desc')->get();
@@ -1355,8 +1361,7 @@ class LaporanController extends Controller
         $posyandu = $kader->posyandu;
         $namaDecoded = urldecode($nama);
 
-        $query = Pendidikan::with(['user'])
-            ->where('id_posyandu', $posyandu->id_posyandu)
+        $query = $this->pendidikanReportQuery($posyandu->id_posyandu)
             ->where('nama', 'like', '%'.$namaDecoded.'%');
 
         $pendidikanList = $query->orderBy('tanggal_lahir', 'desc')->get();
@@ -1389,8 +1394,7 @@ class LaporanController extends Controller
         $kategoriPendidikanDecoded = urldecode($kategoriPendidikan);
         $namaDecoded = urldecode($nama);
 
-        $query = Pendidikan::with(['user'])
-            ->where('id_posyandu', $posyandu->id_posyandu)
+        $query = $this->pendidikanReportQuery($posyandu->id_posyandu)
             ->where('kategori_sasaran', $kategoriSasaranDecoded)
             ->where('pendidikan_terakhir', $kategoriPendidikanDecoded)
             ->where('nama', 'like', '%'.$namaDecoded.'%');
@@ -1426,8 +1430,7 @@ class LaporanController extends Controller
         $kategoriSasaranDecoded = urldecode($kategoriSasaran);
         $kategoriPendidikanDecoded = urldecode($kategoriPendidikan);
 
-        $query = Pendidikan::with(['user'])
-            ->where('id_posyandu', $posyandu->id_posyandu)
+        $query = $this->pendidikanReportQuery($posyandu->id_posyandu)
             ->where('kategori_sasaran', $kategoriSasaranDecoded)
             ->where('pendidikan_terakhir', $kategoriPendidikanDecoded);
 
@@ -1462,8 +1465,7 @@ class LaporanController extends Controller
         $kategoriSasaranDecoded = urldecode($kategoriSasaran);
         $namaDecoded = urldecode($nama);
 
-        $query = Pendidikan::with(['user'])
-            ->where('id_posyandu', $posyandu->id_posyandu)
+        $query = $this->pendidikanReportQuery($posyandu->id_posyandu)
             ->where('kategori_sasaran', $kategoriSasaranDecoded)
             ->where('nama', 'like', '%'.$namaDecoded.'%');
 
@@ -1498,8 +1500,7 @@ class LaporanController extends Controller
         $kategoriPendidikanDecoded = urldecode($kategoriPendidikan);
         $namaDecoded = urldecode($nama);
 
-        $query = Pendidikan::with(['user'])
-            ->where('id_posyandu', $posyandu->id_posyandu)
+        $query = $this->pendidikanReportQuery($posyandu->id_posyandu)
             ->where('pendidikan_terakhir', $kategoriPendidikanDecoded)
             ->where('nama', 'like', '%'.$namaDecoded.'%');
 
@@ -1581,8 +1582,7 @@ class LaporanController extends Controller
         $kategoriPendidikanDecoded = urldecode($kategoriPendidikan);
         $namaDecoded = urldecode($nama);
 
-        $query = Pendidikan::with(['user'])
-            ->where('id_posyandu', $posyandu->id_posyandu)
+        $query = $this->pendidikanReportQuery($posyandu->id_posyandu)
             ->where('kategori_sasaran', $kategoriSasaranDecoded)
             ->where('pendidikan_terakhir', $kategoriPendidikanDecoded)
             ->where('nama', 'like', '%'.$namaDecoded.'%');
@@ -1620,8 +1620,7 @@ class LaporanController extends Controller
         $kategoriSasaranDecoded = urldecode($kategoriSasaran);
         $kategoriPendidikanDecoded = urldecode($kategoriPendidikan);
 
-        $query = Pendidikan::with(['user'])
-            ->where('id_posyandu', $posyandu->id_posyandu)
+        $query = $this->pendidikanReportQuery($posyandu->id_posyandu)
             ->where('kategori_sasaran', $kategoriSasaranDecoded)
             ->where('pendidikan_terakhir', $kategoriPendidikanDecoded);
 
@@ -1658,8 +1657,7 @@ class LaporanController extends Controller
         $kategoriSasaranDecoded = urldecode($kategoriSasaran);
         $namaDecoded = urldecode($nama);
 
-        $query = Pendidikan::with(['user'])
-            ->where('id_posyandu', $posyandu->id_posyandu)
+        $query = $this->pendidikanReportQuery($posyandu->id_posyandu)
             ->where('kategori_sasaran', $kategoriSasaranDecoded)
             ->where('nama', 'like', '%'.$namaDecoded.'%');
 
@@ -1696,8 +1694,7 @@ class LaporanController extends Controller
         $kategoriPendidikanDecoded = urldecode($kategoriPendidikan);
         $namaDecoded = urldecode($nama);
 
-        $query = Pendidikan::with(['user'])
-            ->where('id_posyandu', $posyandu->id_posyandu)
+        $query = $this->pendidikanReportQuery($posyandu->id_posyandu)
             ->where('pendidikan_terakhir', $kategoriPendidikanDecoded)
             ->where('nama', 'like', '%'.$namaDecoded.'%');
 
@@ -1747,6 +1744,8 @@ class LaporanController extends Controller
         $petugasPosyanduLabel = $ketuaKader
             ? ($ketuaKader->nama_kader ?: ($ketuaKader->user->name ?? '-'))
             : '-';
+
+        PendidikanChartService::syncFromSasaran($posyandu->id_posyandu);
 
         $pendidikanData = Pendidikan::where('id_posyandu', $posyandu->id_posyandu)
             ->selectRaw('pendidikan_terakhir, COUNT(*) as jumlah')

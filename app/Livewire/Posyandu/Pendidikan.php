@@ -6,7 +6,6 @@ use App\Livewire\SuperAdmin\Traits\PendidikanCrud;
 use App\Livewire\Posyandu\Traits\PosyanduHelper;
 use App\Livewire\Posyandu\Traits\PosyanduCrudTrait;
 use App\Models\Pendidikan as PendidikanModel;
-use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
 use Livewire\Attributes\Layout;
 use Livewire\WithPagination;
@@ -14,9 +13,8 @@ use Livewire\WithPagination;
 class Pendidikan extends Component
 {
     use PendidikanCrud {
-        PendidikanCrud::storePendidikan as traitStorePendidikan;
-        PendidikanCrud::editPendidikan as traitEditPendidikan;
-        PendidikanCrud::deletePendidikan as traitDeletePendidikan;
+        editPendidikan as protected traitEditPendidikan;
+        deletePendidikan as protected traitDeletePendidikan;
     }
     use PosyanduHelper, PosyanduCrudTrait, WithPagination;
 
@@ -29,45 +27,32 @@ class Pendidikan extends Component
         $this->initializePosyandu();
     }
 
-    /**
-     * Override openPendidikanModal untuk set posyandu otomatis
-     */
     public function openPendidikanModal($id = null)
     {
         if ($id) {
             $this->editPendidikan($id);
         } else {
             $this->resetPendidikanFields();
-            // Set posyandu otomatis dari kader
             $this->id_posyandu_pendidikan = $this->posyanduId;
             $this->loadSasaranList();
             $this->isPendidikanModalOpen = true;
         }
     }
 
-    /**
-     * Override editPendidikan untuk validasi posyandu
-     */
-    public function editPendidikan($id)
+    public function editPendidikan($id = null)
     {
         $pendidikan = PendidikanModel::findOrFail($id);
         $this->validateSasaranPosyanduAccess($pendidikan, 'id_posyandu');
         $this->traitEditPendidikan($id);
     }
 
-    /**
-     * Override deletePendidikan untuk validasi posyandu
-     */
-    public function deletePendidikan($id)
+    public function deletePendidikan($id = null)
     {
         $pendidikan = PendidikanModel::findOrFail($id);
         $this->validateSasaranPosyanduAccess($pendidikan, 'id_posyandu');
         $this->traitDeletePendidikan($id);
     }
 
-    /**
-     * Refresh posyandu data
-     */
     public function refreshPosyandu()
     {
         $this->initializePosyandu();
@@ -80,7 +65,7 @@ class Pendidikan extends Component
 
     public function render()
     {
-        $pendidikanList = $this->getPendidikanQuery($this->posyanduId)->paginate(10);
+        $pendidikanList = $this->getPendidikanList($this->posyanduId);
 
         return view('livewire.posyandu.pendidikan', [
             'title' => 'Pendidikan - ' . $this->posyandu->nama_posyandu,

@@ -16,6 +16,7 @@ use Carbon\Carbon;
 
 trait BalitaCrud
 {
+    use AutoSavePendidikan;
     use SasaranCountHelper;
     // Modal State
     public $isSasaranBalitaModalOpen = false;
@@ -311,6 +312,7 @@ trait BalitaCrud
                 'jenis_kelamin' => $this->jenis_kelamin,
                 'status_keluarga' => $this->status_keluarga ?: null,
                 'umur_sasaran' => $umur,
+                'pendidikan' => 'Tidak/Belum Sekolah',
                 'nik_orangtua' => $this->nik_orangtua,
                 'alamat_sasaran' => $this->alamat_sasaran,
                 'rt' => $this->rt_sasaran ?: null,
@@ -322,6 +324,7 @@ trait BalitaCrud
             if ($this->id_sasaran_bayi_balita) {
                 // UPDATE
                 $balita = SasaranBayibalita::findOrFail($this->id_sasaran_bayi_balita);
+                unset($data['pendidikan']);
                 $balita->update($data);
                 $balitaId = $balita->id_sasaran_bayibalita;
             } else {
@@ -329,6 +332,20 @@ trait BalitaCrud
                 $balita = SasaranBayibalita::create($data);
                 $balitaId = $balita->id_sasaran_bayibalita;
             }
+
+            $this->autoSavePendidikan(
+                $balitaId,
+                'bayibalita',
+                (int) ($data['id_posyandu'] ?? $this->posyanduId),
+                $balita->pendidikan ?? 'Tidak/Belum Sekolah',
+                [
+                    'nik' => $balita->nik_sasaran,
+                    'nama' => $balita->nama_sasaran,
+                    'tanggal_lahir' => $balita->tanggal_lahir,
+                    'jenis_kelamin' => $balita->jenis_kelamin,
+                    'umur' => $balita->umur_sasaran,
+                ]
+            );
         });
         
         if ($this->id_sasaran_bayi_balita) {

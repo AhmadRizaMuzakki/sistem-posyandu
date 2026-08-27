@@ -4,13 +4,13 @@ namespace App\Livewire\SuperAdmin\Traits;
 
 use App\Models\Pendidikan as PendidikanModel;
 use App\Models\SasaranBayibalita;
+use App\Services\PendidikanChartService;
+use App\Services\PendidikanListService;
 use App\Models\SasaranRemaja;
 use App\Models\SasaranDewasa;
 use App\Models\SasaranPralansia;
 use App\Models\SasaranLansia;
 use App\Models\SasaranIbuhamil;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 
 trait PendidikanCrud
@@ -47,7 +47,6 @@ trait PendidikanCrud
             $this->editPendidikan($id);
         } else {
             $this->resetPendidikanFields();
-            // Pre-fill dengan posyandu saat ini
             if (isset($this->posyandu) && $this->posyandu && isset($this->posyandu->id_posyandu)) {
                 $this->id_posyandu_pendidikan = $this->posyandu->id_posyandu;
                 $this->loadSasaranList();
@@ -141,6 +140,8 @@ trait PendidikanCrud
                     }
                 }
                 
+                $hasPendidikan = PendidikanListService::kategoriHasPendidikanColumn($kategori);
+
                 $sasaranList->push([
                     'id' => $s->$idField,
                     'kategori' => $kategori,
@@ -149,9 +150,10 @@ trait PendidikanCrud
                     'tanggal_lahir' => $tanggalLahir,
                     'jenis_kelamin' => $s->jenis_kelamin ?? '',
                     'umur' => $s->umur_sasaran ?? null,
-                    'pendidikan' => $s->pendidikan ?? '',
+                    'pendidikan' => $hasPendidikan ? ($s->pendidikan ?? '') : '',
                     'rt' => $s->rt ?? '',
                     'rw' => $s->rw ?? '',
+                    'has_pendidikan' => $hasPendidikan,
                 ]);
             }
         }
@@ -370,44 +372,42 @@ trait PendidikanCrud
         $this->combineTanggalLahir();
         $this->validate($this->getPendidikanValidationRules(), $this->getPendidikanValidationMessages());
 
-        // Ambil data dari sasaran yang dipilih
-        $sasaran = collect($this->sasaranList)->firstWhere('id', $this->id_sasaran_pendidikan);
-        
-        if (!$sasaran) {
+        $sasaran = collect($this->sasaranList)->first(function ($item) {
+            return $item['id'] == $this->id_sasaran_pendidikan
+                && $item['kategori'] == $this->kategori_sasaran_pendidikan;
+        });
+
+        if (! $sasaran) {
             session()->flash('message', 'Sasaran tidak ditemukan.');
             session()->flash('messageType', 'error');
+
             return;
         }
 
-        // Ambil data dari sasaran, dengan prioritas inputan user jika ada
-        $data = [
-            'id_posyandu' => $this->id_posyandu_pendidikan,
-            'id_users' => Auth::id(),
-            'id_sasaran' => $this->id_sasaran_pendidikan,
-            'kategori_sasaran' => $this->kategori_sasaran_pendidikan,
-            'nik' => $this->nik_pendidikan ?: ($sasaran['nik'] ?? null),
-            'nama' => $this->nama_pendidikan ?: ($sasaran['nama'] ?? ''),
-            'tanggal_lahir' => $this->tanggal_lahir_pendidikan ?: ($sasaran['tanggal_lahir'] ?? null),
-            'jenis_kelamin' => $this->jenis_kelamin_pendidikan ?: ($sasaran['jenis_kelamin'] ?? null),
-            'umur' => $this->umur_pendidikan !== '' ? $this->umur_pendidikan : ($sasaran['umur'] ?? null),
-            'pendidikan_terakhir' => $this->pendidikan_terakhir_pendidikan ?: ($sasaran['pendidikan'] ?? null),
-            'rt' => $this->rt_pendidikan ?: ($sasaran['rt'] ?? null),
-            'rw' => $this->rw_pendidikan ?: ($sasaran['rw'] ?? null),
-        ];
+        if (empty($sasaran['has_pendidikan'])) {
+            session()->flash('message', 'Kategori sasaran ini belum mendukung data pendidikan.');
+            session()->flash('messageType', 'error');
 
-        DB::transaction(function () use ($data) {
-            if ($this->id_pendidikan) {
-                PendidikanModel::findOrFail($this->id_pendidikan)->update($data);
-            } else {
-                PendidikanModel::create($data);
-            }
-        });
-        
-        if ($this->id_pendidikan) {
-            session()->flash('message', 'Data Pendidikan berhasil diperbarui.');
-        } else {
-            session()->flash('message', 'Data Pendidikan berhasil ditambahkan.');
+            return;
         }
+
+        $updated = PendidikanListService::updatePendidikan(
+            $this->kategori_sasaran_pendidikan,
+            (int) $this->id_sasaran_pendidikan,
+            $this->pendidikan_terakhir_pendidikan,
+            (int) $this->id_posyandu_pendidikan
+        );
+
+        if (! $updated) {
+            session()->flash('message', 'Gagal menyimpan data pendidikan.');
+            session()->flash('messageType', 'error');
+
+            return;
+        }
+
+        session()->flash('message', $this->id_pendidikan
+            ? 'Data Pendidikan berhasil diperbarui.'
+            : 'Data Pendidikan berhasil ditambahkan.');
 
         if (method_exists($this, 'refreshPosyandu')) {
             $this->refreshPosyandu();
@@ -420,7 +420,7 @@ trait PendidikanCrud
      */
     public function editPendidikan($id = null)
     {
-        if (!$id) {
+        if (! $id) {
             return;
         }
 
@@ -433,12 +433,12 @@ trait PendidikanCrud
         $this->id_sasaran_pendidikan = $pendidikan->id_sasaran;
         $this->nik_pendidikan = $pendidikan->nik ?? '';
         $this->nama_pendidikan = $pendidikan->nama ?? '';
-        
+
         if ($pendidikan->tanggal_lahir) {
-            $tanggalLahir = $pendidikan->tanggal_lahir instanceof \Carbon\Carbon 
-                ? $pendidikan->tanggal_lahir 
+            $tanggalLahir = $pendidikan->tanggal_lahir instanceof \Carbon\Carbon
+                ? $pendidikan->tanggal_lahir
                 : Carbon::parse($pendidikan->tanggal_lahir);
-            
+
             $this->tanggal_lahir_pendidikan = $tanggalLahir->format('Y-m-d');
             $this->hari_lahir_pendidikan = $tanggalLahir->day;
             $this->bulan_lahir_pendidikan = $tanggalLahir->month;
@@ -449,7 +449,7 @@ trait PendidikanCrud
             $this->bulan_lahir_pendidikan = '';
             $this->tahun_lahir_pendidikan = '';
         }
-        
+
         $this->jenis_kelamin_pendidikan = $pendidikan->jenis_kelamin ?? '';
         $this->umur_pendidikan = $pendidikan->umur ?? '';
         $this->pendidikan_terakhir_pendidikan = $pendidikan->pendidikan_terakhir ?? '';
@@ -463,11 +463,17 @@ trait PendidikanCrud
      */
     public function deletePendidikan($id = null)
     {
-        if (!$id) {
+        if (! $id) {
             return;
         }
 
-        PendidikanModel::findOrFail($id)->delete();
+        $pendidikan = PendidikanModel::findOrFail($id);
+
+        PendidikanListService::clearPendidikan(
+            $pendidikan->kategori_sasaran,
+            (int) $pendidikan->id_sasaran,
+            (int) $pendidikan->id_posyandu
+        );
 
         if (method_exists($this, 'refreshPosyandu')) {
             $this->refreshPosyandu();
@@ -476,24 +482,33 @@ trait PendidikanCrud
     }
 
     /**
-     * Get query pendidikan dengan filter search
-     * Filter berdasarkan posyandu (konteks), data berasal dari sasaran
+     * Sync sasaran → tabel pendidikans lalu query untuk list/export.
      */
-    protected function getPendidikanQuery($posyanduId)
+    protected function syncPendidikanTable(int $posyanduId): void
     {
-        // Query berdasarkan posyandu (hanya sebagai filter/konteks)
-        // Data pendidikan sendiri berasal dari sasaran yang dipilih
+        PendidikanChartService::syncFromSasaran($posyanduId);
+    }
+
+    protected function getPendidikanQuery(int $posyanduId)
+    {
         $query = PendidikanModel::where('id_posyandu', $posyanduId);
 
-        if (!empty($this->search ?? '')) {
+        if (! empty($this->search ?? '')) {
             $query->where(function ($q) {
                 $q->where('nama', 'like', '%' . $this->search . '%')
-                  ->orWhere('nik', 'like', '%' . $this->search . '%')
-                  ->orWhere('pendidikan_terakhir', 'like', '%' . $this->search . '%');
+                    ->orWhere('nik', 'like', '%' . $this->search . '%')
+                    ->orWhere('pendidikan_terakhir', 'like', '%' . $this->search . '%');
             });
         }
 
         return $query->orderBy('tanggal_lahir', 'desc');
+    }
+
+    protected function getPendidikanList($posyanduId)
+    {
+        $this->syncPendidikanTable((int) $posyanduId);
+
+        return $this->getPendidikanQuery((int) $posyanduId)->paginate(10);
     }
 }
 
