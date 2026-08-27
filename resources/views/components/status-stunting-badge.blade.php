@@ -37,16 +37,16 @@
     );
 
     $badgeClasses = match ($label) {
-        'Stunting' => 'bg-rose-500 text-white',
-        'Tidak stunting' => 'bg-emerald-500 text-white',
-        default => 'bg-gray-500 text-white',
+        'Stunting' => 'bg-rose-100 text-rose-800',
+        'Tidak stunting' => 'bg-emerald-100 text-emerald-800',
+        default => 'bg-gray-100 text-gray-800',
     };
 @endphp
 
 @if($label !== '-')
-    <span {{ $attributes->merge(['class' => "inline-flex items-center px-1 py-0 rounded-full text-[7px] leading-3 font-medium {$badgeClasses}"]) }}>
+    <span {{ $attributes->merge(['class' => "inline-flex items-center px-2 py-1 text-xs font-semibold rounded-full capitalize {$badgeClasses}"]) }}>
         {{ $label }}
     </span>
 @else
-    <span {{ $attributes->merge(['class' => 'text-[9px] text-gray-500']) }}>-</span>
+    <span {{ $attributes->merge(['class' => 'text-xs text-gray-500']) }}>-</span>
 @endif

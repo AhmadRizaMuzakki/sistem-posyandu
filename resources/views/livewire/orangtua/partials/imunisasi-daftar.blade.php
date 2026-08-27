@@ -112,7 +112,7 @@
                         <th class="px-5 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Berat</th>
                         <th class="px-5 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Tekanan Darah</th>
                         <th class="px-5 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Gula Darah</th>
-                        <th class="px-5 py-4 text-left text-[10px] font-semibold text-gray-500 uppercase tracking-wider">Status Stunting</th>
+                        <th class="px-5 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Status Stunting</th>
                         <th class="px-5 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Keterangan</th>
                     </tr>
                 </thead>
