@@ -6,6 +6,7 @@ use App\Models\Posyandu;
 use App\Models\GambarPosyandu;
 use App\Models\Orangtua;
 use App\Models\Pendidikan;
+use App\Services\PendidikanChartService;
 use Livewire\Component;
 use Livewire\Attributes\Layout;
 use Livewire\WithFileUploads;
@@ -350,40 +351,20 @@ class PosyanduInfo extends Component
     }
 
     /**
-     * Get pendidikan data untuk chart
+     * Get pendidikan data untuk chart — sumber sama dengan dashboard kader.
      */
     public function getPendidikanChartData()
     {
-        $pendidikanData = Pendidikan::where('id_posyandu', $this->posyanduId)
-            ->selectRaw('pendidikan_terakhir, COUNT(*) as jumlah')
-            ->groupBy('pendidikan_terakhir')
-            ->orderByRaw('
-                CASE 
-                    WHEN pendidikan_terakhir = "Tidak/Belum Sekolah" THEN 1
-                    WHEN pendidikan_terakhir = "PAUD" THEN 2
-                    WHEN pendidikan_terakhir = "TK" THEN 3
-                    WHEN pendidikan_terakhir = "Tidak Tamat SD/Sederajat" THEN 4
-                    WHEN pendidikan_terakhir = "Tamat SD/Sederajat" THEN 5
-                    WHEN pendidikan_terakhir = "SLTP/Sederajat" THEN 6
-                    WHEN pendidikan_terakhir = "SLTA/Sederajat" THEN 7
-                    WHEN pendidikan_terakhir = "Diploma I/II" THEN 8
-                    WHEN pendidikan_terakhir = "Akademi/Diploma III/Sarjana Muda" THEN 9
-                    WHEN pendidikan_terakhir = "Diploma IV/Strata I" THEN 10
-                    WHEN pendidikan_terakhir = "Strata II" THEN 11
-                    WHEN pendidikan_terakhir = "Strata III" THEN 12
-                    ELSE 13
-                END
-            ')
-            ->get();
-
-        return [
-            'labels' => $pendidikanData->pluck('pendidikan_terakhir')->toArray(),
-            'data' => $pendidikanData->pluck('jumlah')->toArray(),
-        ];
+        return PendidikanChartService::getChartData((int) $this->posyanduId);
     }
 
     public function render()
     {
+        // Sinkronkan pendidikan dari sasaran agar chart & menu Pendidikan selaras
+        cache()->remember("pendidikan_sync_{$this->posyanduId}", 60, function () {
+            return \App\Services\PendidikanChartService::syncFromSasaran((int) $this->posyanduId);
+        });
+
         $daftarPosyandu = Posyandu::select('id_posyandu', 'nama_posyandu')->get();
         $pendidikanChartData = $this->getPendidikanChartData();
 

@@ -3,6 +3,7 @@
 namespace App\Livewire\Posyandu\Traits;
 
 use App\Helpers\SasaranInputRules;
+use App\Livewire\SuperAdmin\Traits\AutoSavePendidikan;
 use App\Models\Pendidikan;
 use App\Models\SasaranPralansia;
 use App\Models\SasaranBayibalita;
@@ -13,6 +14,7 @@ use Carbon\Carbon;
 
 trait PralansiaCrud
 {
+    use AutoSavePendidikan;
     // Modal State
     public $isSasaranPralansiaModalOpen = false;
 
@@ -241,6 +243,22 @@ trait PralansiaCrud
             } else {
                 // CREATE
                 $pralansia = SasaranPralansia::create($data);
+            }
+
+            if (!empty($this->pendidikan_pralansia)) {
+                $this->autoSavePendidikan(
+                    $pralansia->id_sasaran_pralansia,
+                    'pralansia',
+                    $posyanduId,
+                    $this->pendidikan_pralansia,
+                    [
+                        'nik' => $pralansia->nik_sasaran,
+                        'nama' => $pralansia->nama_sasaran,
+                        'tanggal_lahir' => $pralansia->tanggal_lahir,
+                        'jenis_kelamin' => $pralansia->jenis_kelamin,
+                        'umur' => $pralansia->umur_sasaran,
+                    ]
+                );
             }
         });
         

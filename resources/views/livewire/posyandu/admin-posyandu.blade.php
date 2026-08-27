@@ -349,28 +349,40 @@
                 <i class="ph ph-chart-bar text-2xl mr-3 text-primary shrink-0"></i>
                 <span class="break-words">Grafik Jumlah Sasaran per Kategori</span>
             </h2>
-            <div class="h-96 w-full">
+            <div class="h-96 w-full" wire:ignore>
                 <canvas id="sasaranCategoryChart"></canvas>
             </div>
         </div>
 
         <!-- Grafik Pendidikan Sasaran -->
+        @php
+            $pendidikanChartTotal = array_sum($pendidikanData['data'] ?? []);
+            $hasPendidikanChart = $pendidikanChartTotal > 0;
+            $pendidikanChartLabels = [];
+            $pendidikanChartValues = [];
+            foreach (($pendidikanData['labels'] ?? []) as $i => $label) {
+                if (($pendidikanData['data'][$i] ?? 0) > 0) {
+                    $pendidikanChartLabels[] = $label;
+                    $pendidikanChartValues[] = $pendidikanData['data'][$i];
+                }
+            }
+        @endphp
         <div class="bg-white rounded-lg shadow-md p-4 sm:p-6">
-            <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 mb-4">
-                <h2 class="text-xl font-semibold text-gray-800 flex items-start">
-                    <i class="ph ph-graduation-cap text-2xl mr-3 text-primary shrink-0"></i>
-                    <span class="break-words">Grafik Pendidikan Sasaran (Remaja, Dewasa, Ibu Hamil, Pralansia, Lansia)</span>
-                </h2>
-                <button 
-                    wire:click="openPendidikanModal"
-                    class="px-4 py-2 text-sm bg-primary text-white rounded-lg hover:bg-primary-dark transition-colors flex items-center justify-center space-x-2 w-full sm:w-auto shrink-0">
-                    <i class="ph ph-plus text-sm"></i>
-                    <span>Update Pendidikan Semua Sasaran</span>
-                </button>
-            </div>
-            <div class="h-96 w-full">
+            <h2 class="text-xl font-semibold text-gray-800 flex items-start mb-4">
+                <i class="ph ph-graduation-cap text-2xl mr-3 text-primary shrink-0"></i>
+                <span class="break-words">Grafik Pendidikan Sasaran (Remaja, Dewasa, Ibu Hamil, Pralansia, Lansia)</span>
+            </h2>
+            @if($hasPendidikanChart)
+            <div class="h-96 w-full" wire:ignore>
                 <canvas id="pendidikanChart"></canvas>
             </div>
+            @else
+            <div class="text-center py-12 text-gray-500">
+                <i class="ph ph-graduation-cap text-4xl mb-2"></i>
+                <p>Belum ada data pendidikan untuk ditampilkan</p>
+                <p class="text-sm mt-2 text-gray-400">Isi field Pendidikan di menu Sasaran & Anak</p>
+            </div>
+            @endif
         </div>
     </div>
 
@@ -708,300 +720,192 @@
         </div>
     </div>
 
-    {{-- Modal Input Pendidikan Semua Sasaran --}}
-    <div x-data="{ 
-        show: @entangle('showPendidikanModal')
-    }" 
-    x-show="show"
-    x-cloak
-    class="fixed inset-0 z-50 overflow-y-auto"
-    style="display: none;"
-    x-on:close-modal.window="show = false">
-        <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
-            {{-- Overlay --}}
-            <div x-show="show" 
-                 x-transition:enter="ease-out duration-300"
-                 x-transition:enter-start="opacity-0"
-                 x-transition:enter-end="opacity-100"
-                 x-transition:leave="ease-in duration-200"
-                 x-transition:leave-start="opacity-100"
-                 x-transition:leave-end="opacity-0"
-                 class="fixed inset-0 transition-opacity bg-gray-500 bg-opacity-75"
-                 x-on:click="show = false"></div>
-
-            {{-- Modal Panel --}}
-            <div x-show="show"
-                 x-transition:enter="ease-out duration-300"
-                 x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
-                 x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100"
-                 x-transition:leave="ease-in duration-200"
-                 x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100"
-                 x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
-                 class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full"
-                 x-on:click.away="show = false">
-                
-                {{-- Header --}}
-                <div class="bg-primary px-6 py-4 flex items-center justify-between">
-                    <h3 class="text-lg font-semibold text-white">Update Pendidikan Semua Sasaran</h3>
-                    <button wire:click="closePendidikanModal" class="text-white hover:text-gray-200">
-                        <i class="ph ph-x text-xl"></i>
-                    </button>
-                </div>
-
-                {{-- Body --}}
-                <div class="bg-white px-6 py-4">
-                    <form wire:submit.prevent="updatePendidikanSemuaSasaran">
-                        <div class="mb-4">
-                            <p class="text-sm text-gray-600 mb-4">
-                                Pilih pendidikan yang akan diterapkan ke <strong>semua sasaran</strong> (Remaja, Dewasa, Pralansia, Lansia, Ibu Hamil) di posyandu ini. 
-                                Data akan otomatis tersimpan di menu Pendidikan.
-                            </p>
-                            
-                            <label class="block text-gray-700 text-sm font-bold mb-2">
-                                Pendidikan Terakhir <span class="text-red-500">*</span>
-                            </label>
-                            <select wire:model="pendidikan_terakhir"
-                                    class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-primary focus:border-primary">
-                                <option value="">Pilih Pendidikan Terakhir...</option>
-                                <option value="Tidak/Belum Sekolah">Tidak/Belum Sekolah</option>
-                                <option value="PAUD">PAUD</option>
-                                <option value="TK">TK</option>
-                                <option value="Tidak Tamat SD/Sederajat">Tidak Tamat SD/Sederajat</option>
-                                <option value="Tamat SD/Sederajat">Tamat SD/Sederajat</option>
-                                <option value="SLTP/Sederajat">SLTP/Sederajat</option>
-                                <option value="SLTA/Sederajat">SLTA/Sederajat</option>
-                                <option value="Diploma I/II">Diploma I/II</option>
-                                <option value="Akademi/Diploma III/Sarjana Muda">Akademi/Diploma III/Sarjana Muda</option>
-                                <option value="Diploma IV/Strata I">Diploma IV/Strata I</option>
-                                <option value="Strata II">Strata II</option>
-                                <option value="Strata III">Strata III</option>
-                            </select>
-                            @error('pendidikan_terakhir') 
-                                <span class="text-red-500 text-xs">{{ $message }}</span>
-                            @enderror
-                        </div>
-
-                        {{-- Actions --}}
-                        <div class="mt-6 flex justify-end space-x-3">
-                            <button 
-                                type="button"
-                                wire:click="closePendidikanModal"
-                                class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors">
-                                Batal
-                            </button>
-                            <button 
-                                type="submit"
-                                class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                                wire:loading.attr="disabled">
-                                <span wire:loading.remove wire:target="updatePendidikanSemuaSasaran">
-                                    <i class="ph ph-check mr-2"></i> Update Semua
-                                </span>
-                                <span wire:loading wire:target="updatePendidikanSemuaSasaran">
-                                    <i class="ph ph-spinner ph-spin mr-2"></i> Memproses...
-                                </span>
-                            </button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </div>
-
     {{-- Notification Modal --}}
     @include('components.notification-modal')
+    @include('livewire.posyandu.modals.import-modal')
+    @include('components.confirm-modal')
+
+    @push('scripts')
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+    <x-laporan-globe-export-script
+        :kehadiran-pdf-url="route('adminPosyandu.laporan.pdf.imunisasi-kehadiran')"
+        id-prefix="dashboard"
+    />
+
+    <x-laporan-imunisasi-export-script
+        :kehadiran-pdf-url="route('adminPosyandu.laporan.pdf.imunisasi-kehadiran')"
+        :imunisasi-pdf-base-url="route('adminPosyandu.laporan.pdf')"
+        :imunisasi-pdf-kategori-url="route('adminPosyandu.laporan.pdf.kategori', ['kategori' => '__KATEGORI__'])"
+        id-prefix="dashboard"
+    />
+    <script>
+        (function () {
+            window.__posyanduDashboardCharts = window.__posyanduDashboardCharts || {};
+
+            const sasaranByCategory = @json($sasaranByCategory ?? []);
+            const pendidikanChartLabels = @json($pendidikanChartLabels ?? []);
+            const pendidikanChartValues = @json($pendidikanChartValues ?? []);
+            const hasPendidikanChart = @json($hasPendidikanChart ?? false);
+
+            const pieColors = {
+                bg: [
+                    'rgba(59, 130, 246, 0.8)', 'rgba(16, 185, 129, 0.8)', 'rgba(251, 191, 36, 0.8)',
+                    'rgba(239, 68, 68, 0.8)', 'rgba(168, 85, 247, 0.8)', 'rgba(236, 72, 153, 0.8)',
+                    'rgba(34, 197, 94, 0.8)', 'rgba(249, 115, 22, 0.8)', 'rgba(139, 92, 246, 0.8)',
+                    'rgba(20, 184, 166, 0.8)', 'rgba(37, 99, 235, 0.8)', 'rgba(5, 150, 105, 0.8)',
+                ],
+                border: [
+                    'rgba(59, 130, 246, 1)', 'rgba(16, 185, 129, 1)', 'rgba(251, 191, 36, 1)',
+                    'rgba(239, 68, 68, 1)', 'rgba(168, 85, 247, 1)', 'rgba(236, 72, 153, 1)',
+                    'rgba(34, 197, 94, 1)', 'rgba(249, 115, 22, 1)', 'rgba(139, 92, 246, 1)',
+                    'rgba(20, 184, 166, 1)', 'rgba(37, 99, 235, 1)', 'rgba(5, 150, 105, 1)',
+                ],
+            };
+
+            function destroyChart(key) {
+                if (window.__posyanduDashboardCharts[key]) {
+                    window.__posyanduDashboardCharts[key].destroy();
+                    window.__posyanduDashboardCharts[key] = null;
+                }
+            }
+
+            function initDashboardCharts() {
+                if (typeof Chart === 'undefined') {
+                    return false;
+                }
+
+                const isMobile = window.innerWidth < 768;
+                const chartFontSize = isMobile ? 15 : 12;
+                const chartLegendSize = isMobile ? 14 : 11;
+
+                destroyChart('category');
+                destroyChart('pendidikan');
+
+                const categoryCtx = document.getElementById('sasaranCategoryChart');
+                if (categoryCtx) {
+                    window.__posyanduDashboardCharts.category = new Chart(categoryCtx.getContext('2d'), {
+                        type: 'bar',
+                        data: {
+                            labels: ['Bayi/Balita', 'Remaja', 'Ibu Hamil', 'Dewasa', 'Pralansia', 'Lansia'],
+                            datasets: [{
+                                label: 'Jumlah Sasaran',
+                                data: [
+                                    sasaranByCategory.bayibalita || 0,
+                                    sasaranByCategory.remaja || 0,
+                                    sasaranByCategory.ibuhamil || 0,
+                                    sasaranByCategory.dewasa || 0,
+                                    sasaranByCategory.pralansia || 0,
+                                    sasaranByCategory.lansia || 0
+                                ],
+                                backgroundColor: [
+                                    'rgba(59, 130, 246, 0.8)', 'rgba(16, 185, 129, 0.8)', 'rgba(251, 191, 36, 0.8)',
+                                    'rgba(239, 68, 68, 0.8)', 'rgba(168, 85, 247, 0.8)', 'rgba(236, 72, 153, 0.8)',
+                                ],
+                                borderColor: [
+                                    'rgba(59, 130, 246, 1)', 'rgba(16, 185, 129, 1)', 'rgba(251, 191, 36, 1)',
+                                    'rgba(239, 68, 68, 1)', 'rgba(168, 85, 247, 1)', 'rgba(236, 72, 153, 1)',
+                                ],
+                                borderWidth: 2,
+                                borderRadius: 8,
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: {
+                                    display: true,
+                                    position: 'top',
+                                    labels: { font: { size: chartLegendSize }, padding: isMobile ? 16 : 10 },
+                                },
+                                tooltip: {
+                                    titleFont: { size: chartFontSize },
+                                    bodyFont: { size: chartFontSize },
+                                    callbacks: {
+                                        label: function(context) {
+                                            return 'Jumlah: ' + context.parsed.y + ' orang';
+                                        }
+                                    }
+                                }
+                            },
+                            scales: {
+                                y: {
+                                    beginAtZero: true,
+                                    ticks: {
+                                        stepSize: 1,
+                                        font: { size: chartFontSize },
+                                        callback: function(value) { return value + ' orang'; }
+                                    },
+                                    title: { display: true, text: 'Jumlah Sasaran', font: { size: chartFontSize } }
+                                },
+                                x: {
+                                    ticks: { font: { size: chartFontSize } },
+                                    title: { display: true, text: 'Kategori Sasaran', font: { size: chartFontSize } }
+                                }
+                            }
+                        }
+                    });
+                }
+
+                const pendidikanCtx = document.getElementById('pendidikanChart');
+                if (pendidikanCtx && hasPendidikanChart && pendidikanChartValues.length > 0) {
+                    window.__posyanduDashboardCharts.pendidikan = new Chart(pendidikanCtx.getContext('2d'), {
+                        type: 'pie',
+                        data: {
+                            labels: pendidikanChartLabels,
+                            datasets: [{
+                                label: 'Jumlah Sasaran',
+                                data: pendidikanChartValues,
+                                backgroundColor: pieColors.bg.slice(0, pendidikanChartValues.length),
+                                borderColor: pieColors.border.slice(0, pendidikanChartValues.length),
+                                borderWidth: 2,
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: {
+                                    display: true,
+                                    position: 'bottom',
+                                    labels: {
+                                        boxWidth: isMobile ? 16 : 12,
+                                        padding: isMobile ? 14 : 10,
+                                        font: { size: chartLegendSize },
+                                    }
+                                },
+                                tooltip: {
+                                    titleFont: { size: chartFontSize },
+                                    bodyFont: { size: chartFontSize },
+                                    callbacks: {
+                                        label: function(context) {
+                                            const label = context.label || '';
+                                            const value = context.parsed || 0;
+                                            const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                            const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : 0;
+                                            return label + ': ' + value + ' orang (' + percentage + '%)';
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    });
+                }
+
+                return true;
+            }
+
+            function bootDashboardCharts() {
+                if (!initDashboardCharts()) {
+                    setTimeout(bootDashboardCharts, 100);
+                }
+            }
+
+            bootDashboardCharts();
+        })();
+    </script>
+    @endpush
 </div>
-
-@push('scripts')
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-
-<x-laporan-globe-export-script
-    :kehadiran-pdf-url="route('adminPosyandu.laporan.pdf.imunisasi-kehadiran')"
-    id-prefix="dashboard"
-/>
-
-<x-laporan-imunisasi-export-script
-    :kehadiran-pdf-url="route('adminPosyandu.laporan.pdf.imunisasi-kehadiran')"
-    :imunisasi-pdf-base-url="route('adminPosyandu.laporan.pdf')"
-    :imunisasi-pdf-kategori-url="route('adminPosyandu.laporan.pdf.kategori', ['kategori' => '__KATEGORI__'])"
-    id-prefix="dashboard"
-/>
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const isMobile = window.innerWidth < 768;
-        const chartFontSize = isMobile ? 15 : 12;
-        const chartLegendSize = isMobile ? 14 : 11;
-
-        // Pastikan data tersedia
-        const sasaranByCategory = @json($sasaranByCategory ?? []);
-        const pendidikanData = @json($pendidikanData ?? ['labels' => [], 'data' => []]);
-
-        // Grafik Bar Chart untuk Sasaran per Kategori
-        const categoryLabels = ['Bayi/Balita', 'Remaja', 'Ibu Hamil', 'Dewasa', 'Pralansia', 'Lansia'];
-        const categoryData = [
-            sasaranByCategory.bayibalita || 0,
-            sasaranByCategory.remaja || 0,
-            sasaranByCategory.ibuhamil || 0,
-            sasaranByCategory.dewasa || 0,
-            sasaranByCategory.pralansia || 0,
-            sasaranByCategory.lansia || 0
-        ];
-
-        const categoryCtx = document.getElementById('sasaranCategoryChart');
-        if (categoryCtx) {
-            new Chart(categoryCtx.getContext('2d'), {
-                type: 'bar',
-                data: {
-                    labels: categoryLabels,
-                    datasets: [{
-                        label: 'Jumlah Sasaran',
-                        data: categoryData,
-                        backgroundColor: [
-                            'rgba(59, 130, 246, 0.8)',
-                            'rgba(16, 185, 129, 0.8)',
-                            'rgba(251, 191, 36, 0.8)',
-                            'rgba(239, 68, 68, 0.8)',
-                            'rgba(168, 85, 247, 0.8)',
-                            'rgba(236, 72, 153, 0.8)',
-                        ],
-                        borderColor: [
-                            'rgba(59, 130, 246, 1)',
-                            'rgba(16, 185, 129, 1)',
-                            'rgba(251, 191, 36, 1)',
-                            'rgba(239, 68, 68, 1)',
-                            'rgba(168, 85, 247, 1)',
-                            'rgba(236, 72, 153, 1)',
-                        ],
-                        borderWidth: 2,
-                        borderRadius: 8,
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            display: true,
-                            position: 'top',
-                            labels: {
-                                font: { size: chartLegendSize },
-                                padding: isMobile ? 16 : 10,
-                            },
-                        },
-                        tooltip: {
-                            titleFont: { size: chartFontSize },
-                            bodyFont: { size: chartFontSize },
-                            callbacks: {
-                                label: function(context) {
-                                    return 'Jumlah: ' + context.parsed.y + ' orang';
-                                }
-                            }
-                        }
-                    },
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            ticks: {
-                                stepSize: 1,
-                                font: { size: chartFontSize },
-                                callback: function(value) {
-                                    return value + ' orang';
-                                }
-                            },
-                            title: {
-                                display: true,
-                                text: 'Jumlah Sasaran',
-                                font: { size: chartFontSize },
-                            }
-                        },
-                        x: {
-                            ticks: { font: { size: chartFontSize } },
-                            title: {
-                                display: true,
-                                text: 'Kategori Sasaran',
-                                font: { size: chartFontSize },
-                            }
-                        }
-                    }
-                }
-            });
-        }
-
-        // Grafik Pendidikan Sasaran (gabungan) - di bagian bawah
-        const pendidikanLabels = pendidikanData.labels || [];
-        const pendidikanCounts = pendidikanData.data || [];
-        const pendidikanCtx = document.getElementById('pendidikanChart');
-        if (pendidikanCtx) {
-            new Chart(pendidikanCtx.getContext('2d'), {
-                type: 'pie',
-                data: {
-                    labels: pendidikanLabels,
-                    datasets: [{
-                        label: 'Jumlah Sasaran',
-                        data: pendidikanCounts,
-                        backgroundColor: [
-                            'rgba(59, 130, 246, 0.8)',
-                            'rgba(16, 185, 129, 0.8)',
-                            'rgba(251, 191, 36, 0.8)',
-                            'rgba(239, 68, 68, 0.8)',
-                            'rgba(168, 85, 247, 0.8)',
-                            'rgba(236, 72, 153, 0.8)',
-                            'rgba(34, 197, 94, 0.8)',
-                            'rgba(249, 115, 22, 0.8)',
-                            'rgba(139, 92, 246, 0.8)',
-                            'rgba(20, 184, 166, 0.8)',
-                        ],
-                        borderColor: [
-                            'rgba(59, 130, 246, 1)',
-                            'rgba(16, 185, 129, 1)',
-                            'rgba(251, 191, 36, 1)',
-                            'rgba(239, 68, 68, 1)',
-                            'rgba(168, 85, 247, 1)',
-                            'rgba(236, 72, 153, 1)',
-                            'rgba(34, 197, 94, 1)',
-                            'rgba(249, 115, 22, 1)',
-                            'rgba(139, 92, 246, 1)',
-                            'rgba(20, 184, 166, 1)',
-                        ],
-                        borderWidth: 2,
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            display: true,
-                            position: 'bottom',
-                            labels: {
-                                boxWidth: isMobile ? 16 : 12,
-                                padding: isMobile ? 14 : 10,
-                                font: {
-                                    size: chartLegendSize
-                                }
-                            }
-                        },
-                        tooltip: {
-                            titleFont: { size: chartFontSize },
-                            bodyFont: { size: chartFontSize },
-                            callbacks: {
-                                label: function(context) {
-                                    const label = context.label || '';
-                                    const value = context.parsed || 0;
-                                    const total = context.dataset.data.reduce((a, b) => a + b, 0);
-                                    const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : 0;
-                                    return label + ': ' + value + ' orang (' + percentage + '%)';
-                                }
-                            }
-                        }
-                    }
-                }
-            });
-        }
-    });
-</script>
-@endpush
-
-@include('livewire.posyandu.modals.import-modal')
-@include('components.confirm-modal')
 
 

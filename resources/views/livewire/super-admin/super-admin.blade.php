@@ -54,22 +54,31 @@
         </div>
 
         <!-- Grafik Pendidikan Sasaran -->
+        @php
+            $hasPendidikanChart = array_sum($pendidikanData['data'] ?? []) > 0;
+        @endphp
         <div class="bg-white rounded-lg shadow-md p-6 mb-6">
             <h2 class="text-xl font-semibold text-gray-800 mb-4 flex items-center">
                 <i class="ph ph-graduation-cap text-2xl mr-3 text-primary"></i>
                 Grafik Pendidikan Sasaran (Remaja, Dewasa, Ibu Hamil, Pralansia, Lansia)
             </h2>
+            @if($hasPendidikanChart)
             <div class="h-96">
                 <canvas id="pendidikanChart"></canvas>
             </div>
+            @else
+            <div class="text-center py-12 text-gray-500">
+                <i class="ph ph-graduation-cap text-4xl mb-2"></i>
+                <p>Belum ada data pendidikan untuk ditampilkan</p>
+            </div>
+            @endif
         </div>
     </div>
-</div>
 
-@push('scripts')
+    @push('scripts')
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
+    function initSuperAdminCharts() {
         const posyanduData = @json($posyanduData);
 
         const labels = posyanduData.map(item => item.nama);
@@ -232,17 +241,17 @@
 
         // Grafik Pendidikan Sasaran (gabungan)
         const pendidikanData = @json($pendidikanData);
-        const pendidikanLabels = pendidikanData.labels;
-        const pendidikanCounts = pendidikanData.data;
+        const hasPendidikanChart = @json($hasPendidikanChart ?? false);
+        const pendidikanEl = document.getElementById('pendidikanChart');
 
-        const pendidikanCtx = document.getElementById('pendidikanChart').getContext('2d');
-        new Chart(pendidikanCtx, {
+        if (hasPendidikanChart && pendidikanEl) {
+            new Chart(pendidikanEl.getContext('2d'), {
             type: 'pie',
             data: {
-                labels: pendidikanLabels,
+                labels: pendidikanData.labels,
                 datasets: [{
                     label: 'Jumlah Sasaran',
-                    data: pendidikanCounts,
+                    data: pendidikanData.data,
                     backgroundColor: [
                         'rgba(59, 130, 246, 0.8)',
                         'rgba(16, 185, 129, 0.8)',
@@ -254,6 +263,8 @@
                         'rgba(249, 115, 22, 0.8)',
                         'rgba(139, 92, 246, 0.8)',
                         'rgba(20, 184, 166, 0.8)',
+                        'rgba(37, 99, 235, 0.8)',
+                        'rgba(5, 150, 105, 0.8)',
                     ],
                     borderColor: [
                         'rgba(59, 130, 246, 1)',
@@ -266,6 +277,8 @@
                         'rgba(249, 115, 22, 1)',
                         'rgba(139, 92, 246, 1)',
                         'rgba(20, 184, 166, 1)',
+                        'rgba(37, 99, 235, 1)',
+                        'rgba(5, 150, 105, 1)',
                     ],
                     borderWidth: 2,
                 }]
@@ -282,6 +295,9 @@
                             padding: 10,
                             font: {
                                 size: 11
+                            },
+                            filter: function(item, chart) {
+                                return chart.data.datasets[0].data[item.index] > 0;
                             }
                         }
                     },
@@ -299,6 +315,14 @@
                 }
             }
         });
-    });
+        }
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initSuperAdminCharts);
+    } else {
+    initSuperAdminCharts();
+}
 </script>
 @endpush
+</div>

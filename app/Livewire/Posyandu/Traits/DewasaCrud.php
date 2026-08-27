@@ -3,6 +3,7 @@
 namespace App\Livewire\Posyandu\Traits;
 
 use App\Helpers\SasaranInputRules;
+use App\Livewire\SuperAdmin\Traits\AutoSavePendidikan;
 use App\Models\Pendidikan;
 use App\Models\SasaranDewasa;
 use App\Models\SasaranBayibalita;
@@ -13,6 +14,7 @@ use Carbon\Carbon;
 
 trait DewasaCrud
 {
+    use AutoSavePendidikan;
     // Modal State
     public $isSasaranDewasaModalOpen = false;
 
@@ -238,6 +240,22 @@ trait DewasaCrud
             } else {
                 // CREATE
                 $dewasa = SasaranDewasa::create($data);
+            }
+
+            if (!empty($this->pendidikan_dewasa)) {
+                $this->autoSavePendidikan(
+                    $dewasa->id_sasaran_dewasa,
+                    'dewasa',
+                    $posyanduId,
+                    $this->pendidikan_dewasa,
+                    [
+                        'nik' => $dewasa->nik_sasaran,
+                        'nama' => $dewasa->nama_sasaran,
+                        'tanggal_lahir' => $dewasa->tanggal_lahir,
+                        'jenis_kelamin' => $dewasa->jenis_kelamin,
+                        'umur' => $dewasa->umur_sasaran,
+                    ]
+                );
             }
         });
         

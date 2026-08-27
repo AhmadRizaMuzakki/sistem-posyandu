@@ -24,6 +24,7 @@ trait AutoSavePendidikan
                 'dewasa' => 'id_sasaran_dewasa',
                 'pralansia' => 'id_sasaran_pralansia',
                 'lansia' => 'id_sasaran_lansia',
+                'ibuhamil' => 'id_sasaran_ibuhamil',
             ];
 
             $primaryKey = $primaryKeyMap[$kategoriSasaran] ?? null;
@@ -68,4 +69,3 @@ trait AutoSavePendidikan
         }
     }
 }
-

@@ -266,7 +266,12 @@
     </div>
 
     {{-- Chart Pendidikan --}}
-    @if(isset($pendidikanChartData) && count($pendidikanChartData['labels']) > 0)
+    @php
+        $hasPendidikanChart = isset($pendidikanChartData)
+            && !empty($pendidikanChartData['data'])
+            && array_sum($pendidikanChartData['data']) > 0;
+    @endphp
+    @if($hasPendidikanChart)
     <div class="bg-white rounded-lg shadow-sm p-4 sm:p-6 overflow-hidden">
         <h2 class="text-lg sm:text-xl font-semibold text-gray-800 mb-4 flex items-center min-w-0">
             <i class="ph ph-chart-pie text-2xl mr-3 text-primary shrink-0"></i>
@@ -291,7 +296,7 @@
 </div>
 
 @push('scripts')
-@if(isset($pendidikanChartData) && count($pendidikanChartData['labels']) > 0)
+@if($hasPendidikanChart)
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function() {
@@ -308,32 +313,32 @@
                     label: 'Jumlah',
                     data: pendidikanData.data,
                     backgroundColor: [
-                        'rgba(239, 68, 68, 0.8)',
-                        'rgba(251, 191, 36, 0.8)',
-                        'rgba(34, 197, 94, 0.8)',
                         'rgba(59, 130, 246, 0.8)',
+                        'rgba(16, 185, 129, 0.8)',
+                        'rgba(251, 191, 36, 0.8)',
+                        'rgba(239, 68, 68, 0.8)',
                         'rgba(168, 85, 247, 0.8)',
                         'rgba(236, 72, 153, 0.8)',
-                        'rgba(14, 165, 233, 0.8)',
-                        'rgba(245, 158, 11, 0.8)',
+                        'rgba(34, 197, 94, 0.8)',
+                        'rgba(249, 115, 22, 0.8)',
                         'rgba(139, 92, 246, 0.8)',
                         'rgba(20, 184, 166, 0.8)',
-                        'rgba(249, 115, 22, 0.8)',
-                        'rgba(99, 102, 241, 0.8)',
+                        'rgba(37, 99, 235, 0.8)',
+                        'rgba(5, 150, 105, 0.8)',
                     ],
                     borderColor: [
-                        'rgba(239, 68, 68, 1)',
-                        'rgba(251, 191, 36, 1)',
-                        'rgba(34, 197, 94, 1)',
                         'rgba(59, 130, 246, 1)',
+                        'rgba(16, 185, 129, 1)',
+                        'rgba(251, 191, 36, 1)',
+                        'rgba(239, 68, 68, 1)',
                         'rgba(168, 85, 247, 1)',
                         'rgba(236, 72, 153, 1)',
-                        'rgba(14, 165, 233, 1)',
-                        'rgba(245, 158, 11, 1)',
+                        'rgba(34, 197, 94, 1)',
+                        'rgba(249, 115, 22, 1)',
                         'rgba(139, 92, 246, 1)',
                         'rgba(20, 184, 166, 1)',
-                        'rgba(249, 115, 22, 1)',
-                        'rgba(99, 102, 241, 1)',
+                        'rgba(37, 99, 235, 1)',
+                        'rgba(5, 150, 105, 1)',
                     ],
                     borderWidth: 2,
                 }]
@@ -350,6 +355,9 @@
                             usePointStyle: true,
                             font: {
                                 size: 12
+                            },
+                            filter: function(item, chart) {
+                                return chart.data.datasets[0].data[item.index] > 0;
                             }
                         }
                     },

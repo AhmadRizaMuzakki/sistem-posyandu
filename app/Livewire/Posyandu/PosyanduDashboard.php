@@ -17,6 +17,7 @@ use App\Models\SasaranDewasa;
 use App\Models\SasaranPralansia;
 use App\Models\SasaranLansia;
 use App\Models\SasaranIbuhamil;
+use App\Services\PendidikanChartService;
 use Livewire\Component;
 use Livewire\Attributes\Layout;
 use Livewire\WithFileUploads;
@@ -37,10 +38,6 @@ class PosyanduDashboard extends Component
     public $gambarCaption = '';
     public $showGambarModal = false;
     
-    // Pendidikan properties
-    public $showPendidikanModal = false;
-    public $pendidikan_terakhir = '';
-    
     // Modal konfirmasi
     public $showConfirmModal = false;
     public $confirmMessage = '';
@@ -59,18 +56,27 @@ class PosyanduDashboard extends Component
     protected function refreshPosyandu()
     {
         cache()->forget("posyandu_dashboard_{$this->posyanduId}");
+        cache()->forget("pendidikan_sync_{$this->posyanduId}");
         $this->loadPosyandu();
     }
 
     public function render()
     {
+        // Sinkronkan tabel pendidikans dari pendidikan tiap sasaran (otomatis, tanpa tombol manual)
+        // Cache sync singkat agar tidak berat di setiap request Livewire
+        cache()->remember("pendidikan_sync_{$this->posyanduId}", 60, function () {
+            return PendidikanChartService::syncFromSasaran((int) $this->posyanduId, Auth::id());
+        });
+
+        // Grafik selalu dari kolom pendidikan sasaran (selaras superadmin)
+        $pendidikanData = $this->getPendidikanData($this->posyanduId);
+
         // Optimasi: Gunakan cache untuk data yang jarang berubah
         $cacheKey = "posyandu_dashboard_{$this->posyanduId}";
         $cachedData = cache()->remember($cacheKey, 60, function () {
             $totalKader = Kader::where('id_posyandu', $this->posyanduId)->count();
             $sasaranByCategory = $this->getSasaranCountsByCategory($this->posyanduId);
             $totalSasaran = array_sum($sasaranByCategory);
-            $pendidikanData = $this->getPendidikanData($this->posyanduId);
 
             // Data untuk dropdown filter imunisasi - optimasi dengan single query
             $imunisasiData = Imunisasi::where('id_posyandu', $this->posyanduId)
@@ -113,7 +119,7 @@ class PosyanduDashboard extends Component
                     + SasaranLansia::where('id_posyandu', $this->posyanduId)->where('status_keluarga', 'istri')->count(),
             ];
 
-            return compact('totalKader', 'totalSasaran', 'sasaranByCategory', 'pendidikanData',
+            return compact('totalKader', 'totalSasaran', 'sasaranByCategory',
                 'kategoriSasaranList', 'namaSasaranList', 'kategoriPendidikanList',
                 'absenPetugas', 'statusKeluargaCount');
         });
@@ -122,6 +128,8 @@ class PosyanduDashboard extends Component
 
         return view('livewire.posyandu.admin-posyandu', array_merge($cachedData, [
             'posyandu' => $this->posyandu,
+            'pendidikanData' => $pendidikanData,
+            'hasPendidikanChart' => array_sum($pendidikanData['data'] ?? []) > 0,
             'kategoriLabels' => $kategoriLabels,
             'showImportModal' => $this->showImportModal ?? false,
             'importKategori' => $this->importKategori ?? '',
@@ -384,125 +392,6 @@ class PosyanduDashboard extends Component
             $this->showSuccessNotification('Semua gambar berhasil dihapus.');
         } catch (\Exception $e) {
             $this->showErrorNotification('Gagal menghapus gambar: ' . $e->getMessage());
-        }
-    }
-
-    /**
-     * Buka modal input pendidikan
-     */
-    public function openPendidikanModal()
-    {
-        $this->pendidikan_terakhir = '';
-        $this->showPendidikanModal = true;
-    }
-
-    /**
-     * Tutup modal pendidikan
-     */
-    public function closePendidikanModal()
-    {
-        $this->showPendidikanModal = false;
-        $this->pendidikan_terakhir = '';
-    }
-
-    /**
-     * Update pendidikan ke semua sasaran di posyandu ini
-     */
-    public function updatePendidikanSemuaSasaran()
-    {
-        $this->validate([
-            'pendidikan_terakhir' => 'required|in:Tidak/Belum Sekolah,PAUD,TK,Tidak Tamat SD/Sederajat,Tamat SD/Sederajat,SLTP/Sederajat,SLTA/Sederajat,Diploma I/II,Akademi/Diploma III/Sarjana Muda,Diploma IV/Strata I,Strata II,Strata III',
-        ], [
-            'pendidikan_terakhir.required' => 'Pendidikan terakhir wajib dipilih.',
-            'pendidikan_terakhir.in' => 'Pendidikan terakhir tidak valid.',
-        ]);
-
-        try {
-            $posyanduId = $this->posyanduId;
-            $pendidikanValue = $this->pendidikan_terakhir;
-            $userId = Auth::id();
-            $updatedCount = 0;
-
-            // Optimasi: Gunakan bulk update dan bulk insert untuk performa maksimal
-            DB::transaction(function () use ($posyanduId, $pendidikanValue, $userId, &$updatedCount) {
-                // Bulk update untuk semua kategori sekaligus
-                $updatedCount += SasaranRemaja::where('id_posyandu', $posyanduId)
-                    ->update(['pendidikan' => $pendidikanValue]);
-                
-                $updatedCount += SasaranDewasa::where('id_posyandu', $posyanduId)
-                    ->update(['pendidikan' => $pendidikanValue]);
-                
-                $updatedCount += SasaranPralansia::where('id_posyandu', $posyanduId)
-                    ->update(['pendidikan' => $pendidikanValue]);
-                
-                $updatedCount += SasaranLansia::where('id_posyandu', $posyanduId)
-                    ->update(['pendidikan' => $pendidikanValue]);
-                
-                $updatedCount += SasaranIbuhamil::where('id_posyandu', $posyanduId)
-                    ->update(['pendidikan' => $pendidikanValue]);
-
-                // Bulk insert/update untuk tabel pendidikan
-                $this->bulkUpdatePendidikanTable($posyanduId, $pendidikanValue, $userId);
-            });
-
-            // Clear cache setelah update
-            cache()->forget("posyandu_dashboard_{$posyanduId}");
-
-            $this->closePendidikanModal();
-            $this->refreshPosyandu();
-
-            $this->showSuccessNotification("Pendidikan berhasil diupdate ke {$updatedCount} sasaran (Remaja, Dewasa, Pralansia, Lansia, Ibu Hamil) dan tersimpan di menu Pendidikan.");
-        } catch (\Exception $e) {
-            $this->showErrorNotification('Gagal mengupdate pendidikan: ' . $e->getMessage());
-        }
-    }
-
-    /**
-     * Bulk update tabel pendidikan untuk performa optimal
-     */
-    private function bulkUpdatePendidikanTable($posyanduId, $pendidikanValue, $userId)
-    {
-        $pendidikanData = [];
-
-        // Ambil semua sasaran sekaligus untuk batch insert
-        $categories = [
-            'remaja' => [SasaranRemaja::class, 'id_sasaran_remaja'],
-            'dewasa' => [SasaranDewasa::class, 'id_sasaran_dewasa'],
-            'pralansia' => [SasaranPralansia::class, 'id_sasaran_pralansia'],
-            'lansia' => [SasaranLansia::class, 'id_sasaran_lansia'],
-            'ibuhamil' => [SasaranIbuhamil::class, 'id_sasaran_ibuhamil'],
-        ];
-
-        foreach ($categories as $kategori => [$modelClass, $primaryKey]) {
-            $sasarans = $modelClass::where('id_posyandu', $posyanduId)
-                ->select($primaryKey, 'nik_sasaran', 'nama_sasaran', 'tanggal_lahir', 'jenis_kelamin', 'umur_sasaran')
-                ->get();
-
-            foreach ($sasarans as $sasaran) {
-                $pendidikanData[] = [
-                    'id_posyandu' => $posyanduId,
-                    'id_users' => $userId,
-                    'id_sasaran' => $sasaran->$primaryKey,
-                    'kategori_sasaran' => $kategori,
-                    'nik' => $sasaran->nik_sasaran,
-                    'nama' => $sasaran->nama_sasaran,
-                    'tanggal_lahir' => $sasaran->tanggal_lahir,
-                    'jenis_kelamin' => $sasaran->jenis_kelamin,
-                    'umur' => $sasaran->umur_sasaran,
-                    'pendidikan_terakhir' => $pendidikanValue,
-                    'created_at' => now(),
-                    'updated_at' => now(),
-                ];
-            }
-        }
-
-        // Bulk insert dengan ON DUPLICATE KEY UPDATE (MySQL) atau upsert (Laravel)
-        if (!empty($pendidikanData)) {
-            Pendidikan::upsert(
-                $pendidikanData,
-                ['id_posyandu', 'id_sasaran', 'kategori_sasaran'],
-                ['pendidikan_terakhir', 'updated_at']
-            );
         }
     }
 

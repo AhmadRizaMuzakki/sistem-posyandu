@@ -13,6 +13,7 @@ use Carbon\Carbon;
 
 trait IbuHamilCrud
 {
+    use AutoSavePendidikan;
     // Modal State
     public $isSasaranIbuHamilModalOpen = false;
 
@@ -208,7 +209,23 @@ trait IbuHamilCrud
                 $ibuhamil->update($data);
             } else {
                 // CREATE
-                SasaranIbuhamil::create($data);
+                $ibuhamil = SasaranIbuhamil::create($data);
+            }
+
+            if (!empty($this->pendidikan_ibuhamil)) {
+                $this->autoSavePendidikan(
+                    $ibuhamil->id_sasaran_ibuhamil,
+                    'ibuhamil',
+                    $this->posyanduId,
+                    $this->pendidikan_ibuhamil,
+                    [
+                        'nik' => $ibuhamil->nik_sasaran,
+                        'nama' => $ibuhamil->nama_sasaran,
+                        'tanggal_lahir' => $ibuhamil->tanggal_lahir,
+                        'jenis_kelamin' => $ibuhamil->jenis_kelamin,
+                        'umur' => $ibuhamil->umur_sasaran,
+                    ]
+                );
             }
         });
         
