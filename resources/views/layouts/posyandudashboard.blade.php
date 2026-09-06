@@ -312,8 +312,8 @@
                 </a>
 
                 {{-- ADUAN --}}
-                <a href="{{ route('adminPosyandu.aduan') }}"
-                    class="sidebar-menu-item flex items-center px-4 py-3 rounded-lg {{ request()->routeIs('adminPosyandu.aduan') ? 'active' : 'text-gray-600' }}">
+                <a href="{{ route('adminPosyandu.spm') }}"
+                    class="sidebar-menu-item flex items-center px-4 py-3 rounded-lg {{ request()->routeIs('adminPosyandu.spm') ? 'active' : 'text-gray-600' }}">
                     <i class="ph ph-megaphone text-xl mr-3"></i>
                     <span class="font-medium">6 SPM</span>
                 </a>

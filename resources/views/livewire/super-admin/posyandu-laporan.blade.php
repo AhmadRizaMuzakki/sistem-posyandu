@@ -275,17 +275,17 @@
             </div>
         </div>
 
-        {{-- Grup Laporan Aduan --}}
+        {{-- Grup Laporan 6 SPM --}}
         <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
             <div class="flex items-center gap-2 mb-4 pb-3 border-b border-gray-200">
                 <i class="ph ph-megaphone text-2xl text-orange-600"></i>
-                <h2 class="text-xl font-semibold text-gray-800">Laporan SPM</h2>
+                <h2 class="text-xl font-semibold text-gray-800">Laporan 6 SPM</h2>
             </div>
             <div class="space-y-4">
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-2">Filter Tahun</label>
-                        <select id="filterTahunAduan" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-primary focus:border-primary">
+                        <select id="filterTahunSpm" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-primary focus:border-primary">
                             <option value="">Semua Tahun</option>
                             @foreach(range(now()->year, now()->year - 5) as $y)
                                 <option value="{{ $y }}" {{ $y == now()->year ? 'selected' : '' }}>{{ $y }}</option>
@@ -294,7 +294,7 @@
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-2">Filter Bulan</label>
-                        <select id="filterBulanAduan" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-primary focus:border-primary">
+                        <select id="filterBulanSpm" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-primary focus:border-primary">
                             <option value="">Semua Bulan</option>
                             @foreach(range(1, 12) as $m)
                                 <option value="{{ $m }}">{{ \Carbon\Carbon::create(now()->year, $m, 1)->locale('id')->translatedFormat('F') }}</option>
@@ -305,7 +305,7 @@
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-2">Filter Status</label>
-                        <select id="filterStatusAduan" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-primary focus:border-primary">
+                        <select id="filterStatusSpm" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-primary focus:border-primary">
                             <option value="">Semua Status</option>
                             <option value="menunggu">Menunggu</option>
                             <option value="diproses">Diproses</option>
@@ -314,20 +314,19 @@
                         </select>
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Filter Bidang SPM <span class="text-red-500">*</span></label>
-                        <select id="filterKategoriAduan" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-primary focus:border-primary">
-                            <option value="">Semua Bidang SPM</option>
-                            <option value="trantibumlinmas">Trantibum Linmas</option>
-                            <option value="pendidikan">Pendidikan</option>
-                            <option value="pekerjaan_umum">Pekerjaan Umum</option>
-                            <option value="perumahan_rakyat">Perumahan Rakyat</option>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Filter Bidang 6 SPM <span class="text-red-500">*</span></label>
+                        <select id="filterKategoriSpm" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-primary focus:border-primary">
+                            <option value="">Semua Bidang 6 SPM</option>
+                            @foreach(\App\Helpers\SpmOptions::kategoriOptions() as $value => $label)
+                                <option value="{{ $value }}">{{ $label }}</option>
+                            @endforeach
                         </select>
                     </div>
                 </div>
                 <div>
-                    <button onclick="exportFilteredAduan()" class="w-full inline-flex items-center justify-center px-4 py-2 rounded-lg bg-orange-600 text-white text-sm font-medium shadow-sm hover:bg-orange-700 transition-colors">
+                    <button onclick="exportFilteredSpm()" class="w-full inline-flex items-center justify-center px-4 py-2 rounded-lg bg-orange-600 text-white text-sm font-medium shadow-sm hover:bg-orange-700 transition-colors">
                         <i class="ph ph-file-pdf text-lg mr-2"></i>
-                        Export Laporan SPM (PDF)
+                        Export Laporan 6 SPM (PDF)
                     </button>
                 </div>
             </div>
@@ -342,17 +341,17 @@
 @include('livewire.super-admin.posyandu-detail.scripts')
 
 <script>
-    function exportFilteredAduan() {
-        const tahun = document.getElementById('filterTahunAduan').value;
-        const bulan = document.getElementById('filterBulanAduan').value;
-        const status = document.getElementById('filterStatusAduan').value;
-        const kategori = document.getElementById('filterKategoriAduan').value;
+    function exportFilteredSpm() {
+        const tahun = document.getElementById('filterTahunSpm').value;
+        const bulan = document.getElementById('filterBulanSpm').value;
+        const status = document.getElementById('filterStatusSpm').value;
+        const kategori = document.getElementById('filterKategoriSpm').value;
         if (!kategori) {
-            alert('Pilih Bidang SPM terlebih dahulu agar PDF sesuai format lembar pencatatan.');
-            document.getElementById('filterKategoriAduan').focus();
+            alert('Pilih Bidang 6 SPM terlebih dahulu agar PDF sesuai format lembar pencatatan.');
+            document.getElementById('filterKategoriSpm').focus();
             return;
         }
-        const url = '{{ route("superadmin.posyandu.laporan.pdf.aduan", ["id" => encrypt($posyandu->id_posyandu)]) }}';
+        const url = '{{ route("superadmin.posyandu.laporan.pdf.spm", ["id" => encrypt($posyandu->id_posyandu)]) }}';
         const params = new URLSearchParams();
         if (tahun) params.append('tahun', tahun);
         if (bulan) params.append('bulan', bulan);

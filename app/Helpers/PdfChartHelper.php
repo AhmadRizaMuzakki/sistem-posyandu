@@ -173,6 +173,7 @@ class PdfChartHelper
 
     /**
      * Grafik pertumbuhan line chart (tinggi + berat) untuk DomPDF.
+     * Satu sumbu Y bersama (mirip Excel / tampilan web).
      *
      * @param  array<int, string|null>  $labels
      * @param  array<int, float|int|null>  $tinggi
@@ -216,21 +217,22 @@ class PdfChartHelper
         $gray = imagecolorallocate($img, 229, 231, 235);
         $dark = imagecolorallocate($img, 55, 65, 81);
         $muted = imagecolorallocate($img, 107, 114, 128);
-        $tinggiColor = imagecolorallocate($img, 16, 185, 129);
+        $tinggiColor = imagecolorallocate($img, 34, 197, 94);
         $beratColor = imagecolorallocate($img, 59, 130, 246);
         imagefilledrectangle($img, 0, 0, $width, $height, $white);
 
-        $paddingLeft = 56;
-        $paddingRight = 56;
+        $paddingLeft = 48;
+        $paddingRight = 24;
         $paddingTop = 40;
         $paddingBottom = 52;
         $chartW = $width - $paddingLeft - $paddingRight;
         $chartH = max(80, $height - $paddingTop - $paddingBottom);
 
-        [$axisMinTinggi, $axisMaxTinggi] = self::axisRangeFromValues($tinggiPresent);
-        [$axisMinBerat, $axisMaxBerat] = self::axisRangeFromValues($beratPresent);
-        $spanTinggi = max(0.001, $axisMaxTinggi - $axisMinTinggi);
-        $spanBerat = max(0.001, $axisMaxBerat - $axisMinBerat);
+        $allPresent = array_merge($tinggiPresent, $beratPresent);
+        $axisMin = 0.0;
+        $axisMax = max($allPresent);
+        $axisMax = max(10.0, ceil($axisMax * 1.1));
+        $span = max(0.001, $axisMax - $axisMin);
 
         // Legend
         imageline($img, $paddingLeft, 16, $paddingLeft + 16, 16, $tinggiColor);
@@ -242,14 +244,12 @@ class PdfChartHelper
         imageellipse($img, $paddingLeft + 126, 16, 7, 7, $white);
         imagestring($img, 2, $paddingLeft + 140, 10, 'Berat (kg)', $dark);
 
-        // Grid + dual axis labels
+        // Grid + shared Y-axis labels (from 0)
         for ($i = 0; $i <= 4; $i++) {
             $y = $paddingTop + (int) (($chartH / 4) * $i);
             imageline($img, $paddingLeft, $y, $width - $paddingRight, $y, $gray);
-            $valT = $axisMaxTinggi - (($spanTinggi / 4) * $i);
-            $valB = $axisMaxBerat - (($spanBerat / 4) * $i);
-            imagestring($img, 2, 6, $y - 6, (string) (int) round($valT), $tinggiColor);
-            imagestring($img, 2, $width - $paddingRight + 6, $y - 6, rtrim(rtrim(number_format($valB, 1, '.', ''), '0'), '.'), $beratColor);
+            $val = $axisMax - (($span / 4) * $i);
+            imagestring($img, 2, 8, $y - 6, (string) (int) round($val), $muted);
         }
 
         $innerPadX = $count > 1 ? (int) ($chartW * 0.06) : (int) ($chartW / 2);
@@ -261,16 +261,13 @@ class PdfChartHelper
         for ($index = 0; $index < $count; $index++) {
             $x = (int) round($paddingLeft + $innerPadX + ($count > 1 ? $index * $stepX : 0));
 
-            // vertical guide
-            imageline($img, $x, $paddingTop, $x, $paddingTop + $chartH, $gray);
-
             if ($tinggiVals[$index] !== null) {
-                $ratio = ($tinggiVals[$index] - $axisMinTinggi) / $spanTinggi;
+                $ratio = ($tinggiVals[$index] - $axisMin) / $span;
                 $y = (int) round($paddingTop + $chartH - ($ratio * $chartH));
                 $pointsTinggi[] = ['x' => $x, 'y' => $y, 'value' => $tinggiVals[$index]];
             }
             if ($beratVals[$index] !== null) {
-                $ratio = ($beratVals[$index] - $axisMinBerat) / $spanBerat;
+                $ratio = ($beratVals[$index] - $axisMin) / $span;
                 $y = (int) round($paddingTop + $chartH - ($ratio * $chartH));
                 $pointsBerat[] = ['x' => $x, 'y' => $y, 'value' => $beratVals[$index]];
             }
@@ -298,45 +295,16 @@ class PdfChartHelper
         foreach ($pointsTinggi as $point) {
             imagefilledellipse($img, $point['x'], $point['y'], 9, 9, $tinggiColor);
             imageellipse($img, $point['x'], $point['y'], 9, 9, $white);
-            $tLabel = rtrim(rtrim(number_format($point['value'], 1, '.', ''), '0'), '.');
-            imagestring($img, 1, $point['x'] - (int) ((strlen($tLabel) * 5) / 2), max($paddingTop + 1, $point['y'] - 14), $tLabel, $tinggiColor);
         }
         foreach ($pointsBerat as $point) {
             imagefilledellipse($img, $point['x'], $point['y'], 9, 9, $beratColor);
             imageellipse($img, $point['x'], $point['y'], 9, 9, $white);
-            $bLabel = rtrim(rtrim(number_format($point['value'], 1, '.', ''), '0'), '.');
-            imagestring($img, 1, $point['x'] - (int) ((strlen($bLabel) * 5) / 2), min($paddingTop + $chartH - 12, $point['y'] + 8), $bLabel, $beratColor);
         }
 
         imageline($img, $paddingLeft, $paddingTop, $paddingLeft, $paddingTop + $chartH, $dark);
-        imageline($img, $width - $paddingRight, $paddingTop, $width - $paddingRight, $paddingTop + $chartH, $dark);
         imageline($img, $paddingLeft, $paddingTop + $chartH, $width - $paddingRight, $paddingTop + $chartH, $dark);
 
         return self::imageToDataUri($img);
-    }
-
-    /**
-     * @param  array<int, float>  $values
-     * @return array{0: float, 1: float}
-     */
-    private static function axisRangeFromValues(array $values): array
-    {
-        if (empty($values)) {
-            return [0.0, 10.0];
-        }
-
-        $min = min($values);
-        $max = max($values);
-
-        if ($min === $max) {
-            $pad = max(1.0, $max * 0.25);
-
-            return [max(0.0, $min - $pad), $max + $pad];
-        }
-
-        $pad = ($max - $min) * 0.2;
-
-        return [max(0.0, $min - $pad), $max + $pad];
     }
 
     private static function truncateLabel(string $label, int $max): string

@@ -154,13 +154,15 @@ class PendidikanChartService
     }
 
     /**
-     * Sinkronkan sasaran → tabel pendidikans, bersihkan duplikat & data basi.
+     * Sinkronkan sasaran → tabel pendidikans.
+     * - Record baru: isi dari sasaran (termasuk pendidikan).
+     * - Record lama: update biodata saja, JANGAN timpa pendidikan_terakhir
+     *   (mencegah sisa bulk update "Tamat SD" menimpa data yang sudah benar).
      */
     public static function syncFromSasaran(?int $posyanduId = null, ?int $userId = null): int
     {
         $userId = $userId ?? Auth::id();
         $synced = 0;
-        $syncedKeys = [];
 
         foreach (self::sasaranCategories() as $kategori => [$modelClass, $primaryKey, $table]) {
             if (! Schema::hasTable($table) || ! Schema::hasColumn($table, 'pendidikan')) {
@@ -177,65 +179,138 @@ class PendidikanChartService
             }
 
             foreach ($query->cursor() as $sasaran) {
-                Pendidikan::updateOrCreate(
-                    [
-                        'id_posyandu' => $sasaran->id_posyandu,
-                        'id_sasaran' => $sasaran->$primaryKey,
-                        'kategori_sasaran' => $kategori,
-                    ],
-                    [
-                        'id_users' => $userId,
-                        'nik' => $sasaran->nik_sasaran,
-                        'nama' => $sasaran->nama_sasaran,
-                        'tanggal_lahir' => $sasaran->tanggal_lahir,
-                        'jenis_kelamin' => $sasaran->jenis_kelamin,
-                        'umur' => $sasaran->umur_sasaran,
-                        'pendidikan_terakhir' => $sasaran->pendidikan,
-                        'rt' => $sasaran->rt ?? null,
-                        'rw' => $sasaran->rw ?? null,
-                    ]
-                );
+                $keys = [
+                    'id_posyandu' => $sasaran->id_posyandu,
+                    'id_sasaran' => $sasaran->$primaryKey,
+                    'kategori_sasaran' => $kategori,
+                ];
 
-                $syncedKeys[] = $kategori . '|' . $sasaran->$primaryKey;
+                $existing = Pendidikan::query()->where($keys)->first();
+
+                $biodata = [
+                    'id_users' => $userId,
+                    'nik' => $sasaran->nik_sasaran,
+                    'nama' => $sasaran->nama_sasaran,
+                    'tanggal_lahir' => $sasaran->tanggal_lahir,
+                    'jenis_kelamin' => $sasaran->jenis_kelamin,
+                    'umur' => $sasaran->umur_sasaran,
+                    'rt' => $sasaran->rt ?? null,
+                    'rw' => $sasaran->rw ?? null,
+                ];
+
+                if ($existing) {
+                    $existing->update($biodata);
+                } else {
+                    Pendidikan::create($keys + $biodata + [
+                        'pendidikan_terakhir' => $sasaran->pendidikan,
+                    ]);
+                }
+
                 $synced++;
             }
         }
 
-        self::removeStalePendidikanRecords($posyanduId, $syncedKeys);
         self::cleanupDuplicatePendidikanRecords($posyanduId);
+        self::repairYoungChildrenPendidikan($posyanduId);
 
         return $synced;
     }
 
     /**
-     * Hapus baris pendidikans yang tidak lagi punya pendidikan di sasaran.
-     *
-     * @param  array<int, string>  $syncedKeys
+     * Balita & anak kecil (umur <= 6) yang salah terisi "Tamat SD" dll → Tidak/Belum Sekolah.
      */
-    public static function removeStalePendidikanRecords(?int $posyanduId, array $syncedKeys): int
+    public static function repairYoungChildrenPendidikan(?int $posyanduId = null): int
     {
         if (! Schema::hasTable('pendidikans')) {
             return 0;
         }
 
-        $query = Pendidikan::query();
+        $wrongLevels = [
+            'Tidak Tamat SD/Sederajat',
+            'Tamat SD/Sederajat',
+            'SLTP/Sederajat',
+            'SLTA/Sederajat',
+            'Diploma I/II',
+            'Akademi/Diploma III/Sarjana Muda',
+            'Diploma IV/Strata I',
+            'Strata II',
+            'Strata III',
+        ];
 
-        if ($posyanduId !== null) {
-            $query->where('id_posyandu', $posyanduId);
-        }
+        $fixed = 0;
 
-        $removed = 0;
+        // 1) Semua bayibalita → Tidak/Belum Sekolah (kecuali sudah PAUD/TK)
+        if (Schema::hasTable('sasaran_bayibalita') && Schema::hasColumn('sasaran_bayibalita', 'pendidikan')) {
+            $balitaQuery = SasaranBayibalita::query()
+                ->where(function ($q) {
+                    $q->whereNull('pendidikan')
+                        ->orWhere('pendidikan', '')
+                        ->orWhereIn('pendidikan', [
+                            'Tidak Tamat SD/Sederajat',
+                            'Tamat SD/Sederajat',
+                            'SLTP/Sederajat',
+                            'SLTA/Sederajat',
+                            'Diploma I/II',
+                            'Akademi/Diploma III/Sarjana Muda',
+                            'Diploma IV/Strata I',
+                            'Strata II',
+                            'Strata III',
+                        ]);
+                });
 
-        foreach ($query->cursor() as $row) {
-            $key = $row->kategori_sasaran . '|' . $row->id_sasaran;
+            if ($posyanduId !== null) {
+                $balitaQuery->where('id_posyandu', $posyanduId);
+            }
 
-            if (! in_array($key, $syncedKeys, true)) {
-                $row->delete();
-                $removed++;
+            foreach ($balitaQuery->cursor() as $balita) {
+                $balita->update(['pendidikan' => 'Tidak/Belum Sekolah']);
+
+                Pendidikan::updateOrCreate(
+                    [
+                        'id_posyandu' => $balita->id_posyandu,
+                        'id_sasaran' => $balita->id_sasaran_bayibalita,
+                        'kategori_sasaran' => 'bayibalita',
+                    ],
+                    [
+                        'id_users' => Auth::id(),
+                        'nik' => $balita->nik_sasaran,
+                        'nama' => $balita->nama_sasaran,
+                        'tanggal_lahir' => $balita->tanggal_lahir,
+                        'jenis_kelamin' => $balita->jenis_kelamin,
+                        'umur' => $balita->umur_sasaran,
+                        'rt' => $balita->rt ?? null,
+                        'rw' => $balita->rw ?? null,
+                        'pendidikan_terakhir' => 'Tidak/Belum Sekolah',
+                    ]
+                );
+                $fixed++;
             }
         }
 
-        return $removed;
+        // 2) Baris pendidikans umur <= 6 dengan jenjang SD ke atas → Tidak/Belum Sekolah
+        $youngQuery = Pendidikan::query()
+            ->whereNotNull('umur')
+            ->where('umur', '<=', 6)
+            ->whereIn('pendidikan_terakhir', $wrongLevels);
+
+        if ($posyanduId !== null) {
+            $youngQuery->where('id_posyandu', $posyanduId);
+        }
+
+        foreach ($youngQuery->cursor() as $row) {
+            $row->update(['pendidikan_terakhir' => 'Tidak/Belum Sekolah']);
+
+            // Samakan kolom pendidikan di tabel sasaran (jika ada)
+            if (isset(self::sasaranCategories()[$row->kategori_sasaran])) {
+                [$modelClass, $primaryKey] = self::sasaranCategories()[$row->kategori_sasaran];
+                $modelClass::where($primaryKey, $row->id_sasaran)
+                    ->update(['pendidikan' => 'Tidak/Belum Sekolah']);
+            }
+
+            $fixed++;
+        }
+
+        return $fixed;
     }
 
     /**

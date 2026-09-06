@@ -1,6 +1,6 @@
 <div class="space-y-6">
     @php
-        use App\Helpers\AduanOptions;
+        use App\Helpers\SpmOptions;
     @endphp
     {{-- Header --}}
     <div class="bg-white rounded-lg shadow-sm p-6">
@@ -51,11 +51,11 @@
                     </select>
                 </div>
                 <div>
-                    <label for="filter-kategori" class="block text-xs font-medium text-gray-500 mb-2">Bidang SPM</label>
+                    <label for="filter-kategori" class="block text-xs font-medium text-gray-500 mb-2">Bidang 6 SPM</label>
                     <select id="filter-kategori"
                             wire:model.live="filterKategori"
                             class="w-full px-3 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm bg-white shadow-sm">
-                        <option value="">Semua Bidang SPM</option>
+                        <option value="">Semua Bidang 6 SPM</option>
                         @foreach($kategoriOptions as $value => $label)
                             <option value="{{ $value }}">{{ $label }}</option>
                         @endforeach
@@ -99,13 +99,13 @@
         @if($totalBaris > 0)
             <div class="p-6 sm:p-8">
                 <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                    @foreach($aduanList as $aduan)
+                    @foreach($spmList as $aduan)
                         @php
-                            $kategoriClasses = AduanOptions::kategoriBadgeClasses($aduan->kategori);
-                            $kategoriLabel = AduanOptions::kategoriLabel($aduan->kategori);
-                            $statusIcon = AduanOptions::statusIcon($aduan->status);
-                            $statusBorder = AduanOptions::statusCardBorderClass($aduan->status);
-                            $statusIconWrap = AduanOptions::statusIconWrapClasses($aduan->status);
+                            $kategoriClasses = SpmOptions::kategoriBadgeClasses($aduan->kategori);
+                            $kategoriLabel = SpmOptions::kategoriLabel($aduan->kategori);
+                            $statusIcon = SpmOptions::statusIcon($aduan->status);
+                            $statusBorder = SpmOptions::statusCardBorderClass($aduan->status);
+                            $statusIconWrap = SpmOptions::statusIconWrapClasses($aduan->status);
                         @endphp
                         <article class="group bg-white border border-gray-100 border-l-4 {{ $statusBorder }} rounded-xl shadow-sm hover:shadow-md hover:border-gray-200 transition-all duration-200 overflow-hidden flex flex-col">
                             <div class="p-5 sm:p-6 flex-1 flex flex-col">
@@ -123,7 +123,7 @@
                                                 <i class="ph ph-calendar-blank"></i>
                                                 {{ $aduan->tanggal_aduan?->locale('id')->translatedFormat('d F Y') ?? '-' }}
                                             </p>
-                                            <x-status-aduan-badge :status="$aduan->status" class="shrink-0" />
+                                            <x-status-spm-badge :status="$aduan->status" class="shrink-0" />
                                         </div>
                                     </div>
                                 </div>
@@ -142,7 +142,7 @@
                                     @endif
                                 </div>
 
-                                {{-- Isi aduan --}}
+                                {{-- Isi 6 SPM --}}
                                 <div class="mt-4 rounded-xl bg-gray-50/80 border border-gray-100 p-4 flex-1">
                                     <p class="text-[11px] font-semibold uppercase tracking-wide text-gray-400 mb-1.5">Isi 6 SPM</p>
                                     <p class="text-sm text-gray-700 leading-relaxed line-clamp-3">
@@ -152,7 +152,7 @@
 
                                 {{-- Progres --}}
                                 <div class="mt-4 pt-4 border-t border-gray-100">
-                                    <x-aduan-progress-bar
+                                    <x-spm-progress-bar
                                         :status="$aduan->status"
                                         label="Progres Penanganan"
                                     />

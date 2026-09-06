@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 
 use App\Models\Posyandu;
 use App\Livewire\Posyandu\Kaders;
@@ -20,10 +20,10 @@ use App\Livewire\SuperAdmin\Pendidikan as PosyanduPendidikan;
 use App\Livewire\SuperAdmin\PosyanduList;
 use App\Livewire\Orangtua\OrangtuaDashboard;
 use App\Livewire\Orangtua\OrangtuaImunisasi;
-use App\Livewire\Orangtua\OrangtuaAduan;
+use App\Livewire\Orangtua\OrangtuaSpm;
 use App\Livewire\Posyandu\PosyanduDashboard;
 use App\Livewire\Posyandu\KaderImunisasi;
-use App\Livewire\Posyandu\KaderAduan;
+use App\Livewire\Posyandu\KaderSpm;
 use App\Livewire\SuperAdmin\PosyanduLaporan as SuperadminPosyanduLaporan;
 use App\Livewire\SuperAdmin\SuperAdminDashboard;
 use Illuminate\Support\Carbon;
@@ -71,12 +71,15 @@ Route::prefix('supervisor')->middleware(['auth', 'verified', 'role:superadmin'])
     Route::get('/posyandu/{id}/sasaran', PosyanduSasaran::class)->name('posyandu.sasaran');
     Route::get('/posyandu/{id}/imunisasi', PosyanduImunisasi::class)->name('posyandu.imunisasi');
     Route::get('/posyandu/{id}/pendidikan', PosyanduPendidikan::class)->name('posyandu.pendidikan');
-    Route::get('/posyandu/{id}/aduan', \App\Livewire\SuperAdmin\PosyanduAduan::class)->name('posyandu.aduan');
+    Route::get('/posyandu/{id}/spm', \App\Livewire\SuperAdmin\PosyanduSpm::class)->name('posyandu.spm');
+    Route::get('/posyandu/{id}/aduan', function (string $id) {
+        return redirect()->route('posyandu.spm', ['id' => $id]);
+    });
     Route::get('/posyandu/{id}/jadwal', \App\Livewire\SuperAdmin\PosyanduJadwal::class)->name('posyandu.jadwal');
     Route::get('/posyandu/{id}/laporan', SuperadminPosyanduLaporan::class)->name('posyandu.laporan');
     Route::get('/posyandu/{id}/galeri', \App\Livewire\SuperAdmin\PosyanduGaleri::class)->name('posyandu.galeri');
     Route::get('/posyandu/{id}/perpustakaan', \App\Livewire\SuperAdmin\PosyanduPerpustakaan::class)->name('posyandu.perpustakaan');
-    Route::get('/posyandu/{id}/laporan/pdf/aduan', [LaporanController::class, 'superadminPosyanduAduanPdf'])->name('superadmin.posyandu.laporan.pdf.aduan');
+    Route::get('/posyandu/{id}/laporan/pdf/spm', [LaporanController::class, 'superadminPosyanduSpmPdf'])->name('superadmin.posyandu.laporan.pdf.spm');
     Route::get('/posyandu/{id}/laporan/pdf/imunisasi-kehadiran', [LaporanController::class, 'superadminPosyanduImunisasiKehadiranPdf'])->name('superadmin.posyandu.laporan.pdf.imunisasi-kehadiran');
     Route::get('/posyandu/{id}/laporan/pdf/galeri', [LaporanController::class, 'superadminPosyanduGaleriPdf'])->name('superadmin.posyandu.laporan.pdf.galeri');
     Route::get('/posyandu/{id}/laporan/pdf/jenis-vaksin/{jenisVaksin}', [LaporanController::class, 'superadminPosyanduImunisasiPdfByJenisVaksin'])->name('superadmin.posyandu.laporan.pdf.jenis-vaksin');
@@ -111,10 +114,11 @@ Route::prefix('posyandu')->middleware(['auth', 'verified', 'role:adminPosyandu|s
     Route::get('/sasaran/{kategori}/pdf', [LaporanController::class, 'posyanduSasaranPdf'])->name('adminPosyandu.sasaran.pdf');
     Route::get('/imunisasi', KaderImunisasi::class)->name('adminPosyandu.imunisasi');
     Route::get('/pendidikan', \App\Livewire\Posyandu\Pendidikan::class)->name('adminPosyandu.pendidikan');
-    Route::get('/aduan', KaderAduan::class)->name('adminPosyandu.aduan');
+    Route::get('/spm', KaderSpm::class)->name('adminPosyandu.spm');
+    Route::redirect('/aduan', '/posyandu/spm');
     Route::get('/jadwal', \App\Livewire\Posyandu\PosyanduJadwal::class)->name('adminPosyandu.jadwal');
     Route::get('/laporan', PosyanduLaporan::class)->name('adminPosyandu.laporan');
-    Route::get('/laporan/pdf/aduan', [LaporanController::class, 'posyanduAduanPdf'])->name('adminPosyandu.laporan.pdf.aduan');
+    Route::get('/laporan/pdf/spm', [LaporanController::class, 'posyanduSpmPdf'])->name('adminPosyandu.laporan.pdf.spm');
     Route::get('/laporan/pdf/imunisasi-kehadiran', [LaporanController::class, 'posyanduImunisasiKehadiranPdf'])->name('adminPosyandu.laporan.pdf.imunisasi-kehadiran');
     Route::get('/laporan/pdf/galeri', [LaporanController::class, 'posyanduGaleriPdf'])->name('adminPosyandu.laporan.pdf.galeri');
     Route::get('/laporan/pdf/jenis-vaksin/{jenisVaksin}', [LaporanController::class, 'posyanduImunisasiPdfByJenisVaksin'])->name('adminPosyandu.laporan.pdf.jenis-vaksin');
@@ -141,7 +145,8 @@ Route::prefix('posyandu')->middleware(['auth', 'verified', 'role:adminPosyandu|s
 Route::prefix('orangtua')->middleware(['auth', 'verified', 'role:orangtua|superadmin'])->group(function () {
     Route::get('/', OrangtuaDashboard::class)->name('orangtua.dashboard');
     Route::get('/imunisasi', OrangtuaImunisasi::class)->name('orangtua.imunisasi');
-    Route::get('/aduan', OrangtuaAduan::class)->name('orangtua.aduan');
+    Route::get('/spm', OrangtuaSpm::class)->name('orangtua.spm');
+    Route::redirect('/aduan', '/orangtua/spm');
     Route::get('/keluarga/pdf', [OrangtuaExportController::class, 'keluargaPdf'])->name('orangtua.keluarga.pdf');
     Route::get('/imunisasi/pdf', [OrangtuaExportController::class, 'imunisasiPdf'])->name('orangtua.imunisasi.pdf');
 });

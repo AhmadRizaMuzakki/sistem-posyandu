@@ -2,7 +2,7 @@
 
 namespace App\Helpers;
 
-class AduanOptions
+class SpmOptions
 {
     public const STATUS_MENUNGGU = 'menunggu';
 
@@ -38,17 +38,19 @@ class AduanOptions
     }
 
     /**
-     * Bidang SPM aktif untuk form/filter aduan.
+     * Bidang 6 SPM aktif untuk form/filter.
      *
      * @return array<string, string>
      */
     public static function kategoriOptions(): array
     {
         return [
-            self::SPM_TRANTIBUMLINMAS => 'Trantibum Linmas',
+            self::SPM_KESEHATAN => 'Kesehatan',
             self::SPM_PENDIDIKAN => 'Pendidikan',
             self::SPM_PEKERJAAN_UMUM => 'Pekerjaan Umum',
             self::SPM_PERUMAHAN_RAKYAT => 'Perumahan Rakyat',
+            self::SPM_TRANTIBUMLINMAS => 'Trantibum Linmas',
+            self::SPM_SOSIAL => 'Sosial',
         ];
     }
 
@@ -99,7 +101,7 @@ class AduanOptions
     }
 
     /**
-     * Persentase progres aduan berdasarkan status (Opsi A).
+     * Persentase progres 6 SPM berdasarkan status (Opsi A).
      */
     public static function statusProgress(?string $status): int
     {

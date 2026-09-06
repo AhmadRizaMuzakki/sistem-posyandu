@@ -6,8 +6,8 @@
             <p class="text-gray-600">Selamat datang, {{ Auth::user()->name }}!</p>
         </div>
 
-        {{-- Status Bar Aduan --}}
-        @if($aduanStats['total'] > 0)
+        {{-- Status Bar 6 SPM --}}
+        @if($spmStats['total'] > 0)
             <div class="bg-white rounded-lg shadow-sm p-6">
                 <div class="flex flex-wrap items-center justify-between gap-3 mb-5">
                     <div class="flex items-center gap-3">
@@ -16,10 +16,10 @@
                         </div>
                         <div>
                             <h2 class="text-lg font-semibold text-gray-800">Progres Posyandu 6 SPM</h2>
-                            <p class="text-sm text-gray-500">{{ $aduanStats['total'] }} data 6 SPM tercatat</p>
+                            <p class="text-sm text-gray-500">{{ $spmStats['total'] }} data 6 SPM tercatat</p>
                         </div>
                     </div>
-                    <a href="{{ route('orangtua.aduan') }}"
+                    <a href="{{ route('orangtua.spm') }}"
                        class="text-sm font-medium text-primary hover:underline">
                         Lihat semua 6 SPM
                     </a>
@@ -27,19 +27,19 @@
 
                 <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
                     <div class="bg-amber-50 border border-amber-100 rounded-lg p-3 text-center">
-                        <p class="text-xl font-bold text-amber-700">{{ $aduanStats['menunggu'] }}</p>
+                        <p class="text-xl font-bold text-amber-700">{{ $spmStats['menunggu'] }}</p>
                         <p class="text-xs text-amber-600 mt-0.5">Menunggu (25%)</p>
                     </div>
                     <div class="bg-blue-50 border border-blue-100 rounded-lg p-3 text-center">
-                        <p class="text-xl font-bold text-blue-700">{{ $aduanStats['diproses'] }}</p>
+                        <p class="text-xl font-bold text-blue-700">{{ $spmStats['diproses'] }}</p>
                         <p class="text-xs text-blue-600 mt-0.5">Diproses (50%)</p>
                     </div>
                     <div class="bg-green-50 border border-green-100 rounded-lg p-3 text-center">
-                        <p class="text-xl font-bold text-green-700">{{ $aduanStats['selesai'] }}</p>
+                        <p class="text-xl font-bold text-green-700">{{ $spmStats['selesai'] }}</p>
                         <p class="text-xs text-green-600 mt-0.5">Selesai (100%)</p>
                     </div>
                     <div class="bg-red-50 border border-red-100 rounded-lg p-3 text-center">
-                        <p class="text-xl font-bold text-red-700">{{ $aduanStats['ditolak'] }}</p>
+                        <p class="text-xl font-bold text-red-700">{{ $spmStats['ditolak'] }}</p>
                         <p class="text-xs text-red-600 mt-0.5">Ditolak (0%)</p>
                     </div>
                 </div>
@@ -65,19 +65,19 @@
                 </div>
             </a>
 
-            {{-- Card Aduan --}}
-            <a href="{{ route('orangtua.aduan') }}" class="bg-white rounded-lg shadow-sm p-6 hover:shadow-md transition-shadow border-l-4 border-orange-500">
+            {{-- Card 6 SPM --}}
+            <a href="{{ route('orangtua.spm') }}" class="bg-white rounded-lg shadow-sm p-6 hover:shadow-md transition-shadow border-l-4 border-orange-500">
                 <div class="flex items-center justify-between">
                     <div>
                         <h3 class="text-lg font-semibold text-gray-800 mb-2">Posyandu 6 SPM</h3>
                         <p class="text-sm text-gray-600 mb-2">Lihat riwayat Posyandu 6 SPM keluarga Anda</p>
-                        @if(($aduanStats['menunggu'] ?? 0) > 0)
+                        @if(($spmStats['menunggu'] ?? 0) > 0)
                             <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-amber-100 text-amber-800 mb-3">
-                                {{ $aduanStats['menunggu'] }} menunggu
+                                {{ $spmStats['menunggu'] }} menunggu
                             </span>
-                        @elseif(($aduanStats['total'] ?? 0) > 0)
+                        @elseif(($spmStats['total'] ?? 0) > 0)
                             <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 mb-3">
-                                {{ $aduanStats['total'] }} 6 SPM
+                                {{ $spmStats['total'] }} 6 SPM
                             </span>
                         @endif
                         <div class="flex items-center text-orange-600 font-medium">

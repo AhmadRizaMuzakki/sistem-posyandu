@@ -1,9 +1,9 @@
 @props(['status' => null])
 
 @php
-    use App\Helpers\AduanOptions;
-    $label = AduanOptions::statusLabel($status);
-    $classes = AduanOptions::statusBadgeClasses($status);
+    use App\Helpers\SpmOptions;
+    $label = SpmOptions::statusLabel($status);
+    $classes = SpmOptions::statusBadgeClasses($status);
 @endphp
 
 @if($status)

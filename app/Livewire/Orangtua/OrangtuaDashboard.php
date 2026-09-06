@@ -3,7 +3,7 @@
 namespace App\Livewire\Orangtua;
 
 use App\Livewire\Orangtua\Traits\ResolvesNoKk;
-use App\Models\Aduan;
+use App\Models\Spm;
 use App\Models\Orangtua;
 use App\Models\SasaranBayibalita;
 use App\Models\SasaranRemaja;
@@ -98,21 +98,21 @@ class OrangtuaDashboard extends Component
             }
         }
 
-        $aduanStats = [
+        $spmStats = [
             'total' => 0,
             'menunggu' => 0,
             'diproses' => 0,
             'selesai' => 0,
             'ditolak' => 0,
         ];
-        if ($noKk && \Illuminate\Support\Facades\Schema::hasTable((new Aduan)->getTable())) {
+        if ($noKk && \Illuminate\Support\Facades\Schema::hasTable((new Spm)->getTable())) {
             try {
-                $aduanBase = Aduan::where('no_kk', $noKk);
-                $aduanStats['total'] = (clone $aduanBase)->count();
-                $aduanStats['menunggu'] = (clone $aduanBase)->where('status', 'menunggu')->count();
-                $aduanStats['diproses'] = (clone $aduanBase)->where('status', 'diproses')->count();
-                $aduanStats['selesai'] = (clone $aduanBase)->where('status', 'selesai')->count();
-                $aduanStats['ditolak'] = (clone $aduanBase)->where('status', 'ditolak')->count();
+                $spmBase = Spm::where('no_kk', $noKk);
+                $spmStats['total'] = (clone $spmBase)->count();
+                $spmStats['menunggu'] = (clone $spmBase)->where('status', 'menunggu')->count();
+                $spmStats['diproses'] = (clone $spmBase)->where('status', 'diproses')->count();
+                $spmStats['selesai'] = (clone $spmBase)->where('status', 'selesai')->count();
+                $spmStats['ditolak'] = (clone $spmBase)->where('status', 'ditolak')->count();
             } catch (\Throwable $e) {
                 report($e);
             }
@@ -121,7 +121,7 @@ class OrangtuaDashboard extends Component
         return view('livewire.orangtua.orang-tua', [
             'allKeluarga' => $allKeluarga,
             'orangtua' => $orangtua,
-            'aduanStats' => $aduanStats,
+            'spmStats' => $spmStats,
         ]);
     }
 }

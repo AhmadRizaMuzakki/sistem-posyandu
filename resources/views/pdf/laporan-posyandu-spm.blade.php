@@ -1,14 +1,14 @@
 @php
-    use App\Helpers\AduanOptions;
+    use App\Helpers\SpmOptions;
 
     $bidang = $kategori ?? '';
-    $bidangLabel = $bidangLabel ?? AduanOptions::kategoriLabel($bidang);
+    $bidangLabel = $bidangLabel ?? SpmOptions::kategoriLabel($bidang);
     $tahunFooter = $generatedAt->format('Y');
     $minRows = 10;
-    $rowCount = max($aduanList->count(), $minRows);
+    $rowCount = max($spmList->count(), $minRows);
 
     $isTl = function (?string $status): bool {
-        return in_array($status, [AduanOptions::STATUS_DIPROSES, AduanOptions::STATUS_SELESAI], true);
+        return in_array($status, [SpmOptions::STATUS_DIPROSES, SpmOptions::STATUS_SELESAI], true);
     };
 @endphp
 <!DOCTYPE html>
@@ -106,7 +106,7 @@
         </tr>
     </table>
 
-    @if($bidang === AduanOptions::SPM_PEKERJAAN_UMUM)
+    @if($bidang === SpmOptions::SPM_PEKERJAAN_UMUM)
         {{-- Template: Pekerjaan Umum --}}
         <table class="data">
             <thead>
@@ -127,7 +127,7 @@
             <tbody>
                 @for($i = 0; $i < $rowCount; $i++)
                     @php
-                        $aduan = $aduanList->values()->get($i);
+                        $aduan = $spmList->values()->get($i);
                         $orangtua = $aduan ? $orangtuaMap->get((string) $aduan->no_kk) : null;
                     @endphp
                     <tr>
@@ -144,7 +144,7 @@
             </tbody>
         </table>
 
-    @elseif($bidang === AduanOptions::SPM_PERUMAHAN_RAKYAT)
+    @elseif($bidang === SpmOptions::SPM_PERUMAHAN_RAKYAT)
         {{-- Template: Perumahan Rakyat --}}
         <table class="data">
             <thead>
@@ -170,7 +170,7 @@
             <tbody>
                 @for($i = 0; $i < $rowCount; $i++)
                     @php
-                        $aduan = $aduanList->values()->get($i);
+                        $aduan = $spmList->values()->get($i);
                         $orangtua = $aduan ? $orangtuaMap->get((string) $aduan->no_kk) : null;
                     @endphp
                     <tr>
@@ -192,7 +192,7 @@
         </table>
 
     @else
-        {{-- Template default: Trantibum Linmas & Pendidikan (No, Tanggal, NIK, Nama, Hal Pengaduan, Keterangan TL/BTL) --}}
+        {{-- Template default: Trantibum Linmas, Pendidikan, Sosial, Kesehatan (No, Tanggal, NIK, Nama, Hal Pengaduan, Keterangan TL/BTL) --}}
         <table class="data">
             <thead>
                 <tr>
@@ -211,7 +211,7 @@
             <tbody>
                 @for($i = 0; $i < $rowCount; $i++)
                     @php
-                        $aduan = $aduanList->values()->get($i);
+                        $aduan = $spmList->values()->get($i);
                         $orangtua = $aduan ? $orangtuaMap->get((string) $aduan->no_kk) : null;
                         $halPengaduan = $aduan
                             ? trim(($aduan->judul ?? '') . (($aduan->judul && $aduan->isi_aduan) ? ' — ' : '') . ($aduan->isi_aduan ?? ''))

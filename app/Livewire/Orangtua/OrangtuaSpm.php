@@ -2,15 +2,15 @@
 
 namespace App\Livewire\Orangtua;
 
-use App\Helpers\AduanOptions;
+use App\Helpers\SpmOptions;
 use App\Livewire\Orangtua\Traits\ResolvesNoKk;
-use App\Models\Aduan;
+use App\Models\Spm;
 use Carbon\Carbon;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 
 #[Layout('layouts.orangtuadashboard')]
-class OrangtuaAduan extends Component
+class OrangtuaSpm extends Component
 {
     use ResolvesNoKk;
 
@@ -126,9 +126,9 @@ class OrangtuaAduan extends Component
     {
         $noKk = $this->resolveNoKk();
 
-        if (! \Illuminate\Support\Facades\Schema::hasTable((new Aduan)->getTable())) {
-            return view('livewire.orangtua.orangtua-aduan', [
-                'aduanList' => collect(),
+        if (! \Illuminate\Support\Facades\Schema::hasTable((new Spm)->getTable())) {
+            return view('livewire.orangtua.orangtua-spm', [
+                'spmList' => collect(),
                 'totalBaris' => 0,
                 'firstItem' => 0,
                 'lastItem' => 0,
@@ -137,20 +137,20 @@ class OrangtuaAduan extends Component
                 'hasPages' => false,
                 'filterAktif' => false,
                 'periodeLabel' => null,
-                'statusOptions' => AduanOptions::statusOptions(),
-                'kategoriOptions' => AduanOptions::kategoriOptions(),
+                'statusOptions' => SpmOptions::statusOptions(),
+                'kategoriOptions' => SpmOptions::kategoriOptions(),
             ]);
         }
 
-        $query = Aduan::with('posyandu:id_posyandu,nama_posyandu')
+        $query = Spm::with('posyandu:id_posyandu,nama_posyandu')
             ->where('no_kk', $noKk ?? '')
             ->orderByDesc('tanggal_aduan');
 
-        if ($this->filterStatus !== '' && array_key_exists($this->filterStatus, AduanOptions::statusOptions())) {
+        if ($this->filterStatus !== '' && array_key_exists($this->filterStatus, SpmOptions::statusOptions())) {
             $query->where('status', $this->filterStatus);
         }
 
-        if ($this->filterKategori !== '' && array_key_exists($this->filterKategori, AduanOptions::kategoriOptions())) {
+        if ($this->filterKategori !== '' && array_key_exists($this->filterKategori, SpmOptions::kategoriOptions())) {
             $query->where('kategori', $this->filterKategori);
         }
 
@@ -170,7 +170,7 @@ class OrangtuaAduan extends Component
         $currentPage = min(max(1, $this->currentPage), $lastPage);
         $this->currentPage = $currentPage;
 
-        $aduanList = $query->forPage($currentPage, $perPage)->get();
+        $spmList = $query->forPage($currentPage, $perPage)->get();
         $firstItem = $totalBaris > 0 ? (($currentPage - 1) * $perPage) + 1 : 0;
         $lastItem = $totalBaris > 0 ? min($currentPage * $perPage, $totalBaris) : 0;
 
@@ -179,8 +179,8 @@ class OrangtuaAduan extends Component
             || $this->filterBulan !== ''
             || $this->filterTahun !== '';
 
-        return view('livewire.orangtua.orangtua-aduan', [
-            'aduanList' => $aduanList,
+        return view('livewire.orangtua.orangtua-spm', [
+            'spmList' => $spmList,
             'totalBaris' => $totalBaris,
             'firstItem' => $firstItem,
             'lastItem' => $lastItem,
@@ -189,8 +189,8 @@ class OrangtuaAduan extends Component
             'hasPages' => $lastPage > 1,
             'filterAktif' => $filterAktif,
             'periodeLabel' => $this->formatPeriodeLabel(),
-            'statusOptions' => AduanOptions::statusOptions(),
-            'kategoriOptions' => AduanOptions::kategoriOptions(),
+            'statusOptions' => SpmOptions::statusOptions(),
+            'kategoriOptions' => SpmOptions::kategoriOptions(),
         ]);
     }
 }

@@ -1,27 +1,27 @@
 <div class="kader-dashboard-content">
     @php
-        use App\Helpers\AduanOptions;
+        use App\Helpers\SpmOptions;
     @endphp
 
     <div class="space-y-6">
         {{-- Header --}}
         <div class="bg-white rounded-lg shadow-sm p-4 md:p-6">
             <h1 class="text-2xl md:text-3xl font-bold text-gray-800">{{ $posyandu->nama_posyandu }}</h1>
-            <p class="text-gray-500 mt-1 text-sm md:text-base">Manajemen Pencatatan SPM Posyandu</p>
+            <p class="text-gray-500 mt-1 text-sm md:text-base">Manajemen Pencatatan 6 SPM Posyandu</p>
         </div>
 
         <div class="bg-white rounded-lg shadow-sm p-4 md:p-6 overflow-hidden">
             <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-6">
                 <h2 class="text-xl font-semibold text-gray-800 flex items-center min-w-0">
                     <i class="ph ph-megaphone text-2xl mr-3 text-primary shrink-0"></i>
-                    Daftar SPM
+                    Daftar 6 SPM
                 </h2>
                 <div class="flex flex-wrap items-center gap-3">
                     <button type="button"
                             wire:click="openCreateModal"
                             class="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-primary rounded-lg hover:bg-indigo-700 transition-colors">
                         <i class="ph ph-plus-circle text-lg mr-2"></i>
-                        Tambah SPM
+                        Tambah 6 SPM
                     </button>
                     <div class="inline-flex items-center rounded-lg border border-gray-200 p-1 bg-gray-50">
                         <button type="button"
@@ -74,10 +74,10 @@
                     </select>
                 </div>
                 <div>
-                    <label class="block text-xs font-medium text-gray-500 mb-2">Bidang SPM</label>
+                    <label class="block text-xs font-medium text-gray-500 mb-2">Bidang 6 SPM</label>
                     <select wire:model.live="filterKategori"
                             class="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary">
-                        <option value="">Semua Bidang SPM</option>
+                        <option value="">Semua Bidang 6 SPM</option>
                         @foreach($kategoriOptions as $value => $label)
                             <option value="{{ $value }}">{{ $label }}</option>
                         @endforeach
@@ -105,7 +105,7 @@
                 </div>
             </div>
 
-            @if($aduanList->total() > 0)
+            @if($spmList->total() > 0)
                 @if($viewMode === 'table')
                     <div class="overflow-x-auto">
                         <table class="min-w-full divide-y divide-gray-200">
@@ -114,20 +114,20 @@
                                     <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">No</th>
                                     <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Judul</th>
                                     <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Keluarga</th>
-                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Bidang SPM</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Bidang 6 SPM</th>
                                     <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
                                     <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tanggal</th>
                                     <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Aksi</th>
                                 </tr>
                             </thead>
                             <tbody class="bg-white divide-y divide-gray-100">
-                                @foreach($aduanList as $aduan)
+                                @foreach($spmList as $aduan)
                                     @php
                                         $orangtua = $orangtuaMap->get($aduan->no_kk);
-                                        $kategoriLabel = AduanOptions::kategoriLabel($aduan->kategori);
+                                        $kategoriLabel = SpmOptions::kategoriLabel($aduan->kategori);
                                     @endphp
                                     <tr class="hover:bg-gray-50">
-                                        <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-500">{{ $aduanList->firstItem() + $loop->index }}</td>
+                                        <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-500">{{ $spmList->firstItem() + $loop->index }}</td>
                                         <td class="px-4 py-4 text-sm font-medium text-gray-900 max-w-[200px]">
                                             <span class="line-clamp-2">{{ $aduan->judul }}</span>
                                         </td>
@@ -136,12 +136,12 @@
                                             <div class="text-xs text-gray-400">KK: {{ $aduan->no_kk }}</div>
                                         </td>
                                         <td class="px-4 py-4 whitespace-nowrap">
-                                            <span class="inline-flex px-2.5 py-1 rounded-md text-xs font-medium {{ AduanOptions::kategoriBadgeClasses($aduan->kategori) }}">
+                                            <span class="inline-flex px-2.5 py-1 rounded-md text-xs font-medium {{ SpmOptions::kategoriBadgeClasses($aduan->kategori) }}">
                                                 {{ $kategoriLabel }}
                                             </span>
                                         </td>
                                         <td class="px-4 py-4 whitespace-nowrap">
-                                            <x-status-aduan-badge :status="$aduan->status" />
+                                            <x-status-spm-badge :status="$aduan->status" />
                                         </td>
                                         <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-600">
                                             {{ $aduan->tanggal_aduan?->format('d/m/Y') ?? '-' }}
@@ -149,7 +149,7 @@
                                         <td class="px-4 py-4 whitespace-nowrap">
                                             <div class="flex items-center gap-1.5">
                                                 <button type="button"
-                                                        wire:click="viewAduan({{ $aduan->id_aduan }})"
+                                                        wire:click="viewSpm({{ $aduan->id_aduan }})"
                                                         class="inline-flex items-center justify-center w-9 h-9 rounded-lg text-primary border border-primary/30 hover:bg-primary hover:text-white transition-colors"
                                                         title="Lihat detail">
                                                     <i class="ph ph-eye text-lg"></i>
@@ -157,14 +157,14 @@
                                                 <button type="button"
                                                         wire:click="openEditModal({{ $aduan->id_aduan }})"
                                                         class="inline-flex items-center justify-center w-9 h-9 rounded-lg text-amber-600 border border-amber-200 hover:bg-amber-500 hover:text-white transition-colors"
-                                                        title="Edit SPM">
+                                                        title="Edit 6 SPM">
                                                     <i class="ph ph-pencil-simple text-lg"></i>
                                                 </button>
                                                 <button type="button"
-                                                        wire:click="hapusAduan({{ $aduan->id_aduan }})"
-                                                        wire:confirm="Yakin ingin menghapus data SPM ini?"
+                                                        wire:click="hapusSpm({{ $aduan->id_aduan }})"
+                                                        wire:confirm="Yakin ingin menghapus data 6 SPM ini?"
                                                         class="inline-flex items-center justify-center w-9 h-9 rounded-lg text-red-600 border border-red-200 hover:bg-red-500 hover:text-white transition-colors"
-                                                        title="Hapus SPM">
+                                                        title="Hapus 6 SPM">
                                                     <i class="ph ph-trash text-lg"></i>
                                                 </button>
                                             </div>
@@ -176,10 +176,10 @@
                     </div>
                 @else
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-                        @foreach($aduanList as $aduan)
+                        @foreach($spmList as $aduan)
                             @php
                                 $orangtua = $orangtuaMap->get($aduan->no_kk);
-                                $kategoriLabel = AduanOptions::kategoriLabel($aduan->kategori);
+                                $kategoriLabel = SpmOptions::kategoriLabel($aduan->kategori);
                             @endphp
                             <article class="border border-gray-100 rounded-xl shadow-sm hover:shadow-md transition-shadow overflow-hidden flex flex-col">
                                 <div class="p-5 flex-1 flex flex-col">
@@ -190,11 +190,11 @@
                                                 {{ $aduan->tanggal_aduan?->locale('id')->translatedFormat('d F Y') ?? '-' }}
                                             </p>
                                         </div>
-                                        <x-status-aduan-badge :status="$aduan->status" class="shrink-0" />
+                                        <x-status-spm-badge :status="$aduan->status" class="shrink-0" />
                                     </div>
 
                                     <div class="flex flex-wrap items-center gap-2 mb-3">
-                                        <span class="inline-flex px-2.5 py-1 rounded-md text-xs font-medium {{ AduanOptions::kategoriBadgeClasses($aduan->kategori) }}">
+                                        <span class="inline-flex px-2.5 py-1 rounded-md text-xs font-medium {{ SpmOptions::kategoriBadgeClasses($aduan->kategori) }}">
                                             {{ $kategoriLabel }}
                                         </span>
                                         <span class="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-gray-50 text-gray-600">
@@ -207,7 +207,7 @@
 
                                     <div class="mt-4 pt-4 border-t border-gray-100 flex flex-wrap justify-end gap-2">
                                         <button type="button"
-                                                wire:click="viewAduan({{ $aduan->id_aduan }})"
+                                                wire:click="viewSpm({{ $aduan->id_aduan }})"
                                                 class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-primary border border-primary/30 rounded-lg hover:bg-primary hover:text-white transition-colors">
                                             <i class="ph ph-eye text-lg"></i>
                                             Detail
@@ -219,8 +219,8 @@
                                             Edit
                                         </button>
                                         <button type="button"
-                                                wire:click="hapusAduan({{ $aduan->id_aduan }})"
-                                                wire:confirm="Yakin ingin menghapus data SPM ini?"
+                                                wire:click="hapusSpm({{ $aduan->id_aduan }})"
+                                                wire:confirm="Yakin ingin menghapus data 6 SPM ini?"
                                                 class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-red-600 border border-red-200 rounded-lg hover:bg-red-500 hover:text-white transition-colors">
                                             <i class="ph ph-trash text-lg"></i>
                                             Hapus
@@ -233,20 +233,20 @@
                 @endif
 
                 <div class="mt-6">
-                    {{ $aduanList->links() }}
+                    {{ $spmList->links() }}
                 </div>
             @else
                 <div class="text-center py-16">
                     <div class="w-14 h-14 mx-auto mb-4 rounded-full bg-gray-100 flex items-center justify-center">
                         <i class="ph ph-megaphone text-2xl text-gray-300"></i>
                     </div>
-                    <h4 class="text-base font-semibold text-gray-700 mb-2">Belum Ada Data SPM</h4>
-                    <p class="text-sm text-gray-500 mb-4">Belum ada pencatatan SPM dari keluarga sasaran posyandu ini.</p>
+                    <h4 class="text-base font-semibold text-gray-700 mb-2">Belum Ada Data 6 SPM</h4>
+                    <p class="text-sm text-gray-500 mb-4">Belum ada pencatatan 6 SPM dari keluarga sasaran posyandu ini.</p>
                     <button type="button"
                             wire:click="openCreateModal"
                             class="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-primary rounded-lg hover:bg-indigo-700 transition-colors">
                         <i class="ph ph-plus-circle text-lg mr-2"></i>
-                        Tambah Data SPM Pertama
+                        Tambah Data 6 SPM Pertama
                     </button>
                 </div>
             @endif
@@ -254,16 +254,16 @@
     </div>
 
     {{-- Modal Detail --}}
-    @if($showDetailModal && $selectedAduan)
+    @if($showDetailModal && $selectedSpm)
         <div class="fixed inset-0 z-50 overflow-y-auto" aria-modal="true">
             <div class="flex items-center justify-center min-h-screen px-4 py-6">
                 <div class="fixed inset-0 bg-gray-500/75" wire:click="closeDetailModal"></div>
                 <div class="relative bg-white rounded-xl shadow-xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
                     <div class="px-6 py-5 border-b border-gray-100 flex items-start justify-between gap-4">
                         <div class="min-w-0">
-                            <h3 class="text-lg font-semibold text-gray-900 leading-snug">{{ $selectedAduan->judul }}</h3>
+                            <h3 class="text-lg font-semibold text-gray-900 leading-snug">{{ $selectedSpm->judul }}</h3>
                             <p class="text-sm text-gray-500 mt-1">
-                                {{ $selectedAduan->tanggal_aduan?->locale('id')->translatedFormat('d F Y') ?? '-' }}
+                                {{ $selectedSpm->tanggal_aduan?->locale('id')->translatedFormat('d F Y') ?? '-' }}
                             </p>
                         </div>
                         <button type="button" wire:click="closeDetailModal" class="p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100 shrink-0">
@@ -276,24 +276,24 @@
                             <div>
                                 <p class="text-xs font-medium text-gray-500 uppercase mb-1">Keluarga</p>
                                 <p class="text-sm text-gray-900">{{ $detailOrangtua?->nama ?? '-' }}</p>
-                                <p class="text-xs text-gray-400 mt-0.5">No. KK: {{ $selectedAduan->no_kk }}</p>
+                                <p class="text-xs text-gray-400 mt-0.5">No. KK: {{ $selectedSpm->no_kk }}</p>
                             </div>
                             <div>
-                                <p class="text-xs font-medium text-gray-500 uppercase mb-1">Bidang SPM</p>
-                                <span class="inline-flex px-2.5 py-1 rounded-md text-xs font-medium {{ AduanOptions::kategoriBadgeClasses($selectedAduan->kategori) }}">
-                                    {{ AduanOptions::kategoriLabel($selectedAduan->kategori) }}
+                                <p class="text-xs font-medium text-gray-500 uppercase mb-1">Bidang 6 SPM</p>
+                                <span class="inline-flex px-2.5 py-1 rounded-md text-xs font-medium {{ SpmOptions::kategoriBadgeClasses($selectedSpm->kategori) }}">
+                                    {{ SpmOptions::kategoriLabel($selectedSpm->kategori) }}
                                 </span>
                             </div>
                         </div>
 
                         <div>
                             <p class="text-xs font-medium text-gray-500 uppercase mb-2">Isi / Keterangan</p>
-                            <p class="text-sm text-gray-700 leading-relaxed bg-gray-50 rounded-lg p-4 whitespace-pre-line">{{ $selectedAduan->isi_aduan }}</p>
+                            <p class="text-sm text-gray-700 leading-relaxed bg-gray-50 rounded-lg p-4 whitespace-pre-line">{{ $selectedSpm->isi_aduan }}</p>
 
-                            @if($selectedAduan->kategori === AduanOptions::SPM_PEKERJAAN_UMUM)
+                            @if($selectedSpm->kategori === SpmOptions::SPM_PEKERJAAN_UMUM)
                                 <div class="mt-4">
                                     <p class="text-xs font-medium text-gray-500 uppercase mb-2">No Surat Permohonan RT</p>
-                                    <p class="text-sm text-gray-700 bg-gray-50 rounded-lg p-4">{{ $selectedAduan->no_surat_permohonan_rt ?: '-' }}</p>
+                                    <p class="text-sm text-gray-700 bg-gray-50 rounded-lg p-4">{{ $selectedSpm->no_surat_permohonan_rt ?: '-' }}</p>
                                 </div>
                             @endif
                         </div>
@@ -340,7 +340,7 @@
         </div>
     @endif
 
-    {{-- Modal Buat Aduan --}}
+    {{-- Modal Buat 6 SPM --}}
     @if($showCreateModal)
         <div class="fixed inset-0 z-50 overflow-y-auto" aria-modal="true">
             <div class="flex items-center justify-center min-h-screen px-4 py-6">
@@ -348,23 +348,23 @@
                 <div class="relative bg-white rounded-xl shadow-xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
                     <div class="px-6 py-5 border-b border-gray-100 flex items-start justify-between gap-4">
                         <div>
-                            <h3 class="text-lg font-semibold text-gray-900">Tambah Data SPM</h3>
-                            <p class="text-sm text-gray-500 mt-1">Buat pencatatan SPM atas nama keluarga sasaran posyandu.</p>
+                            <h3 class="text-lg font-semibold text-gray-900">Tambah Data 6 SPM</h3>
+                            <p class="text-sm text-gray-500 mt-1">Buat pencatatan 6 SPM atas nama keluarga sasaran posyandu.</p>
                         </div>
                         <button type="button" wire:click="closeCreateModal" class="p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100 shrink-0">
                             <i class="ph ph-x text-xl"></i>
                         </button>
                     </div>
 
-                    <form wire:submit="simpanAduan" class="px-6 py-5 overflow-y-auto flex-1 space-y-4">
+                    <form wire:submit="simpanSpm" class="px-6 py-5 overflow-y-auto flex-1 space-y-4">
                         <div class="relative" wire:click.outside="hideKeluargaDropdown">
-                            <label for="aduan-keluarga" class="block text-sm font-medium text-gray-700 mb-1.5">Keluarga</label>
+                            <label for="spm-keluarga" class="block text-sm font-medium text-gray-700 mb-1.5">Keluarga</label>
                             @if($keluargaList->count() > 0)
                                 <div class="relative">
                                     <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400 pointer-events-none">
                                         <i class="ph ph-magnifying-glass text-lg"></i>
                                     </span>
-                                    <input id="aduan-keluarga"
+                                    <input id="spm-keluarga"
                                            type="text"
                                            wire:model.live.debounce.200ms="keluargaSearch"
                                            wire:focus="onKeluargaFocus"
@@ -422,11 +422,11 @@
                         </div>
 
                         <div>
-                            <label for="aduan-judul" class="block text-sm font-medium text-gray-700 mb-1.5">Judul</label>
-                            <input id="aduan-judul"
+                            <label for="spm-judul" class="block text-sm font-medium text-gray-700 mb-1.5">Judul</label>
+                            <input id="spm-judul"
                                    type="text"
                                    wire:model="judul"
-                                   placeholder="Contoh: Keluhan layanan / pengaduan warga"
+                                   placeholder="Contoh: Laporan bidang sosial / pendidikan"
                                    class="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary">
                             @error('judul')
                                 <p class="text-xs text-red-600 mt-1">{{ $message }}</p>
@@ -434,8 +434,8 @@
                         </div>
 
                         <div>
-                            <label for="aduan-kategori" class="block text-sm font-medium text-gray-700 mb-1.5">Bidang SPM</label>
-                            <select id="aduan-kategori"
+                            <label for="spm-kategori" class="block text-sm font-medium text-gray-700 mb-1.5">Bidang 6 SPM</label>
+                            <select id="spm-kategori"
                                     wire:model.live="kategori"
                                     class="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary">
                                 @foreach($kategoriOptions as $value => $label)
@@ -447,10 +447,10 @@
                             @enderror
                         </div>
 
-                        @if($kategori === \App\Helpers\AduanOptions::SPM_PEKERJAAN_UMUM)
+                        @if($kategori === \App\Helpers\SpmOptions::SPM_PEKERJAAN_UMUM)
                             <div>
-                                <label for="aduan-no-surat-rt" class="block text-sm font-medium text-gray-700 mb-1.5">No Surat Permohonan RT</label>
-                                <input id="aduan-no-surat-rt"
+                                <label for="spm-no-surat-rt" class="block text-sm font-medium text-gray-700 mb-1.5">No Surat Permohonan RT</label>
+                                <input id="spm-no-surat-rt"
                                        type="text"
                                        wire:model="noSuratPermohonanRt"
                                        placeholder="Contoh: 012/RT.01/VIII/2026"
@@ -462,13 +462,13 @@
                         @endif
 
                         <div>
-                            <label for="aduan-isi" class="block text-sm font-medium text-gray-700 mb-1.5">Isi / Keterangan</label>
-                            <textarea id="aduan-isi"
-                                      wire:model="isiAduan"
+                            <label for="spm-isi" class="block text-sm font-medium text-gray-700 mb-1.5">Isi / Keterangan</label>
+                            <textarea id="spm-isi"
+                                      wire:model="isiSpm"
                                       rows="4"
                                       placeholder="Jelaskan secara detail..."
                                       class="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm resize-y focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"></textarea>
-                            @error('isiAduan')
+                            @error('isiSpm')
                                 <p class="text-xs text-red-600 mt-1">{{ $message }}</p>
                             @enderror
                         </div>
@@ -482,8 +482,8 @@
                                     wire:loading.attr="disabled"
                                     @if($keluargaList->count() === 0) disabled @endif
                                     class="px-4 py-2.5 bg-primary text-white rounded-lg text-sm font-medium hover:bg-indigo-700 disabled:opacity-60">
-                                <span wire:loading.remove wire:target="simpanAduan">Simpan SPM</span>
-                                <span wire:loading wire:target="simpanAduan">Menyimpan...</span>
+                                <span wire:loading.remove wire:target="simpanSpm">Simpan 6 SPM</span>
+                                <span wire:loading wire:target="simpanSpm">Menyimpan...</span>
                             </button>
                         </div>
                     </form>
@@ -492,7 +492,7 @@
         </div>
     @endif
 
-    {{-- Modal Edit Aduan --}}
+    {{-- Modal Edit 6 SPM --}}
     @if($showEditModal)
         <div class="fixed inset-0 z-50 overflow-y-auto" aria-modal="true">
             <div class="flex items-center justify-center min-h-screen px-4 py-6">
@@ -500,22 +500,22 @@
                 <div class="relative bg-white rounded-xl shadow-xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
                     <div class="px-6 py-5 border-b border-gray-100 flex items-start justify-between gap-4">
                         <div>
-                            <h3 class="text-lg font-semibold text-gray-900">Edit Data SPM</h3>
-                            <p class="text-sm text-gray-500 mt-1">Perbarui data pencatatan SPM keluarga.</p>
+                            <h3 class="text-lg font-semibold text-gray-900">Edit Data 6 SPM</h3>
+                            <p class="text-sm text-gray-500 mt-1">Perbarui data pencatatan 6 SPM keluarga.</p>
                         </div>
                         <button type="button" wire:click="closeEditModal" class="p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100 shrink-0">
                             <i class="ph ph-x text-xl"></i>
                         </button>
                     </div>
 
-                    <form wire:submit="updateAduan" class="px-6 py-5 overflow-y-auto flex-1 space-y-4">
+                    <form wire:submit="updateSpm" class="px-6 py-5 overflow-y-auto flex-1 space-y-4">
                         <div class="relative" wire:click.outside="hideKeluargaDropdown">
-                            <label for="edit-aduan-keluarga" class="block text-sm font-medium text-gray-700 mb-1.5">Keluarga</label>
+                            <label for="edit-spm-keluarga" class="block text-sm font-medium text-gray-700 mb-1.5">Keluarga</label>
                             <div class="relative">
                                 <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400 pointer-events-none">
                                     <i class="ph ph-magnifying-glass text-lg"></i>
                                 </span>
-                                <input id="edit-aduan-keluarga"
+                                <input id="edit-spm-keluarga"
                                        type="text"
                                        wire:model.live.debounce.200ms="keluargaSearch"
                                        wire:focus="onKeluargaFocus"
@@ -561,8 +561,8 @@
                         </div>
 
                         <div>
-                            <label for="edit-aduan-judul" class="block text-sm font-medium text-gray-700 mb-1.5">Judul</label>
-                            <input id="edit-aduan-judul"
+                            <label for="edit-spm-judul" class="block text-sm font-medium text-gray-700 mb-1.5">Judul</label>
+                            <input id="edit-spm-judul"
                                    type="text"
                                    wire:model="judul"
                                    class="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary">
@@ -573,8 +573,8 @@
 
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div>
-                                <label for="edit-aduan-kategori" class="block text-sm font-medium text-gray-700 mb-1.5">Bidang SPM</label>
-                                <select id="edit-aduan-kategori"
+                                <label for="edit-spm-kategori" class="block text-sm font-medium text-gray-700 mb-1.5">Bidang 6 SPM</label>
+                                <select id="edit-spm-kategori"
                                         wire:model.live="kategori"
                                         class="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary">
                                     @foreach($kategoriOptions as $value => $label)
@@ -586,8 +586,8 @@
                                 @enderror
                             </div>
                             <div>
-                                <label for="edit-aduan-status" class="block text-sm font-medium text-gray-700 mb-1.5">Status</label>
-                                <select id="edit-aduan-status"
+                                <label for="edit-spm-status" class="block text-sm font-medium text-gray-700 mb-1.5">Status</label>
+                                <select id="edit-spm-status"
                                         wire:model="statusUpdate"
                                         class="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary">
                                     @foreach($statusOptions as $value => $label)
@@ -600,10 +600,10 @@
                             </div>
                         </div>
 
-                        @if($kategori === \App\Helpers\AduanOptions::SPM_PEKERJAAN_UMUM)
+                        @if($kategori === \App\Helpers\SpmOptions::SPM_PEKERJAAN_UMUM)
                             <div>
-                                <label for="edit-aduan-no-surat-rt" class="block text-sm font-medium text-gray-700 mb-1.5">No Surat Permohonan RT</label>
-                                <input id="edit-aduan-no-surat-rt"
+                                <label for="edit-spm-no-surat-rt" class="block text-sm font-medium text-gray-700 mb-1.5">No Surat Permohonan RT</label>
+                                <input id="edit-spm-no-surat-rt"
                                        type="text"
                                        wire:model="noSuratPermohonanRt"
                                        placeholder="Contoh: 012/RT.01/VIII/2026"
@@ -615,12 +615,12 @@
                         @endif
 
                         <div>
-                            <label for="edit-aduan-isi" class="block text-sm font-medium text-gray-700 mb-1.5">Isi / Keterangan</label>
-                            <textarea id="edit-aduan-isi"
-                                      wire:model="isiAduan"
+                            <label for="edit-spm-isi" class="block text-sm font-medium text-gray-700 mb-1.5">Isi / Keterangan</label>
+                            <textarea id="edit-spm-isi"
+                                      wire:model="isiSpm"
                                       rows="4"
                                       class="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm resize-y focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"></textarea>
-                            @error('isiAduan')
+                            @error('isiSpm')
                                 <p class="text-xs text-red-600 mt-1">{{ $message }}</p>
                             @enderror
                         </div>
@@ -633,8 +633,8 @@
                             <button type="submit"
                                     wire:loading.attr="disabled"
                                     class="px-4 py-2.5 bg-primary text-white rounded-lg text-sm font-medium hover:bg-indigo-700 disabled:opacity-60">
-                                <span wire:loading.remove wire:target="updateAduan">Simpan Perubahan</span>
-                                <span wire:loading wire:target="updateAduan">Menyimpan...</span>
+                                <span wire:loading.remove wire:target="updateSpm">Simpan Perubahan</span>
+                                <span wire:loading wire:target="updateSpm">Menyimpan...</span>
                             </button>
                         </div>
                     </form>

@@ -5,10 +5,10 @@
 ])
 
 @php
-    use App\Helpers\AduanOptions;
-    $progress = AduanOptions::statusProgress($status);
-    $barClasses = AduanOptions::statusProgressBarClasses($status);
-    $displayLabel = $label ?? AduanOptions::statusLabel($status);
+    use App\Helpers\SpmOptions;
+    $progress = SpmOptions::statusProgress($status);
+    $barClasses = SpmOptions::statusProgressBarClasses($status);
+    $displayLabel = $label ?? SpmOptions::statusLabel($status);
 @endphp
 
 @if($status)

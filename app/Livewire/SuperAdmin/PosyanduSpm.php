@@ -2,14 +2,14 @@
 
 namespace App\Livewire\SuperAdmin;
 
-use App\Helpers\AduanOptions;
-use App\Livewire\Posyandu\KaderAduan;
+use App\Helpers\SpmOptions;
+use App\Livewire\Posyandu\KaderSpm;
 use App\Models\Orangtua;
 use App\Models\Posyandu;
 use Livewire\Attributes\Layout;
 
 #[Layout('layouts.superadmindashboard')]
-class PosyanduAduan extends KaderAduan
+class PosyanduSpm extends KaderSpm
 {
     public function mount(): void
     {
@@ -37,37 +37,37 @@ class PosyanduAduan extends KaderAduan
 
     public function render()
     {
-        $aduanList = $this->applyFilters(
+        $spmList = $this->applyFilters(
             $this->baseQuery()->orderByDesc('tanggal_aduan')
         )->paginate(10);
 
-        $noKkList = $aduanList->pluck('no_kk')->unique()->filter()->values();
+        $noKkList = $spmList->pluck('no_kk')->unique()->filter()->values();
         $orangtuaMap = Orangtua::whereIn('no_kk', $noKkList)
             ->get()
             ->keyBy('no_kk');
 
-        $selectedAduan = null;
+        $selectedSpm = null;
         $detailOrangtua = null;
-        if ($this->showDetailModal && $this->selectedAduanId) {
-            $selectedAduan = $this->baseQuery()
-                ->where('id_aduan', $this->selectedAduanId)
+        if ($this->showDetailModal && $this->selectedSpmId) {
+            $selectedSpm = $this->baseQuery()
+                ->where('id_aduan', $this->selectedSpmId)
                 ->first();
-            if ($selectedAduan) {
-                $detailOrangtua = Orangtua::where('no_kk', $selectedAduan->no_kk)->first();
+            if ($selectedSpm) {
+                $detailOrangtua = Orangtua::where('no_kk', $selectedSpm->no_kk)->first();
             }
         }
 
-        return view('livewire.super-admin.posyandu-aduan', [
-            'title' => 'SPM - '.$this->posyandu->nama_posyandu,
+        return view('livewire.super-admin.posyandu-spm', [
+            'title' => '6 SPM - '.$this->posyandu->nama_posyandu,
             'posyandu' => $this->posyandu,
-            'aduanList' => $aduanList,
+            'spmList' => $spmList,
             'orangtuaMap' => $orangtuaMap,
-            'selectedAduan' => $selectedAduan,
+            'selectedSpm' => $selectedSpm,
             'detailOrangtua' => $detailOrangtua,
             'keluargaList' => $this->getKeluargaList(),
             'filteredKeluargaList' => $this->getFilteredKeluargaList(),
-            'statusOptions' => AduanOptions::statusOptions(),
-            'kategoriOptions' => AduanOptions::kategoriOptions(),
+            'statusOptions' => SpmOptions::statusOptions(),
+            'kategoriOptions' => SpmOptions::kategoriOptions(),
         ]);
     }
 }

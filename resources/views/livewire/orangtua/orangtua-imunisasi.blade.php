@@ -109,27 +109,12 @@
                         .map((v) => (v === null || v === undefined || v === '' ? null : Number(v)))
                         .filter((v) => v !== null && !Number.isNaN(v));
 
-                    const axisRange = (values) => {
-                        const nums = toNums(values);
-                        if (!nums.length) {
-                            return { min: 0, max: 10 };
-                        }
-                        let min = Math.min(...nums);
-                        let max = Math.max(...nums);
-                        if (min === max) {
-                            const pad = Math.max(1, max * 0.25);
-                            min = Math.max(0, min - pad);
-                            max = max + pad;
-                        } else {
-                            const pad = (max - min) * 0.2;
-                            min = Math.max(0, min - pad);
-                            max = max + pad;
-                        }
-                        return { min, max };
-                    };
-
-                    const tinggiRange = axisRange(tinggi);
-                    const beratRange = axisRange(berat);
+                    const allNums = [...toNums(tinggi), ...toNums(berat)];
+                    let yMax = allNums.length ? Math.max(...allNums) : 10;
+                    yMax = Math.ceil(yMax * 1.1);
+                    if (yMax < 10) {
+                        yMax = 10;
+                    }
 
                     const chart = new Chart(canvas.getContext('2d'), {
                         type: 'line',
@@ -139,35 +124,33 @@
                                 {
                                     label: 'Tinggi (cm)',
                                     data: tinggi,
-                                    borderColor: 'rgb(16, 185, 129)',
-                                    backgroundColor: 'rgba(16, 185, 129, 0.08)',
+                                    borderColor: 'rgb(34, 197, 94)',
+                                    backgroundColor: 'rgb(34, 197, 94)',
                                     borderWidth: 2.5,
-                                    pointBackgroundColor: 'rgb(16, 185, 129)',
+                                    pointBackgroundColor: 'rgb(34, 197, 94)',
                                     pointBorderColor: '#ffffff',
                                     pointBorderWidth: 2,
-                                    pointRadius: 5,
-                                    pointHoverRadius: 7,
+                                    pointRadius: 4,
+                                    pointHoverRadius: 6,
                                     pointStyle: 'circle',
                                     tension: 0,
                                     fill: false,
-                                    yAxisID: 'y',
                                     spanGaps: true,
                                 },
                                 {
                                     label: 'Berat (kg)',
                                     data: berat,
                                     borderColor: 'rgb(59, 130, 246)',
-                                    backgroundColor: 'rgba(59, 130, 246, 0.08)',
+                                    backgroundColor: 'rgb(59, 130, 246)',
                                     borderWidth: 2.5,
                                     pointBackgroundColor: 'rgb(59, 130, 246)',
                                     pointBorderColor: '#ffffff',
                                     pointBorderWidth: 2,
-                                    pointRadius: 5,
-                                    pointHoverRadius: 7,
+                                    pointRadius: 4,
+                                    pointHoverRadius: 6,
                                     pointStyle: 'circle',
                                     tension: 0,
                                     fill: false,
-                                    yAxisID: 'y1',
                                     spanGaps: true,
                                 },
                             ],
@@ -183,10 +166,10 @@
                                     align: 'center',
                                     labels: {
                                         font: { size: fontSize },
-                                        boxWidth: 10,
-                                        boxHeight: 10,
+                                        boxWidth: 12,
+                                        boxHeight: 12,
                                         usePointStyle: true,
-                                        pointStyle: 'circle',
+                                        pointStyle: 'line',
                                         padding: 16,
                                     },
                                 },
@@ -201,7 +184,7 @@
                                             if (raw === null || raw === undefined) {
                                                 return `${ctx.dataset.label}: -`;
                                             }
-                                            const unit = ctx.dataset.yAxisID === 'y' ? 'cm' : 'kg';
+                                            const unit = ctx.dataset.label.includes('Tinggi') ? 'cm' : 'kg';
                                             return `${ctx.dataset.label}: ${Number(raw).toLocaleString('id-ID', { maximumFractionDigits: 1 })} ${unit}`;
                                         },
                                     },
@@ -211,17 +194,12 @@
                                 y: {
                                     type: 'linear',
                                     position: 'left',
-                                    min: tinggiRange.min,
-                                    max: tinggiRange.max,
-                                    title: {
-                                        display: true,
-                                        text: 'Tinggi (cm)',
-                                        font: { size: fontSize, weight: '600' },
-                                        color: 'rgb(16, 185, 129)',
-                                    },
+                                    beginAtZero: true,
+                                    min: 0,
+                                    max: yMax,
                                     ticks: {
                                         font: { size: fontSize },
-                                        color: 'rgb(16, 185, 129)',
+                                        color: '#6b7280',
                                         callback(value) {
                                             return Number(value).toLocaleString('id-ID', { maximumFractionDigits: 0 });
                                         },
@@ -229,26 +207,6 @@
                                     grid: {
                                         color: 'rgba(156, 163, 175, 0.35)',
                                         drawBorder: false,
-                                    },
-                                },
-                                y1: {
-                                    type: 'linear',
-                                    position: 'right',
-                                    min: beratRange.min,
-                                    max: beratRange.max,
-                                    grid: { drawOnChartArea: false },
-                                    title: {
-                                        display: true,
-                                        text: 'Berat (kg)',
-                                        font: { size: fontSize, weight: '600' },
-                                        color: 'rgb(59, 130, 246)',
-                                    },
-                                    ticks: {
-                                        font: { size: fontSize },
-                                        color: 'rgb(59, 130, 246)',
-                                        callback(value) {
-                                            return Number(value).toLocaleString('id-ID', { maximumFractionDigits: 1 });
-                                        },
                                     },
                                 },
                                 x: {
@@ -260,7 +218,7 @@
                                         color: '#6b7280',
                                     },
                                     grid: {
-                                        color: 'rgba(156, 163, 175, 0.2)',
+                                        display: false,
                                         drawBorder: false,
                                     },
                                 },

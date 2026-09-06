@@ -2,10 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use App\Helpers\AduanOptions;
+use App\Helpers\SpmOptions;
 use App\Helpers\ImunisasiOptions;
 use App\Helpers\SasaranFilterOptions;
-use App\Models\Aduan;
+use App\Models\Spm;
 use App\Models\Galeri;
 use App\Models\Imunisasi;
 use App\Models\Jadwal;
@@ -1987,15 +1987,15 @@ class LaporanController extends Controller
         ], $fileName);
     }
 
-    private function applyAduanLaporanFilters($query, Request $request): void
+    private function applySpmLaporanFilters($query, Request $request): void
     {
         $status = $request->query('status');
-        if ($status !== null && $status !== '' && array_key_exists($status, AduanOptions::statusOptions())) {
+        if ($status !== null && $status !== '' && array_key_exists($status, SpmOptions::statusOptions())) {
             $query->where('status', $status);
         }
 
         $kategori = $request->query('kategori');
-        if ($kategori !== null && $kategori !== '' && array_key_exists($kategori, AduanOptions::kategoriOptions())) {
+        if ($kategori !== null && $kategori !== '' && array_key_exists($kategori, SpmOptions::kategoriOptions())) {
             $query->where('kategori', $kategori);
         }
 
@@ -2013,13 +2013,13 @@ class LaporanController extends Controller
     /**
      * @return array<string, mixed>
      */
-    private function buildAduanLaporanData(Posyandu $posyandu, Request $request): array
+    private function buildSpmLaporanData(Posyandu $posyandu, Request $request): array
     {
-        $query = Aduan::where('id_posyandu', $posyandu->id_posyandu);
-        $this->applyAduanLaporanFilters($query, $request);
-        $aduanList = $query->orderByDesc('tanggal_aduan')->get();
+        $query = Spm::where('id_posyandu', $posyandu->id_posyandu);
+        $this->applySpmLaporanFilters($query, $request);
+        $spmList = $query->orderByDesc('tanggal_aduan')->get();
 
-        $noKkList = $aduanList->pluck('no_kk')->unique()->filter()->values();
+        $noKkList = $spmList->pluck('no_kk')->unique()->filter()->values();
         $orangtuaMap = Orangtua::whereIn('no_kk', $noKkList)->get()->keyBy(fn ($o) => (string) $o->no_kk);
 
         $status = $request->query('status');
@@ -2037,45 +2037,45 @@ class LaporanController extends Controller
             $periodeParts[] = (string) (int) $tahun;
         }
 
-        $kategoriValid = $kategori && array_key_exists($kategori, AduanOptions::kategoriOptions())
+        $kategoriValid = $kategori && array_key_exists($kategori, SpmOptions::kategoriOptions())
             ? $kategori
             : null;
 
         return [
-            'aduanList' => $aduanList,
+            'spmList' => $spmList,
             'orangtuaMap' => $orangtuaMap,
             'kategori' => $kategoriValid,
             'bidangLabel' => $kategoriValid
-                ? AduanOptions::kategoriLabel($kategoriValid)
-                : 'Semua Bidang SPM',
-            'statusFilterLabel' => ($status && array_key_exists($status, AduanOptions::statusOptions()))
-                ? AduanOptions::statusLabel($status)
+                ? SpmOptions::kategoriLabel($kategoriValid)
+                : 'Semua Bidang 6 SPM',
+            'statusFilterLabel' => ($status && array_key_exists($status, SpmOptions::statusOptions()))
+                ? SpmOptions::statusLabel($status)
                 : 'Semua Status',
             'kategoriFilterLabel' => $kategoriValid
-                ? AduanOptions::kategoriLabel($kategoriValid)
-                : 'Semua Bidang SPM',
+                ? SpmOptions::kategoriLabel($kategoriValid)
+                : 'Semua Bidang 6 SPM',
             'periodeLabel' => count($periodeParts) > 0 ? implode(' ', $periodeParts) : 'Semua Periode',
             'stats' => [
-                'total' => $aduanList->count(),
-                'menunggu' => $aduanList->where('status', AduanOptions::STATUS_MENUNGGU)->count(),
-                'diproses' => $aduanList->where('status', AduanOptions::STATUS_DIPROSES)->count(),
-                'selesai' => $aduanList->where('status', AduanOptions::STATUS_SELESAI)->count(),
-                'ditolak' => $aduanList->where('status', AduanOptions::STATUS_DITOLAK)->count(),
+                'total' => $spmList->count(),
+                'menunggu' => $spmList->where('status', SpmOptions::STATUS_MENUNGGU)->count(),
+                'diproses' => $spmList->where('status', SpmOptions::STATUS_DIPROSES)->count(),
+                'selesai' => $spmList->where('status', SpmOptions::STATUS_SELESAI)->count(),
+                'ditolak' => $spmList->where('status', SpmOptions::STATUS_DITOLAK)->count(),
             ],
         ];
     }
 
-    private function ensureAduanBidangSpmSelected(Request $request): string
+    private function ensureSpmBidangSelected(Request $request): string
     {
         $kategori = $request->query('kategori');
-        if (! $kategori || ! array_key_exists($kategori, AduanOptions::kategoriOptions())) {
-            abort(422, 'Pilih Bidang SPM terlebih dahulu untuk mencetak format pencatatan.');
+        if (! $kategori || ! array_key_exists($kategori, SpmOptions::kategoriOptions())) {
+            abort(422, 'Pilih Bidang 6 SPM terlebih dahulu untuk mencetak format pencatatan.');
         }
 
         return $kategori;
     }
 
-    public function posyanduAduanPdf(Request $request): Response
+    public function posyanduSpmPdf(Request $request): Response
     {
         $user = Auth::user();
 
@@ -2087,20 +2087,20 @@ class LaporanController extends Controller
             abort(403, 'Posyandu untuk akun ini tidak ditemukan.');
         }
 
-        $this->ensureAduanBidangSpmSelected($request);
+        $this->ensureSpmBidangSelected($request);
 
         $posyandu = $kader->posyandu;
-        $data = $this->buildAduanLaporanData($posyandu, $request);
-        $fileName = 'Format-SPM-'.$data['bidangLabel'].'-'.$posyandu->nama_posyandu.'-'.now('Asia/Jakarta')->format('Ymd_His').'.pdf';
+        $data = $this->buildSpmLaporanData($posyandu, $request);
+        $fileName = 'Format-6-SPM-'.$data['bidangLabel'].'-'.$posyandu->nama_posyandu.'-'.now('Asia/Jakarta')->format('Ymd_His').'.pdf';
 
-        return $this->renderPdf('pdf.laporan-posyandu-aduan', array_merge($data, [
+        return $this->renderPdf('pdf.laporan-posyandu-spm', array_merge($data, [
             'posyandu' => $posyandu,
             'user' => $user,
             'generatedAt' => now('Asia/Jakarta'),
         ]), $fileName, 'landscape');
     }
 
-    public function superadminPosyanduAduanPdf(Request $request, string $id): Response
+    public function superadminPosyanduSpmPdf(Request $request, string $id): Response
     {
         try {
             $decryptedId = decrypt($id);
@@ -2108,13 +2108,13 @@ class LaporanController extends Controller
             abort(404, 'ID tidak valid');
         }
 
-        $this->ensureAduanBidangSpmSelected($request);
+        $this->ensureSpmBidangSelected($request);
 
         $posyandu = Posyandu::findOrFail($decryptedId);
-        $data = $this->buildAduanLaporanData($posyandu, $request);
-        $fileName = 'Format-SPM-'.$data['bidangLabel'].'-'.$posyandu->nama_posyandu.'-'.now('Asia/Jakarta')->format('Ymd_His').'.pdf';
+        $data = $this->buildSpmLaporanData($posyandu, $request);
+        $fileName = 'Format-6-SPM-'.$data['bidangLabel'].'-'.$posyandu->nama_posyandu.'-'.now('Asia/Jakarta')->format('Ymd_His').'.pdf';
 
-        return $this->renderPdf('pdf.laporan-posyandu-aduan', array_merge($data, [
+        return $this->renderPdf('pdf.laporan-posyandu-spm', array_merge($data, [
             'posyandu' => $posyandu,
             'user' => Auth::user(),
             'generatedAt' => now('Asia/Jakarta'),
