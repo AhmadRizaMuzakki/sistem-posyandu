@@ -7,7 +7,7 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <title>Laporan Imunisasi - {{ $posyandu->nama_posyandu }}</title>
+    <title>Laporan Pemeriksaan Kesehatan Posyandu - {{ $posyandu->nama_posyandu }}</title>
     <style>
         /*
          * Pakai @page margin (bukan nested table + padding).
@@ -36,7 +36,6 @@
         .title {
             font-size: 16px;
             font-weight: bold;
-            text-transform: uppercase;
             letter-spacing: 0.3px;
         }
         .subtitle {
@@ -103,17 +102,18 @@
             line-height: 1.3;
         }
         .col-no { width: 3%; }
-        .col-nama { width: 13%; }
-        .col-kat { width: 8%; }
-        .col-umur { width: 6%; }
-        .col-tgl { width: 8%; }
-        .col-jenis { width: 12%; }
-        .col-tb { width: 7%; }
-        .col-bb { width: 7%; }
-        .col-td { width: 9%; }
-        .col-gd { width: 8%; }
-        .col-stunting { width: 9%; }
-        .col-ket { width: 12%; }
+        .col-nama { width: 12%; }
+        .col-jk { width: 7%; }
+        .col-kat { width: 7%; }
+        .col-umur { width: 5%; }
+        .col-tgl { width: 7%; }
+        .col-jenis { width: 11%; }
+        .col-tb { width: 6%; }
+        .col-bb { width: 6%; }
+        .col-td { width: 8%; }
+        .col-gd { width: 7%; }
+        .col-stunting { width: 8%; }
+        .col-ket { width: 11%; }
         .text-center { text-align: center; }
         .mt-2 { margin-top: 6px; }
         .mt-1 { margin-top: 4px; }
@@ -123,7 +123,7 @@
 <body>
 <div class="page-content">
     <div class="header">
-        <div class="title">Laporan Imunisasi Posyandu</div>
+        <div class="title">Laporan Pemeriksaan Kesehatan Posyandu</div>
         <div class="subtitle">{{ $posyandu->nama_posyandu }}</div>
         @if ($posyandu->alamat_posyandu)
             <div class="alamat">{{ $posyandu->alamat_posyandu }}</div>
@@ -208,6 +208,7 @@
                 <tr>
                     <th class="col-no">No</th>
                     <th class="col-nama">Nama Sasaran</th>
+                    <th class="col-jk">Jenis Kelamin</th>
                     <th class="col-kat">Kategori Sasaran</th>
                     <th class="col-umur">Umur</th>
                     <th class="col-tgl">Tanggal</th>
@@ -251,6 +252,7 @@
                     <tr>
                         <td class="text-center">{{ $index + 1 }}</td>
                         <td>{{ $sasaran->nama_sasaran ?? '-' }}</td>
+                        <td class="text-center">{{ $sasaran->jenis_kelamin ?? '-' }}</td>
                         <td class="text-center">{{ ucfirst($imunisasi->kategori_sasaran) }}</td>
                         <td class="text-center">{{ $umurLabel }}</td>
                         <td class="text-center">

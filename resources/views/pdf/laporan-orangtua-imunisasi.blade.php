@@ -9,14 +9,14 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <title>Laporan Imunisasi - {{ $user->name ?? 'Orangtua' }}</title>
+    <title>Laporan Pemeriksaan Kesehatan Posyandu - {{ $user->name ?? 'Orangtua' }}</title>
     <style>
         @page { margin: 2cm 3cm; }
         * { font-family: DejaVu Sans, Arial, sans-serif; font-size: 10px; }
         body { margin: 0; color: #111827; }
         h1, h2, h3, p { margin: 0; padding: 0; }
         .header { text-align: center; margin-bottom: 8px; }
-        .title { font-size: 15px; font-weight: bold; text-transform: uppercase; }
+        .title { font-size: 15px; font-weight: bold; }
         .subtitle { font-size: 11px; margin-top: 2px; }
         .meta-table { width: 100%; border-collapse: collapse; margin-bottom: 8px; }
         .meta-table td { padding: 2px 4px; vertical-align: top; }
@@ -118,7 +118,7 @@
 </head>
 <body>
     <div class="header">
-        <div class="title">Laporan Imunisasi</div>
+        <div class="title">Laporan Pemeriksaan Kesehatan Posyandu</div>
         <div class="subtitle">{{ $user->name ?? '-' }}</div>
     </div>
 
@@ -153,7 +153,9 @@
                 <tr>
                     <th>No</th>
                     <th>Nama Sasaran</th>
+                    <th>Jenis Kelamin</th>
                     <th>Kategori</th>
+                    <th>Umur</th>
                     <th>Jenis Imunisasi</th>
                     <th>Tanggal</th>
                     <th>Tinggi (cm)</th>
@@ -169,7 +171,9 @@
                     <tr style="page-break-inside: avoid;">
                         <td class="text-center">{{ $row->no }}</td>
                         <td>{{ $row->nama_sasaran }}</td>
+                        <td class="text-center">{{ $row->jenis_kelamin ?? '-' }}</td>
                         <td class="text-center">{{ $row->kategori_sasaran }}</td>
+                        <td class="text-center">{{ $row->umur ?? '-' }}</td>
                         <td>{{ $row->jenis_imunisasi }}</td>
                         <td class="text-center">{{ $row->tanggal_imunisasi }}</td>
                         <td class="text-center">{{ $row->tinggi_badan }}</td>

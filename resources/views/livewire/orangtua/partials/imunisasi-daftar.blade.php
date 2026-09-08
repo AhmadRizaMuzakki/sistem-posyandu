@@ -105,7 +105,9 @@
                     <tr>
                         <th class="px-5 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">No</th>
                         <th class="px-5 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Nama Sasaran</th>
+                        <th class="px-5 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Jenis Kelamin</th>
                         <th class="px-5 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Kategori</th>
+                        <th class="px-5 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Umur</th>
                         <th class="px-5 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Jenis Imunisasi</th>
                         <th class="px-5 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Tanggal</th>
                         <th class="px-5 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Tinggi</th>
@@ -118,17 +120,37 @@
                 </thead>
                 <tbody class="bg-white divide-y divide-gray-100">
                     @foreach($riwayatRows as $index => $row)
-                        @php $imunisasi = $row['imunisasi']; @endphp
+                        @php
+                            $imunisasi = $row['imunisasi'];
+                            $umurLabel = '-';
+                            if (! empty($row['sasaran']['tanggal_lahir'])) {
+                                $dob = \Carbon\Carbon::parse($row['sasaran']['tanggal_lahir']);
+                                $now = \Carbon\Carbon::now();
+                                $totalMonths = (int) $dob->diffInMonths($now);
+                                $umurLabel = $totalMonths >= 60
+                                    ? ((int) $dob->diffInYears($now)).' th'
+                                    : $totalMonths.' bln';
+                            } elseif (! is_null($row['sasaran']['umur_sasaran'] ?? null)) {
+                                $umur = (int) $row['sasaran']['umur_sasaran'];
+                                $umurLabel = $umur >= 5 ? $umur.' th' : ($umur * 12).' bln';
+                            }
+                        @endphp
                         <tr class="hover:bg-gray-50/80 transition-colors">
                             <td class="px-5 py-5 whitespace-nowrap text-sm text-gray-500 align-middle">{{ ($riwayatFirstItem ?? 1) + $loop->index }}</td>
                             <td class="px-5 py-5 whitespace-nowrap align-middle">
                                 <div class="text-sm font-medium text-gray-900 leading-relaxed">{{ $row['sasaran']['nama'] }}</div>
                                 <div class="text-xs text-gray-400 mt-1">NIK: {{ $row['sasaran']['nik'] ?? '-' }}</div>
                             </td>
+                            <td class="px-5 py-5 whitespace-nowrap text-sm text-gray-600 align-middle">
+                                {{ $row['sasaran']['jenis_kelamin'] ?? '-' }}
+                            </td>
                             <td class="px-5 py-5 whitespace-nowrap align-middle">
                                 <span class="inline-flex px-2.5 py-1 bg-blue-50 text-blue-700 rounded-md text-xs font-medium">
                                     {{ $kategoriLabel($row['sasaran']['kategori'] ?? '') }}
                                 </span>
+                            </td>
+                            <td class="px-5 py-5 whitespace-nowrap text-sm text-gray-600 align-middle">
+                                {{ $umurLabel }}
                             </td>
                             <td class="px-5 py-5 whitespace-nowrap text-sm text-gray-800 align-middle">
                                 {{ $imunisasi->jenis_imunisasi ?? '-' }}

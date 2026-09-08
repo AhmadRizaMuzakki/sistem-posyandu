@@ -53,10 +53,24 @@ class OrangtuaExportController extends Controller
             $jenisKelamin = $item['sasaran']['jenis_kelamin'] ?? null;
 
             foreach ($item['imunisasi'] as $im) {
+                $umurLabel = '-';
+                if ($tanggalLahir) {
+                    $now = Carbon::now();
+                    $totalMonths = (int) $tanggalLahir->diffInMonths($now);
+                    $umurLabel = $totalMonths >= 60
+                        ? ((int) $tanggalLahir->diffInYears($now)).' th'
+                        : $totalMonths.' bln';
+                } elseif (! is_null($item['sasaran']['umur_sasaran'] ?? null)) {
+                    $umur = (int) $item['sasaran']['umur_sasaran'];
+                    $umurLabel = $umur >= 5 ? $umur.' th' : ($umur * 12).' bln';
+                }
+
                 $rows->push((object) [
                     'no' => $no++,
                     'nama_sasaran' => $item['sasaran']['nama'] ?? '-',
+                    'jenis_kelamin' => $jenisKelamin ?: '-',
                     'kategori_sasaran' => $this->kategoriLabel($item['sasaran']['kategori'] ?? ''),
+                    'umur' => $umurLabel,
                     'jenis_imunisasi' => $im->jenis_imunisasi ?? '-',
                     'tanggal_imunisasi' => $im->tanggal_imunisasi ? $im->tanggal_imunisasi->format('d/m/Y') : '-',
                     'tinggi_badan' => $im->tinggi_badan !== null ? number_format($im->tinggi_badan, 1, ',', '.') : '-',
@@ -200,6 +214,7 @@ class OrangtuaExportController extends Controller
                         'nik' => $s->nik_sasaran,
                         'tanggal_lahir' => $s->tanggal_lahir,
                         'jenis_kelamin' => $s->jenis_kelamin,
+                        'umur_sasaran' => $s->umur_sasaran,
                     ]);
                 }
             }

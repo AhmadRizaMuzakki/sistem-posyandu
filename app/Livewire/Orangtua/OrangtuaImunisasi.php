@@ -176,6 +176,7 @@ class OrangtuaImunisasi extends Component
                         'nik' => $s->nik_sasaran,
                         'tanggal_lahir' => $s->tanggal_lahir,
                         'jenis_kelamin' => $s->jenis_kelamin,
+                        'umur_sasaran' => $s->umur_sasaran,
                     ]);
                 }
             }

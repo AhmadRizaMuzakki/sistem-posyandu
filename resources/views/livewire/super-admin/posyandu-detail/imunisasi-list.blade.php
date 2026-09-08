@@ -32,7 +32,9 @@
                     <tr>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">No</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Sasaran</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Jenis Kelamin</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Kategori</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Umur</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Jenis Imunisasi</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tanggal</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tinggi (cm)</th>
@@ -49,14 +51,32 @@
                         @php
                             $sasaran = $imunisasi->sasaran;
                             $sasaranNama = $sasaran ? $sasaran->nama_sasaran : 'Tidak ditemukan';
+                            $umurLabel = '-';
+                            if ($sasaran && ! empty($sasaran->tanggal_lahir)) {
+                                $dob = \Carbon\Carbon::parse($sasaran->tanggal_lahir);
+                                $now = \Carbon\Carbon::now();
+                                $totalMonths = (int) $dob->diffInMonths($now);
+                                $umurLabel = $totalMonths >= 60
+                                    ? ((int) $dob->diffInYears($now)).' th'
+                                    : $totalMonths.' bln';
+                            } elseif ($sasaran && ! is_null($sasaran->umur_sasaran ?? null)) {
+                                $umur = (int) $sasaran->umur_sasaran;
+                                $umurLabel = $umur >= 5 ? $umur.' th' : ($umur * 12).' bln';
+                            }
                         @endphp
                                 <tr class="hover:bg-gray-50">
                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ $imunisasiList->firstItem() + $loop->index }}</td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ $sasaranNama }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                                {{ $sasaran->jenis_kelamin ?? '-' }}
+                            </td>
                             <td class="px-6 py-4 whitespace-nowrap">
                                 <span class="px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800 capitalize">
                                     {{ $imunisasi->kategori_sasaran }}
                                 </span>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                                {{ $umurLabel }}
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                                 {{ $imunisasi->jenis_imunisasi }}

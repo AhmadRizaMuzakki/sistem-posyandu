@@ -199,6 +199,7 @@
                     @else
                         <th>No</th>
                         <th>Nama Sasaran</th>
+                        <th>Jenis Kelamin</th>
                         <th>Kategori</th>
                         <th>Umur</th>
                         <th>Status Kehadiran</th>
@@ -251,6 +252,7 @@
                         @else
                         <td class="text-center">{{ $index + 1 }}</td>
                         <td>{{ $sasaran->nama_sasaran ?? '-' }}</td>
+                        <td class="text-center">{{ $sasaran->jenis_kelamin ?? '-' }}</td>
                         <td class="text-center">{{ $row['kategori_label'] ?? $row['kategori_sasaran'] }}</td>
                         <td class="text-center">{{ $row['umur_label'] ?? '-' }}</td>
                         <td class="text-center">
