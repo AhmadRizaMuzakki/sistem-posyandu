@@ -126,10 +126,12 @@
                             $umurLabel = '-';
                             if (! empty($row['sasaran']['tanggal_lahir'])) {
                                 $dob = \Carbon\Carbon::parse($row['sasaran']['tanggal_lahir']);
-                                $now = \Carbon\Carbon::now();
-                                $totalMonths = (int) $dob->diffInMonths($now);
+                                $tanggalUkur = $imunisasi->tanggal_imunisasi
+                                    ? \Carbon\Carbon::parse($imunisasi->tanggal_imunisasi)
+                                    : \Carbon\Carbon::now();
+                                $totalMonths = (int) $dob->diffInMonths($tanggalUkur);
                                 $umurLabel = $totalMonths >= 60
-                                    ? ((int) $dob->diffInYears($now)).' th'
+                                    ? ((int) $dob->diffInYears($tanggalUkur)).' th'
                                     : $totalMonths.' bln';
                             } elseif (! is_null($row['sasaran']['umur_sasaran'] ?? null)) {
                                 $umur = (int) $row['sasaran']['umur_sasaran'];

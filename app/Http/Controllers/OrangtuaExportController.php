@@ -56,10 +56,12 @@ class OrangtuaExportController extends Controller
             foreach ($item['imunisasi'] as $im) {
                 $umurLabel = '-';
                 if ($tanggalLahir) {
-                    $now = Carbon::now();
-                    $totalMonths = (int) $tanggalLahir->diffInMonths($now);
+                    $tanggalUkur = $im->tanggal_imunisasi
+                        ? Carbon::parse($im->tanggal_imunisasi)
+                        : Carbon::now();
+                    $totalMonths = (int) $tanggalLahir->diffInMonths($tanggalUkur);
                     $umurLabel = $totalMonths >= 60
-                        ? ((int) $tanggalLahir->diffInYears($now)).' th'
+                        ? ((int) $tanggalLahir->diffInYears($tanggalUkur)).' th'
                         : $totalMonths.' bln';
                 } elseif (! is_null($item['sasaran']['umur_sasaran'] ?? null)) {
                     $umur = (int) $item['sasaran']['umur_sasaran'];
