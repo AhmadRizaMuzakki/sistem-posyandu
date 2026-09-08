@@ -83,7 +83,7 @@
             return (series || []).map((pt) => ({ x: Number(pt.x), y: Number(pt.y) }));
         }
 
-        function kmsCalloutPlugin(points) {
+        function kmsCalloutPlugin(points, unit = 'kg') {
             return {
                 id: 'kmsCallouts',
                 afterDatasetsDraw(chart) {
@@ -105,7 +105,8 @@
                         }
                         const x = el.x;
                         const y = el.y;
-                        const beratText = `${Number(pt.berat).toLocaleString('id-ID', { maximumFractionDigits: 1 })} kg`;
+                        const nilai = pt.nilai ?? pt.berat ?? pt.tinggi;
+                        const nilaiText = `${Number(nilai).toLocaleString('id-ID', { maximumFractionDigits: 1 })} ${unit}`;
                         const metaParts = [`${Math.round(Number(pt.umur_bulan))} bln`];
                         if (pt.tanggal) {
                             metaParts.push(pt.tanggal);
@@ -114,11 +115,11 @@
 
                         ctx.save();
                         ctx.font = 'bold 14px sans-serif';
-                        const beratW = ctx.measureText(beratText).width;
+                        const nilaiW = ctx.measureText(nilaiText).width;
                         ctx.font = '10px sans-serif';
                         const metaW = ctx.measureText(metaText).width;
                         const padX = 10;
-                        const boxW = Math.max(beratW, metaW) + padX * 2;
+                        const boxW = Math.max(nilaiW, metaW) + padX * 2;
                         const boxH = 40;
                         let bx = x - boxW / 2;
                         let by = y + offsets[idx % offsets.length];
@@ -145,12 +146,10 @@
                         ctx.lineTo(x, y - 6);
                         ctx.stroke();
 
-                        // Berat ditonjolkan
                         ctx.fillStyle = '#1d4ed8';
                         ctx.font = 'bold 14px sans-serif';
-                        ctx.fillText(beratText, bx + padX, by + 17);
+                        ctx.fillText(nilaiText, bx + padX, by + 17);
 
-                        // Umur & tanggal sekunder
                         ctx.fillStyle = '#6b7280';
                         ctx.font = '10px sans-serif';
                         ctx.fillText(metaText, bx + padX, by + 32);
@@ -166,13 +165,19 @@
             const yMax = Number(kms.y_max ?? 26);
             const xMin = Number(kms.x_min ?? 0);
             const xMax = Number(kms.x_max ?? 60);
-            const childPoints = (kms.points || []).map((p) => ({
-                x: Number(p.umur_bulan),
-                y: Number(p.berat),
-                umur_bulan: p.umur_bulan,
-                tanggal: p.tanggal,
-                berat: p.berat,
-            }));
+            const unit = kms.unit || 'kg';
+            const yAxisLabel = kms.y_axis_label || 'Berat Badan (kg)';
+            const yStep = (kms.indeks === 'tb_u') ? 5 : 2;
+            const childPoints = (kms.points || []).map((p) => {
+                const nilai = p.nilai ?? p.berat ?? p.tinggi;
+                return {
+                    x: Number(p.umur_bulan),
+                    y: Number(nilai),
+                    umur_bulan: p.umur_bulan,
+                    tanggal: p.tanggal,
+                    nilai,
+                };
+            });
 
             const zoneLine = (data, bg, border = 'rgba(146,64,14,0.45)') => ({
                 data,
@@ -264,7 +269,7 @@
             return new Chart(canvas.getContext('2d'), {
                 type: 'line',
                 data: { datasets },
-                plugins: [kmsCalloutPlugin(kms.points || [])],
+                plugins: [kmsCalloutPlugin(kms.points || [], unit)],
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
@@ -293,7 +298,7 @@
                                     return `${Math.round(Number(raw.x))} bulan` + (raw.tanggal ? ` · ${raw.tanggal}` : '');
                                 },
                                 label(ctx) {
-                                    return `Berat: ${Number(ctx.parsed.y).toLocaleString('id-ID', { maximumFractionDigits: 1 })} kg`;
+                                    return `${yAxisLabel.replace(/ \(.*\)$/, '')}: ${Number(ctx.parsed.y).toLocaleString('id-ID', { maximumFractionDigits: 1 })} ${unit}`;
                                 },
                             },
                         },
@@ -322,12 +327,12 @@
                             max: yMax,
                             title: {
                                 display: true,
-                                text: 'Berat Badan (kg)',
+                                text: yAxisLabel,
                                 color: '#374151',
                                 font: { size: fontSize, weight: '600' },
                             },
                             ticks: {
-                                stepSize: 2,
+                                stepSize: yStep,
                                 font: { size: fontSize },
                                 color: '#6b7280',
                             },
@@ -483,7 +488,7 @@
                     }
 
                     let chart = null;
-                    if (mode === 'kms_bb_u' && kms && kms.curves) {
+                    if ((mode === 'kms_bb_u' || mode === 'kms_tb_u') && kms && kms.curves) {
                         chart = buildKmsChart(canvas, kms, fontSize);
                     } else if (labels.length) {
                         chart = buildLineChart(canvas, labels, berat, tinggi, fontSize);

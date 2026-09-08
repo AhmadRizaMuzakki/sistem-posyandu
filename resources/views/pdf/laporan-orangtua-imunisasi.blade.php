@@ -196,24 +196,34 @@
         <table class="keep-block">
             <tr>
                 <td>
-                    @if(!empty($grafikChartUri))
-                        @php
-                            $grafik = ($grafikPertumbuhan[0] ?? null);
-                            $isKmsPdf = ($grafik['chart_mode'] ?? '') === 'kms_bb_u';
-                        @endphp
-                        @if($isKmsPdf)
-                            {{-- Judul & keterangan sudah ada di dalam gambar KMS --}}
-                            <img class="chart-img" src="{{ $grafikChartUri }}" alt="Kartu Menuju Sehat BB/U">
-                        @else
-                            <h3 class="section-title" style="margin-top:0;">Grafik Pertumbuhan</h3>
-                            <p class="chart-note">
-                                {{ $grafik['nama'] ?? $filterNama }}
-                                @if(!empty($grafik['kategori'])) — {{ $grafik['kategori'] }} @endif
-                                @if(!empty($periodeLabel)) · {{ $periodeLabel }} @endif
-                            </p>
-                            <img class="chart-img" src="{{ $grafikChartUri }}" alt="Grafik Pertumbuhan">
+                    @php
+                        $grafik = ($grafikPertumbuhan[0] ?? null);
+                        $grafikTbChartUri = $grafikTbChartUri ?? null;
+                        $hasKmsBb = !empty($grafikChartUri) && !empty($grafik['kms']);
+                        $hasKmsTb = !empty($grafikTbChartUri) && !empty($grafik['kms_tb']);
+                        $hasAnyChart = !empty($grafikChartUri) || !empty($grafikTbChartUri);
+                    @endphp
+
+                    @if($hasKmsBb)
+                        <img class="chart-img" src="{{ $grafikChartUri }}" alt="Kartu Menuju Sehat BB/U">
+                    @endif
+
+                    @if($hasKmsTb)
+                        @if($hasKmsBb)
+                            <div class="section-break"></div>
                         @endif
-                    @else
+                        <img class="chart-img" src="{{ $grafikTbChartUri }}" alt="Kartu Menuju Sehat TB/U">
+                    @endif
+
+                    @if(!$hasKmsBb && !$hasKmsTb && !empty($grafikChartUri))
+                        <h3 class="section-title" style="margin-top:0;">Grafik Pertumbuhan</h3>
+                        <p class="chart-note">
+                            {{ $grafik['nama'] ?? $filterNama }}
+                            @if(!empty($grafik['kategori'])) — {{ $grafik['kategori'] }} @endif
+                            @if(!empty($periodeLabel)) · {{ $periodeLabel }} @endif
+                        </p>
+                        <img class="chart-img" src="{{ $grafikChartUri }}" alt="Grafik Pertumbuhan">
+                    @elseif(!$hasAnyChart)
                         <h3 class="section-title" style="margin-top:0;">Grafik Pertumbuhan</h3>
                         <p class="mt-1">Grafik belum tersedia (data tinggi/berat belum lengkap).</p>
                     @endif

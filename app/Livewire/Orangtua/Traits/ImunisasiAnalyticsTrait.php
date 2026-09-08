@@ -174,7 +174,8 @@ trait ImunisasiAnalyticsTrait
             $berat = [];
             $tinggi = [];
             $imt = [];
-            $kmsPoints = [];
+            $kmsBbPoints = [];
+            $kmsTbPoints = [];
 
             foreach ($records as $im) {
                 if ($im->tanggal_imunisasi === null) {
@@ -188,14 +189,23 @@ trait ImunisasiAnalyticsTrait
                     $im->tinggi_badan !== null ? (float) $im->tinggi_badan : null
                 );
 
-                if ($im->berat_badan !== null && $tanggalLahir) {
+                if ($tanggalLahir) {
                     $umurBulan = $antropometri->hitungUmurBulan($tanggalLahir, Carbon::parse($im->tanggal_imunisasi));
                     if ($umurBulan !== null) {
-                        $kmsPoints[] = [
-                            'umur_bulan' => $umurBulan,
-                            'berat' => (float) $im->berat_badan,
-                            'tanggal' => $im->tanggal_imunisasi->format('d/m/Y'),
-                        ];
+                        if ($im->berat_badan !== null) {
+                            $kmsBbPoints[] = [
+                                'umur_bulan' => $umurBulan,
+                                'berat' => (float) $im->berat_badan,
+                                'tanggal' => $im->tanggal_imunisasi->format('d/m/Y'),
+                            ];
+                        }
+                        if ($im->tinggi_badan !== null) {
+                            $kmsTbPoints[] = [
+                                'umur_bulan' => $umurBulan,
+                                'tinggi' => (float) $im->tinggi_badan,
+                                'tanggal' => $im->tanggal_imunisasi->format('d/m/Y'),
+                            ];
+                        }
                     }
                 }
             }
@@ -205,7 +215,14 @@ trait ImunisasiAnalyticsTrait
                     $sasaran['nama'],
                     $sasaran['jenis_kelamin'] ?? null,
                     $tanggalLahir,
-                    $kmsPoints,
+                    $kmsBbPoints,
+                    $sasaran['kategori_slug']
+                );
+                $kmsTb = KmsBbUChartHelper::buildTbUPayload(
+                    $sasaran['nama'],
+                    $sasaran['jenis_kelamin'] ?? null,
+                    $tanggalLahir,
+                    $kmsTbPoints,
                     $sasaran['kategori_slug']
                 );
 
@@ -219,8 +236,9 @@ trait ImunisasiAnalyticsTrait
                     'berat' => $berat,
                     'tinggi' => $tinggi,
                     'imt' => $imt,
-                    'chart_mode' => $kms ? 'kms_bb_u' : 'line',
+                    'chart_mode' => ($kms || $kmsTb) ? 'kms' : 'line',
                     'kms' => $kms,
+                    'kms_tb' => $kmsTb,
                 ];
             }
 

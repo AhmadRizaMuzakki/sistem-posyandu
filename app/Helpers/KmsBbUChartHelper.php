@@ -6,14 +6,14 @@ use App\Services\AntropometriService;
 use Carbon\Carbon;
 
 /**
- * Kartu Menuju Sehat (KMS) — grafik BB/U dengan zona SD.
+ * Kartu Menuju Sehat (KMS) — grafik BB/U & TB/U dengan zona SD.
  * Kurva 0–11 bulan: WHO/PMK (melengkapi config yang mulai dari 12 bulan).
  * Kurva 12–60 bulan: config/antropometri.php.
  */
 class KmsBbUChartHelper
 {
     /** @var array<string, array<int, array{sd3_min: float, min: float, sd1_min: float, median: float, sd1_max: float, max: float, sd3_max: float}>> */
-    private static array $infantCurves = [
+    private static array $infantCurvesBbU = [
         'L' => [
             0 => ['sd3_min' => 2.1, 'min' => 2.5, 'sd1_min' => 2.9, 'median' => 3.3, 'sd1_max' => 3.9, 'max' => 4.4, 'sd3_max' => 5.0],
             1 => ['sd3_min' => 2.9, 'min' => 3.4, 'sd1_min' => 3.9, 'median' => 4.5, 'sd1_max' => 5.1, 'max' => 5.8, 'sd3_max' => 6.6],
@@ -44,6 +44,38 @@ class KmsBbUChartHelper
         ],
     ];
 
+    /** @var array<string, array<int, array{sd3_min: float, min: float, sd1_min: float, median: float, sd1_max: float, max: float, sd3_max: float}>> */
+    private static array $infantCurvesTbU = [
+        'L' => [
+            0 => ['sd3_min' => 44.2, 'min' => 46.1, 'sd1_min' => 48.0, 'median' => 49.9, 'sd1_max' => 51.8, 'max' => 53.7, 'sd3_max' => 55.6],
+            1 => ['sd3_min' => 48.9, 'min' => 50.8, 'sd1_min' => 52.8, 'median' => 54.7, 'sd1_max' => 56.7, 'max' => 58.6, 'sd3_max' => 60.6],
+            2 => ['sd3_min' => 52.4, 'min' => 54.4, 'sd1_min' => 56.4, 'median' => 58.4, 'sd1_max' => 60.4, 'max' => 62.4, 'sd3_max' => 64.4],
+            3 => ['sd3_min' => 55.3, 'min' => 57.3, 'sd1_min' => 59.4, 'median' => 61.4, 'sd1_max' => 63.5, 'max' => 65.5, 'sd3_max' => 67.6],
+            4 => ['sd3_min' => 57.6, 'min' => 59.7, 'sd1_min' => 61.8, 'median' => 63.9, 'sd1_max' => 66.0, 'max' => 68.0, 'sd3_max' => 70.1],
+            5 => ['sd3_min' => 59.6, 'min' => 61.7, 'sd1_min' => 63.8, 'median' => 65.9, 'sd1_max' => 68.0, 'max' => 70.1, 'sd3_max' => 72.2],
+            6 => ['sd3_min' => 61.2, 'min' => 63.3, 'sd1_min' => 65.5, 'median' => 67.6, 'sd1_max' => 69.8, 'max' => 71.9, 'sd3_max' => 74.0],
+            7 => ['sd3_min' => 62.7, 'min' => 64.8, 'sd1_min' => 67.0, 'median' => 69.2, 'sd1_max' => 71.3, 'max' => 73.5, 'sd3_max' => 75.7],
+            8 => ['sd3_min' => 64.0, 'min' => 66.2, 'sd1_min' => 68.4, 'median' => 70.6, 'sd1_max' => 72.8, 'max' => 75.0, 'sd3_max' => 77.2],
+            9 => ['sd3_min' => 65.2, 'min' => 67.5, 'sd1_min' => 69.7, 'median' => 72.0, 'sd1_max' => 74.2, 'max' => 76.5, 'sd3_max' => 78.7],
+            10 => ['sd3_min' => 66.4, 'min' => 68.7, 'sd1_min' => 71.0, 'median' => 73.3, 'sd1_max' => 75.6, 'max' => 77.9, 'sd3_max' => 80.1],
+            11 => ['sd3_min' => 67.6, 'min' => 69.9, 'sd1_min' => 72.2, 'median' => 74.5, 'sd1_max' => 76.8, 'max' => 79.2, 'sd3_max' => 81.5],
+        ],
+        'P' => [
+            0 => ['sd3_min' => 43.6, 'min' => 45.4, 'sd1_min' => 47.3, 'median' => 49.1, 'sd1_max' => 51.0, 'max' => 52.9, 'sd3_max' => 54.7],
+            1 => ['sd3_min' => 47.8, 'min' => 49.8, 'sd1_min' => 51.7, 'median' => 53.7, 'sd1_max' => 55.6, 'max' => 57.6, 'sd3_max' => 59.5],
+            2 => ['sd3_min' => 51.0, 'min' => 53.0, 'sd1_min' => 55.0, 'median' => 57.1, 'sd1_max' => 59.1, 'max' => 61.1, 'sd3_max' => 63.2],
+            3 => ['sd3_min' => 53.5, 'min' => 55.6, 'sd1_min' => 57.7, 'median' => 59.8, 'sd1_max' => 61.9, 'max' => 64.0, 'sd3_max' => 66.1],
+            4 => ['sd3_min' => 55.6, 'min' => 57.8, 'sd1_min' => 59.9, 'median' => 62.1, 'sd1_max' => 64.3, 'max' => 66.4, 'sd3_max' => 68.6],
+            5 => ['sd3_min' => 57.4, 'min' => 59.6, 'sd1_min' => 61.8, 'median' => 64.0, 'sd1_max' => 66.2, 'max' => 68.5, 'sd3_max' => 70.7],
+            6 => ['sd3_min' => 58.9, 'min' => 61.2, 'sd1_min' => 63.5, 'median' => 65.7, 'sd1_max' => 68.0, 'max' => 70.3, 'sd3_max' => 72.5],
+            7 => ['sd3_min' => 60.3, 'min' => 62.7, 'sd1_min' => 65.0, 'median' => 67.3, 'sd1_max' => 69.6, 'max' => 71.9, 'sd3_max' => 74.2],
+            8 => ['sd3_min' => 61.7, 'min' => 64.0, 'sd1_min' => 66.4, 'median' => 68.7, 'sd1_max' => 71.1, 'max' => 73.5, 'sd3_max' => 75.8],
+            9 => ['sd3_min' => 62.9, 'min' => 65.3, 'sd1_min' => 67.7, 'median' => 70.1, 'sd1_max' => 72.6, 'max' => 75.0, 'sd3_max' => 77.4],
+            10 => ['sd3_min' => 64.1, 'min' => 66.5, 'sd1_min' => 69.0, 'median' => 71.5, 'sd1_max' => 73.9, 'max' => 76.4, 'sd3_max' => 78.9],
+            11 => ['sd3_min' => 65.2, 'min' => 67.7, 'sd1_min' => 70.3, 'median' => 72.8, 'sd1_max' => 75.3, 'max' => 77.8, 'sd3_max' => 80.3],
+        ],
+    ];
+
     /**
      * @param  array<int, array{umur_bulan: int|float, berat: float, tanggal?: string|null}>  $points
      * @return array<string, mixed>|null
@@ -55,6 +87,73 @@ class KmsBbUChartHelper
         array $points,
         string $kategoriSlug = 'bayibalita'
     ): ?array {
+        $nilaiPoints = [];
+        foreach ($points as $point) {
+            if (! isset($point['berat'], $point['umur_bulan'])) {
+                continue;
+            }
+            $nilaiPoints[] = [
+                'umur_bulan' => $point['umur_bulan'],
+                'nilai' => $point['berat'],
+                'tanggal' => $point['tanggal'] ?? null,
+            ];
+        }
+
+        return self::buildIndeksPayload(
+            'bb_u',
+            $nama,
+            $jenisKelamin,
+            $tanggalLahir,
+            $nilaiPoints,
+            $kategoriSlug
+        );
+    }
+
+    /**
+     * @param  array<int, array{umur_bulan: int|float, tinggi: float, tanggal?: string|null}>  $points
+     * @return array<string, mixed>|null
+     */
+    public static function buildTbUPayload(
+        string $nama,
+        ?string $jenisKelamin,
+        ?Carbon $tanggalLahir,
+        array $points,
+        string $kategoriSlug = 'bayibalita'
+    ): ?array {
+        $nilaiPoints = [];
+        foreach ($points as $point) {
+            if (! isset($point['tinggi'], $point['umur_bulan'])) {
+                continue;
+            }
+            $nilaiPoints[] = [
+                'umur_bulan' => $point['umur_bulan'],
+                'nilai' => $point['tinggi'],
+                'tanggal' => $point['tanggal'] ?? null,
+            ];
+        }
+
+        return self::buildIndeksPayload(
+            'tb_u',
+            $nama,
+            $jenisKelamin,
+            $tanggalLahir,
+            $nilaiPoints,
+            $kategoriSlug
+        );
+    }
+
+    /**
+     * @param  array<int, array{umur_bulan: int|float, nilai: float, tanggal?: string|null}>  $points
+     * @return array<string, mixed>|null
+     */
+    private static function buildIndeksPayload(
+        string $indeks,
+        string $nama,
+        ?string $jenisKelamin,
+        ?Carbon $tanggalLahir,
+        array $points,
+        string $kategoriSlug
+    ): ?array {
         if ($kategoriSlug !== 'bayibalita' || $tanggalLahir === null || empty($points)) {
             return null;
         }
@@ -65,19 +164,26 @@ class KmsBbUChartHelper
 
         $validPoints = [];
         foreach ($points as $point) {
-            if (! isset($point['berat'], $point['umur_bulan'])) {
+            if (! isset($point['nilai'], $point['umur_bulan'])) {
                 continue;
             }
             $umur = (float) $point['umur_bulan'];
-            $berat = (float) $point['berat'];
-            if ($umur < 0 || $berat <= 0) {
+            $nilai = (float) $point['nilai'];
+            if ($umur < 0 || $nilai <= 0) {
                 continue;
             }
-            $validPoints[] = [
+            $row = [
                 'umur_bulan' => round($umur, 1),
-                'berat' => round($berat, 2),
+                'nilai' => round($nilai, 2),
                 'tanggal' => $point['tanggal'] ?? null,
             ];
+            // Kompatibilitas callout/chart lama
+            if ($indeks === 'bb_u') {
+                $row['berat'] = $row['nilai'];
+            } else {
+                $row['tinggi'] = $row['nilai'];
+            }
+            $validPoints[] = $row;
         }
 
         if ($validPoints === []) {
@@ -91,17 +197,61 @@ class KmsBbUChartHelper
             return null;
         }
 
-        $curves = self::curvesFor($jk);
+        $curves = self::curvesFor($jk, $indeks);
         $yMaxCurve = max(array_column($curves['sd3_max'], 'y'));
-        $yMaxData = max(array_column($validPoints, 'berat'));
-        $yMax = (int) max(26, ceil(max($yMaxCurve, $yMaxData) / 2) * 2);
-        $yMin = 2;
-
+        $yMaxData = max(array_column($validPoints, 'nilai'));
         $lahirLabel = $tanggalLahir->locale('id')->translatedFormat('d F Y');
 
+        if ($indeks === 'tb_u') {
+            $yMin = 40;
+            $yMax = (int) max(130, ceil(max($yMaxCurve, $yMaxData) / 5) * 5);
+            $unit = 'cm';
+            $yAxis = 'Tinggi Badan (cm)';
+            $mode = 'kms_tb_u';
+            $title = 'Kartu Menuju Sehat (KMS) - Tinggi Badan Menurut Umur (TB/U)';
+            $legend = [
+                ['color' => '#fecaca', 'range' => '< −3 SD', 'status' => 'Sangat Pendek'],
+                ['color' => '#fde047', 'range' => '−3 s/d −2 SD', 'status' => 'Pendek'],
+                ['color' => '#bbf7d0', 'range' => '−2 s/d −1 & +1 s/d +2', 'status' => 'Normal'],
+                ['color' => '#4ade80', 'range' => '−1 s/d +1 SD', 'status' => 'Normal Ideal'],
+                ['color' => '#fdba74', 'range' => '> +2 SD', 'status' => 'Tinggi'],
+            ];
+            $pdfLegend = [
+                ['color' => '#fecaca', 'label' => '< -3 SD (Sangat Pendek / Merah)'],
+                ['color' => '#fde047', 'label' => '-3 s/d -2 SD (Pendek / Kuning)'],
+                ['color' => '#bbf7d0', 'label' => '-2 s/d -1 & +1 s/d +2 SD (Normal / Hijau Muda)'],
+                ['color' => '#4ade80', 'label' => '-1 s/d +1 SD (Normal Ideal / Hijau Tua)'],
+                ['color' => '#fdba74', 'label' => '> +2 SD (Tinggi / Oranye)'],
+            ];
+        } else {
+            $yMin = 2;
+            $yMax = (int) max(26, ceil(max($yMaxCurve, $yMaxData) / 2) * 2);
+            $unit = 'kg';
+            $yAxis = 'Berat Badan (kg)';
+            $mode = 'kms_bb_u';
+            $title = 'Kartu Menuju Sehat (KMS) - Berat Badan Menurut Umur (BB/U)';
+            $legend = [
+                ['color' => '#fecaca', 'range' => '< −3 SD', 'status' => 'Sangat Kurang'],
+                ['color' => '#fde047', 'range' => '−3 s/d −2 SD', 'status' => 'BB Kurang'],
+                ['color' => '#bbf7d0', 'range' => '−2 s/d −1 & +1 s/d +2', 'status' => 'Normal'],
+                ['color' => '#4ade80', 'range' => '−1 s/d +1 SD', 'status' => 'Normal Ideal'],
+                ['color' => '#fdba74', 'range' => '> +2 SD', 'status' => 'Risiko Lebih'],
+            ];
+            $pdfLegend = [
+                ['color' => '#fecaca', 'label' => '< -3 SD (BB Sangat Kurang / Merah)'],
+                ['color' => '#fde047', 'label' => '-3 s/d -2 SD (BB Kurang / Kuning)'],
+                ['color' => '#bbf7d0', 'label' => '-2 s/d -1 & +1 s/d +2 SD (Normal / Hijau Muda)'],
+                ['color' => '#4ade80', 'label' => '-1 s/d +1 SD (Normal Ideal / Hijau Tua)'],
+                ['color' => '#fdba74', 'label' => '> +2 SD (Risiko BB Lebih / Oranye)'],
+            ];
+        }
+
         return [
-            'mode' => 'kms_bb_u',
-            'title' => 'Kartu Menuju Sehat (KMS) - Berat Badan Menurut Umur (BB/U)',
+            'mode' => $mode,
+            'indeks' => $indeks,
+            'unit' => $unit,
+            'y_axis_label' => $yAxis,
+            'title' => $title,
             'subtitle' => sprintf('%s (%s | Lahir: %s)', $nama, $jkLabel, $lahirLabel),
             'nama' => $nama,
             'jenis_kelamin' => $jkLabel,
@@ -114,37 +264,27 @@ class KmsBbUChartHelper
             'y_max' => $yMax,
             'curves' => $curves,
             'points' => $validPoints,
-            'legend' => [
-                ['color' => '#fecaca', 'range' => '< −3 SD', 'status' => 'Sangat Kurang'],
-                ['color' => '#fde047', 'range' => '−3 s/d −2 SD', 'status' => 'BB Kurang'],
-                ['color' => '#bbf7d0', 'range' => '−2 s/d −1 & +1 s/d +2', 'status' => 'Normal'],
-                ['color' => '#4ade80', 'range' => '−1 s/d +1 SD', 'status' => 'Normal Ideal'],
-                ['color' => '#fdba74', 'range' => '> +2 SD', 'status' => 'Risiko Lebih'],
-            ],
-            'pdf_legend' => [
-                ['color' => '#fecaca', 'label' => '< -3 SD (BB Sangat Kurang / Merah)'],
-                ['color' => '#fde047', 'label' => '-3 s/d -2 SD (BB Kurang / Kuning)'],
-                ['color' => '#bbf7d0', 'label' => '-2 s/d -1 & +1 s/d +2 SD (Normal / Hijau Muda)'],
-                ['color' => '#4ade80', 'label' => '-1 s/d +1 SD (Normal Ideal / Hijau Tua)'],
-                ['color' => '#fdba74', 'label' => '> +2 SD (Risiko BB Lebih / Oranye)'],
-            ],
+            'legend' => $legend,
+            'pdf_legend' => $pdfLegend,
         ];
     }
 
     /**
      * @return array<string, array<int, array{x: int, y: float}>>
      */
-    public static function curvesFor(string $jk): array
+    public static function curvesFor(string $jk, string $indeks = 'bb_u'): array
     {
         $jk = $jk === 'P' ? 'P' : 'L';
-        $config = config('antropometri.bb_u.'.$jk, []);
+        $indeks = $indeks === 'tb_u' ? 'tb_u' : 'bb_u';
+        $config = config('antropometri.'.$indeks.'.'.$jk, []);
+        $infant = $indeks === 'tb_u' ? self::$infantCurvesTbU : self::$infantCurvesBbU;
         $keys = ['sd3_min', 'min', 'sd1_min', 'median', 'sd1_max', 'max', 'sd3_max'];
         $out = array_fill_keys($keys, []);
 
         for ($bulan = 0; $bulan <= 60; $bulan++) {
             $row = null;
             if ($bulan <= 11) {
-                $row = self::$infantCurves[$jk][$bulan] ?? null;
+                $row = $infant[$jk][$bulan] ?? null;
             } else {
                 $row = $config[$bulan] ?? null;
             }
@@ -164,7 +304,7 @@ class KmsBbUChartHelper
      */
     public static function pdfDataUri(array $payload, int $width = 1600, int $height = 1000): ?string
     {
-        if (! function_exists('imagecreatetruecolor') || ($payload['mode'] ?? '') !== 'kms_bb_u') {
+        if (! function_exists('imagecreatetruecolor') || ! in_array(($payload['mode'] ?? ''), ['kms_bb_u', 'kms_tb_u'], true)) {
             return null;
         }
 
@@ -255,10 +395,11 @@ class KmsBbUChartHelper
         }
 
         // Grid
-        for ($kg = (int) $yMin; $kg <= (int) $yMax; $kg += 2) {
-            $y = $mapY((float) $kg);
-            imageline($img, $padL, $y, $padL + $chartW, $y, $kg % 4 === 0 ? $grid : $gridSoft);
-            self::text($img, $font, 11, $padL - 36, $y + 4, (string) $kg, $muted);
+        $yStep = (($payload['indeks'] ?? 'bb_u') === 'tb_u') ? 5 : 2;
+        for ($val = (int) $yMin; $val <= (int) $yMax; $val += $yStep) {
+            $y = $mapY((float) $val);
+            imageline($img, $padL, $y, $padL + $chartW, $y, $val % ($yStep * 2) === 0 ? $grid : $gridSoft);
+            self::text($img, $font, 11, $padL - 40, $y + 4, (string) $val, $muted);
         }
         for ($bln = 0; $bln <= 60; $bln += 6) {
             $x = $mapX((float) $bln);
@@ -286,14 +427,20 @@ class KmsBbUChartHelper
         }
 
         // Data anak
+        $unit = (string) ($payload['unit'] ?? 'kg');
+        $yAxisLabel = (string) ($payload['y_axis_label'] ?? 'Berat Badan (kg)');
         $childPts = $payload['points'] ?? [];
         $mapped = [];
         foreach ($childPts as $pt) {
+            $nilai = $pt['nilai'] ?? ($pt['berat'] ?? ($pt['tinggi'] ?? null));
+            if ($nilai === null) {
+                continue;
+            }
             $mapped[] = [
                 'x' => $mapX((float) $pt['umur_bulan']),
-                'y' => $mapY((float) $pt['berat']),
+                'y' => $mapY((float) $nilai),
                 'umur' => $pt['umur_bulan'],
-                'berat' => $pt['berat'],
+                'nilai' => $nilai,
                 'tanggal' => $pt['tanggal'] ?? null,
             ];
         }
@@ -311,13 +458,13 @@ class KmsBbUChartHelper
             imageellipse($img, $pt['x'], $pt['y'], 13, 13, $white);
         }
 
-        // Callout: berat ditonjolkan, umur/tanggal sekunder
+        // Callout: nilai utama ditonjolkan
         $callouts = array_slice($mapped, -3);
         $offsetY = [-64, -86, -50];
         $offsetX = [-50, 8, 40];
         $fontBold = self::fontBoldPath() ?? $font;
         foreach ($callouts as $i => $pt) {
-            $beratText = number_format((float) $pt['berat'], 1, '.', '').' kg';
+            $nilaiText = number_format((float) $pt['nilai'], 1, '.', '').' '.$unit;
             $metaText = ((int) round((float) $pt['umur'])).' bln';
             if (! empty($pt['tanggal'])) {
                 $metaText .= ' · '.$pt['tanggal'];
@@ -336,7 +483,7 @@ class KmsBbUChartHelper
             imagefilledrectangle($img, $bx, $by, $bx + $boxW, $by + $boxH, $calloutBg);
             imagerectangle($img, $bx, $by, $bx + $boxW, $by + $boxH, $calloutBorder);
             imageline($img, (int) (($bx + $bx + $boxW) / 2), $by + $boxH, $pt['x'], $pt['y'] - 7, $calloutBorder);
-            self::text($img, $fontBold, 13, $bx + 10, $by + 17, $beratText, $childColor);
+            self::text($img, $fontBold, 13, $bx + 10, $by + 17, $nilaiText, $childColor);
             self::text($img, $font, 9, $bx + 10, $by + 32, $metaText, $muted);
         }
 
@@ -362,7 +509,7 @@ class KmsBbUChartHelper
         imageline($img, $padL, $padT, $padL, $padT + $chartH, $dark);
         imageline($img, $padL, $padT + $chartH, $padL + $chartW, $padT + $chartH, $dark);
         self::textCentered($img, $font, 13, (int) ($width / 2), $height - 18, 'Umur (Bulan)', $dark);
-        self::textRotated($img, $font, 13, 24, (int) ($height / 2) + 55, 'Berat Badan (kg)', $dark);
+        self::textRotated($img, $font, 13, 24, (int) ($height / 2) + 55, $yAxisLabel, $dark);
 
         // Judul tengah (mirip foto)
         $title = (string) ($payload['title'] ?? 'Kartu Menuju Sehat (KMS) - Berat Badan Menurut Umur (BB/U)');
