@@ -172,11 +172,10 @@ class PdfChartHelper
     }
 
     /**
-     * Grafik pertumbuhan line chart (tinggi + berat) untuk DomPDF.
-     * Satu sumbu Y bersama (mirip Excel / tampilan web).
+     * Grafik pertumbuhan berdasarkan berat badan untuk DomPDF.
      *
      * @param  array<int, string|null>  $labels
-     * @param  array<int, float|int|null>  $tinggi
+     * @param  array<int, float|int|null>  $tinggi  Diabaikan (kompatibilitas lama)
      * @param  array<int, float|int|null>  $berat
      */
     public static function pertumbuhanChartDataUri(
@@ -191,20 +190,15 @@ class PdfChartHelper
         }
 
         $count = count($labels);
-        $tinggiVals = [];
         $beratVals = [];
         for ($i = 0; $i < $count; $i++) {
-            $tinggiVals[] = isset($tinggi[$i]) && $tinggi[$i] !== null && $tinggi[$i] !== ''
-                ? (float) $tinggi[$i]
-                : null;
             $beratVals[] = isset($berat[$i]) && $berat[$i] !== null && $berat[$i] !== ''
                 ? (float) $berat[$i]
                 : null;
         }
 
-        $tinggiPresent = array_values(array_filter($tinggiVals, fn ($v) => $v !== null));
         $beratPresent = array_values(array_filter($beratVals, fn ($v) => $v !== null));
-        if (empty($tinggiPresent) && empty($beratPresent)) {
+        if (empty($beratPresent)) {
             return null;
         }
 
@@ -217,8 +211,7 @@ class PdfChartHelper
         $gray = imagecolorallocate($img, 229, 231, 235);
         $dark = imagecolorallocate($img, 55, 65, 81);
         $muted = imagecolorallocate($img, 107, 114, 128);
-        $tinggiColor = imagecolorallocate($img, 34, 197, 94);
-        $beratColor = imagecolorallocate($img, 59, 130, 246);
+        $beratColor = imagecolorallocate($img, 37, 99, 235);
         imagefilledrectangle($img, 0, 0, $width, $height, $white);
 
         $paddingLeft = 48;
@@ -228,23 +221,17 @@ class PdfChartHelper
         $chartW = $width - $paddingLeft - $paddingRight;
         $chartH = max(80, $height - $paddingTop - $paddingBottom);
 
-        $allPresent = array_merge($tinggiPresent, $beratPresent);
-        $axisMin = 0.0;
-        $axisMax = max($allPresent);
-        $axisMax = max(10.0, ceil($axisMax * 1.1));
+        $axisMin = max(0.0, floor(min($beratPresent) * 0.85));
+        $axisMax = max(10.0, ceil(max($beratPresent) * 1.15));
         $span = max(0.001, $axisMax - $axisMin);
 
         // Legend
-        imageline($img, $paddingLeft, 16, $paddingLeft + 16, 16, $tinggiColor);
-        imagefilledellipse($img, $paddingLeft + 8, 16, 7, 7, $tinggiColor);
+        imageline($img, $paddingLeft, 16, $paddingLeft + 16, 16, $beratColor);
+        imagefilledellipse($img, $paddingLeft + 8, 16, 7, 7, $beratColor);
         imageellipse($img, $paddingLeft + 8, 16, 7, 7, $white);
-        imagestring($img, 2, $paddingLeft + 22, 10, 'Tinggi (cm)', $dark);
-        imageline($img, $paddingLeft + 118, 16, $paddingLeft + 134, 16, $beratColor);
-        imagefilledellipse($img, $paddingLeft + 126, 16, 7, 7, $beratColor);
-        imageellipse($img, $paddingLeft + 126, 16, 7, 7, $white);
-        imagestring($img, 2, $paddingLeft + 140, 10, 'Berat (kg)', $dark);
+        imagestring($img, 2, $paddingLeft + 22, 10, 'Berat Badan (kg)', $dark);
 
-        // Grid + shared Y-axis labels (from 0)
+        // Grid + Y-axis
         for ($i = 0; $i <= 4; $i++) {
             $y = $paddingTop + (int) (($chartH / 4) * $i);
             imageline($img, $paddingLeft, $y, $width - $paddingRight, $y, $gray);
@@ -255,17 +242,11 @@ class PdfChartHelper
         $innerPadX = $count > 1 ? (int) ($chartW * 0.06) : (int) ($chartW / 2);
         $usableW = max(1, $chartW - (2 * $innerPadX));
         $stepX = $count > 1 ? $usableW / ($count - 1) : 0;
-        $pointsTinggi = [];
         $pointsBerat = [];
 
         for ($index = 0; $index < $count; $index++) {
             $x = (int) round($paddingLeft + $innerPadX + ($count > 1 ? $index * $stepX : 0));
 
-            if ($tinggiVals[$index] !== null) {
-                $ratio = ($tinggiVals[$index] - $axisMin) / $span;
-                $y = (int) round($paddingTop + $chartH - ($ratio * $chartH));
-                $pointsTinggi[] = ['x' => $x, 'y' => $y, 'value' => $tinggiVals[$index]];
-            }
             if ($beratVals[$index] !== null) {
                 $ratio = ($beratVals[$index] - $axisMin) / $span;
                 $y = (int) round($paddingTop + $chartH - ($ratio * $chartH));
@@ -281,9 +262,6 @@ class PdfChartHelper
             imagesetthickness($img, 2);
         }
 
-        for ($i = 1; $i < count($pointsTinggi); $i++) {
-            imageline($img, $pointsTinggi[$i - 1]['x'], $pointsTinggi[$i - 1]['y'], $pointsTinggi[$i]['x'], $pointsTinggi[$i]['y'], $tinggiColor);
-        }
         for ($i = 1; $i < count($pointsBerat); $i++) {
             imageline($img, $pointsBerat[$i - 1]['x'], $pointsBerat[$i - 1]['y'], $pointsBerat[$i]['x'], $pointsBerat[$i]['y'], $beratColor);
         }
@@ -292,10 +270,6 @@ class PdfChartHelper
             imagesetthickness($img, 1);
         }
 
-        foreach ($pointsTinggi as $point) {
-            imagefilledellipse($img, $point['x'], $point['y'], 9, 9, $tinggiColor);
-            imageellipse($img, $point['x'], $point['y'], 9, 9, $white);
-        }
         foreach ($pointsBerat as $point) {
             imagefilledellipse($img, $point['x'], $point['y'], 9, 9, $beratColor);
             imageellipse($img, $point['x'], $point['y'], 9, 9, $white);

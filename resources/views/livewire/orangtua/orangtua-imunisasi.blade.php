@@ -96,7 +96,7 @@
                     }
                     const ctx = chart.ctx;
                     const sample = points.slice(-Math.min(3, points.length));
-                    const offsets = [-56, -78, -56];
+                    const offsets = [-58, -78, -58];
 
                     sample.forEach((pt, idx) => {
                         const el = meta.data[points.length - sample.length + idx];
@@ -105,16 +105,21 @@
                         }
                         const x = el.x;
                         const y = el.y;
-                        const lines = [
-                            `${Math.round(Number(pt.umur_bulan))} bln`,
-                            pt.tanggal ? `(${pt.tanggal})` : null,
-                            `${Number(pt.berat).toLocaleString('id-ID', { maximumFractionDigits: 1 })} kg`,
-                        ].filter(Boolean);
+                        const beratText = `${Number(pt.berat).toLocaleString('id-ID', { maximumFractionDigits: 1 })} kg`;
+                        const metaParts = [`${Math.round(Number(pt.umur_bulan))} bln`];
+                        if (pt.tanggal) {
+                            metaParts.push(pt.tanggal);
+                        }
+                        const metaText = metaParts.join(' · ');
 
-                        const padX = 8;
-                        const lineH = 12;
-                        const boxW = 86;
-                        const boxH = 8 + lines.length * lineH;
+                        ctx.save();
+                        ctx.font = 'bold 14px sans-serif';
+                        const beratW = ctx.measureText(beratText).width;
+                        ctx.font = '10px sans-serif';
+                        const metaW = ctx.measureText(metaText).width;
+                        const padX = 10;
+                        const boxW = Math.max(beratW, metaW) + padX * 2;
+                        const boxH = 40;
                         let bx = x - boxW / 2;
                         let by = y + offsets[idx % offsets.length];
                         const area = chart.chartArea;
@@ -124,13 +129,12 @@
                             by = Math.max(area.top + 2, y - boxH - 16);
                         }
 
-                        ctx.save();
-                        ctx.fillStyle = '#ffffff';
-                        ctx.strokeStyle = '#3b82f6';
+                        ctx.fillStyle = '#eff6ff';
+                        ctx.strokeStyle = '#2563eb';
                         ctx.lineWidth = 1.5;
                         ctx.beginPath();
                         if (typeof ctx.roundRect === 'function') {
-                            ctx.roundRect(bx, by, boxW, boxH, 4);
+                            ctx.roundRect(bx, by, boxW, boxH, 6);
                         } else {
                             ctx.rect(bx, by, boxW, boxH);
                         }
@@ -140,11 +144,16 @@
                         ctx.moveTo(bx + boxW / 2, by + boxH);
                         ctx.lineTo(x, y - 6);
                         ctx.stroke();
-                        ctx.fillStyle = '#1e3a8a';
-                        ctx.font = '11px sans-serif';
-                        lines.forEach((line, i) => {
-                            ctx.fillText(line, bx + padX, by + 14 + i * lineH);
-                        });
+
+                        // Berat ditonjolkan
+                        ctx.fillStyle = '#1d4ed8';
+                        ctx.font = 'bold 14px sans-serif';
+                        ctx.fillText(beratText, bx + padX, by + 17);
+
+                        // Umur & tanggal sekunder
+                        ctx.fillStyle = '#6b7280';
+                        ctx.font = '10px sans-serif';
+                        ctx.fillText(metaText, bx + padX, by + 32);
                         ctx.restore();
                     });
                 },
@@ -334,9 +343,11 @@
                 .map((v) => (v === null || v === undefined || v === '' ? null : Number(v)))
                 .filter((v) => v !== null && !Number.isNaN(v));
 
-            const allNums = [...toNums(tinggi), ...toNums(berat)];
-            let yMax = allNums.length ? Math.max(...allNums) : 10;
-            yMax = Math.ceil(yMax * 1.1);
+            const beratNums = toNums(berat);
+            let yMax = beratNums.length ? Math.max(...beratNums) : 10;
+            let yMin = beratNums.length ? Math.min(...beratNums) : 0;
+            yMax = Math.ceil(yMax * 1.15);
+            yMin = Math.max(0, Math.floor(yMin * 0.85));
             if (yMax < 10) {
                 yMax = 10;
             }
@@ -347,34 +358,18 @@
                     labels,
                     datasets: [
                         {
-                            label: 'Tinggi (cm)',
-                            data: tinggi,
-                            borderColor: 'rgb(34, 197, 94)',
-                            backgroundColor: 'rgb(34, 197, 94)',
-                            borderWidth: 2.5,
-                            pointBackgroundColor: 'rgb(34, 197, 94)',
-                            pointBorderColor: '#ffffff',
-                            pointBorderWidth: 2,
-                            pointRadius: 4,
-                            pointHoverRadius: 6,
-                            pointStyle: 'circle',
-                            tension: 0,
-                            fill: false,
-                            spanGaps: true,
-                        },
-                        {
-                            label: 'Berat (kg)',
+                            label: 'Berat Badan (kg)',
                             data: berat,
-                            borderColor: 'rgb(59, 130, 246)',
-                            backgroundColor: 'rgb(59, 130, 246)',
+                            borderColor: 'rgb(37, 99, 235)',
+                            backgroundColor: 'rgb(37, 99, 235)',
                             borderWidth: 2.5,
-                            pointBackgroundColor: 'rgb(59, 130, 246)',
+                            pointBackgroundColor: 'rgb(37, 99, 235)',
                             pointBorderColor: '#ffffff',
                             pointBorderWidth: 2,
                             pointRadius: 4,
                             pointHoverRadius: 6,
                             pointStyle: 'circle',
-                            tension: 0,
+                            tension: 0.15,
                             fill: false,
                             spanGaps: true,
                         },
@@ -407,10 +402,9 @@
                                 label(ctx) {
                                     const raw = ctx.parsed.y;
                                     if (raw === null || raw === undefined) {
-                                        return `${ctx.dataset.label}: -`;
+                                        return 'Berat Badan: -';
                                     }
-                                    const unit = ctx.dataset.label.includes('Tinggi') ? 'cm' : 'kg';
-                                    return `${ctx.dataset.label}: ${Number(raw).toLocaleString('id-ID', { maximumFractionDigits: 1 })} ${unit}`;
+                                    return `Berat Badan: ${Number(raw).toLocaleString('id-ID', { maximumFractionDigits: 1 })} kg`;
                                 },
                             },
                         },
@@ -419,9 +413,15 @@
                         y: {
                             type: 'linear',
                             position: 'left',
-                            beginAtZero: true,
-                            min: 0,
+                            beginAtZero: yMin === 0,
+                            min: yMin,
                             max: yMax,
+                            title: {
+                                display: true,
+                                text: 'Berat Badan (kg)',
+                                color: '#374151',
+                                font: { size: fontSize, weight: '600' },
+                            },
                             ticks: {
                                 font: { size: fontSize },
                                 color: '#6b7280',
@@ -436,6 +436,12 @@
                         },
                         x: {
                             offset: true,
+                            title: {
+                                display: true,
+                                text: 'Tanggal Kunjungan',
+                                color: '#374151',
+                                font: { size: fontSize, weight: '600' },
+                            },
                             ticks: {
                                 font: { size: fontSize },
                                 maxRotation: 0,

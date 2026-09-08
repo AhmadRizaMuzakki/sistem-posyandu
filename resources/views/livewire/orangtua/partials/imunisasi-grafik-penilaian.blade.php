@@ -8,6 +8,7 @@
                 @if(!empty($filterBulanTahunAktif) && !empty($periodeLabel))
                     · {{ $periodeLabel }}
                 @endif
+                · berdasarkan berat badan
             @else
                 Belum ada data kunjungan untuk {{ $filterNama }}
                 @if(!empty($filterBulanTahunAktif) && !empty($periodeLabel))

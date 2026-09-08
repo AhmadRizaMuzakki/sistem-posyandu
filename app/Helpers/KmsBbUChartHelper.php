@@ -311,16 +311,20 @@ class KmsBbUChartHelper
             imageellipse($img, $pt['x'], $pt['y'], 13, 13, $white);
         }
 
-        // Callout seperti foto awal (geser horizontal jika titik berdekatan)
+        // Callout: berat ditonjolkan, umur/tanggal sekunder
         $callouts = array_slice($mapped, -3);
-        $offsetY = [-68, -90, -52];
+        $offsetY = [-64, -86, -50];
         $offsetX = [-50, 8, 40];
+        $fontBold = self::fontBoldPath() ?? $font;
         foreach ($callouts as $i => $pt) {
-            $label1 = ((int) round((float) $pt['umur'])).' bln';
-            $label2 = $pt['tanggal'] ? '('.$pt['tanggal'].')' : '';
-            $label3 = number_format((float) $pt['berat'], 1, '.', '').' kg';
-            $boxW = 84;
-            $boxH = $label2 !== '' ? 44 : 32;
+            $beratText = number_format((float) $pt['berat'], 1, '.', '').' kg';
+            $metaText = ((int) round((float) $pt['umur'])).' bln';
+            if (! empty($pt['tanggal'])) {
+                $metaText .= ' · '.$pt['tanggal'];
+            }
+
+            $boxW = max(92, (int) (strlen($metaText) * 6.4) + 20);
+            $boxH = 40;
             $bx = min(
                 $padL + $chartW - $boxW - 6,
                 max($padL + 6, $pt['x'] - (int) ($boxW / 2) + ($offsetX[$i % 3]))
@@ -332,13 +336,8 @@ class KmsBbUChartHelper
             imagefilledrectangle($img, $bx, $by, $bx + $boxW, $by + $boxH, $calloutBg);
             imagerectangle($img, $bx, $by, $bx + $boxW, $by + $boxH, $calloutBorder);
             imageline($img, (int) (($bx + $bx + $boxW) / 2), $by + $boxH, $pt['x'], $pt['y'] - 7, $calloutBorder);
-            self::text($img, $font, 10, $bx + 8, $by + 15, $label1, $childColor);
-            if ($label2 !== '') {
-                self::text($img, $font, 9, $bx + 8, $by + 28, $label2, $muted);
-                self::text($img, $font, 10, $bx + 8, $by + 40, $label3, $dark);
-            } else {
-                self::text($img, $font, 10, $bx + 8, $by + 28, $label3, $dark);
-            }
+            self::text($img, $fontBold, 13, $bx + 10, $by + 17, $beratText, $childColor);
+            self::text($img, $font, 9, $bx + 10, $by + 32, $metaText, $muted);
         }
 
         // Label SD kanan
@@ -465,6 +464,23 @@ class KmsBbUChartHelper
         }
 
         return null;
+    }
+
+    private static function fontBoldPath(): ?string
+    {
+        $candidates = [
+            'C:\\Windows\\Fonts\\segoeuib.ttf',
+            'C:\\Windows\\Fonts\\arialbd.ttf',
+            '/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf',
+            '/usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf',
+        ];
+        foreach ($candidates as $path) {
+            if (is_file($path)) {
+                return $path;
+            }
+        }
+
+        return self::fontPath();
     }
 
     private static function text($img, ?string $font, float $size, int $x, int $y, string $text, int $color): void
