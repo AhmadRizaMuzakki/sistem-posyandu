@@ -3,6 +3,7 @@
 namespace App\Livewire\SuperAdmin\Traits;
 
 use App\Helpers\ImunisasiOptions;
+use App\Helpers\TanggalInput;
 use App\Models\Imunisasi;
 use App\Models\SasaranBayibalita;
 use App\Models\SasaranRemaja;
@@ -13,7 +14,6 @@ use App\Models\PetugasKesehatan;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
-use Carbon\Carbon;
 
 trait ImunisasiCrud
 {
@@ -27,11 +27,9 @@ trait ImunisasiCrud
     public $kategori_sasaran_imunisasi = '';
     public $jenis_imunisasi = '';
     public $tanggal_imunisasi = '';
-    public $hari_imunisasi;
-    public $bulan_imunisasi;
-    public $tahun_imunisasi;
     public $tinggi_badan;
     public $berat_badan;
+    public $lingkar_kepala;
     public $tekanan_darah;
     public $gula_darah;
     public $keterangan = '';
@@ -80,12 +78,10 @@ trait ImunisasiCrud
         $this->id_sasaran_imunisasi = '';
         $this->kategori_sasaran_imunisasi = '';
         $this->jenis_imunisasi = '';
-        $this->tanggal_imunisasi = '';
-        $this->hari_imunisasi = '';
-        $this->bulan_imunisasi = '';
-        $this->tahun_imunisasi = '';
+        $this->tanggal_imunisasi = TanggalInput::toDisplay(now());
         $this->tinggi_badan = '';
         $this->berat_badan = '';
+        $this->lingkar_kepala = '';
         $this->tekanan_darah = '';
         $this->gula_darah = '';
         $this->keterangan = '';
@@ -218,9 +214,13 @@ trait ImunisasiCrud
             if ($sasaran && isset($sasaran['kategori'])) {
                 // Set kategori langsung dari list untuk menghindari konflik ID
                 $this->kategori_sasaran_imunisasi = $sasaran['kategori'];
+                if ($sasaran['kategori'] !== 'bayibalita') {
+                    $this->lingkar_kepala = '';
+                }
             }
         } else {
             $this->kategori_sasaran_imunisasi = '';
+            $this->lingkar_kepala = '';
         }
     }
 
@@ -239,9 +239,6 @@ trait ImunisasiCrud
      */
     public function storeImunisasi()
     {
-        // Gabungkan hari, bulan, tahun menjadi tanggal imunisasi
-        $this->combineTanggalImunisasi();
-
         $allowedJenis = ImunisasiOptions::allOptionValues();
         if ($this->id_imunisasi) {
             $existingJenis = Imunisasi::whereKey($this->id_imunisasi)->value('jenis_imunisasi');
@@ -255,17 +252,15 @@ trait ImunisasiCrud
             'id_sasaran_imunisasi' => 'required',
             'kategori_sasaran_imunisasi' => 'required|in:bayibalita,remaja,dewasa,pralansia,lansia',
             'jenis_imunisasi' => ['required', 'string', 'max:255', Rule::in($allowedJenis)],
-            'hari_imunisasi' => 'required|numeric|min:1|max:31',
-            'bulan_imunisasi' => 'required|numeric|min:1|max:12',
-            'tahun_imunisasi' => 'required|numeric|min:1900|max:' . date('Y'),
-            'tanggal_imunisasi' => 'required|date',
+            'tanggal_imunisasi' => TanggalInput::rules(true),
             'tinggi_badan' => 'nullable|numeric|min:0|max:300',
             'berat_badan' => 'nullable|numeric|min:0|max:300',
+            'lingkar_kepala' => 'nullable|numeric|min:0|max:100',
             'tekanan_darah' => ['nullable', 'string', 'max:20', 'regex:/^\d{2,3}\/\d{2,3}$/'],
             'gula_darah' => 'nullable|numeric|min:0|max:1000',
             'keterangan' => 'nullable|string',
             'id_petugas_kesehatan_imunisasi' => 'nullable|exists:petugas_kesehatan,id_petugas_kesehatan',
-        ], [
+        ], array_merge([
             'id_posyandu_imunisasi.required' => 'Posyandu wajib dipilih.',
             'id_posyandu_imunisasi.exists' => 'Posyandu yang dipilih tidak valid.',
             'id_sasaran_imunisasi.required' => 'Sasaran wajib dipilih.',
@@ -273,31 +268,23 @@ trait ImunisasiCrud
             'kategori_sasaran_imunisasi.in' => 'Kategori sasaran tidak valid.',
             'jenis_imunisasi.required' => 'Jenis imunisasi wajib dipilih.',
             'jenis_imunisasi.in' => 'Jenis imunisasi tidak valid. Silakan pilih dari daftar.',
-            'hari_imunisasi.required' => 'Hari imunisasi wajib diisi.',
-            'hari_imunisasi.numeric' => 'Hari imunisasi harus berupa angka.',
-            'hari_imunisasi.min' => 'Hari imunisasi minimal 1.',
-            'hari_imunisasi.max' => 'Hari imunisasi maksimal 31.',
-            'bulan_imunisasi.required' => 'Bulan imunisasi wajib diisi.',
-            'bulan_imunisasi.numeric' => 'Bulan imunisasi harus berupa angka.',
-            'bulan_imunisasi.min' => 'Bulan imunisasi minimal 1.',
-            'bulan_imunisasi.max' => 'Bulan imunisasi maksimal 12.',
-            'tahun_imunisasi.required' => 'Tahun imunisasi wajib diisi.',
-            'tahun_imunisasi.numeric' => 'Tahun imunisasi harus berupa angka.',
-            'tahun_imunisasi.min' => 'Tahun imunisasi minimal 1900.',
-            'tahun_imunisasi.max' => 'Tahun imunisasi maksimal ' . date('Y') . '.',
-            'tanggal_imunisasi.required' => 'Tanggal imunisasi wajib diisi.',
-            'tanggal_imunisasi.date' => 'Tanggal imunisasi tidak valid.',
             'tinggi_badan.numeric' => 'Tinggi badan harus berupa angka.',
             'tinggi_badan.min' => 'Tinggi badan minimal 0 cm.',
             'tinggi_badan.max' => 'Tinggi badan maksimal 300 cm.',
             'berat_badan.numeric' => 'Berat badan harus berupa angka.',
             'berat_badan.min' => 'Berat badan minimal 0 kg.',
             'berat_badan.max' => 'Berat badan maksimal 300 kg.',
+            'lingkar_kepala.numeric' => 'Lingkar kepala harus berupa angka.',
+            'lingkar_kepala.min' => 'Lingkar kepala minimal 0 cm.',
+            'lingkar_kepala.max' => 'Lingkar kepala maksimal 100 cm.',
             'tekanan_darah.regex' => 'Tekanan darah harus dalam format sistol/diastol, contoh: 120/80.',
             'gula_darah.numeric' => 'Gula darah harus berupa angka.',
             'gula_darah.min' => 'Gula darah minimal 0 mg/dL.',
             'gula_darah.max' => 'Gula darah maksimal 1000 mg/dL.',
-        ]);
+        ], TanggalInput::messages('tanggal_imunisasi', 'Tanggal imunisasi')));
+
+        $isBayibalita = $this->kategori_sasaran_imunisasi === 'bayibalita';
+        $tanggalImunisasiYmd = TanggalInput::toYmd($this->tanggal_imunisasi);
 
         $data = [
             'id_posyandu' => $this->id_posyandu_imunisasi,
@@ -306,9 +293,10 @@ trait ImunisasiCrud
             'id_sasaran' => $this->id_sasaran_imunisasi,
             'kategori_sasaran' => $this->kategori_sasaran_imunisasi,
             'jenis_imunisasi' => $this->jenis_imunisasi,
-            'tanggal_imunisasi' => $this->tanggal_imunisasi,
+            'tanggal_imunisasi' => $tanggalImunisasiYmd,
             'tinggi_badan' => $this->tinggi_badan !== '' ? $this->tinggi_badan : null,
             'berat_badan' => $this->berat_badan !== '' ? $this->berat_badan : null,
+            'lingkar_kepala' => $isBayibalita && $this->lingkar_kepala !== '' ? $this->lingkar_kepala : null,
             'tekanan_darah' => $this->tekanan_darah !== '' ? $this->tekanan_darah : null,
             'gula_darah' => $this->gula_darah !== '' ? $this->gula_darah : null,
             'keterangan' => $this->keterangan,
@@ -359,18 +347,10 @@ trait ImunisasiCrud
         );
 
         $this->jenis_imunisasi = $imunisasi->jenis_imunisasi;
-        $this->tanggal_imunisasi = $imunisasi->tanggal_imunisasi ? $imunisasi->tanggal_imunisasi->format('Y-m-d') : '';
-        if ($imunisasi->tanggal_imunisasi) {
-            $this->hari_imunisasi = $imunisasi->tanggal_imunisasi->day;
-            $this->bulan_imunisasi = $imunisasi->tanggal_imunisasi->month;
-            $this->tahun_imunisasi = $imunisasi->tanggal_imunisasi->year;
-        } else {
-            $this->hari_imunisasi = '';
-            $this->bulan_imunisasi = '';
-            $this->tahun_imunisasi = '';
-        }
+        $this->tanggal_imunisasi = TanggalInput::toDisplay($imunisasi->tanggal_imunisasi);
         $this->tinggi_badan = $imunisasi->tinggi_badan ?? '';
         $this->berat_badan = $imunisasi->berat_badan ?? '';
+        $this->lingkar_kepala = $imunisasi->lingkar_kepala ?? '';
         $this->tekanan_darah = $imunisasi->tekanan_darah ?? '';
         $this->gula_darah = $imunisasi->gula_darah ?? '';
         $this->keterangan = $imunisasi->keterangan ?? '';
@@ -389,26 +369,6 @@ trait ImunisasiCrud
 
         $this->refreshPosyandu();
         session()->flash('message', 'Data Imunisasi berhasil dihapus.');
-    }
-
-    /**
-     * Combine hari, bulan, tahun menjadi tanggal imunisasi
-     */
-    protected function combineTanggalImunisasi(): void
-    {
-        if ($this->hari_imunisasi && $this->bulan_imunisasi && $this->tahun_imunisasi) {
-            try {
-                $this->tanggal_imunisasi = Carbon::create(
-                    $this->tahun_imunisasi,
-                    $this->bulan_imunisasi,
-                    $this->hari_imunisasi
-                )->format('Y-m-d');
-            } catch (\Exception $e) {
-                $this->tanggal_imunisasi = null;
-            }
-        } else {
-            $this->tanggal_imunisasi = null;
-        }
     }
 
     /**

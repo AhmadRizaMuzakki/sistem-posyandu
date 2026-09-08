@@ -112,6 +112,7 @@
                         <th class="px-5 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Tanggal</th>
                         <th class="px-5 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Tinggi</th>
                         <th class="px-5 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Berat</th>
+                        <th class="px-5 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Lingkar Kepala</th>
                         <th class="px-5 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Tekanan Darah</th>
                         <th class="px-5 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Gula Darah</th>
                         <th class="px-5 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Status Stunting</th>
@@ -168,6 +169,13 @@
                             <td class="px-5 py-5 whitespace-nowrap text-sm text-gray-600 align-middle">
                                 @if(!is_null($imunisasi->berat_badan))
                                     {{ number_format($imunisasi->berat_badan, 1, ',', '.') }} kg
+                                @else
+                                    -
+                                @endif
+                            </td>
+                            <td class="px-5 py-5 whitespace-nowrap text-sm text-gray-600 align-middle">
+                                @if(!is_null($imunisasi->lingkar_kepala))
+                                    {{ number_format($imunisasi->lingkar_kepala, 1, ',', '.') }} cm
                                 @else
                                     -
                                 @endif

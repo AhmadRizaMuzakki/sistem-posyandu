@@ -60,10 +60,11 @@ trait OrangtuaCrud
         $this->nama_orangtua = '';
         $this->no_kk_orangtua = '';
         $this->tempat_lahir_orangtua = '';
-        $this->tanggal_lahir_orangtua = '';
-        $this->hari_lahir_orangtua = '';
-        $this->bulan_lahir_orangtua = '';
-        $this->tahun_lahir_orangtua = '';
+        $today = \App\Helpers\TanggalInput::todayParts();
+        $this->tanggal_lahir_orangtua = $today['ymd'];
+        $this->hari_lahir_orangtua = $today['hari'];
+        $this->bulan_lahir_orangtua = $today['bulan'];
+        $this->tahun_lahir_orangtua = $today['tahun'];
         $this->pekerjaan_orangtua = '';
         $this->pendidikan_orangtua = '';
         $this->kelamin_orangtua = '';

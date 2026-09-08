@@ -160,6 +160,7 @@
                     <th>Tanggal</th>
                     <th>Tinggi (cm)</th>
                     <th>Berat (kg)</th>
+                    <th>Lingkar Kepala (cm)</th>
                     <th>Tekanan Darah</th>
                     <th>Gula Darah</th>
                     <th>Status Stunting</th>
@@ -178,6 +179,7 @@
                         <td class="text-center">{{ $row->tanggal_imunisasi }}</td>
                         <td class="text-center">{{ $row->tinggi_badan }}</td>
                         <td class="text-center">{{ $row->berat_badan }}</td>
+                        <td class="text-center">{{ $row->lingkar_kepala ?? '-' }}</td>
                         <td class="text-center">{{ $row->tekanan_darah ?? '-' }}</td>
                         <td class="text-center">{{ $row->gula_darah ?? '-' }}</td>
                         <td class="text-center">{{ $row->status_stunting ?? '-' }}</td>
@@ -194,16 +196,25 @@
         <table class="keep-block">
             <tr>
                 <td>
-                    <h3 class="section-title" style="margin-top:0;">Grafik Pertumbuhan</h3>
                     @if(!empty($grafikChartUri))
-                        @php $grafik = ($grafikPertumbuhan[0] ?? null); @endphp
-                        <p class="chart-note">
-                            {{ $grafik['nama'] ?? $filterNama }}
-                            @if(!empty($grafik['kategori'])) — {{ $grafik['kategori'] }} @endif
-                            @if(!empty($periodeLabel)) · {{ $periodeLabel }} @endif
-                        </p>
-                        <img class="chart-img" src="{{ $grafikChartUri }}" alt="Grafik Pertumbuhan">
+                        @php
+                            $grafik = ($grafikPertumbuhan[0] ?? null);
+                            $isKmsPdf = ($grafik['chart_mode'] ?? '') === 'kms_bb_u';
+                        @endphp
+                        @if($isKmsPdf)
+                            {{-- Judul & keterangan sudah ada di dalam gambar KMS --}}
+                            <img class="chart-img" src="{{ $grafikChartUri }}" alt="Kartu Menuju Sehat BB/U">
+                        @else
+                            <h3 class="section-title" style="margin-top:0;">Grafik Pertumbuhan</h3>
+                            <p class="chart-note">
+                                {{ $grafik['nama'] ?? $filterNama }}
+                                @if(!empty($grafik['kategori'])) — {{ $grafik['kategori'] }} @endif
+                                @if(!empty($periodeLabel)) · {{ $periodeLabel }} @endif
+                            </p>
+                            <img class="chart-img" src="{{ $grafikChartUri }}" alt="Grafik Pertumbuhan">
+                        @endif
                     @else
+                        <h3 class="section-title" style="margin-top:0;">Grafik Pertumbuhan</h3>
                         <p class="mt-1">Grafik belum tersedia (data tinggi/berat belum lengkap).</p>
                     @endif
                 </td>
@@ -275,15 +286,24 @@
                                     </div>
                                 </td>
                                 <td>
+                                    <div class="stat-label">Lingkar Kepala</div>
+                                    <div class="stat-value">
+                                        {{ isset($item['lingkar_kepala']) && $item['lingkar_kepala'] !== null ? number_format((float) $item['lingkar_kepala'], 1, ',', '.') . ' cm' : '-' }}
+                                    </div>
+                                </td>
+                                <td>
                                     <div class="stat-label">Tekanan Darah</div>
                                     <div class="stat-value">{{ !empty($item['tekanan_darah']) ? $item['tekanan_darah'] . ' mmHg' : '-' }}</div>
                                 </td>
+                            </tr>
+                            <tr>
                                 <td>
                                     <div class="stat-label">Gula Darah</div>
                                     <div class="stat-value">
                                         {{ isset($item['gula_darah']) && $item['gula_darah'] !== null ? number_format((float) $item['gula_darah'], 0, ',', '.') . ' mg/dL' : '-' }}
                                     </div>
                                 </td>
+                                <td colspan="3"></td>
                             </tr>
                         </table>
 

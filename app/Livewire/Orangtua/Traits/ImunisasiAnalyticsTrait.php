@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Orangtua\Traits;
 
+use App\Helpers\KmsBbUChartHelper;
 use App\Models\Imunisasi;
 use App\Models\SasaranBayibalita;
 use App\Models\SasaranDewasa;
@@ -173,6 +174,7 @@ trait ImunisasiAnalyticsTrait
             $berat = [];
             $tinggi = [];
             $imt = [];
+            $kmsPoints = [];
 
             foreach ($records as $im) {
                 if ($im->tanggal_imunisasi === null) {
@@ -185,17 +187,40 @@ trait ImunisasiAnalyticsTrait
                     $im->berat_badan !== null ? (float) $im->berat_badan : null,
                     $im->tinggi_badan !== null ? (float) $im->tinggi_badan : null
                 );
+
+                if ($im->berat_badan !== null && $tanggalLahir) {
+                    $umurBulan = $antropometri->hitungUmurBulan($tanggalLahir, Carbon::parse($im->tanggal_imunisasi));
+                    if ($umurBulan !== null) {
+                        $kmsPoints[] = [
+                            'umur_bulan' => $umurBulan,
+                            'berat' => (float) $im->berat_badan,
+                            'tanggal' => $im->tanggal_imunisasi->format('d/m/Y'),
+                        ];
+                    }
+                }
             }
 
             if (count($labels) > 0) {
+                $kms = KmsBbUChartHelper::buildPayload(
+                    $sasaran['nama'],
+                    $sasaran['jenis_kelamin'] ?? null,
+                    $tanggalLahir,
+                    $kmsPoints,
+                    $sasaran['kategori_slug']
+                );
+
                 $grafikPertumbuhan[] = [
                     'nama' => $sasaran['nama'],
                     'kategori' => $sasaran['kategori'],
                     'kategori_slug' => $sasaran['kategori_slug'],
+                    'jenis_kelamin' => $sasaran['jenis_kelamin'] ?? null,
+                    'tanggal_lahir' => $tanggalLahir?->format('d/m/Y'),
                     'labels' => $labels,
                     'berat' => $berat,
                     'tinggi' => $tinggi,
                     'imt' => $imt,
+                    'chart_mode' => $kms ? 'kms_bb_u' : 'line',
+                    'kms' => $kms,
                 ];
             }
 

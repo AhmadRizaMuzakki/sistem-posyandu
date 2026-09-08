@@ -79,6 +79,379 @@
             });
         }
 
+        function xySeries(series) {
+            return (series || []).map((pt) => ({ x: Number(pt.x), y: Number(pt.y) }));
+        }
+
+        function kmsCalloutPlugin(points) {
+            return {
+                id: 'kmsCallouts',
+                afterDatasetsDraw(chart) {
+                    if (!points || !points.length) {
+                        return;
+                    }
+                    const meta = chart.getDatasetMeta(chart.data.datasets.length - 1);
+                    if (!meta || !meta.data) {
+                        return;
+                    }
+                    const ctx = chart.ctx;
+                    const sample = points.slice(-Math.min(3, points.length));
+                    const offsets = [-56, -78, -56];
+
+                    sample.forEach((pt, idx) => {
+                        const el = meta.data[points.length - sample.length + idx];
+                        if (!el) {
+                            return;
+                        }
+                        const x = el.x;
+                        const y = el.y;
+                        const lines = [
+                            `${Math.round(Number(pt.umur_bulan))} bln`,
+                            pt.tanggal ? `(${pt.tanggal})` : null,
+                            `${Number(pt.berat).toLocaleString('id-ID', { maximumFractionDigits: 1 })} kg`,
+                        ].filter(Boolean);
+
+                        const padX = 8;
+                        const lineH = 12;
+                        const boxW = 86;
+                        const boxH = 8 + lines.length * lineH;
+                        let bx = x - boxW / 2;
+                        let by = y + offsets[idx % offsets.length];
+                        const area = chart.chartArea;
+                        bx = Math.max(area.left + 2, Math.min(bx, area.right - boxW - 2));
+                        by = Math.max(area.top + 2, Math.min(by, area.bottom - boxH - 2));
+                        if (by + boxH + 10 > y) {
+                            by = Math.max(area.top + 2, y - boxH - 16);
+                        }
+
+                        ctx.save();
+                        ctx.fillStyle = '#ffffff';
+                        ctx.strokeStyle = '#3b82f6';
+                        ctx.lineWidth = 1.5;
+                        ctx.beginPath();
+                        if (typeof ctx.roundRect === 'function') {
+                            ctx.roundRect(bx, by, boxW, boxH, 4);
+                        } else {
+                            ctx.rect(bx, by, boxW, boxH);
+                        }
+                        ctx.fill();
+                        ctx.stroke();
+                        ctx.beginPath();
+                        ctx.moveTo(bx + boxW / 2, by + boxH);
+                        ctx.lineTo(x, y - 6);
+                        ctx.stroke();
+                        ctx.fillStyle = '#1e3a8a';
+                        ctx.font = '11px sans-serif';
+                        lines.forEach((line, i) => {
+                            ctx.fillText(line, bx + padX, by + 14 + i * lineH);
+                        });
+                        ctx.restore();
+                    });
+                },
+            };
+        }
+
+        function buildKmsChart(canvas, kms, fontSize) {
+            const curves = kms.curves || {};
+            const yMin = Number(kms.y_min ?? 2);
+            const yMax = Number(kms.y_max ?? 26);
+            const xMin = Number(kms.x_min ?? 0);
+            const xMax = Number(kms.x_max ?? 60);
+            const childPoints = (kms.points || []).map((p) => ({
+                x: Number(p.umur_bulan),
+                y: Number(p.berat),
+                umur_bulan: p.umur_bulan,
+                tanggal: p.tanggal,
+                berat: p.berat,
+            }));
+
+            const zoneLine = (data, bg, border = 'rgba(146,64,14,0.45)') => ({
+                data,
+                borderColor: border,
+                backgroundColor: bg,
+                borderWidth: 1,
+                borderDash: [4, 3],
+                pointRadius: 0,
+                pointHoverRadius: 0,
+                tension: 0.15,
+                fill: false,
+                order: 10,
+            });
+
+            const datasets = [
+                {
+                    ...zoneLine(xySeries(curves.sd3_min), 'rgba(254,202,202,0.72)', 'rgba(146,64,14,0.35)'),
+                    label: '< −3 SD',
+                    fill: { value: yMin },
+                },
+                {
+                    ...zoneLine(xySeries(curves.min), 'rgba(253,224,71,0.55)'),
+                    label: '−3 s/d −2 SD',
+                    fill: '-1',
+                },
+                {
+                    ...zoneLine(xySeries(curves.sd1_min), 'rgba(187,247,208,0.55)'),
+                    label: '−2 s/d −1 SD',
+                    fill: '-1',
+                },
+                {
+                    ...zoneLine(xySeries(curves.sd1_max), 'rgba(74,222,128,0.55)'),
+                    label: '−1 s/d +1 SD',
+                    fill: '-1',
+                },
+                {
+                    ...zoneLine(xySeries(curves.max), 'rgba(187,247,208,0.55)'),
+                    label: '+1 s/d +2 SD',
+                    fill: '-1',
+                },
+                {
+                    label: '> +2 SD',
+                    data: xySeries(curves.max).map((p) => ({ x: p.x, y: yMax })),
+                    borderWidth: 0,
+                    pointRadius: 0,
+                    backgroundColor: 'rgba(253,186,116,0.50)',
+                    fill: '-1',
+                    order: 10,
+                },
+                {
+                    label: 'Median (0 SD)',
+                    data: xySeries(curves.median),
+                    borderColor: 'rgb(21,128,61)',
+                    backgroundColor: 'rgb(21,128,61)',
+                    borderWidth: 2.5,
+                    pointRadius: 0,
+                    tension: 0.15,
+                    fill: false,
+                    order: 5,
+                },
+                {
+                    label: '+3 SD',
+                    data: xySeries(curves.sd3_max),
+                    borderColor: 'rgba(220,38,38,0.55)',
+                    borderWidth: 1,
+                    borderDash: [4, 3],
+                    pointRadius: 0,
+                    tension: 0.15,
+                    fill: false,
+                    order: 6,
+                },
+                {
+                    label: 'Data Anak',
+                    data: childPoints,
+                    borderColor: 'rgb(37,99,235)',
+                    backgroundColor: 'rgb(37,99,235)',
+                    borderWidth: 2.5,
+                    pointBackgroundColor: 'rgb(37,99,235)',
+                    pointBorderColor: '#ffffff',
+                    pointBorderWidth: 2,
+                    pointRadius: 5,
+                    pointHoverRadius: 7,
+                    tension: 0,
+                    fill: false,
+                    order: 1,
+                },
+            ];
+
+            return new Chart(canvas.getContext('2d'), {
+                type: 'line',
+                data: { datasets },
+                plugins: [kmsCalloutPlugin(kms.points || [])],
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    parsing: false,
+                    interaction: { mode: 'nearest', intersect: false, axis: 'x' },
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top',
+                            labels: {
+                                font: { size: fontSize - 1 },
+                                boxWidth: 10,
+                                filter(item) {
+                                    return ['Data Anak', 'Median (0 SD)'].includes(item.text);
+                                },
+                            },
+                        },
+                        tooltip: {
+                            filter(ctx) {
+                                return ctx.dataset.label === 'Data Anak';
+                            },
+                            callbacks: {
+                                title(items) {
+                                    const raw = items[0]?.raw;
+                                    if (!raw) return '';
+                                    return `${Math.round(Number(raw.x))} bulan` + (raw.tanggal ? ` · ${raw.tanggal}` : '');
+                                },
+                                label(ctx) {
+                                    return `Berat: ${Number(ctx.parsed.y).toLocaleString('id-ID', { maximumFractionDigits: 1 })} kg`;
+                                },
+                            },
+                        },
+                    },
+                    scales: {
+                        x: {
+                            type: 'linear',
+                            min: xMin,
+                            max: xMax,
+                            title: {
+                                display: true,
+                                text: 'Umur (Bulan)',
+                                color: '#374151',
+                                font: { size: fontSize, weight: '600' },
+                            },
+                            ticks: {
+                                stepSize: 6,
+                                font: { size: fontSize },
+                                color: '#6b7280',
+                            },
+                            grid: { color: 'rgba(156,163,175,0.28)' },
+                        },
+                        y: {
+                            type: 'linear',
+                            min: yMin,
+                            max: yMax,
+                            title: {
+                                display: true,
+                                text: 'Berat Badan (kg)',
+                                color: '#374151',
+                                font: { size: fontSize, weight: '600' },
+                            },
+                            ticks: {
+                                stepSize: 2,
+                                font: { size: fontSize },
+                                color: '#6b7280',
+                            },
+                            grid: { color: 'rgba(156,163,175,0.28)' },
+                        },
+                    },
+                },
+            });
+        }
+
+        function buildLineChart(canvas, labels, berat, tinggi, fontSize) {
+            const toNums = (arr) => arr
+                .map((v) => (v === null || v === undefined || v === '' ? null : Number(v)))
+                .filter((v) => v !== null && !Number.isNaN(v));
+
+            const allNums = [...toNums(tinggi), ...toNums(berat)];
+            let yMax = allNums.length ? Math.max(...allNums) : 10;
+            yMax = Math.ceil(yMax * 1.1);
+            if (yMax < 10) {
+                yMax = 10;
+            }
+
+            return new Chart(canvas.getContext('2d'), {
+                type: 'line',
+                data: {
+                    labels,
+                    datasets: [
+                        {
+                            label: 'Tinggi (cm)',
+                            data: tinggi,
+                            borderColor: 'rgb(34, 197, 94)',
+                            backgroundColor: 'rgb(34, 197, 94)',
+                            borderWidth: 2.5,
+                            pointBackgroundColor: 'rgb(34, 197, 94)',
+                            pointBorderColor: '#ffffff',
+                            pointBorderWidth: 2,
+                            pointRadius: 4,
+                            pointHoverRadius: 6,
+                            pointStyle: 'circle',
+                            tension: 0,
+                            fill: false,
+                            spanGaps: true,
+                        },
+                        {
+                            label: 'Berat (kg)',
+                            data: berat,
+                            borderColor: 'rgb(59, 130, 246)',
+                            backgroundColor: 'rgb(59, 130, 246)',
+                            borderWidth: 2.5,
+                            pointBackgroundColor: 'rgb(59, 130, 246)',
+                            pointBorderColor: '#ffffff',
+                            pointBorderWidth: 2,
+                            pointRadius: 4,
+                            pointHoverRadius: 6,
+                            pointStyle: 'circle',
+                            tension: 0,
+                            fill: false,
+                            spanGaps: true,
+                        },
+                    ],
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: { mode: 'index', intersect: false },
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top',
+                            align: 'center',
+                            labels: {
+                                font: { size: fontSize },
+                                boxWidth: 12,
+                                boxHeight: 12,
+                                usePointStyle: true,
+                                pointStyle: 'line',
+                                padding: 16,
+                            },
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(17, 24, 39, 0.92)',
+                            titleFont: { size: fontSize },
+                            bodyFont: { size: fontSize },
+                            padding: 10,
+                            callbacks: {
+                                label(ctx) {
+                                    const raw = ctx.parsed.y;
+                                    if (raw === null || raw === undefined) {
+                                        return `${ctx.dataset.label}: -`;
+                                    }
+                                    const unit = ctx.dataset.label.includes('Tinggi') ? 'cm' : 'kg';
+                                    return `${ctx.dataset.label}: ${Number(raw).toLocaleString('id-ID', { maximumFractionDigits: 1 })} ${unit}`;
+                                },
+                            },
+                        },
+                    },
+                    scales: {
+                        y: {
+                            type: 'linear',
+                            position: 'left',
+                            beginAtZero: true,
+                            min: 0,
+                            max: yMax,
+                            ticks: {
+                                font: { size: fontSize },
+                                color: '#6b7280',
+                                callback(value) {
+                                    return Number(value).toLocaleString('id-ID', { maximumFractionDigits: 0 });
+                                },
+                            },
+                            grid: {
+                                color: 'rgba(156, 163, 175, 0.35)',
+                                drawBorder: false,
+                            },
+                        },
+                        x: {
+                            offset: true,
+                            ticks: {
+                                font: { size: fontSize },
+                                maxRotation: 0,
+                                autoSkip: true,
+                                color: '#6b7280',
+                            },
+                            grid: {
+                                display: false,
+                                drawBorder: false,
+                            },
+                        },
+                    },
+                },
+            });
+        }
+
         function initOrangtuaCharts(root) {
             destroyOrangtuaCharts(root);
 
@@ -92,141 +465,27 @@
                 const fontSize = isMobile ? 11 : 12;
 
                 canvases.forEach((canvas) => {
-                    let labels, berat, tinggi;
+                    let labels, berat, tinggi, kms, mode;
                     try {
                         labels = JSON.parse(canvas.dataset.labels || '[]');
                         berat = JSON.parse(canvas.dataset.berat || '[]');
                         tinggi = JSON.parse(canvas.dataset.tinggi || '[]');
+                        kms = JSON.parse(canvas.dataset.kms || 'null');
+                        mode = canvas.dataset.mode || 'line';
                     } catch (e) {
                         return;
                     }
 
-                    if (!labels.length) {
-                        return;
+                    let chart = null;
+                    if (mode === 'kms_bb_u' && kms && kms.curves) {
+                        chart = buildKmsChart(canvas, kms, fontSize);
+                    } else if (labels.length) {
+                        chart = buildLineChart(canvas, labels, berat, tinggi, fontSize);
                     }
 
-                    const toNums = (arr) => arr
-                        .map((v) => (v === null || v === undefined || v === '' ? null : Number(v)))
-                        .filter((v) => v !== null && !Number.isNaN(v));
-
-                    const allNums = [...toNums(tinggi), ...toNums(berat)];
-                    let yMax = allNums.length ? Math.max(...allNums) : 10;
-                    yMax = Math.ceil(yMax * 1.1);
-                    if (yMax < 10) {
-                        yMax = 10;
+                    if (chart) {
+                        chartInstances.set(canvas, chart);
                     }
-
-                    const chart = new Chart(canvas.getContext('2d'), {
-                        type: 'line',
-                        data: {
-                            labels,
-                            datasets: [
-                                {
-                                    label: 'Tinggi (cm)',
-                                    data: tinggi,
-                                    borderColor: 'rgb(34, 197, 94)',
-                                    backgroundColor: 'rgb(34, 197, 94)',
-                                    borderWidth: 2.5,
-                                    pointBackgroundColor: 'rgb(34, 197, 94)',
-                                    pointBorderColor: '#ffffff',
-                                    pointBorderWidth: 2,
-                                    pointRadius: 4,
-                                    pointHoverRadius: 6,
-                                    pointStyle: 'circle',
-                                    tension: 0,
-                                    fill: false,
-                                    spanGaps: true,
-                                },
-                                {
-                                    label: 'Berat (kg)',
-                                    data: berat,
-                                    borderColor: 'rgb(59, 130, 246)',
-                                    backgroundColor: 'rgb(59, 130, 246)',
-                                    borderWidth: 2.5,
-                                    pointBackgroundColor: 'rgb(59, 130, 246)',
-                                    pointBorderColor: '#ffffff',
-                                    pointBorderWidth: 2,
-                                    pointRadius: 4,
-                                    pointHoverRadius: 6,
-                                    pointStyle: 'circle',
-                                    tension: 0,
-                                    fill: false,
-                                    spanGaps: true,
-                                },
-                            ],
-                        },
-                        options: {
-                            responsive: true,
-                            maintainAspectRatio: false,
-                            interaction: { mode: 'index', intersect: false },
-                            plugins: {
-                                legend: {
-                                    display: true,
-                                    position: 'top',
-                                    align: 'center',
-                                    labels: {
-                                        font: { size: fontSize },
-                                        boxWidth: 12,
-                                        boxHeight: 12,
-                                        usePointStyle: true,
-                                        pointStyle: 'line',
-                                        padding: 16,
-                                    },
-                                },
-                                tooltip: {
-                                    backgroundColor: 'rgba(17, 24, 39, 0.92)',
-                                    titleFont: { size: fontSize },
-                                    bodyFont: { size: fontSize },
-                                    padding: 10,
-                                    callbacks: {
-                                        label(ctx) {
-                                            const raw = ctx.parsed.y;
-                                            if (raw === null || raw === undefined) {
-                                                return `${ctx.dataset.label}: -`;
-                                            }
-                                            const unit = ctx.dataset.label.includes('Tinggi') ? 'cm' : 'kg';
-                                            return `${ctx.dataset.label}: ${Number(raw).toLocaleString('id-ID', { maximumFractionDigits: 1 })} ${unit}`;
-                                        },
-                                    },
-                                },
-                            },
-                            scales: {
-                                y: {
-                                    type: 'linear',
-                                    position: 'left',
-                                    beginAtZero: true,
-                                    min: 0,
-                                    max: yMax,
-                                    ticks: {
-                                        font: { size: fontSize },
-                                        color: '#6b7280',
-                                        callback(value) {
-                                            return Number(value).toLocaleString('id-ID', { maximumFractionDigits: 0 });
-                                        },
-                                    },
-                                    grid: {
-                                        color: 'rgba(156, 163, 175, 0.35)',
-                                        drawBorder: false,
-                                    },
-                                },
-                                x: {
-                                    offset: true,
-                                    ticks: {
-                                        font: { size: fontSize },
-                                        maxRotation: 0,
-                                        autoSkip: true,
-                                        color: '#6b7280',
-                                    },
-                                    grid: {
-                                        display: false,
-                                        drawBorder: false,
-                                    },
-                                },
-                            },
-                        },
-                    });
-
-                    chartInstances.set(canvas, chart);
                 });
             });
         }

@@ -157,50 +157,17 @@
                         </div>
 
                         {{-- Tanggal Lahir --}}
-                        <div>
-                            <label class="block text-gray-700 text-sm font-bold mb-2">Tanggal Lahir <span class="text-red-500">*</span></label>
-                            <div class="grid grid-cols-3 gap-2">
-                                <div>
-                                    <select wire:model.live="hari_lahir_pendidikan"
-                                            class="shadow border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-primary focus:border-primary">
-                                        <option value="">Hari</option>
-                                        @for($i = 1; $i <= 31; $i++)
-                                            <option value="{{ $i }}" @if($hari_lahir_pendidikan == $i) selected @endif>{{ $i }}</option>
-                                        @endfor
-                                    </select>
-                                    @error('hari_lahir_pendidikan') <span class="text-red-500 text-xs">{{ $message }}</span>@enderror
-                                </div>
-                                <div>
-                                    <select wire:model.live="bulan_lahir_pendidikan"
-                                            class="shadow border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-primary focus:border-primary">
-                                        <option value="">Bulan</option>
-                                        <option value="1" @if($bulan_lahir_pendidikan == 1) selected @endif>Januari</option>
-                                        <option value="2" @if($bulan_lahir_pendidikan == 2) selected @endif>Februari</option>
-                                        <option value="3" @if($bulan_lahir_pendidikan == 3) selected @endif>Maret</option>
-                                        <option value="4" @if($bulan_lahir_pendidikan == 4) selected @endif>April</option>
-                                        <option value="5" @if($bulan_lahir_pendidikan == 5) selected @endif>Mei</option>
-                                        <option value="6" @if($bulan_lahir_pendidikan == 6) selected @endif>Juni</option>
-                                        <option value="7" @if($bulan_lahir_pendidikan == 7) selected @endif>Juli</option>
-                                        <option value="8" @if($bulan_lahir_pendidikan == 8) selected @endif>Agustus</option>
-                                        <option value="9" @if($bulan_lahir_pendidikan == 9) selected @endif>September</option>
-                                        <option value="10" @if($bulan_lahir_pendidikan == 10) selected @endif>Oktober</option>
-                                        <option value="11" @if($bulan_lahir_pendidikan == 11) selected @endif>November</option>
-                                        <option value="12" @if($bulan_lahir_pendidikan == 12) selected @endif>Desember</option>
-                                    </select>
-                                    @error('bulan_lahir_pendidikan') <span class="text-red-500 text-xs">{{ $message }}</span>@enderror
-                                </div>
-                                <div>
-                                    <input type="number"
-                                           wire:model.live="tahun_lahir_pendidikan"
-                                           min="1900"
-                                           max="{{ date('Y') }}"
-                                           class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-primary focus:border-primary"
-                                           placeholder="Tahun">
-                                    @error('tahun_lahir_pendidikan') <span class="text-red-500 text-xs">{{ $message }}</span>@enderror
-                                </div>
-                            </div>
-                            @error('tanggal_lahir_pendidikan') <span class="text-red-500 text-xs">{{ $message }}</span>@enderror
-                        </div>
+                        <x-tanggal-dmy-input
+                            label="Tanggal Lahir"
+                            :required="true"
+                            hari="hari_lahir_pendidikan"
+                            bulan="bulan_lahir_pendidikan"
+                            tahun="tahun_lahir_pendidikan"
+                            error-hari="hari_lahir_pendidikan"
+                            error-bulan="bulan_lahir_pendidikan"
+                            error-tahun="tahun_lahir_pendidikan"
+                            error-tanggal="tanggal_lahir_pendidikan"
+                        />
 
                         {{-- Jenis Kelamin & Umur --}}
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">

@@ -108,12 +108,13 @@
         .col-umur { width: 5%; }
         .col-tgl { width: 7%; }
         .col-jenis { width: 11%; }
-        .col-tb { width: 6%; }
-        .col-bb { width: 6%; }
-        .col-td { width: 8%; }
-        .col-gd { width: 7%; }
+        .col-tb { width: 5%; }
+        .col-bb { width: 5%; }
+        .col-lk { width: 6%; }
+        .col-td { width: 7%; }
+        .col-gd { width: 6%; }
         .col-stunting { width: 8%; }
-        .col-ket { width: 11%; }
+        .col-ket { width: 10%; }
         .text-center { text-align: center; }
         .mt-2 { margin-top: 6px; }
         .mt-1 { margin-top: 4px; }
@@ -215,6 +216,7 @@
                     <th class="col-jenis">Jenis Imunisasi</th>
                     <th class="col-tb">Tinggi (cm)</th>
                     <th class="col-bb">Berat (kg)</th>
+                    <th class="col-lk">Lingkar Kepala (cm)</th>
                     <th class="col-td">Tekanan Darah</th>
                     <th class="col-gd">Gula Darah</th>
                     <th class="col-stunting">Status Stunting</th>
@@ -264,6 +266,9 @@
                         </td>
                         <td class="text-center">
                             {{ $imunisasi->berat_badan !== null ? number_format((float) $imunisasi->berat_badan, 1, ',', '') : '-' }}
+                        </td>
+                        <td class="text-center">
+                            {{ $imunisasi->lingkar_kepala !== null ? number_format((float) $imunisasi->lingkar_kepala, 1, ',', '') : '-' }}
                         </td>
                         <td class="text-center">
                             {{ $imunisasi->tekanan_darah ? $imunisasi->tekanan_darah.' mmHg' : '-' }}

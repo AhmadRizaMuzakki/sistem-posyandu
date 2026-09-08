@@ -91,6 +91,13 @@ trait PendidikanCrud
         foreach ($fields as $key => $value) {
             $this->$key = $value;
         }
+
+        $today = \App\Helpers\TanggalInput::todayParts();
+        $this->tanggal_lahir_pendidikan = $today['ymd'];
+        $this->hari_lahir_pendidikan = $today['hari'];
+        $this->bulan_lahir_pendidikan = $today['bulan'];
+        $this->tahun_lahir_pendidikan = $today['tahun'];
+        $this->umur_pendidikan = 0;
     }
 
     /**

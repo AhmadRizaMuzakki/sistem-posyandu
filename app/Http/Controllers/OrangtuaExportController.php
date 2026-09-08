@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Helpers\KmsBbUChartHelper;
 use App\Models\Imunisasi;
 use App\Models\SasaranBayibalita;
 use App\Models\SasaranDewasa;
@@ -75,6 +76,7 @@ class OrangtuaExportController extends Controller
                     'tanggal_imunisasi' => $im->tanggal_imunisasi ? $im->tanggal_imunisasi->format('d/m/Y') : '-',
                     'tinggi_badan' => $im->tinggi_badan !== null ? number_format($im->tinggi_badan, 1, ',', '.') : '-',
                     'berat_badan' => $im->berat_badan !== null ? number_format($im->berat_badan, 1, ',', '.') : '-',
+                    'lingkar_kepala' => $im->lingkar_kepala !== null ? number_format($im->lingkar_kepala, 1, ',', '.') : '-',
                     'tekanan_darah' => $im->tekanan_darah ? $im->tekanan_darah . ' mmHg' : '-',
                     'gula_darah' => $im->gula_darah !== null ? number_format($im->gula_darah, 0, ',', '.') . ' mg/dL' : '-',
                     'status_stunting' => $antropometri->labelStatusStunting(
@@ -103,13 +105,17 @@ class OrangtuaExportController extends Controller
 
             $grafik = $grafikPertumbuhan[0] ?? null;
             if ($grafik) {
-                $grafikChartUri = \App\Helpers\PdfChartHelper::pertumbuhanChartDataUri(
-                    $grafik['labels'] ?? [],
-                    $grafik['tinggi'] ?? [],
-                    $grafik['berat'] ?? [],
-                    760,
-                    220
-                );
+                if (($grafik['chart_mode'] ?? '') === 'kms_bb_u' && ! empty($grafik['kms'])) {
+                    $grafikChartUri = KmsBbUChartHelper::pdfDataUri($grafik['kms'], 1600, 1000);
+                } else {
+                    $grafikChartUri = \App\Helpers\PdfChartHelper::pertumbuhanChartDataUri(
+                        $grafik['labels'] ?? [],
+                        $grafik['tinggi'] ?? [],
+                        $grafik['berat'] ?? [],
+                        760,
+                        220
+                    );
+                }
             }
         }
 
@@ -314,6 +320,7 @@ class OrangtuaExportController extends Controller
             $labels = [];
             $berat = [];
             $tinggi = [];
+            $kmsPoints = [];
 
             foreach ($records as $im) {
                 if ($im->tanggal_imunisasi === null) {
@@ -322,15 +329,38 @@ class OrangtuaExportController extends Controller
                 $labels[] = $im->tanggal_imunisasi->format('d/m/Y');
                 $berat[] = $im->berat_badan !== null ? (float) $im->berat_badan : null;
                 $tinggi[] = $im->tinggi_badan !== null ? (float) $im->tinggi_badan : null;
+
+                if ($im->berat_badan !== null && $tanggalLahir) {
+                    $umurBulan = $antropometri->hitungUmurBulan($tanggalLahir, Carbon::parse($im->tanggal_imunisasi));
+                    if ($umurBulan !== null) {
+                        $kmsPoints[] = [
+                            'umur_bulan' => $umurBulan,
+                            'berat' => (float) $im->berat_badan,
+                            'tanggal' => $im->tanggal_imunisasi->format('d/m/Y'),
+                        ];
+                    }
+                }
             }
 
             if (count($labels) > 0) {
+                $slug = $sasaran['kategori'] ?? '';
+                $kms = KmsBbUChartHelper::buildPayload(
+                    $sasaran['nama'] ?? '-',
+                    $sasaran['jenis_kelamin'] ?? null,
+                    $tanggalLahir,
+                    $kmsPoints,
+                    $slug
+                );
+
                 $grafikPertumbuhan[] = [
                     'nama' => $sasaran['nama'] ?? '-',
-                    'kategori' => $this->kategoriLabel($sasaran['kategori'] ?? ''),
+                    'kategori' => $this->kategoriLabel($slug),
+                    'kategori_slug' => $slug,
                     'labels' => $labels,
                     'berat' => $berat,
                     'tinggi' => $tinggi,
+                    'chart_mode' => $kms ? 'kms_bb_u' : 'line',
+                    'kms' => $kms,
                 ];
             }
 
@@ -386,6 +416,7 @@ class OrangtuaExportController extends Controller
                 'jenis_imunisasi' => $terakhir?->jenis_imunisasi,
                 'berat_badan' => $card['berat_badan'] ?? $terakhir?->berat_badan,
                 'tinggi_badan' => $card['tinggi_badan'] ?? $terakhir?->tinggi_badan,
+                'lingkar_kepala' => $terakhir?->lingkar_kepala,
                 'tekanan_darah' => $card['tekanan_darah'] ?? $terakhir?->tekanan_darah,
                 'gula_darah' => $card['gula_darah'] ?? $terakhir?->gula_darah,
                 'indeks' => $card['indeks'] ?? ($penilaian['indeks'] ?? []),

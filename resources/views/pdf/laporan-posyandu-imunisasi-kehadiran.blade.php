@@ -207,6 +207,7 @@
                         <th>Jenis Imunisasi</th>
                         <th>Tinggi (cm)</th>
                         <th>Berat (kg)</th>
+                        <th>Lingkar Kepala (cm)</th>
                         <th>Tekanan Darah</th>
                         <th>Gula Darah</th>
                         <th>Status Stunting</th>
@@ -280,6 +281,13 @@
                         <td class="text-center">
                             @if ($imunisasi && $imunisasi->berat_badan !== null)
                                 {{ number_format((float) $imunisasi->berat_badan, 1, ',', '') }}
+                            @else
+                                -
+                            @endif
+                        </td>
+                        <td class="text-center">
+                            @if ($imunisasi && $imunisasi->lingkar_kepala !== null)
+                                {{ number_format((float) $imunisasi->lingkar_kepala, 1, ',', '') }}
                             @else
                                 -
                             @endif

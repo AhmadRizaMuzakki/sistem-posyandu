@@ -20,6 +20,7 @@ class Imunisasi extends Model
         'tanggal_imunisasi',
         'tinggi_badan',
         'berat_badan',
+        'lingkar_kepala',
         'tekanan_darah',
         'gula_darah',
         'keterangan',
@@ -29,6 +30,7 @@ class Imunisasi extends Model
         'tanggal_imunisasi' => 'date',
         'tinggi_badan' => 'decimal:2',
         'berat_badan' => 'decimal:2',
+        'lingkar_kepala' => 'decimal:2',
         'gula_darah' => 'decimal:2',
     ];
 
