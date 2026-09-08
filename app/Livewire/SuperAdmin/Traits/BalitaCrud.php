@@ -640,7 +640,32 @@ trait BalitaCrud
     {
         $totalAnggota = $this->getTotalAnggotaFromCounts($noKk, $counts);
 
-        if ($type === 'orangtua' && $source) {
+        // Orangtua relation can be missing (orphan nik_orangtua) — still expose the No KK
+        if (!$source) {
+            return [
+                'no_kk' => $noKk,
+                'nama_orangtua' => '-',
+                'jumlah_anggota' => $totalAnggota,
+                'nik_orangtua' => null,
+                'orangtua_data' => [
+                    'nik' => null,
+                    'nama' => null,
+                    'tempat_lahir' => null,
+                    'tanggal_lahir' => null,
+                    'hari_lahir' => null,
+                    'bulan_lahir' => null,
+                    'tahun_lahir' => null,
+                    'pekerjaan' => null,
+                    'pendidikan' => null,
+                    'kelamin' => null,
+                    'kepersertaan_bpjs' => null,
+                    'nomor_bpjs' => null,
+                    'nomor_telepon' => null,
+                ],
+            ];
+        }
+
+        if ($type === 'orangtua') {
             return [
                 'no_kk' => $noKk,
                 'nama_orangtua' => $source->nama ?? '-',
